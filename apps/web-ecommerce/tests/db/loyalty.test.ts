@@ -61,7 +61,7 @@ describe('member transactions on disposable PostgreSQL', () => {
     db = await seedTestDatabase();
     product = (await ProductModel.findOne({ where: { stock: { [Op.gt]: 5 } } }))!;
     // A real margin (cost 60% of the price): point vouchers pass the same profit checks as every main voucher (v6.2).
-    await product.update({ price: 4000000, importPrice: 2400000, grade: 'RG', stock: 40 });
+    await product.update({ price: 4000000, importPrice: 2400000, modelCode: 'RG-FIXTURE', stock: 40 });
     await ProductDiscountModel.destroy({ where: { productId: product.id } });
     [userId, otherId] = (await UserModel.findAll({ where: { role: 'USER' }, order: [['id', 'ASC']], limit: 2 })).map(
       (user) => user.id,

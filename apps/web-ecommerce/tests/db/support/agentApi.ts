@@ -83,6 +83,15 @@ export const establishedProducts = (sequelize: Sequelize, count: number, offset 
     { replacements: { count, offset }, type: QueryTypes.SELECT },
   );
 
+// The agent's promotion tests are written for a 40% gross margin (cost = 60% of the list price), what the researched
+// seed estimated; the owner's catalogue has its real buy-in prices, so the fixtures set that margin themselves.
+export const withTestMargin = async (sequelize: Sequelize, skus: string[]) => {
+  await sequelize.query('UPDATE product SET "importPrice" = ROUND(price * 0.6) WHERE sku IN (:skus)', {
+    replacements: { skus },
+  });
+  return skus;
+};
+
 export const select = <T extends object>(
   sequelize: Sequelize,
   sql: string,

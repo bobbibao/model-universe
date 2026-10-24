@@ -24,7 +24,6 @@ const CARD_FIELDS = [
   'sold',
   'rating',
   'reviewCount',
-  'grade',
   'scale',
   'condition',
   'salesChannel',

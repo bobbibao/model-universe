@@ -14,6 +14,7 @@ import { signAgentActorToken } from '../../../shared/server/utils/JwtUtils';
 import HttpError from '../../../shared/server/utils/HttpError';
 import Logger from '../../../shared/server/utils/logger';
 import { customerPath, parseCustomerAction } from '../../../shared/customer-assistant-policy';
+import { isModelCondition } from '../../../shared/gunpla';
 import { MIN_DEPOSIT_PERCENT } from '../../../shared/payment';
 import type { AuthUser } from '../../../shared/server/types/express';
 import type {
@@ -59,11 +60,21 @@ const productFacts = (p: ProductSummary, locale: 'vi' | 'en') => {
     id: p.id,
     name: p.name,
     brand: p.brandName,
-    grade: p.grade,
     scale: p.scale,
-    series: p.series,
     modelCode: p.modelCode,
     condition: p.condition,
+    // The conditions a model is offered in (listing) and each unit to choose from (details): a unit's productId is
+    // the one to add to the cart.
+    conditions: p.conditions,
+    conditionOptions: detail.conditionOptions?.map((option) => ({
+      productId: option.id,
+      condition: option.condition,
+      note: option.conditionNote,
+      missingAccessories: option.missingAccessories,
+      defects: option.defects,
+      salePrice: option.salePrice,
+      stock: option.stock,
+    })),
     assemblyState: p.assemblyState,
     boxCondition: p.boxCondition,
     includedAccessories: p.includedAccessories,
@@ -458,10 +469,8 @@ export default class CustomerAssistantService {
         const sorts = ['newest', 'price_asc', 'price_desc', 'name', 'best_selling', 'rating'];
         const result = await this.products.listPublic({
           q: text(read.q, 160),
-          grade: text(read.grade, 20),
           scale: text(read.scale, 30),
-          series: text(read.series, 100),
-          condition: ['new', 'preowned'].includes(String(read.condition)) ? String(read.condition) : undefined,
+          condition: isModelCondition(read.condition) ? read.condition : undefined,
           brand: text(read.brand, 100),
           category: text(read.category, 100),
           gender: ['male', 'female', 'unisex'].includes(String(read.gender)) ? String(read.gender) : undefined,

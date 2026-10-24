@@ -11,24 +11,20 @@ import type { ProductSummary } from '@/shared/types/product';
 import { collectorServices } from '@/components/Services/ServiceExperience';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { readRecentlyViewed } from '@/shared/client/recentlyViewed';
-
-const GRADES = [
-  ['EG', 'Entry Grade'],
-  ['HG', 'High Grade'],
-  ['RG', 'Real Grade'],
-  ['MG', 'Master Grade'],
-  ['PG', 'Perfect Grade'],
-  ['SD', 'Super Deformed'],
-];
+import ProductApi from '@/core/client/api/Product';
 
 // The home page in the order a shopper decides: today's offers (ticker, banners, vouchers), the live sale, what others
-// buy most, a quick way in by grade, what is new, good prices, what this visitor looked at, then the shop's services.
+// buy most, a quick way in by brand, what is new, good prices, what this visitor looked at, then the shop's services.
 const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
   const t = useTranslations('home');
   const experience = useTranslations('experience');
   const en = useLocale() === 'en';
   const [recent, setRecent] = useState<ProductSummary[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
   useEffect(() => setRecent(readRecentlyViewed()), []);
+  useEffect(() => {
+    ProductApi.getFilterOptions().then((options) => setBrands(options?.brands ?? []));
+  }, []);
   return (
     <>
       <AnnouncementTicker />
@@ -43,17 +39,19 @@ const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
         href="/cua-hang?sort=best_selling"
         query={{ sort: 'best_selling', inStock: true }}
       />
-      <section className="mu-wrap home-grades">
-        <h2>{t('gradeTitle')}</h2>
-        <nav>
-          {GRADES.map(([grade, name]) => (
-            <Link href={`/cua-hang?grade=${grade}`} key={grade} className="home-grade">
-              <strong>{grade}</strong>
-              <small>{name}</small>
-            </Link>
-          ))}
-        </nav>
-      </section>
+      {brands.length > 0 && (
+        <section className="mu-wrap home-grades">
+          <h2>{t('gradeTitle')}</h2>
+          <nav>
+            {brands.map((brand) => (
+              <Link href={`/cua-hang?brand=${encodeURIComponent(brand)}`} key={brand} className="home-grade">
+                <strong>{brand}</strong>
+                <small>{en ? 'Browse models' : 'Xem mô hình'}</small>
+              </Link>
+            ))}
+          </nav>
+        </section>
+      )}
       <ProductRail
         tone="new"
         icon="star"

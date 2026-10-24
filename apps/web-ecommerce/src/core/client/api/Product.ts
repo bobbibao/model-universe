@@ -6,6 +6,8 @@ import type { PaginatedResult } from '@/shared/types/pagination';
 import type {
   AdminProduct,
   AdminProductListItem,
+  ConditionOptionPayload,
+  InventoryStats,
   ProductDetail,
   ProductFilterOptions,
   ProductPayload,
@@ -78,6 +80,28 @@ export default class ProductApi {
     try {
       const response = await Api.get(ADMIN_PRODUCT_API.GET_PRODUCTS, { params: compactParams(params) });
       return response.data?.payload;
+    } catch (error) {
+      return undefined;
+    }
+  }
+
+  static async getInventoryStats(): Promise<InventoryStats | undefined> {
+    try {
+      const response = await Api.get(ADMIN_PRODUCT_API.GET_STATS);
+      return response.data;
+    } catch (error) {
+      return undefined;
+    }
+  }
+
+  // Adds a condition option (pre-owned, incomplete, defective, ...) to a main listing.
+  static async createConditionOption(
+    listingId: number,
+    payload: ConditionOptionPayload,
+  ): Promise<AdminProduct | undefined> {
+    try {
+      const response = await Api.post(ADMIN_PRODUCT_API.CREATE_CONDITION(listingId), payload);
+      return response.data;
     } catch (error) {
       return undefined;
     }

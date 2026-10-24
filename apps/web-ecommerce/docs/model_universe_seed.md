@@ -11,6 +11,16 @@ Tổng hợp từ `MODEL_UNIVERSE_Mecha_Catalog_Image_Tracking.xlsx` (tạo 10/1
 - `verification`: giữ nguyên trạng thái xác minh trong file gốc.
 - Ảnh chỉ là URL hotlink từ nhà bán lẻ (nhiều URL `encrypted-tbn0.gstatic.com` là thumbnail Google, có thể hết hạn). Nên tải về storage của bạn trước khi dùng production.
 
+## The owner's catalogue (2026-10-25)
+
+The owner's workbook "Danh mục 6 hãng" (archived in `docs/business/source/vi/catalog-6-brands-sheet-2026-10-25.md`,
+committed as `seeders/data/owner-catalog.json`) is now the shop's whole own catalogue. The researched rows below are
+provenance only: a workbook row that matches one keeps its product (SKU, images, `product_source`), the others are
+created with a placeholder image, and every researched product not in the workbook is retired (migration
+`2026-10-25-45-owner-catalog`, `yarn catalog:import`). Scale, box, weight, prices, stock and names come from the
+workbook, not from this research. A fresh seed writes only the workbook (with demo stock), not these rows; the section
+below describes the earlier seed.
+
 ## Seeding (2026-10-11)
 
 - Seed source of truth: `src/core/server/database/client/seeders/data/model-universe-catalog.json`. The tables below are

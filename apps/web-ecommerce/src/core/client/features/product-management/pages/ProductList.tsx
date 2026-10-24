@@ -11,6 +11,7 @@ import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
 import ProductApi, { AdminProductListParams } from '@/core/client/api/Product';
 import CategoryApi from '@/core/client/api/Category';
+import InventoryStats from '../components/InventoryStats';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Pagination, SortState } from '@/shared/types/pagination';
 import type { AdminProductListItem, Category } from '@/shared/types/product';
@@ -23,6 +24,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 const ProductList = () => {
   const router = useRouter();
   const t = useTranslations('adminProducts'),
+    catalog = useTranslations('catalog'),
     locale = useLocale();
   const [products, setProducts] = useState<AdminProductListItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -90,7 +92,20 @@ const ProductList = () => {
         </div>
       ),
     },
-    { key: 'category', header: t('category'), render: (product) => product.category?.name || '—' },
+    {
+      // Every condition the model is stocked in (main listing and condition options), with its units.
+      key: 'conditions',
+      header: t('conditionColumn'),
+      render: (product) => (
+        <div className="flex flex-wrap gap-1">
+          {(product.conditions ?? []).map((summary) => (
+            <span key={summary.condition} className={`condition-chip is-${summary.condition}`}>
+              {catalog(summary.condition)} · {summary.stock}
+            </span>
+          ))}
+        </div>
+      ),
+    },
     {
       key: 'price',
       header: t('price'),
@@ -111,9 +126,27 @@ const ProductList = () => {
       key: 'stock',
       header: t('stock'),
       sortable: true,
-      render: (product) => <span className={product.stock === 0 ? 'text-danger' : ''}>{product.stock}</span>,
+      render: (product) => (
+        <div>
+          <span className={product.stock === 0 ? 'text-danger' : ''}>{product.stock}</span>
+          {product.groupStock !== undefined && product.groupStock !== product.stock && (
+            <p className="text-xs text-body">
+              {t('groupStock')}: {product.groupStock}
+            </p>
+          )}
+        </div>
+      ),
     },
     { key: 'sold', header: t('sold'), sortable: true },
+    {
+      key: 'productionDate',
+      header: t('receivedDate'),
+      sortable: true,
+      render: (product) =>
+        product.productionDate
+          ? new Date(product.productionDate).toLocaleDateString(locale === 'en' ? 'en-GB' : 'vi-VN')
+          : '—',
+    },
     {
       key: 'isArchived',
       header: t('status'),
@@ -147,6 +180,7 @@ const ProductList = () => {
   return (
     <>
       <Breadcrumb pageName={t('title')} />
+      <InventoryStats />
       <DataTable
         title={t('list')}
         actions={

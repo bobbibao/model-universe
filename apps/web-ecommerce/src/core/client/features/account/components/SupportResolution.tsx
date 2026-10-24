@@ -6,6 +6,7 @@ import Api from '@/core/client/api/Api';
 import ProductPicker, { type PickedProduct } from '@/core/client/features/inventory/components/ProductPicker';
 import { SUPPORT_OUTCOMES, type SupportOutcome } from '@/shared/return-rules';
 import type { SupportCase } from '@/shared/types/support';
+import { isModelCondition } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import ProductImage from '@/components/ProductImage';
 
@@ -99,8 +100,8 @@ export default function SupportResolution({ id, admin = false }: { id: number; a
               <div>
                 <p className="mu-note">
                   {terms.replacement.name} · {terms.replacement.sku} · {terms.replacement.quantity} ·{' '}
-                  {terms.replacement.grade} {terms.replacement.scale} ·{' '}
-                  {catalog(terms.replacement.condition === 'preowned' ? 'preowned' : 'new')}
+                  {terms.replacement.scale} ·{' '}
+                  {catalog(isModelCondition(terms.replacement.condition) ? terms.replacement.condition : 'new')}
                 </p>
                 <p className="mu-note">
                   {catalog('assembly')}: {catalog(terms.replacement.assemblyState)}

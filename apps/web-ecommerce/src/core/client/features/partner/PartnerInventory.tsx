@@ -9,11 +9,11 @@ import Link from '@/i18n/navigation';
 import ProductImage from '@/components/ProductImage';
 import PartnerGuarantee from './PartnerGuarantee';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
-import { ASSEMBLY_STATES, GRADES } from '@/shared/gunpla';
+import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import type { Category } from '@/shared/types/product';
 import type { PartnerListing, PartnerListingSummary, PartnerProfile } from '@/shared/types/partner';
 
-const TEXT_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'series', 'boxCondition'] as const;
+const TEXT_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'boxCondition'] as const;
 export default function PartnerInventory({ admin = false }: { admin?: boolean }) {
   const t = useTranslations('partnerListings'),
     common = useTranslations('common'),
@@ -97,7 +97,6 @@ export default function PartnerInventory({ admin = false }: { admin?: boolean })
     const body = {
       ...Object.fromEntries(TEXT_FIELDS.map((field) => [field, data.get(field)])),
       description: data.get('description'),
-      grade: data.get('grade') || undefined,
       condition: data.get('condition'),
       assemblyState: data.get('assemblyState'),
       price: Number(data.get('price')),
@@ -305,7 +304,7 @@ export default function PartnerInventory({ admin = false }: { admin?: boolean })
                   <p className="mu-note whitespace-pre-wrap">{selected.description}</p>
                   <p className="mu-note">{t('reviewGate')}</p>
                   <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {(['modelCode', 'grade', 'scale', 'series', 'boxCondition'] as const).map((key) => (
+                    {(['modelCode', 'scale', 'boxCondition'] as const).map((key) => (
                       <div key={key}>
                         <dt className="text-sm font-semibold">{t(`fields.${key}`)}</dt>
                         <dd className="mu-note break-words">{selected[key] || '—'}</dd>
@@ -396,15 +395,6 @@ export default function PartnerInventory({ admin = false }: { admin?: boolean })
                           <option key={row.id} value={row.id}>
                             {row.name}
                           </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="mu-field">
-                      {t('fields.grade')}
-                      <select name="grade" defaultValue={selected?.grade || ''}>
-                        <option value="">{t('notApplicable')}</option>
-                        {GRADES.map((grade) => (
-                          <option key={grade}>{grade}</option>
                         ))}
                       </select>
                     </label>

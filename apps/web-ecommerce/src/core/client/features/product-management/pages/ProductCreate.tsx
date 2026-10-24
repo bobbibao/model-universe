@@ -1,6 +1,6 @@
 'use client';
 
-import { catalogFormula } from '@/shared/sale-pricing';
+import { catalogPricing } from '@/shared/sale-pricing';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -115,11 +115,11 @@ const ProductCreate = () => {
                 </div>
                 <div>
                   <dt className="inline text-body">{t('category')}</dt>
-                  <dd className="inline font-medium">{category?.name}</dd>
+                  <dd className="inline font-medium">{category?.name || t('noCategory')}</dd>
                 </div>
                 <div>
                   <dt className="inline text-body">{t('price')}</dt>
-                  <dd className="inline font-medium">{values.pricingReferenceMemberVnd ? formatVND(catalogFormula(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount)).listPriceVnd, locale) : values.price && formatVND(Number(values.price), locale)}</dd>
+                  <dd className="inline font-medium">{values.pricingReferenceMemberVnd ? formatVND(catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount)).listPriceVnd, locale) : values.price && formatVND(Number(values.price), locale)}</dd>
                 </div>
                 <div>
                   <dt className="inline text-body">{t('stock')}</dt>

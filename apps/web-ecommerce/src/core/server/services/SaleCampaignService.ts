@@ -79,7 +79,7 @@ export default class SaleCampaignService {
         price: p.price,
         costVnd: cost(p),
         stock: p.stock,
-        grade: p.grade,
+        scale: p.scale,
         ageDays: ages.get(p.id)!,
         currentDiscount: active.get(p.id)?.percent || 0,
         maximumSafePercent:
@@ -356,7 +356,6 @@ export default class SaleCampaignService {
           'price',
           'imageUrl',
           'stock',
-          'grade',
           'scale',
           'condition',
           'salesChannel',

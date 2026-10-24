@@ -30,7 +30,8 @@ export async function getPublicProduct(key: number | string): Promise<ProductDet
     if (response.status === 404) return null;
     if (!response.ok) return undefined;
     const product = await response.json() as ProductDetail;
-    return typeof key === 'number' ? (product.id === key ? product : undefined) : product;
+    // A condition option's id opens its main listing with the option selected.
+    return typeof key === 'number' ? (product.id === key || product.selectedOptionId === key ? product : undefined) : product;
   } catch { return undefined; }
 }
 

@@ -1,0 +1,286 @@
+/* Product conditions: one model sold new, pre-owned ("2hand"), missing accessories or defective. One colour per
+   condition, the same on cards, the product page, the cart and Admin: green new, amber pre-owned, blue incomplete,
+   rose defective. Text keeps at least 4.5:1 contrast on its tint in both themes. */
+:root {
+  --condition-new: #166534;
+  --condition-new-soft: #dcfce7;
+  --condition-preowned: #92400e;
+  --condition-preowned-soft: #fef3c7;
+  --condition-incomplete: #1e40af;
+  --condition-incomplete-soft: #dbeafe;
+  --condition-defective: #9f1239;
+  --condition-defective-soft: #ffe4e6;
+}
+.dark {
+  --condition-new: #86efac;
+  --condition-new-soft: rgb(22 163 74 / 0.18);
+  --condition-preowned: #fcd34d;
+  --condition-preowned-soft: rgb(217 119 6 / 0.2);
+  --condition-incomplete: #93c5fd;
+  --condition-incomplete-soft: rgb(37 99 235 / 0.22);
+  --condition-defective: #fda4af;
+  --condition-defective-soft: rgb(225 29 72 / 0.2);
+}
+
+.condition-chip,
+.product-tile-tags span.condition-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.condition-chip.is-new {
+  color: var(--condition-new);
+  background: var(--condition-new-soft);
+}
+.condition-chip.is-preowned {
+  color: var(--condition-preowned);
+  background: var(--condition-preowned-soft);
+}
+.condition-chip.is-incomplete {
+  color: var(--condition-incomplete);
+  background: var(--condition-incomplete-soft);
+}
+.condition-chip.is-defective {
+  color: var(--condition-defective);
+  background: var(--condition-defective-soft);
+}
+
+/* Filter pills: a dot in the condition's colour. */
+.condition-dot::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+.condition-dot.is-new::before {
+  background: #16a34a;
+}
+.condition-dot.is-preowned::before {
+  background: #d97706;
+}
+.condition-dot.is-incomplete::before {
+  background: #2563eb;
+}
+.condition-dot.is-defective::before {
+  background: #e11d48;
+}
+
+/* Product card: a model sold out new but in stock in another condition. */
+.tile-from-price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tile-from-price strong {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--p-ink, #22212b);
+}
+.tile-from-price small {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--condition-preowned);
+}
+
+/* Product page: the condition picker. */
+.condition-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--p-line, #e7e5dd);
+  border-radius: 16px;
+  background: var(--p-card, #fff);
+}
+.condition-picker-head h2 {
+  font-size: 15px;
+  font-weight: 800;
+}
+.condition-picker-head p {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--p-muted, #6a6877);
+}
+.condition-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.condition-option {
+  position: relative;
+  cursor: pointer;
+}
+.condition-option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.condition-option-card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 44px;
+  padding: 11px 12px;
+  border: 1.5px solid var(--p-line, #e7e5dd);
+  border-radius: 12px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.condition-option-card strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--p-ink, #22212b);
+}
+.condition-option-card s,
+.condition-option-card small {
+  font-size: 12px;
+  color: var(--p-muted, #6a6877);
+}
+.condition-option-card em {
+  font-size: 11.5px;
+  font-style: normal;
+  color: var(--p-muted, #6a6877);
+}
+.condition-option:hover .condition-option-card {
+  border-color: var(--p-accent, #7956d8);
+}
+.condition-option input:checked + .condition-option-card {
+  border-color: var(--p-accent, #7956d8);
+  box-shadow: 0 0 0 3px var(--p-accent-soft, #f1edfb);
+}
+.condition-option input:focus-visible + .condition-option-card {
+  outline: 3px solid var(--p-accent, #7956d8);
+  outline-offset: 2px;
+}
+.condition-option.is-soldout .condition-option-card {
+  opacity: 0.65;
+}
+.condition-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--condition-new);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--condition-new-soft);
+}
+.condition-details.is-preowned {
+  border-color: var(--condition-preowned);
+  background: var(--condition-preowned-soft);
+}
+.condition-details.is-incomplete {
+  border-color: var(--condition-incomplete);
+  background: var(--condition-incomplete-soft);
+}
+.condition-details.is-defective {
+  border-color: var(--condition-defective);
+  background: var(--condition-defective-soft);
+}
+.condition-details ul {
+  padding-left: 18px;
+  list-style: disc;
+}
+
+/* Admin: inventory statistics above the product list. */
+.inventory-stats {
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  border: 1px solid var(--admin-line, #e2e8f0);
+  border-radius: 12px;
+  background: var(--admin-surface, #fff);
+  color: var(--admin-ink, inherit);
+}
+.inventory-stats > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  cursor: pointer;
+}
+.inventory-stats > summary span {
+  font-size: 16px;
+  font-weight: 700;
+}
+.inventory-stats > summary small {
+  font-size: 12.5px;
+  color: var(--admin-muted, #64748b);
+}
+.inventory-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.inventory-kpi {
+  padding: 12px 14px;
+  border: 1px solid var(--admin-line, #e2e8f0);
+  border-radius: 10px;
+  background: var(--admin-soft, #f8fafc);
+}
+.inventory-kpi.is-warn {
+  border-color: var(--admin-warning, #d97706);
+}
+.inventory-kpi-label {
+  font-size: 12.5px;
+  color: var(--admin-muted, #64748b);
+}
+.inventory-kpi-value {
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.inventory-kpi-hint {
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--admin-muted, #64748b);
+}
+.inventory-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+.inventory-tables table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.inventory-tables caption {
+  padding-bottom: 6px;
+  font-weight: 700;
+  text-align: left;
+}
+.inventory-tables th,
+.inventory-tables td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--admin-line, #e2e8f0);
+  text-align: right;
+}
+.inventory-tables th:first-child {
+  text-align: left;
+}
+.inventory-tables thead th {
+  font-weight: 600;
+  color: var(--admin-muted, #64748b);
+}

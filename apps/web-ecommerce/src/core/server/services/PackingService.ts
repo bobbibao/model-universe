@@ -3,7 +3,6 @@ import UserModel from '../database/internal/models/User.Model';
 import ShippingCartonModel from '../database/client/models/ShippingCarton.Model';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { asTrimmedString } from '../../../shared/server/utils/ValidationUtils';
-import { GRADES } from '../../../shared/gunpla';
 import type { Carton } from '../../../shared/packing/geometry';
 import {
   DEFAULT_PACKING_CONFIG,
@@ -83,7 +82,7 @@ export default class PackingService {
     const grades: Record<string, GradePackDefault> = {};
     for (const box of Array.isArray(data.grades) ? data.grades : []) {
       const grade = String(object(box).grade ?? '');
-      if (!(GRADES as readonly string[]).includes(grade))
+      if (!(grade in DEFAULT_PACKING_CONFIG.grades))
         throw HttpError.badRequest('Unknown grade.', undefined, 'PACKING_INVALID');
       grades[grade] = parseBox(box, grade);
     }

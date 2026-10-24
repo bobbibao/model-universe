@@ -27,7 +27,7 @@ describe('reservation transactions on a disposable database', () => {
     jest.spyOn(ConversionService.prototype, 'recordPurchase').mockResolvedValue(undefined as never);
     db = await seedTestDatabase();
     product = (await ProductModel.findOne({ where: { stock: { [Op.gt]: 5 } } }))!;
-    await product.update({ price: 1000000, grade: 'RG' });
+    await product.update({ price: 1000000, modelCode: 'RG-FIXTURE' });
     await ProductDiscountModel.destroy({ where: { productId: product.id } });
     const users = await UserModel.findAll({ where: { role: 'USER' }, order: [['id','ASC']], limit: 2 });
     [userId, otherId] = users.map(user => user.id);

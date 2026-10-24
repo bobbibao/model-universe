@@ -64,20 +64,14 @@ for (const locale of ['vi', 'en'])
       await sort.press('ArrowDown');
       await sort.press('Escape');
       await expect(sort).toBeFocused();
-      await form.getByRole('radio', { name: 'MG', exact: true }).check();
-      await expect(page).toHaveURL(/grade=MG/);
+      await form.getByRole('radio', { name: messages.catalog.preowned, exact: true }).check();
+      await expect(page).toHaveURL(/condition=preowned/);
       await expect(page).toHaveURL(/sort=price_asc/);
-      await form.getByRole('radio', { name: messages.catalog.allGrades, exact: true }).check();
+      await capture(page, `${locale}-${width}-condition-picker`);
+      await form.getByRole('radio', { name: messages.catalog.allConditions, exact: true }).check();
+      await expect.poll(() => new URL(page.url()).searchParams.has('condition')).toBe(false);
       const more = page.locator('.catalog-filter-more:visible');
       await revealRefinements(page);
-      const condition = page.getByLabel(messages.catalog.condition, { exact: true });
-      await condition.click();
-      await capture(page, `${locale}-${width}-condition-picker`);
-      await condition.getByRole('option', { name: messages.catalog.preowned, exact: true }).click();
-      await expect(condition).toHaveValue('preowned');
-      await expect(page).toHaveURL(/condition=preowned/);
-      await condition.selectOption('');
-      await expect.poll(() => new URL(page.url()).searchParams.has('condition')).toBe(false);
       await expect(more).toHaveAttribute('open', '');
       await form.getByLabel(messages.catalog.inStock, { exact: true }).check();
       await expect(page).toHaveURL(/inStock=true/);
@@ -143,9 +137,9 @@ for (const locale of ['vi', 'en'])
         messages.catalog.results.replace('{count}', '0'),
       );
       await capture(page, `${locale}-${width}-zero-budget`);
-      await page.goto(`/${locale}/kit-finder?grade=HG&maxPrice=800000`);
+      await page.goto(`/${locale}/kit-finder?condition=new&maxPrice=800000`);
       await revealFilters(page);
-      await expect(page).toHaveURL(new RegExp(`/${locale}/cua-hang\\?grade=HG&maxPrice=800000`));
+      await expect(page).toHaveURL(new RegExp(`/${locale}/cua-hang\\?condition=new&maxPrice=800000`));
       await expect(form.getByRole('radio', { name: 'HG', exact: true })).toBeChecked();
       if (width === 1440) {
         await expect(
@@ -226,30 +220,24 @@ test('narrow phone and tablet filters stay within the viewport', async ({ page }
 test('instant filters preserve rapid choices, reset pagination and cancel pending edits', async ({ page }) => {
   await page.goto('/en/cua-hang?page=3');
   await revealRefinements(page);
-  await page.getByRole('radio', { name: 'HG', exact: true }).check();
+  await page.getByRole('radio', { name: en.catalog.new, exact: true }).check();
   await page.getByLabel(en.catalog.inStock, { exact: true }).check();
   await expect
     .poll(() => {
       const params = new URL(page.url()).searchParams;
-      return [params.get('grade'), params.get('inStock'), params.has('page')];
+      return [params.get('condition'), params.get('inStock'), params.has('page')];
     })
-    .toEqual(['HG', 'true', false]);
-  await expect(page.getByRole('radio', { name: 'HG', exact: true })).toBeChecked();
-  await page.getByLabel(en.catalog.series, { exact: true }).fill('Unicorn');
-  await expect.poll(() => new URL(page.url()).searchParams.get('series')).toBe('Unicorn');
-  await page.getByLabel(en.catalog.series, { exact: true }).fill('pending edit');
+    .toEqual(['new', 'true', false]);
+  await expect(page.getByRole('radio', { name: en.catalog.new, exact: true })).toBeChecked();
+  const minimum = page.locator('#filter-min-price-input:visible');
+  await minimum.fill('100000');
+  await expect.poll(() => new URL(page.url()).searchParams.get('minPrice')).toBe('100000');
+  await minimum.fill('200000');
   await page.getByRole('button', { name: en.catalog.reset, exact: true }).click();
   await expect(page).toHaveURL(/\/en\/cua-hang$/);
-  await expect(page.getByLabel(en.catalog.series, { exact: true })).toHaveValue('');
-  // Let the debounce interval expire: reset must not reapply the pending text.
+  // Let the debounce interval expire: reset must not reapply the pending price.
   await page.waitForTimeout(400);
   await expect(page).toHaveURL(/\/en\/cua-hang$/);
   await page.goBack();
-  await expect(page.getByLabel(en.catalog.series, { exact: true })).toHaveValue('Unicorn');
-  const category = page.getByLabel(en.catalog.category, { exact: true });
-  const slug = await category.locator('option').nth(1).getAttribute('value');
-  await category.selectOption(slug!);
-  await expect(page).toHaveURL(new RegExp(`/en/cua-hang/${slug}\\?`));
-  await expect(category).toHaveValue(slug!);
-  await expect(page.getByRole('radio', { name: 'HG', exact: true })).toBeChecked();
+  await expect(page.getByRole('radio', { name: en.catalog.new, exact: true })).toBeChecked();
 });

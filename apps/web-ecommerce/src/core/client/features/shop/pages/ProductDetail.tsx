@@ -2,26 +2,30 @@
 
 import { rememberViewed } from '@/shared/client/recentlyViewed';
 import { productPath } from '@/shared/slug';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import useCustomerActionRefresh from '@/hooks/useCustomerActionRefresh';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import ProductApi from '@/core/client/api/Product';
 import Api from '@/core/client/api/Api';
 import WishlistApi from '@/core/client/api/Wishlist';
 import { useCart } from '@/shared/client/providers/CartProvider';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCustomerAssistant } from '@/shared/client/providers/CustomerAssistantProvider';
+import { formatVND } from '@/shared/server/utils/utils';
 import type { WishlistItem } from '@/shared/types/cart';
 import OfferPanel from '../components/OfferPanel';
-import type { ProductDetail as ProductDetailType } from '@/shared/types/product';
+import type { ProductConditionOption, ProductDetail as ProductDetailType } from '@/shared/types/product';
 import ProductGallery from '../components/ProductGallery';
 import ProductReviews from '../components/ProductReviews';
 import RatingStars from '../components/RatingStars';
 import RestockAlert from '../components/RestockAlert';
 import { trackAddToCart, trackViewContent } from '@/shared/client/utils/tracking';
+
+// The URL parameter that keeps the chosen condition (a condition option's product id) when the page is shared.
+const CONDITION_PARAM = 'tinh-trang';
 
 const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="rounded-md bg-gray-2 px-4 py-3 dark:bg-store-card">
@@ -30,14 +34,55 @@ const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) =
   </div>
 );
 
+// The units a customer can choose: the main listing and its condition options (an older response has only the
+// listing itself).
+const unitsOf = (product: ProductDetailType): ProductConditionOption[] =>
+  product.conditionOptions?.length
+    ? product.conditionOptions
+    : [
+        {
+          id: product.id,
+          uuid: product.uuid ?? '',
+          slug: product.slug ?? '',
+          sku: product.sku,
+          isMain: true,
+          condition: product.condition ?? 'new',
+          conditionNote: product.conditionNote ?? null,
+          missingAccessories: product.missingAccessories ?? [],
+          defects: product.defects ?? [],
+          includedAccessories: product.includedAccessories ?? [],
+          boxCondition: product.boxCondition ?? null,
+          assemblyState: product.assemblyState,
+          imageUrl: product.imageUrl,
+          images: product.images,
+          stock: product.stock,
+          price: product.price,
+          salePrice: product.salePrice,
+          discountPercent: product.discountPercent,
+          discountEndsAt: product.discountEndsAt,
+          managedSale: product.managedSale,
+        },
+      ];
+
+// The unit shown first: the one asked for (a shared link or an option's own page), else the main listing while it is
+// in stock, else the first unit in stock.
+const initialUnitId = (product: ProductDetailType, requested: number | null) => {
+  const units = unitsOf(product);
+  const wanted = units.find((unit) => unit.id === requested || (!requested && unit.id === product.selectedOptionId && !unit.isMain));
+  return (wanted ?? (units[0].stock > 0 ? units[0] : units.find((unit) => unit.stock > 0) ?? units[0])).id;
+};
+
 const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType } = {}) => {
   const t = useTranslations('catalog');
   const seller = useTranslations('sellerStore');
   const locale = useLocale();
   // The SEO page passes the slug; older /shop/product/<id> links redirect to it.
   const params = useParams<{ id?: string; slug?: string }>();
+  const searchParams = useSearchParams();
+  const requestedUnit = Number(searchParams.get(CONDITION_PARAM)) || null;
   const productKey = params.slug || (Number(params.id) > 0 ? Number(params.id) : null);
   const [product, setProduct] = useState<ProductDetailType | null | undefined>(initialProduct);
+  const [unitId, setUnitId] = useState(initialProduct ? initialUnitId(initialProduct, requestedUnit) : 0);
   const productId = product?.id ?? initialProduct?.id ?? 0;
   const [size, setSize] = useState(initialProduct?.availableSizes[0] || '');
   const [quantity, setQuantity] = useState(1);
@@ -65,6 +110,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
       if (resetSelection) {
         setSize(result?.availableSizes[0] || '');
         setQuantity(1);
+        if (result) setUnitId(initialUnitId(result, Number(new URLSearchParams(window.location.search).get(CONDITION_PARAM)) || null));
       }
     },
     [productKey],
@@ -84,11 +130,27 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   }, [loadProduct, user]);
   useCustomerActionRefresh('wishlist_add,wishlist_remove,review', refreshAssistantChanges);
 
-  const wishlistItem = wishlist.find((item) => item.productId === productId && item.size === size);
+  const units = useMemo(() => (product ? unitsOf(product) : []), [product]);
+  // The chosen unit: what is priced, pictured, put in the cart, saved or reserved.
+  const unit = units.find((item) => item.id === unitId) ?? units[0];
+  const unitPath = product ? `${productPath(product)}${unit && !unit.isMain ? `?${CONDITION_PARAM}=${unit.id}` : ''}` : '';
+
+  const chooseUnit = (id: number) => {
+    setUnitId(id);
+    setQuantity(1);
+    const chosen = units.find((item) => item.id === id);
+    const url = new URL(window.location.href);
+    if (chosen && !chosen.isMain) url.searchParams.set(CONDITION_PARAM, String(id));
+    else url.searchParams.delete(CONDITION_PARAM);
+    window.history.replaceState(window.history.state, '', url);
+  };
+
+  const wishlistItem = wishlist.find((item) => item.productId === unit?.id && item.size === size);
 
   const toggleWishlist = async () => {
+    if (!unit) return;
     if (!user) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent(product ? productPath(product) : `/shop/product/${productId}`)}`);
+      router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath || `/shop/product/${productId}`)}`);
       return;
     }
     setWishlistBusy(true);
@@ -97,7 +159,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         setWishlist(wishlist.filter((item) => item.id !== wishlistItem.id));
       }
     } else {
-      const added = await WishlistApi.addItem(productId, size);
+      const added = await WishlistApi.addItem(unit.id, size);
       if (added) setWishlist([...wishlist, { ...added } as WishlistItem]);
     }
     setWishlistBusy(false);
@@ -111,7 +173,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     );
   }
 
-  if (product === null) {
+  if (product === null || !unit) {
     return (
       <div className="py-32 text-center">
         <p className="mb-4 text-xl">{t('notFound')}</p>
@@ -122,7 +184,10 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     );
   }
 
-  const inStock = product.stock > 0;
+  const inStock = unit.stock > 0;
+  // The listing as the chosen unit: its price, discount and stock (the model's name and brand stay the listing's).
+  const offer: ProductDetailType = { ...product, ...unit, id: unit.id, images: unit.images };
+  const listOrInspect = (items: string[]) => items.join(', ') || t('inspectionRequired');
 
   return (
     <div className="studio-product-detail mx-auto max-w-7xl px-4 py-10">
@@ -130,19 +195,11 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         <Link href="/cua-hang" className="hover:text-brand-hover">
           {t('title')}
         </Link>
-        {product.category && (
-          <>
-            {' / '}
-            <Link href={`/cua-hang?category=${product.category.slug}`} className="hover:text-brand-hover">
-              {product.category.name}
-            </Link>
-          </>
-        )}
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2">
         <div>
-          <ProductGallery images={[product.imageUrl, ...product.images]} alt={product.name} />
+          <ProductGallery images={[unit.imageUrl, ...unit.images]} alt={`${product.name} · ${t(unit.condition)}`} />
           {!!product.imageAttributions?.length && (
             <details className="mt-4 text-xs text-body">
               <summary className="cursor-pointer">{t('imageCredits')}</summary>
@@ -174,7 +231,8 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               <span>{t('noReviews')}</span>
             )}
           </div>
-          <OfferPanel product={product} />
+          <ConditionPicker units={units} selected={unit} onSelect={chooseUnit} />
+          <OfferPanel product={offer} />
           {product.partnerId && (
             <Link className="text-sm underline" href={`/sellers/${product.partnerId}`}>
               {seller('view')}
@@ -228,8 +286,8 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               <span className="flex-1 text-center font-semibold">{quantity}</span>
               <button
                 className="px-4 py-2 text-lg disabled:opacity-40"
-                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                disabled={quantity >= product.stock}
+                onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
+                disabled={quantity >= unit.stock}
                 aria-label={t('increase')}
               >
                 +
@@ -241,8 +299,8 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             <button
               disabled={!inStock}
               onClick={() => {
-                if (addItem(product, size, quantity)) {
-                  trackAddToCart({ id: String(product.id), name: product.name, price: product.salePrice, quantity });
+                if (addItem({ ...offer, name: product.name, brandName: product.brandName }, size, quantity)) {
+                  trackAddToCart({ id: String(unit.id), name: product.name, price: unit.salePrice, quantity });
                 }
               }}
               className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
@@ -258,13 +316,13 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             </button>
           </div>
 
-          {product.grade && (
+          {product.modelCode && !product.partnerId && (
             <button
               disabled={!inStock || reserveBusy}
               className="mu-button w-full disabled:opacity-50"
               onClick={async () => {
                 if (!user) {
-                  router.push(`/auth/signin?redirect=${encodeURIComponent(product ? productPath(product) : `/shop/product/${productId}`)}`);
+                  router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
                   return;
                 }
                 if (reservationRequest.current?.quantity !== quantity)
@@ -272,9 +330,9 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 setReserveBusy(true);
                 try {
                   await Api.post('/reservations', {
-                    productId,
+                    productId: unit.id,
                     quantity,
-                    expectedTotal: product.salePrice * quantity,
+                    expectedTotal: unit.salePrice * quantity,
                     requestKey: reservationRequest.current.key,
                   });
                   router.push('/reservations');
@@ -291,42 +349,37 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
           <div className="rounded-lg border border-stroke p-5">
             <h2 className="font-bold">{t('details')}</h2>
             <p className="mu-note">
-              {t('accessories')}: {(product.includedAccessories || []).join(', ') || t('inspectionRequired')}
+              {t('accessories')}: {listOrInspect(unit.includedAccessories)}
             </p>
+            {unit.missingAccessories.length > 0 && (
+              <p className="mu-note">
+                {t('missingAccessories')}: {unit.missingAccessories.join(', ')}
+              </p>
+            )}
             <p className="mu-note">
-              {t('defects')}: {(product.defects || []).join(', ') || t('inspectionRequired')}
+              {t('defects')}: {listOrInspect(unit.defects)}
             </p>
             <p className="mu-note">{t('unboxing')}</p>
           </div>
-          {!inStock && <RestockAlert productId={productId} />}
+          {!inStock && <RestockAlert key={unit.id} productId={unit.id} />}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <InfoItem label={t('brand')} value={product.brandName} />
-            <InfoItem label={t('grade')} value={product.grade || '—'} />
+            <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
             <InfoItem label={t('scale')} value={product.scale || '—'} />
-            <InfoItem label={t('series')} value={product.series || '—'} />
-            <InfoItem label={t('condition')} value={t(product.condition === 'preowned' ? 'preowned' : 'new')} />
-            <InfoItem label={t('assembly')} value={product.assemblyState ? t(product.assemblyState) : '—'} />
-            <InfoItem label={t('box')} value={product.boxCondition || '—'} />
+            <InfoItem label={t('condition')} value={t(unit.condition)} />
+            <InfoItem label={t('assembly')} value={unit.assemblyState ? t(unit.assemblyState) : '—'} />
+            <InfoItem label={t('box')} value={unit.boxCondition || '—'} />
             <InfoItem
               label={t('availability')}
               value={
                 inStock ? (
-                  <span className="text-success">{t('availableCount', { count: product.stock })}</span>
+                  <span className="text-success">{t('availableCount', { count: unit.stock })}</span>
                 ) : (
                   <span className="text-danger">{t('soldOut')}</span>
                 )
               }
             />
-            <InfoItem label="SKU" value={product.sku} />
-            <InfoItem label={t('category')} value={product.category?.name || '—'} />
-            <InfoItem
-              label={t('receivedDate')}
-              value={
-                product.productionDate
-                  ? new Date(product.productionDate).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-GB')
-                  : '—'
-              }
-            />
+            <InfoItem label="SKU" value={unit.sku} />
           </div>
         </div>
       </div>
@@ -339,6 +392,67 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         onReviewSubmitted={() => loadProduct(false)}
       />
     </div>
+  );
+};
+
+// The conditions a model is sold in, as cards to choose from (native radios: arrow keys move between them), each with
+// its price and stock; below, what the chosen condition means and what is missing or wrong with it.
+const ConditionPicker = ({
+  units,
+  selected,
+  onSelect,
+}: {
+  units: ProductConditionOption[];
+  selected: ProductConditionOption;
+  onSelect: (id: number) => void;
+}) => {
+  const t = useTranslations('catalog');
+  const locale = useLocale();
+  const facts = [
+    selected.conditionNote,
+    selected.missingAccessories.length > 0 && `${t('missingAccessories')}: ${selected.missingAccessories.join(', ')}`,
+    selected.condition !== 'new' && selected.defects.length > 0 && `${t('defects')}: ${selected.defects.join(', ')}`,
+  ].filter(Boolean) as string[];
+  return (
+    <section className="condition-picker" aria-labelledby="condition-picker-title">
+      <div className="condition-picker-head">
+        <h2 id="condition-picker-title">{units.length > 1 ? t('chooseCondition') : t('condition')}</h2>
+        {units.length > 1 && <p>{t('conditionHint')}</p>}
+      </div>
+      {units.length > 1 && (
+        <div className="condition-options" role="radiogroup" aria-labelledby="condition-picker-title">
+          {units.map((unit) => (
+            <label key={unit.id} className={`condition-option${unit.stock <= 0 ? ' is-soldout' : ''}`}>
+              <input
+                type="radio"
+                name="condition-option"
+                value={unit.id}
+                checked={unit.id === selected.id}
+                onChange={() => onSelect(unit.id)}
+              />
+              <span className="condition-option-card">
+                <span className={`condition-chip is-${unit.condition}`}>{t(unit.condition)}</span>
+                <strong>{formatVND(unit.salePrice, locale)}</strong>
+                {unit.salePrice < unit.price && <s>{formatVND(unit.price, locale)}</s>}
+                <small>{unit.stock > 0 ? t('conditionStock', { count: unit.stock }) : t('conditionSoldOut')}</small>
+                {unit.conditionNote && <em>{unit.conditionNote}</em>}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
+      <div className={`condition-details is-${selected.condition}`} aria-live="polite">
+        {units.length === 1 && <span className={`condition-chip is-${selected.condition}`}>{t(selected.condition)}</span>}
+        <p>{t(`conditionDescriptions.${selected.condition}`)}</p>
+        {facts.length > 0 && (
+          <ul>
+            {facts.map((fact) => (
+              <li key={fact}>{fact}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 };
 

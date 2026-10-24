@@ -1,4 +1,10 @@
-import { catalogFormula, safeSalePercent, weeklySalePercent, vietnamWeekStart } from '../../src/shared/sale-pricing';
+import {
+  catalogFormula,
+  catalogPricing,
+  safeSalePercent,
+  weeklySalePercent,
+  vietnamWeekStart,
+} from '../../src/shared/sale-pricing';
 import { memberPrice } from '../../src/shared/pricing';
 import { couponDiscount } from '../../src/core/server/services/CouponService';
 import { applyDiscount } from '../../src/core/server/services/ProductDiscountService';
@@ -20,6 +26,15 @@ describe('shop sale and catalog pricing', () => {
     expect(() => catalogFormula(5_000_001, 0)).toThrow();
     expect(() => catalogFormula(100_000, 1)).toThrow();
     expect(() => catalogFormula(900_000, -1)).toThrow();
+  });
+  it('prices catalogue models above the buy-back table from S without a formula buy-back price', () => {
+    expect(catalogPricing(2_350_000, 0)).toEqual(catalogFormula(2_350_000, 0));
+    const metalBuild = catalogPricing(40_000_000, 0);
+    expect(memberPrice(metalBuild.listPriceVnd)).toBe(40_000_000);
+    expect(metalBuild).toMatchObject({ buybackPriceVnd: null, deductionVnd: null, referenceMemberVnd: 40_000_000 });
+    expect(() => catalogPricing(6_000_000, 1)).toThrow();
+    expect(() => catalogPricing(1_000_000_001, 0)).toThrow();
+    expect(() => catalogPricing(0, 0)).toThrow();
   });
   it('selects deeper weekly discounts only when the original profit floor allows them', () => {
     expect(weeklySalePercent(1_000_000, 100_000, 60, 25)).toBe(15);

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -7,6 +8,14 @@ import { getPublicProduct } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
+
+// schema.org item conditions: a unit missing accessories or with defects is offered as damaged.
+const ITEM_CONDITIONS: Record<string, string> = {
+  new: 'https://schema.org/NewCondition',
+  preowned: 'https://schema.org/UsedCondition',
+  incomplete: 'https://schema.org/DamagedCondition',
+  defective: 'https://schema.org/DamagedCondition',
+};
 
 const describe = (product: NonNullable<Awaited<ReturnType<typeof getPublicProduct>>>, locale: string) => {
   const text =
@@ -58,19 +67,19 @@ export default async function Page({ params }: Props) {
     image: [product.imageUrl, ...(product.images || [])].filter(Boolean),
     description: describe(product, locale) || undefined,
     brand: { '@type': 'Brand', name: product.brandName },
-    category: product.category?.name,
     ...(product.reviewCount > 0
       ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: product.rating, reviewCount: product.reviewCount } }
       : {}),
-    offers: {
+    // One offer per condition the model is sold in.
+    offers: (product.conditionOptions ?? [{ ...product, isMain: true }]).map((option) => ({
       '@type': 'Offer',
-      url: `${siteUrl()}/${locale}/san-pham/${product.slug}`,
+      url: `${siteUrl()}/${locale}/san-pham/${product.slug}${option.isMain ? '' : `?tinh-trang=${option.id}`}`,
+      sku: option.sku,
       priceCurrency: 'VND',
-      price: product.salePrice ?? product.price,
-      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition:
-        product.condition === 'new' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
-    },
+      price: option.salePrice ?? option.price,
+      availability: option.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      itemCondition: ITEM_CONDITIONS[option.condition ?? 'new'] ?? ITEM_CONDITIONS.new,
+    })),
   };
   return (
     <StoreLayout>
@@ -81,7 +90,9 @@ export default async function Page({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }}
         />
       )}
-      <ProductDetail key={slug} initialProduct={product} />
+      <Suspense>
+        <ProductDetail key={slug} initialProduct={product} />
+      </Suspense>
     </StoreLayout>
   );
 }

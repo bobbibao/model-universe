@@ -9,6 +9,7 @@ import { formatVND } from '@/shared/server/utils/utils';
 
 const CartLineItem = ({ entry }: { entry: CartEntry }) => {
   const t = useTranslations('checkout'),
+    catalog = useTranslations('catalog'),
     locale = useLocale();
   const { updateQuantity, removeItem } = useCart();
   const { item, line } = entry;
@@ -31,6 +32,12 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
         </Link>
         <p className="cart-line-meta">
           {t('brand')}: {product?.brandName || item.brandName}
+          {product?.condition && product.condition !== 'new' && (
+            <>
+              {' '}
+              <span className={`condition-chip is-${product.condition}`}>{catalog(product.condition)}</span>
+            </>
+          )}
         </p>
         {!!product?.partnerId && <p className="text-sm text-brand">{t('partnerItem')}</p>}
         {item.size && (

@@ -311,7 +311,6 @@ export const seedPartnerData = async (): Promise<PartnerSeedResult> => {
         descriptionVi,
         descriptionEn: `Factory-sealed ${info.en.toLowerCase()}. Ships from ${seller.application.displayName} within ${item.dispatchDays} business days. Demo listing: the photo is a reference image, not the actual item.`,
         scale: entry.scale && entry.scale !== 'N/A' ? entry.scale : undefined,
-        series: entry.series || undefined,
         modelCode: entry.sku,
         condition: 'new',
         assemblyState: info.assemblyState,

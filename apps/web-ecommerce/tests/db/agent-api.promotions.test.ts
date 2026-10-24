@@ -1,7 +1,7 @@
 import type { Express } from 'express';
 import type { Sequelize } from 'sequelize-typescript';
 import { seedTestDatabase, testApp } from './support/testDb';
-import { callAgent, callApproved, establishedProducts, select, useApprovalSecret } from './support/agentApi';
+import { callAgent, callApproved, establishedProducts, select, useApprovalSecret, withTestMargin } from './support/agentApi';
 import ProductModel from '../../src/core/server/database/client/models/Product.Model';
 
 // Promotions through the Agent API (packages/contracts/openapi/web-agent-api.yaml): discounts on SKUs, agent
@@ -15,6 +15,8 @@ describe('Agent API: promotions', () => {
     sequelize = await seedTestDatabase();
     app = await testApp('AgentApi.Controller');
     skus = (await establishedProducts(sequelize, 10)).map((p) => p.sku);
+    // Shop-wide coupons are checked against every product on sale.
+    await withTestMargin(sequelize, (await select<{ sku: string }>(sequelize, 'SELECT sku FROM product WHERE NOT "isArchived"')).map((p) => p.sku));
     // Boundary fixtures must not depend on a small catalog's deterministic SKU hash producing a new arrival.
     const source = (await ProductModel.findOne({ where: { condition: 'new', isArchived: false } }))!;
     await ProductModel.create({ name: 'Synthetic recently received Gunpla test fixture', sku: 'PROMOTION-NEW-ARRIVAL', brandName: source.brandName,

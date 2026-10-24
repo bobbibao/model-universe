@@ -35,14 +35,15 @@ for (const locale of ['vi', 'en']) {
       expect(response.ok()).toBeTruthy();
       const products = (await response.json()).payload.data;
       expect(products.length).toBeGreaterThan(0);
-      await page.goto(`/${locale}/shop?grade=RG`);
+      const brand = products[0].brandName;
+      await page.goto(`/${locale}/shop?brand=${encodeURIComponent(brand)}`);
       await expect(
         page.getByRole('heading', { name: locale === 'en' ? 'The collection' : 'Bộ sưu tập', exact: true }),
       ).toBeVisible();
       await expect(
         page
           .getByRole('link', {
-            name: products.find((product: { grade: string }) => product.grade === 'RG').name,
+            name: products.find((product: { brandName: string }) => product.brandName === brand).name,
             exact: true,
           })
           .first(),

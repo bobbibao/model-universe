@@ -222,7 +222,9 @@ describe('customer assistant boundaries and catalog advice', () => {
     expect((await service.chat(makeUser('USER'), { message: 'Đánh giá' })).actions).toHaveLength(1);
   });
   it('searches every word of the query in any order', async () => {
-    const find = jest.spyOn(ProductModel, 'findAndCountAll').mockResolvedValue({ rows: [], count: 0 } as never);
+    // The words select the matching units; their main listings are then paged.
+    const find = jest.spyOn(ProductModel, 'findAll').mockResolvedValue([] as never);
+    jest.spyOn(ProductModel, 'findAndCountAll').mockResolvedValue({ rows: [], count: 0 } as never);
     jest.spyOn(ProductDiscountService.prototype, 'withPricing').mockResolvedValue([] as never);
     await new ProductService().listPublic({ q: 'Dynames — custom 100%', limit: 8, offset: 0 });
     const where = inspect(find.mock.calls[0][0]!.where, { depth: null }); // Sequelize operators are symbol keys

@@ -1,17 +1,17 @@
-import { catalogFormula } from '@/shared/sale-pricing';
-import type { GunplaGrade, ModelCondition, AssemblyState } from '@/shared/gunpla';
+import { catalogPricing } from '@/shared/sale-pricing';
+import type { ModelCondition, AssemblyState } from '@/shared/gunpla';
 import type { AdminProduct, InventoryStatus, ProductGender, ProductPayload } from '@/shared/types/product';
 
-// Form state: numeric fields are kept as strings while editing.
+// Form state: numeric fields are kept as strings while editing; lists are one item per line.
 export interface ProductFormValues {
-  grade: GunplaGrade | '';
   scale: string;
-  series: string;
   modelCode: string;
   condition: ModelCondition;
   assemblyState: AssemblyState;
   boxCondition: string;
+  conditionNote: string;
   includedAccessories: string;
+  missingAccessories: string;
   defects: string;
   descriptionEn: string;
   descriptionVi: string;
@@ -29,7 +29,7 @@ export interface ProductFormValues {
   sku: string;
   weight: string;
   dimensions: string;
-  // The packing size (package optimizer): all four empty means "use the grade's typical box".
+  // The packing size (package optimizer): all four empty means "use the shop's default box".
   packLengthCm: string;
   packWidthCm: string;
   packHeightCm: string;
@@ -46,14 +46,14 @@ export interface ProductFormValues {
 export type ProductFormErrors = Partial<Record<keyof ProductFormValues | 'mainImage', string>>;
 
 export const emptyProductForm: ProductFormValues = {
-  grade: '',
   scale: '',
-  series: '',
   modelCode: '',
   condition: 'new',
   assemblyState: 'unassembled',
   boxCondition: '',
+  conditionNote: '',
   includedAccessories: '',
+  missingAccessories: '',
   defects: '',
   descriptionEn: '',
   descriptionVi: '',
@@ -88,21 +88,21 @@ export const emptyProductForm: ProductFormValues = {
 export const INVENTORY_STATUS_VALUES: InventoryStatus[] = ['available', 'quarantine', 'donation_pending', 'recycle'];
 
 export const toFormValues = (product: AdminProduct): ProductFormValues => ({
-  grade: product.grade || '',
   scale: product.scale || '',
-  series: product.series || '',
   modelCode: product.modelCode || '',
   condition: product.condition || 'new',
   assemblyState: product.assemblyState || 'unassembled',
   boxCondition: product.boxCondition || '',
+  conditionNote: product.conditionNote || '',
   includedAccessories: (product.includedAccessories || []).join('\n'),
+  missingAccessories: (product.missingAccessories || []).join('\n'),
   defects: (product.defects || []).join('\n'),
   descriptionEn: product.descriptionEn || product.description || '',
   descriptionVi: product.descriptionVi || '',
   name: product.name,
   brandName: product.brandName,
   description: product.description || '',
-  categoryId: String(product.categoryId),
+  categoryId: product.categoryId ? String(product.categoryId) : '',
   gender: product.gender,
   availableSizes: product.availableSizes.join(', '),
   price: String(product.price),
@@ -128,19 +128,33 @@ export const toFormValues = (product: AdminProduct): ProductFormValues => ({
 
 const isWholeNumber = (value: string, min: number) => /^\d+$/.test(value.trim()) && Number(value) >= min;
 
+export const lines = (value: string) =>
+  value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+// What makes a unit incomplete or defective is shown to customers, so it must be written down.
+export const validateCondition = (values: ProductFormValues): ProductFormErrors => {
+  const errors: ProductFormErrors = {};
+  if (values.condition === 'incomplete' && lines(values.missingAccessories).length === 0)
+    errors.missingAccessories = 'missingAccessoriesRequired';
+  if (values.condition === 'defective' && lines(values.defects).length === 0) errors.defects = 'defectsRequired';
+  return errors;
+};
+
 export const validateBasics = (values: ProductFormValues): ProductFormErrors => {
   const errors: ProductFormErrors = {};
   if (!values.name.trim()) errors.name = 'nameRequired';
   if (!values.brandName.trim()) errors.brandName = 'brandRequired';
-  if (!values.categoryId) errors.categoryId = 'categoryRequired';
-  return errors;
+  return { ...errors, ...validateCondition(values) };
 };
 
 export const validatePricing = (values: ProductFormValues): ProductFormErrors => {
   const errors: ProductFormErrors = {};
   if (values.pricingReferenceMemberVnd) {
     try {
-      catalogFormula(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
+      catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
     } catch {
       errors.price = 'priceInvalid';
     }
@@ -165,22 +179,32 @@ export const validateProductForm = (values: ProductFormValues): ProductFormError
   ...validateInventory(values),
 });
 
-export const buildProductPayload = (values: ProductFormValues, imageUrl: string, images: string[]): ProductPayload => ({
-  grade: values.grade || null,
-  scale: values.scale || null,
-  series: values.series || null,
-  modelCode: values.modelCode || null,
+// The price fields of a payload: R and B follow S by the catalogue formula (the server recomputes them).
+export const pricingPayload = (values: ProductFormValues) => {
+  if (!values.pricingReferenceMemberVnd) return { price: Number(values.price) };
+  const pricing = catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
+  return {
+    pricingReferenceMemberVnd: pricing.referenceMemberVnd,
+    pricingIssueCount: pricing.ordinaryIssueCount,
+    price: pricing.listPriceVnd,
+    buybackPriceVnd: pricing.buybackPriceVnd,
+  };
+};
+
+export const conditionPayload = (values: ProductFormValues) => ({
   condition: values.condition,
   assemblyState: values.assemblyState,
   boxCondition: values.boxCondition || null,
-  includedAccessories: values.includedAccessories
-    .split('\n')
-    .map((value) => value.trim())
-    .filter(Boolean),
-  defects: values.defects
-    .split('\n')
-    .map((value) => value.trim())
-    .filter(Boolean),
+  conditionNote: values.conditionNote.trim() || null,
+  includedAccessories: lines(values.includedAccessories),
+  missingAccessories: lines(values.missingAccessories),
+  defects: lines(values.defects),
+});
+
+export const buildProductPayload = (values: ProductFormValues, imageUrl: string, images: string[]): ProductPayload => ({
+  scale: values.scale || null,
+  modelCode: values.modelCode || null,
+  ...conditionPayload(values),
   descriptionEn: values.descriptionEn,
   descriptionVi: values.descriptionVi,
   name: values.name.trim(),
@@ -188,21 +212,13 @@ export const buildProductPayload = (values: ProductFormValues, imageUrl: string,
   sku: values.sku.trim(),
   description: values.description.trim(),
   gender: values.gender as ProductGender,
-  categoryId: Number(values.categoryId),
+  categoryId: values.categoryId ? Number(values.categoryId) : null,
   supplierId: values.supplierId ? Number(values.supplierId) : null,
   availableSizes: values.availableSizes
     .split(',')
     .map((size) => size.trim())
     .filter(Boolean),
-  ...(values.pricingReferenceMemberVnd
-    ? {
-        pricingReferenceMemberVnd: Number(values.pricingReferenceMemberVnd),
-        pricingIssueCount: Number(values.pricingIssueCount),
-        price: catalogFormula(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount)).listPriceVnd,
-        buybackPriceVnd: catalogFormula(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount))
-          .buybackPriceVnd,
-      }
-    : { price: Number(values.price) }),
+  ...pricingPayload(values),
   importPrice: values.importPrice ? Number(values.importPrice) : 0,
   stock: Number(values.stock),
   weight: values.weight.trim(),

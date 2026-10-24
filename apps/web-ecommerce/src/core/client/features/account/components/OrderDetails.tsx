@@ -6,6 +6,7 @@ import Link from '@/i18n/navigation';
 import ProductImage from '@/components/ProductImage';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Order } from '@/shared/types/order';
+import { isModelCondition } from '@/shared/gunpla';
 import TransferInstructions from './TransferInstructions';
 import OrderFulfillment from './OrderFulfillment';
 import OrderPaymentQr from './OrderPaymentQr';
@@ -53,10 +54,9 @@ export default function OrderDetails({
                 {item.productName}
               </Link>
               <p className="mu-note">
-                {typeof item.modelSnapshot?.grade === 'string' ? item.modelSnapshot.grade : ''}{' '}
                 {typeof item.modelSnapshot?.scale === 'string' ? item.modelSnapshot.scale : ''}{' '}
                 {item.modelSnapshot?.condition
-                  ? catalog(item.modelSnapshot.condition === 'preowned' ? 'preowned' : 'new')
+                  ? catalog(isModelCondition(item.modelSnapshot.condition) ? item.modelSnapshot.condition : 'new')
                   : ''}
               </p>
               {item.size && (

@@ -2,7 +2,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { useEffect, useState, type CSSProperties } from 'react';
-import { ASSEMBLY_STATES, GRADES } from '@/shared/gunpla';
+import { ASSEMBLY_STATES, CONDITIONS } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Category, ProductSort } from '@/shared/types/product';
 export interface ProductFilterValues {
@@ -10,9 +10,7 @@ export interface ProductFilterValues {
   q: string;
   category: string;
   gender: string;
-  grade: string;
   scale: string;
-  series: string;
   condition: string;
   brand: string;
   minPrice: number;
@@ -33,11 +31,13 @@ interface Props {
   values: ProductFilterValues;
   categories: Category[];
   brands: string[];
+  scales: string[];
   priceLimit: number;
   onChange: (values: ProductFilterValues) => void;
   onReset: () => void;
 }
-export default function ProductFilters({ values: draft, categories, brands, priceLimit, onChange, onReset }: Props) {
+// Categories are not offered to customers for now (the catalogue is uncategorized); a category link still filters.
+export default function ProductFilters({ values: draft, brands, scales, priceLimit, onChange, onReset }: Props) {
   const values = { ...draft, maxPrice: draft.maxPrice ?? priceLimit };
   const t = useTranslations('catalog');
   const locale = useLocale();
@@ -53,9 +53,7 @@ export default function ProductFilters({ values: draft, categories, brands, pric
     const appliedParams = new URLSearchParams(window.location.search);
     setExpanded(
       window.matchMedia('(min-width: 1024px)').matches ||
-        ['scale', 'condition', 'assemblyState', 'category', 'brand', 'series', 'minPrice', 'maxPrice'].some((key) =>
-          appliedParams.has(key),
-        ),
+        ['scale', 'assemblyState', 'brand', 'minPrice', 'maxPrice'].some((key) => appliedParams.has(key)),
     );
   }, []);
   const update = <K extends keyof ProductFilterValues>(key: K, value: ProductFilterValues[K]) =>
@@ -84,17 +82,11 @@ export default function ProductFilters({ values: draft, categories, brands, pric
   };
   const extraCount = [
     values.scale,
-    values.condition,
     values.assemblyState,
-    values.category,
     values.brand,
-    values.series,
     values.minPrice > 0 || values.maxPrice < priceLimit,
   ].filter(Boolean).length;
-  const select = (
-    field: 'scale' | 'condition' | 'brand' | 'category' | 'assemblyState',
-    options: { value: string; label: string }[],
-  ) => (
+  const select = (field: 'scale' | 'brand' | 'assemblyState', options: { value: string; label: string }[]) => (
     <div key={field}>
       <label className="mu-field" htmlFor={`filter-${field}`}>
         {t(field === 'assemblyState' ? 'assembly' : field)}
@@ -121,18 +113,21 @@ export default function ProductFilters({ values: draft, categories, brands, pric
         <AdminIcon name="chart" size={18} />
       </div>
       <div className="catalog-quick-row">
-        <fieldset className="catalog-grade-pills">
-          <legend>{t('grade')}</legend>
-          {['', ...GRADES].map((grade) => (
-            <label key={grade || 'all'}>
+        {/* A model is found through any condition it is offered in (new, pre-owned, missing accessories, defective). */}
+        <fieldset className="catalog-grade-pills catalog-condition-pills">
+          <legend>{t('condition')}</legend>
+          {['', ...CONDITIONS].map((condition) => (
+            <label key={condition || 'all'}>
               <input
                 type="radio"
-                name="grade"
-                value={grade}
-                checked={values.grade === grade}
-                onChange={() => update('grade', grade)}
+                name="condition"
+                value={condition}
+                checked={values.condition === condition}
+                onChange={() => update('condition', condition)}
               />
-              <span>{grade || t('allGrades')}</span>
+              <span className={condition ? `condition-dot is-${condition}` : undefined}>
+                {condition ? t(condition) : t('allConditions')}
+              </span>
             </label>
           ))}
         </fieldset>
@@ -158,36 +153,17 @@ export default function ProductFilters({ values: draft, categories, brands, pric
         </summary>
         <div className="catalog-filter-grid">
           {select(
-            'scale',
-            ['1/144', '1/100', '1/60', 'non-scale'].map((value) => ({ value, label: value })),
+            'brand',
+            brands.map((value) => ({ value, label: value })),
           )}
           {select(
-            'condition',
-            ['new', 'preowned'].map((value) => ({ value, label: t(value) })),
+            'scale',
+            scales.map((value) => ({ value, label: value })),
           )}
           {select(
             'assemblyState',
             ASSEMBLY_STATES.map((value) => ({ value, label: t(value) })),
           )}
-          {select(
-            'category',
-            categories.map((category) => ({ value: category.slug, label: category.name })),
-          )}
-          {select(
-            'brand',
-            brands.map((value) => ({ value, label: value })),
-          )}
-          <div>
-            <label className="mu-field" htmlFor="filter-series">
-              {t('series')}
-            </label>
-            <input
-              className="mu-input"
-              id="filter-series"
-              value={values.series}
-              onChange={(event) => update('series', event.target.value)}
-            />
-          </div>
           <fieldset className="catalog-price-range">
             <legend>{t('priceRange')}</legend>
             <output>

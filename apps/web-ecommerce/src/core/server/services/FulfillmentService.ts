@@ -448,10 +448,7 @@ export default class FulfillmentService {
           name: item.productName,
           quantity: item.quantity,
           lineTotalVnd: item.unitPrice * item.quantity,
-          product: {
-            packaging: products.get(item.productId)?.packaging ?? null,
-            grade: products.get(item.productId)?.grade ?? null,
-          },
+          product: { packaging: products.get(item.productId)?.packaging ?? null },
         })),
         { origin: await this.shipping.origin(), address: this.deliveryAddress(order) },
       );

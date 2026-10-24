@@ -6,6 +6,7 @@ import ProductSourceModel from '../../src/core/server/database/client/models/Pro
 import PromotionAuditModel from '../../src/core/server/database/client/models/PromotionAudit.Model';
 import {
   estimatedPricing,
+  importModelUniverseCatalog,
   loadCatalogEntries,
   ownerCatalogValues,
 } from '../../src/core/server/database/client/seeders/ModelUniverseCatalog';
@@ -20,6 +21,8 @@ describe("owner catalogue defaults migration", () => {
     MIGRATIONS.find((m) => m.name === '2026-10-23-42-catalog-owner-defaults')!.up({ context: { sequelize: db } } as never);
   beforeAll(async () => {
     db = await seedTestDatabase();
+    // A seed now writes the owner's 2026-10-25 catalogue; the researched rows this older migration read come back.
+    await importModelUniverseCatalog();
   }, 600_000);
   afterAll(async () => {
     await db.close();

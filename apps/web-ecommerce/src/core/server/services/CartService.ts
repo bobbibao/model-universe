@@ -77,6 +77,8 @@ export default class CartService {
       brandName: product.brandName,
       imageUrl: product.imageUrl,
       price: product.price,
+      // The condition the unit is sold in (a model can be in the cart new and pre-owned at once).
+      condition: product.condition,
       ...toPricing(product.price, discounts.get(product.id)),
     });
 

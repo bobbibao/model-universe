@@ -43,7 +43,6 @@ for (const locale of ['vi', 'en'] as const)
         brandName: 'Synthetic manufacturer',
         modelCode: 'SYNTHETIC-144',
         scale: '1/144',
-        series: 'Synthetic test universe',
         boxCondition: 'Synthetic worn box',
       };
       for (const [key, value] of Object.entries(fields))
@@ -52,7 +51,6 @@ for (const locale of ['vi', 'en'] as const)
       const category = categories.find((row: { slug: string }) => row.slug === 'gunpla');
       expect(category).toBeTruthy();
       await form.getByRole('combobox', { name: m.partnerListings.fields.categoryId, exact: true }).selectOption(String(category.id));
-      await form.getByRole('combobox', { name: m.partnerListings.fields.grade, exact: true }).selectOption('RG');
       await form.getByRole('combobox', { name: m.partnerListings.fields.condition, exact: true }).selectOption('preowned');
       await form.getByRole('combobox', { name: m.partnerListings.fields.assemblyState, exact: true }).selectOption('assembled');
       await form.getByLabel(m.partnerListings.fields.price, { exact: true }).fill('1350000');

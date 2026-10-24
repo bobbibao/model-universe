@@ -23,13 +23,13 @@ export interface PlanItem {
   name: string;
   quantity: number;
   lineTotalVnd: number;
-  product: { packaging?: ProductPackaging | null; grade?: string | null };
+  product: { packaging?: ProductPackaging | null };
 }
 
 // The plan items of resolved cart lines (CartService.resolveLines).
 export const planItems = (
   lines: readonly { productId: number; quantity: number; lineTotal: number; product: { name: string } | null }[],
-  products: ReadonlyMap<number, { name: string; packaging?: ProductPackaging | null; grade?: string | null }>,
+  products: ReadonlyMap<number, { name: string; packaging?: ProductPackaging | null }>,
 ): PlanItem[] =>
   lines.map((line) => {
     const product = products.get(line.productId);
@@ -38,7 +38,7 @@ export const planItems = (
       name: line.product?.name ?? product?.name ?? `#${line.productId}`,
       quantity: line.quantity,
       lineTotalVnd: line.lineTotal,
-      product: { packaging: product?.packaging ?? null, grade: product?.grade ?? null },
+      product: { packaging: product?.packaging ?? null },
     };
   });
 
