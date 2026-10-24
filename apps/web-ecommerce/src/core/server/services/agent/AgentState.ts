@@ -28,11 +28,11 @@ export const loadShopState = async (transaction: Transaction, now = new Date()):
 
   // One connection per transaction: the reads run one after another.
   const products = await select(`
-      SELECT p.sku, c.slug AS category, p.price, p."importPrice" AS cost, p."createdAt" AS created_at,
+      SELECT p.sku, COALESCE(c.slug, 'uncategorized') AS category, p.price, p."importPrice" AS cost, p."createdAt" AS created_at,
              (SELECT MAX(si."createdAt") FROM stock_import_item sii
                 JOIN stock_import si ON si.id = sii."stockImportId"
                WHERE sii."productId" = p.id) AS last_received_at
-      FROM product p JOIN category c ON c.id = p."categoryId"
+      FROM product p LEFT JOIN category c ON c.id = p."categoryId"
       WHERE NOT p."isArchived"`);
   const discounts = await select(`
       SELECT p.sku, d.percent, d."startsAt" AS starts_at, d."endsAt" AS ends_at, d."revokedAt" AS revoked_at,

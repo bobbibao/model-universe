@@ -67,6 +67,7 @@ import AgentApprovalModel from '../client/models/AgentApproval.Model';
 import { ensureAgentSettingDefaults } from '../client/seeders/AgentSetting.Seeder';
 import { ensureMarketEvents } from '../client/seeders/Market.Seeder';
 import { estimatedPricing, loadCatalogEntries, ownerCatalogValues } from '../client/seeders/ModelUniverseCatalog';
+import { loadOwnerCatalog, ownerCatalogSeeded, syncOwnerCatalog } from '../client/seeders/OwnerCatalog';
 import ReservationModel from '../client/models/Reservation.Model';
 import ReservationPaymentModel from '../client/models/ReservationPayment.Model';
 import ReservationEventModel from '../client/models/ReservationEvent.Model';
@@ -200,10 +201,9 @@ export const MIGRATIONS: Migration[] = [
   {
     name: '2026-10-08-01-gunpla-catalog',
     up: async ({ context }) => {
+      // `grade` and `series` were added here too; 2026-10-25-44 dropped them and the model no longer declares them.
       await ensureColumns(context.sequelize.getQueryInterface(), ProductModel, [
-        'grade',
         'scale',
-        'series',
         'modelCode',
         'condition',
         'assemblyState',
@@ -948,7 +948,12 @@ export const MIGRATIONS: Migration[] = [
           const owner = ownerCatalogValues(entry),
             productId = keys.get(entry.id);
           if (!owner || !productId) continue;
-          const product = await ProductModel.findByPk(productId, { transaction, lock: transaction.LOCK.UPDATE });
+          // Only the columns this migration reads: later migrations add columns an older database does not have yet.
+          const product = await ProductModel.findByPk(productId, {
+            attributes: ['id', 'partnerId', 'packaging', 'price', 'importPrice'],
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          });
           if (!product || product.partnerId) continue;
           if (!product.packaging) await product.update({ packaging: owner.packaging }, { transaction });
           const estimate = estimatedPricing(entry);
@@ -982,6 +987,31 @@ export const MIGRATIONS: Migration[] = [
       // Approved list prices and cost profiles (proposed by one admin, approved by another) and the nightly promotion
       // reconciliation. Nothing is backfilled: no price or cost is approved by a migration.
       await ensureTables(ProductCostProfileModel, ProductPriceApprovalModel, PromotionReconciliationModel);
+    },
+  },
+  {
+    name: '2026-10-25-44-product-conditions',
+    up: async ({ context }) => {
+      // One model in several conditions (condition options under a main listing), what an incomplete unit lacks and a
+      // condition note; grade and series are no longer kept; a product may stay uncategorized; the received date
+      // ("Ngày nhập") defaults to the day the product was added.
+      const queryInterface = context.sequelize.getQueryInterface();
+      await ensureColumns(queryInterface, ProductModel, ['missingAccessories', 'conditionNote', 'parentProductId']);
+      const columns = await queryInterface.describeTable('product');
+      for (const column of ['grade', 'series']) if (column in columns) await queryInterface.removeColumn('product', column);
+      await context.sequelize.query('ALTER TABLE product ALTER COLUMN "categoryId" DROP NOT NULL');
+      await context.sequelize.query('UPDATE product SET "productionDate" = "createdAt" WHERE "productionDate" IS NULL');
+    },
+  },
+  {
+    name: '2026-10-25-45-owner-catalog',
+    up: async ({ context }) => {
+      // The owner's workbook "Danh mục 6 hãng" exported on 2026-10-25 is the shop's whole own catalogue: its names,
+      // scale, box and weight, buy-in B, selling price S (R by the catalogue formula), stock, condition and received date
+      // replace what the researched seed estimated; every other shop-owned product is retired (OwnerCatalog.ts). A
+      // development seed in this process already wrote the catalogue, with its demo stock and history: it is kept.
+      if (ownerCatalogSeeded()) return;
+      await context.sequelize.transaction((transaction) => syncOwnerCatalog(loadOwnerCatalog(), transaction));
     },
   },
 ];

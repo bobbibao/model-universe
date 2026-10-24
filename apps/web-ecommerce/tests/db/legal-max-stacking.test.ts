@@ -1,7 +1,14 @@
 import type { Express } from 'express';
 import type { Sequelize } from 'sequelize-typescript';
 import { seedTestDatabase, testApp } from './support/testDb';
-import { callApproved, establishedProducts, select, setAgentSetting, useApprovalSecret } from './support/agentApi';
+import {
+  callApproved,
+  establishedProducts,
+  select,
+  setAgentSetting,
+  useApprovalSecret,
+  withTestMargin,
+} from './support/agentApi';
 import OrderService from '../../src/core/server/services/OrderService';
 import { couponDiscount } from '../../src/core/server/services/CouponService';
 
@@ -28,6 +35,8 @@ describe('legal maximum on stacked promotions', () => {
        WHERE NOT "isArchived" AND "inventoryStatus" = 'available' AND stock > 5
          AND "createdAt" < NOW() - INTERVAL '31 days' ORDER BY id LIMIT 1`,
     );
+    await withTestMargin(sequelize, [product.sku]);
+    product.cost = Math.round(product.price * 0.6);
   }, 600_000);
   afterAll(() => sequelize.close());
 

@@ -33,9 +33,7 @@ export function customerPath(raw: unknown): string | undefined {
       ? new Set([
           'q',
           'category',
-          'grade',
           'scale',
-          'series',
           'condition',
           'gender',
           'brand',

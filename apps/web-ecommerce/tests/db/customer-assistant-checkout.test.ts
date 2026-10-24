@@ -116,6 +116,6 @@ describe('customer assistant checkout on a throwaway database', () => {
     expect(first.id).toBe(retry.id);
     expect((await product.reload()).stock).toBe(stock - 1);
     await expect(new OrderService().placeOrder(userId,{...input,items:[{...items()[0],quantity:2}]})).rejects.toMatchObject({statusCode:409});
-    expect(first.get('items')).toEqual(expect.arrayContaining([expect.objectContaining({modelSnapshot:expect.objectContaining({grade:product.grade,sku:product.sku})})]));
+    expect(first.get('items')).toEqual(expect.arrayContaining([expect.objectContaining({modelSnapshot:expect.objectContaining({condition:product.condition,sku:product.sku})})]));
   });
 });

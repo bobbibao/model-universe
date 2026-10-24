@@ -10,7 +10,6 @@ export type SupportTerms = {
     imageUrl: string;
     quantity: number;
     condition: string;
-    grade: string | null;
     scale: string | null;
     defects: string[];
     includedAccessories: string[];

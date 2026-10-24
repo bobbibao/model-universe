@@ -19,6 +19,35 @@ export function catalogFormula(referenceMemberVnd: number, ordinaryIssueCount: n
   };
 }
 
+// The published prices of a catalogue product from its S. Up to the buy-back table's 5,000,000 VND this is the
+// catalogue formula. Above it the list price still follows S, but there is no formula buy-back price (a buy-back of
+// such a model is appraised), and ordinary issues cannot be priced either.
+export const CATALOG_MAX_REFERENCE_VND = 1_000_000_000;
+export function catalogPricing(
+  referenceMemberVnd: number,
+  ordinaryIssueCount: number,
+): Omit<ReturnType<typeof catalogFormula>, 'deductionVnd' | 'buybackPriceVnd'> & {
+  deductionVnd: number | null;
+  buybackPriceVnd: number | null;
+} {
+  if (baseDeduction(referenceMemberVnd) !== null) return catalogFormula(referenceMemberVnd, ordinaryIssueCount);
+  if (
+    !Number.isSafeInteger(referenceMemberVnd) ||
+    referenceMemberVnd < 1 ||
+    referenceMemberVnd > CATALOG_MAX_REFERENCE_VND
+  )
+    throw new Error('Giá tham chiếu phải từ 1đ đến 1.000.000.000đ.');
+  if (ordinaryIssueCount !== 0)
+    throw new Error('Mẫu trên 5.000.000đ có lỗi cần thẩm định; không áp công thức trừ lỗi ngoài bảng thu.');
+  return {
+    referenceMemberVnd,
+    ordinaryIssueCount,
+    deductionVnd: null,
+    buybackPriceVnd: null,
+    listPriceVnd: listPriceForMemberPrice(referenceMemberVnd),
+  };
+}
+
 export function safeSalePercent(price: number, cost: number, requested: number): boolean {
   if (!Number.isInteger(requested) || requested < 1 || requested > 25) return false;
   return evaluateVoucher({ discountPercent: requested, profitGuard: true }, [

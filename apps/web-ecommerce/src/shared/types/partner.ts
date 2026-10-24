@@ -43,9 +43,7 @@ export interface PartnerListing {
   stock: number;
   imageUrl: string;
   description: string;
-  grade: string | null;
   scale: string | null;
-  series: string | null;
   modelCode: string;
   condition: 'new' | 'preowned';
   assemblyState: string;

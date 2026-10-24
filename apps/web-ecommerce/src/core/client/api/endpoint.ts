@@ -30,7 +30,9 @@ export const PRODUCT_API = {
 
 export const ADMIN_PRODUCT_API = {
   GET_PRODUCTS: '/admin/products',
+  GET_STATS: '/admin/products/stats',
   GET_PRODUCT: (productId: number) => `/admin/products/${productId}`,
+  CREATE_CONDITION: (listingId: number) => `/admin/products/${listingId}/conditions`,
   CREATE_PRODUCT: '/admin/products',
   UPDATE_PRODUCT: (productId: number) => `/admin/products/${productId}`,
   DELETE_PRODUCT: (productId: number) => `/admin/products/${productId}`,

@@ -33,15 +33,24 @@ export const refreshProductRating = async (productId: number, transaction?: Tran
   );
 };
 
+// Reviews belong to a product's main listing; a unit bought in any of its conditions counts as buying the model.
+const reviewedListing = async (productId: number): Promise<{ listingId: number; unitIds: number[] }> => {
+  const product = await ProductModel.findByPk(productId, { attributes: ['id', 'parentProductId'] });
+  const listingId = product?.parentProductId ?? productId;
+  const options = await ProductModel.findAll({ attributes: ['id'], where: { parentProductId: listingId } });
+  return { listingId, unitIds: [listingId, ...options.map((option) => option.id)] };
+};
+
 export default class ReviewService {
   // Only customers who received the product (a delivered order) can review it, once.
   async getEligibility(userId: number, productId: number): Promise<{ canReview: boolean; reason?: string }> {
+    const { listingId, unitIds } = await reviewedListing(productId);
     const purchased = await OrderItemModel.count({
-      where: { productId },
+      where: { productId: unitIds },
       include: [{ model: OrderModel, as: 'order', where: { userId, status: 'DELIVERED' }, attributes: [] }],
     });
     if (!purchased) return { canReview: false, reason: 'Bạn cần mua và nhận sản phẩm này trước khi đánh giá.' };
-    if (await ReviewModel.count({ where: { userId, productId } })) {
+    if (await ReviewModel.count({ where: { userId, productId: listingId } })) {
       return { canReview: false, reason: 'Bạn đã đánh giá sản phẩm này.' };
     }
     return { canReview: true };
@@ -63,12 +72,13 @@ export default class ReviewService {
     const eligibility = await this.getEligibility(userId, productId as number);
     if (!eligibility.canReview) throw HttpError.forbidden(eligibility.reason);
 
+    const { listingId } = await reviewedListing(productId as number);
     return DatabaseProvider.getInstance().transaction(async (transaction) => {
       const review = await ReviewModel.create(
-        { productId, userId, rating, title, content: content || null },
+        { productId: listingId, userId, rating, title, content: content || null },
         { transaction },
       );
-      await refreshProductRating(productId as number, transaction);
+      await refreshProductRating(listingId, transaction);
       return review;
     });
   }

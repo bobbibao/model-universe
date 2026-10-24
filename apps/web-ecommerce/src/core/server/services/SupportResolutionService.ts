@@ -96,7 +96,6 @@ export default class SupportResolutionService {
           imageUrl: product.imageUrl,
           quantity,
           condition: product.condition,
-          grade: product.grade || null,
           scale: product.scale || null,
           defects: product.defects,
           includedAccessories: product.includedAccessories,
@@ -148,7 +147,6 @@ export default class SupportResolutionService {
           product.assemblyState !== terms.replacement.assemblyState ||
           (product.boxCondition || null) !== terms.replacement.boxCondition ||
           product.sku !== terms.replacement.sku ||
-          (product.grade || null) !== terms.replacement.grade ||
           (product.scale || null) !== terms.replacement.scale ||
           product.imageUrl !== terms.replacement.imageUrl
         )

@@ -23,11 +23,7 @@ for (const locale of ['vi', 'en']) for (const width of [1440, 390]) {
     await expect(page.getByText(labels.validation.nameRequired, { exact: true })).toBeVisible();
     await page.getByLabel(labels.name, { exact: true }).fill(name);
     await page.getByLabel(labels.brand, { exact: true }).fill('Synthetic Gundam fixture');
-    const categories = page.getByLabel(labels.category, { exact: true });
-    await expect(categories.locator('option')).not.toHaveCount(1);
-    const categoryId = await categories.locator('option').nth(1).getAttribute('value');
-    await categories.selectOption(categoryId!);
-    await page.getByLabel(messages.catalog.grade, { exact: true }).selectOption('HG');
+    // Categories are optional: the product stays uncategorized.
     await page.getByLabel(messages.catalog.scale, { exact: true }).fill('1/144');
     await page.getByLabel(messages.catalog.modelCode, { exact: true }).fill(`GUNPLA-${key.slice(0, 8)}`);
     await page.getByLabel(messages.catalog.descriptionEn, { exact: true }).fill('Synthetic Gunpla inspection fixture, not a real sellable kit.');
@@ -54,7 +50,7 @@ for (const locale of ['vi', 'en']) for (const width of [1440, 390]) {
     await search.fill(sku);
     await page.getByRole('button', { name: messages.dataTable.openRecord.replace('{id}', String(product.id)), exact: true }).click();
     await expect(page.getByLabel(labels.name, { exact: true })).toHaveValue(name);
-    expect(product.grade).toBe('HG'); expect(product.scale).toBe('1/144'); expect(product.stock).toBe(1);
+    expect(product.categoryId).toBeNull(); expect(product.scale).toBe('1/144'); expect(product.stock).toBe(1);
     const renamed = `${name} revised`;
     await page.getByLabel(labels.name, { exact: true }).fill(renamed);
     await page.getByRole('checkbox', { name: new RegExp(`^${labels.archived}`) }).check();

@@ -20,7 +20,7 @@ describe('customer address snapshots and durable stock alerts', () => {
     [userId, otherId] = (await UserModel.findAll({ where: { role: 'USER', isActive: true }, order: [['id', 'ASC']], limit: 2 })).map(user => user.id);
     const source = (await ProductModel.findOne({ where: { condition: 'new', isArchived: false } }))!;
     product = await ProductModel.create({ name: 'Synthetic restock and finder fixture', sku: 'CUSTOMER-TOOLS-FIXTURE', brandName: 'Fixture Manufacturer', categoryId: source.categoryId,
-      price: 200000, importPrice: 0, stock: 3, sold: 0, imageUrl: source.imageUrl, condition: 'new', assemblyState: 'unassembled', grade: 'HG', availableSizes: [], gender: 'unisex' });
+      price: 200000, importPrice: 0, stock: 3, sold: 0, imageUrl: source.imageUrl, condition: 'new', assemblyState: 'unassembled', scale: '1/144', availableSizes: [], gender: 'unisex' });
   }, 120000);
   afterAll(async () => { await db?.close(); });
 
@@ -107,8 +107,8 @@ describe('customer address snapshots and durable stock alerts', () => {
     await expect(notifications.list(userId)).rejects.toMatchObject({ statusCode: 403 });
     await UserModel.update({ isActive: true }, { where: { id: userId } });
   });
-  it('filters finder matches by actual assembly, stock, grade and budget and rejects unsupported states', async () => {
-    const products = new ProductService(), query = { assemblyState: 'unassembled', grade: 'HG', condition: 'new', inStock: true, maxPrice: 200000, limit: 100, offset: 0 };
+  it('filters finder matches by actual assembly, stock, scale and budget and rejects unsupported states', async () => {
+    const products = new ProductService(), query = { assemblyState: 'unassembled', scale: '1/144', condition: 'new', inStock: true, maxPrice: 200000, limit: 100, offset: 0 };
     const matches = await products.listPublic(query);
     expect(matches.rows.some(row => row.id === product.id)).toBe(true);
     expect((await products.listPublic({ ...query, assemblyState: 'assembled' })).rows.some(row => row.id === product.id)).toBe(false);

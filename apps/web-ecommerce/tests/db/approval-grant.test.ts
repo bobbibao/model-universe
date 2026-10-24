@@ -9,6 +9,7 @@ import {
   select,
   setAutonomy,
   useApprovalSecret,
+  withTestMargin,
 } from './support/agentApi';
 
 // The approval grant (docs/GROWTH_AGENT.md section 4): a shop_change with a new key needs a grant covering exactly
@@ -22,7 +23,10 @@ describe('Agent API: approval grants', () => {
     useApprovalSecret();
     sequelize = await seedTestDatabase();
     app = await testApp('AgentApi.Controller');
-    skus = (await establishedProducts(sequelize, 12)).map((p) => p.sku);
+    skus = await withTestMargin(
+      sequelize,
+      (await establishedProducts(sequelize, 12)).map((p) => p.sku),
+    );
   }, 600_000);
   afterAll(() => sequelize.close());
 

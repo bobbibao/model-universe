@@ -304,6 +304,11 @@ export default class DatabaseProvider {
     ProductModel.hasOne(ProductSourceModel, { foreignKey: 'productId', as: 'source', onDelete: 'CASCADE' });
     ProductSourceModel.belongsTo(ProductModel, { foreignKey: 'productId', as: 'product', onDelete: 'CASCADE' });
 
+    // A product's condition options (pre-owned, incomplete, defective units of the same model): a main listing with
+    // options is never deleted (ProductService.remove), so the reference restricts.
+    ProductModel.hasMany(ProductModel, { foreignKey: 'parentProductId', as: 'conditionOptions', onDelete: 'RESTRICT' });
+    ProductModel.belongsTo(ProductModel, { foreignKey: 'parentProductId', as: 'parent', onDelete: 'RESTRICT' });
+
     ProductModel.hasMany(ReviewModel, { foreignKey: 'productId', as: 'reviews', onDelete: 'CASCADE' });
     ReviewModel.belongsTo(ProductModel, { foreignKey: 'productId', as: 'product' });
     UserModel.hasMany(ReviewModel, { foreignKey: 'userId', as: 'reviews' });

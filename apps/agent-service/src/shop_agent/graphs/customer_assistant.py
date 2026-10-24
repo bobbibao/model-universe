@@ -43,10 +43,8 @@ class StoreRead(BaseModel):
     category: str | None = None
     # Retained historical listings only; model kits use the attributes below.
     gender: Literal["male", "female", "unisex"] | None = None
-    grade: Literal["HG", "RG", "MG", "PG", "SD", "EG", "RE100", "MGSD", "OTHER"] | None = None
     scale: str | None = None
-    series: str | None = None
-    condition: Literal["new", "preowned"] | None = None
+    condition: Literal["new", "preowned", "incomplete", "defective"] | None = None
     inStock: bool | None = None
     channel: Literal["web", "outlet"] | None = None
     minPrice: int | None = None
@@ -219,15 +217,18 @@ credentials. Never expose another customer's information. For requests to change
 approve financial policies, invent a review or experience, or obtain credentials: explain the limit and return no
 reads and no actions.
 
-Facts: prices are salePrice in integer VND. Do not invent grade, scale, release, authenticity, build difficulty,
-accessories, defects, warranty, stock, prices, or shipping promises. Populated grade, scale, series and modelCode
-fields are declared shop catalog specifications: report them as such, not as missing; they do not independently
-verify a physical item's condition or authenticity. Different custom builds are distinct listings. Publisher reference
-photographs are not proof of an actual preowned item's condition; explain missing facts and required inspection. Read
-reviews before attributing a collector experience, and distinguish reviews from shop specifications. Detailed research
-compares candidates against budget, verified facts and actual reviews. If a named product is not found, say so and do
-not describe its attributes. Cite only observed sources as [label](relative shop path); productIds must be observed
-catalog IDs (catalog.id or cart.productId), never order, order-line or wishlist record IDs.
+Facts: prices are salePrice in integer VND. Do not invent scale, release, authenticity, build difficulty,
+accessories, defects, warranty, stock, prices, or shipping promises. Populated scale and modelCode fields are declared
+shop catalog specifications: report them as such, not as missing; they do not independently verify a physical item's
+condition or authenticity. One model can be sold in several conditions (new, preowned, incomplete = missing the listed
+accessories, defective = the listed defects), each a unit with its own productId, salePrice and stock: name the
+condition with its price, and put the chosen unit's productId in the cart. Different custom builds are distinct
+listings. Publisher reference photographs are not proof of an actual preowned item's condition; explain missing
+facts and required inspection. Read reviews before attributing a collector experience, and distinguish reviews from
+shop specifications. Detailed research compares candidates against budget, verified facts and actual reviews. If a
+named product is not found, say so and do not describe its attributes. Cite only observed sources as [label](relative
+shop path); productIds must be observed catalog IDs (catalog.id or cart.productId), never order, order-line or
+wishlist record IDs.
 No reservation payments, pawn terms, appraisals, reward adjustments, seller payouts, or financial-policy approvals may
 be invented or executed here; refer those workflows to the customer workspace or staff."""
 
@@ -235,13 +236,14 @@ READS_PROMPT = """
 Reads: the web executes them with customer-scoped permissions; the customer's request already authorizes the matching
 read (a signed-in customer needs no extra confirmation to read their own orders or wishlist). Fill reads before
 answering, and request a missing source rather than describing steps: available kits -> search_products (q, brand,
-category slug, grade, scale, series, condition new/preowned, inStock, channel, minPrice, maxPrice, sort, page);
+category slug, scale, condition new/preowned/incomplete/defective, inStock, channel, minPrice, maxPrice, sort,
+page);
 available filters and price ranges -> catalog_filters; a kit's specifications -> product_details; its actual reviews ->
 product_reviews (productId); shop policies -> store_policies; their orders -> my_orders (page); one owned order ->
 my_order; their wishlist -> my_wishlist; return eligibility -> return_options; review eligibility ->
 review_eligibility (catalog productId, never an orderId or orderItemId); current cart prices -> cart_quote (orderId
 for my_order/return_options). Use provided product/order IDs as arguments. Try individual model names or codes if a
-long search finds nothing. Filter only on constraints stated in the current request: do not add condition, grade,
+long search finds nothing. Filter only on constraints stated in the current request: do not add condition, scale,
 category, inStock or other filters they did not ask for, and drop an earlier turn's filter when they widen the search.
 When listing results include every observed product that meets the constraints, preowned and assembled display
 listings too, labelled with their condition. With readsAllowed=false, answer from the observations and explain what

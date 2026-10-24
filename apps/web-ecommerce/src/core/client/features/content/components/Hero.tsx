@@ -75,7 +75,7 @@ export default function Hero({ product }: { product?: ProductSummary }) {
           <div className="studio-showcase-info">
             <div>
               <span>
-                {product?.grade || 'GUNPLA'} / {t('collectorPick')}
+                {product?.brandName || 'MODEL KIT'} / {t('collectorPick')}
               </span>
               <strong>{product?.name || 'Gundam Unicorn'}</strong>
             </div>

@@ -38,6 +38,17 @@ export default class AdminProductController extends ApiBaseController {
     }
   }
 
+  // Declared before '/:id' so that it is matched first.
+  @Get('/stats')
+  async getInventoryStats(_: Request, res: Response) {
+    try {
+      const service = await this.requireService<ProductService>();
+      return res.json(await service.inventoryStats());
+    } catch (error) {
+      return this.handleError(res, error, "AdminProductController's getInventoryStats");
+    }
+  }
+
   @Get('/:id')
   async getProduct(req: Request, res: Response) {
     try {
@@ -56,6 +67,18 @@ export default class AdminProductController extends ApiBaseController {
       return this.sendSuccess(res, product, apiProductMessage(req, 'created'), 201);
     } catch (error) {
       return this.handleError(res, error, "AdminProductController's createProduct");
+    }
+  }
+
+  // A new condition option (pre-owned, incomplete, defective, ...) of the main listing :id.
+  @Post('/:id/conditions')
+  async createConditionOption(req: Request, res: Response) {
+    try {
+      const service = await this.requireService<ProductService>();
+      const option = await service.createConditionOption(parseId(req.params.id), req.body || {}, req.user!.id);
+      return this.sendSuccess(res, option, apiProductMessage(req, 'created'), 201);
+    } catch (error) {
+      return this.handleError(res, error, "AdminProductController's createConditionOption");
     }
   }
 

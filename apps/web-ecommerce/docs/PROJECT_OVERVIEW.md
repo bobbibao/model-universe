@@ -34,6 +34,9 @@ UI resources support Vietnamese and English. Money is whole VND (integers). Code
 | Deleting a product that is referenced by orders or stock imports sets it to **Discontinued** (`isArchived`, shown as "Archived") instead of deleting it. Discontinued products are hidden from the storefront. | `ProductService.remove`, FK `RESTRICT` |
 | A supplier with products or import history cannot be deleted; deactivate it. A coupon that has been used cannot be deleted; deactivate it. A category with products cannot be deleted. | `SupplierService`, `CouponService`, `CategoryService` |
 | A cart line whose product was deleted or discontinued, is sold out, has a size that no longer exists, or exceeds stock is flagged and blocks checkout. Stock is per product, summed over sizes. | `CartService` statuses |
+| The shop's own catalogue is the owner's workbook "Danh mục 6 hãng" (export of 2026-10-25, owner decision: "the exact state of the shop"): its names, scale, box and weight, buy-in B, selling price S (R by the catalogue formula; above the 5,000,000 VND buy-back table R still follows S and the buy-back is appraised), stock, condition and received date. Every other shop-owned product was retired (deleted without history, else archived with stock 0). Images are not taken from the sheet. | `seeders/OwnerCatalog.ts`, migration `2026-10-25-45-owner-catalog`, `yarn catalog:import` |
+| One model is sold in several conditions: `new`, `preowned` (2hand: unique, stock ≤ 1, three uploaded photos), `incomplete` (lists `missingAccessories`) and `defective` (lists `defects`). Each condition option is its own product row under the main listing (`parentProductId`, one level) with its own SKU, price, cost, stock and photos (the listing's photos when it has none); the model itself (name, brand, code, scale, descriptions, box, category, supplier) is edited on the listing and copied to its options. The storefront lists each model once, found through any condition, and the customer chooses the condition on the product page; carts, orders, stock, returns and the agent's views work on each row. Reviews belong to the listing; buying any of its conditions allows a review. | `ProductService` (`createConditionOption`, `listPublic`, `getPublicById`), `ReviewService` |
+| Grade and series are not kept. A product's category is optional and not shown to customers; the received date ("Ngày nhập", `productionDate`) defaults to the day the product is added and is staff only. | `ProductService.validateCatalogInput`, `PRIVATE_ATTRIBUTES` |
 | Reviews: one per customer per product, only after a DELIVERED order that contains the product | `ReviewService.getEligibility` |
 | Dashboard order value excludes CANCELLED orders and includes unpaid orders; it is not verified revenue. Monthly figures use the `Asia/Ho_Chi_Minh` time zone. | `DashboardService`, localized dashboard |
 | A product's `price` is its list price. A running `product_discount` (highest wins) gives the `salePrice` shown on the storefront and charged in the cart and at checkout; the coupon then applies to that subtotal. | `ProductDiscountService` (used by `ProductService`, `CartService`, `OrderService`) |
@@ -124,8 +127,8 @@ Controllers are in `src/app/api/`, services in `src/core/server/services/`, mode
 |---|---|---|---|
 | Auth & profile | `/auth/signin`, `/auth/signup`, `/user-profile` · `/api/auth/*`, `/api/users/me` | `Auth`, `User` → `AuthService`, `MailService`, `UserService` | `User`, `EmailVerification` |
 | Customers (admin) | `/admin/customers` · `/api/admin/users` | `AdminUser` → `UserService` | `User` |
-| Catalog (storefront) | `/`, `/cua-hang`, `/cua-hang/[category]`, `/search`, `/san-pham/[slug]` (SEO paths; `/shop` and `/shop/product/[id]` redirect permanently), `/sitemap.xml`, `/robots.txt` · `/api/products` (by id, public `uuid` or `slug`), `/api/categories` | `Product`, `Category` → `ProductService`, `ReviewService`, `CategoryService` | `Product`, `ProductImage`, `Category`, `Review` |
-| Catalog (admin) | `/admin/products[/new\|/[id]]`, `/admin/categories`, `/admin/suppliers` · `/api/admin/{products,categories,suppliers,uploads}` | `AdminProduct`, `AdminCategory`, `AdminSupplier`, `AdminUpload` → same services + `SupplierService`, `FileStorageService` | + `Supplier` |
+| Catalog (storefront) | `/`, `/cua-hang`, `/cua-hang/[category]`, `/search`, `/san-pham/[slug]` (SEO paths; `/shop` and `/shop/product/[id]` redirect permanently; `?tinh-trang=<id>` selects a condition option), `/sitemap.xml`, `/robots.txt` · `/api/products` (by id, public `uuid` or `slug`; one row per model with its `conditions`; a product's `conditionOptions`), `/api/categories` | `Product`, `Category` → `ProductService`, `ReviewService`, `CategoryService` | `Product`, `ProductImage`, `Category`, `Review` |
+| Catalog (admin) | `/admin/products[/new\|/[id]]` (inventory statistics; conditions and stock per model), `/admin/categories`, `/admin/suppliers` · `/api/admin/{products,categories,suppliers,uploads}`, `/api/admin/products/stats`, `POST /api/admin/products/:id/conditions` | `AdminProduct`, `AdminCategory`, `AdminSupplier`, `AdminUpload` → same services + `SupplierService`, `FileStorageService` | + `Supplier` |
 | Cart | `/cart` · `POST /api/cart/quote` | `Cart` → `CartService` (no table; cart lives in `CartProvider`/localStorage) | `Product` |
 | Wishlist | `/wishlist` · `/api/wishlist` | `Wishlist` → `WishlistService` | `WishlistItem` |
 | Coupons | cart page · `/api/coupons/:code/validate`; `/admin/coupons` · `/api/admin/coupons` | `Coupon`, `AdminCoupon` → `CouponService` | `Coupon` |
@@ -179,7 +182,13 @@ The current phase checklist and decision register are authoritative in docs/mode
   - Rendered with `next/image` `unoptimized` (`ProductImage`). The seed images are hot-linked from asos (their CDN refuses server-side fetches), and uploads are served by Express outside Next's loader.
   - Descriptions are plain text; HTML is never rendered.
 - **Seed data:**
-  - 6 demo listings (`seeders/data/products.json`) plus the 136-row third-party mecha catalog
+  - The shop's catalogue is the owner's workbook (`seeders/data/owner-catalog.json`, `seeders/OwnerCatalog.ts`). A seed
+    writes it with demo stock (1–8 per row, by key) and the synthetic history below, and the migration
+    `2026-10-25-45-owner-catalog` leaves that seed as it is; on an existing database the migration makes the shop's
+    products exactly the workbook, with its real stock (researched rows keep their SKU, images and provenance; the rest
+    are retired).
+  - No longer seeded, kept as provenance: 6 demo listings (`seeders/data/products.json`) and the 136-row third-party
+    mecha catalog
     (`seeders/data/model-universe-catalog.json`, tracked in `docs/model_universe_seed.md`; `seeders/ModelUniverseCatalog.ts`).
     Catalog prices are estimates from retailer listings (foreign prices in USD × 25,000); images are hot-linked retailer
     images whose rights are not verified. Provenance per product is in `product_source` (admin API only).
@@ -217,7 +226,7 @@ The current phase checklist and decision register are authoritative in docs/mode
 | `yarn test` / `yarn test:db` | Jest: unit tests (no database; gateway, grants, contract test vectors) / database tests on `TEST_DB_*` (a throwaway `*_test` database: they drop the tables) |
 | `yarn seed-ci` | ⚠️ Drops and recreates every table, seeds the development data strictly (any error fails it), creates the views and exits. Used by the e2e stack (the image runs `node dist/.next/scripts/seed.js`) |
 | `yarn db:migrate` | Applies the pending migrations and recreates the analytics views, then exits (non-zero on any error). The server does the same on start |
-| `yarn catalog:import` | Applies the migrations, then adds the catalog rows an existing database does not have yet (one transaction, never overwrites imported products), then exits |
+| `yarn catalog:import [sheet.csv] [--dry-run]` | Applies the migrations, then makes the shop's own catalogue exactly the owner's workbook (the committed export, or a CSV of the tab "Danh mục 6 hãng"; image column ignored) in one transaction, retiring every other shop-owned product; `--dry-run` reports and rolls back |
 | `yarn partners:seed` | `_test`/`_demo` databases only: adds the 7 synthetic marketplace sellers and their 16 listings through the real seller and moderation workflows (skips sellers that exist), then exits |
 | `yarn e2e` | Playwright against a running stack; `--grep @demo` is the automated demo (`e2e/agent-demo.spec.ts`, writes to the shop: `E2E_ALLOW_WRITES=1`) |
 

@@ -20,7 +20,7 @@ interface Candidate {
   costVnd: number;
   stock: number;
   ageDays: number;
-  grade?: string;
+  scale?: string;
   currentDiscount: number;
   maximumSafePercent: number;
 }
@@ -91,7 +91,7 @@ export default function SalesWorkspace() {
     () =>
       products.filter(
         (p) =>
-          (!oldOnly || p.ageDays >= 60) && fold(`${p.name} ${p.sku} ${p.grade || ''}`).includes(fold(search.trim())),
+          (!oldOnly || p.ageDays >= 60) && fold(`${p.name} ${p.sku} ${p.scale || ''}`).includes(fold(search.trim())),
       ),
     [products, oldOnly, search],
   );
@@ -270,7 +270,7 @@ export default function SalesWorkspace() {
             <input
               aria-label={en ? 'Search products' : 'Tìm sản phẩm'}
               type="search"
-              placeholder={en ? 'Search name, SKU, grade…' : 'Tìm tên, mã SKU, grade…'}
+              placeholder={en ? 'Search name, SKU, scale…' : 'Tìm tên, mã SKU, tỉ lệ…'}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

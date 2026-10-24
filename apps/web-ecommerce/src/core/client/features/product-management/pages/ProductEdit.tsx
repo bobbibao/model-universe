@@ -11,6 +11,7 @@ import ProductApi from '@/core/client/api/Product';
 import type { AdminProduct } from '@/shared/types/product';
 import useProductFormOptions from '../hooks/useProductFormOptions';
 import ProductImagesField, { ImageItem, imageFromUrl, uploadPendingImages } from '../components/ProductImagesField';
+import ProductConditions from '../components/ProductConditions';
 import {
   BasicInfoFields,
   InventoryFields,
@@ -57,9 +58,14 @@ const ProductEdit = () => {
     setErrors({});
   }, []);
 
+  const load = useCallback(
+    () => ProductApi.getAdminProduct(productId).then((loaded) => (loaded ? applyProduct(loaded) : setProduct(null))),
+    [productId, applyProduct],
+  );
+
   useEffect(() => {
-    ProductApi.getAdminProduct(productId).then((loaded) => (loaded ? applyProduct(loaded) : setProduct(null)));
-  }, [productId, applyProduct]);
+    load();
+  }, [load]);
 
   // An inactive supplier is not offered in the options but must stay selectable for products that use it.
   const supplierOptions = useMemo(() => {
@@ -119,14 +125,33 @@ const ProductEdit = () => {
   }
 
   const total = product.sold + product.stock;
+  // A condition option: its model (name, brand, code, descriptions, box) is edited on the main listing.
+  const option = Boolean(product.parentProductId);
 
   return (
     <>
       <Breadcrumb pageName={t('edit')} />
       <p className="-mt-4 mb-6 text-body">{t('summary', { id: product.id, sold: product.sold, total })}</p>
+      {option && product.listing && (
+        <p className="-mt-3 mb-6 flex flex-wrap items-center gap-2 rounded-md border border-brand-hover/30 bg-brand/10 px-4 py-3 text-sm">
+          <span>{t('conditionOf', { name: product.listing.name })}</span>
+          <Link href={`/admin/products/${product.listing.id}`} className="font-semibold text-brand-hover hover:underline">
+            {t('openListing')} →
+          </Link>
+        </p>
+      )}
       <div className="flex flex-col gap-6">
         <Card title={t('basics')}>
-          <BasicInfoFields values={values} errors={errors} onChange={onChange} categories={categories} />
+          <BasicInfoFields
+            values={values}
+            errors={errors}
+            onChange={onChange}
+            categories={categories}
+            readOnly={option}
+          />
+        </Card>
+        <Card title={t('conditions')}>
+          <ProductConditions product={product} onCreated={load} />
         </Card>
         <Card title={t('images')}>
           <ProductImagesField

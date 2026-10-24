@@ -27,6 +27,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterOptions, setFilterOptions] = useState<ProductFilterOptions>({
     brands: [],
+    scales: [],
     priceRange: { min: 0, max: 0 },
   });
   const [products, setProducts] = useState<ProductSummary[]>([]);
@@ -59,9 +60,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
       q: searchParams.get('q') || '',
       category: categorySlug || searchParams.get('category') || '',
       gender: '',
-      grade: searchParams.get('grade') || '',
       scale: searchParams.get('scale') || '',
-      series: searchParams.get('series') || '',
       condition: searchParams.get('condition') || '',
       assemblyState: searchParams.get('assemblyState') || '',
       brand: searchParams.get('brand') || '',
@@ -122,9 +121,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
       const result = await ProductApi.getProducts({
         q: applied.q,
         category: applied.category,
-        grade: applied.grade,
         scale: applied.scale,
-        series: applied.series,
         condition: applied.condition,
         assemblyState: applied.assemblyState,
         brand: applied.brand,
@@ -151,7 +148,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   const navigate = (values: Partial<ProductFilterValues> & { page?: number }) => {
     const params = new URLSearchParams();
     if (values.q?.trim()) params.set('q', values.q.trim());
-    for (const field of ['grade', 'scale', 'series', 'condition', 'assemblyState'] as const) {
+    for (const field of ['scale', 'condition', 'assemblyState'] as const) {
       if (values[field]) params.set(field, values[field] as string);
     }
     if (values.brand) params.set('brand', values.brand);
@@ -179,8 +176,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
     clearTimeout(filterTimer.current);
     pendingUrl.current = 'editing';
     // Choices apply immediately; typing and dragging wait until the input pauses.
-    const debounce =
-      values.series !== draft.series || values.minPrice !== draft.minPrice || values.maxPrice !== draft.maxPrice;
+    const debounce = values.minPrice !== draft.minPrice || values.maxPrice !== draft.maxPrice;
     if (debounce) filterTimer.current = setTimeout(() => navigate({ ...values, page: 1 }), 300);
     else navigate({ ...values, page: 1 });
   };
@@ -282,6 +278,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
               values={draft}
               categories={categories}
               brands={filterOptions.brands}
+              scales={filterOptions.scales}
               priceLimit={priceLimit}
               onChange={changeFilters}
               onReset={() => navigate({})}

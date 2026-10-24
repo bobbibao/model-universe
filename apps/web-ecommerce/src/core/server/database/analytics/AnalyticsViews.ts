@@ -24,13 +24,13 @@ const AUTO_AD_CAP_MAX_VND = 10_000_000; // ... and at most 10,000,000 VND a mont
 // Name -> SELECT, created in this order: a view may read the views above it.
 const VIEWS: Record<string, string> = {
   // Sellable products only (not discontinued, not held back): what the agent may act on. `stocked_at` is the
-  // latest stock arrival, else the product's creation: the start of "days in stock".
+  // latest stock arrival, else the product's creation: the start of "days in stock". Products may be uncategorized.
   stock_on_hand: `
-    SELECT p.sku, p.name, c.name AS category, p.stock AS quantity,
+    SELECT p.sku, p.name, COALESCE(c.name, 'Uncategorized') AS category, p.stock AS quantity,
            p."importPrice" AS unit_cost_vnd, p.price AS unit_price_vnd, p."salesChannel"::text AS sales_channel,
            COALESCE(li.last_import_at, p."createdAt") AS stocked_at
     FROM product p
-    JOIN category c ON c.id = p."categoryId"
+    LEFT JOIN category c ON c.id = p."categoryId"
     LEFT JOIN (
       SELECT sii."productId", MAX(si."createdAt") AS last_import_at
       FROM stock_import_item sii
@@ -74,7 +74,8 @@ const VIEWS: Record<string, string> = {
 
   // Every product, sellable or not, with its effective price now (the highest running discount, as the storefront).
   catalog: `
-    SELECT p.sku, p.name, p."brandName" AS brand, p.description, c.slug AS category, c.name AS category_name,
+    SELECT p.sku, p.name, p."brandName" AS brand, p.description, COALESCE(c.slug, 'uncategorized') AS category,
+           COALESCE(c.name, 'Uncategorized') AS category_name,
            p.gender::text AS gender, p.price AS price_vnd, p."importPrice" AS unit_cost_vnd,
            COALESCE(ROUND(p.price * (100 - d.percent)::numeric / 100)::int, p.price) AS sale_price_vnd,
            COALESCE(d.percent, 0) AS discount_pct, p.stock AS quantity, p."inventoryStatus"::text AS inventory_status,
@@ -83,7 +84,7 @@ const VIEWS: Record<string, string> = {
               JOIN stock_import si ON si.id = sii."stockImportId"
              WHERE sii."productId" = p.id) AS last_received_at
     FROM product p
-    JOIN category c ON c.id = p."categoryId"
+    LEFT JOIN category c ON c.id = p."categoryId"
     LEFT JOIN (
       SELECT "productId", MAX(percent) AS percent
       FROM product_discount

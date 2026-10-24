@@ -1,4 +1,4 @@
-import type { GunplaAttributes } from '../gunpla';
+import type { GunplaAttributes, ModelCondition } from '../gunpla';
 import type { ProductPackaging } from '../packing/rules';
 export type ProductGender = 'male' | 'female' | 'unisex';
 
@@ -21,7 +21,16 @@ export type Category = {
   productCount?: number;
 };
 
-// Product card data returned by the storefront listing.
+// The units of one condition a model is offered in (storefront and admin listings): how many listings or options,
+// their stock and the lowest price a customer pays among those in stock.
+export type ConditionSummary = {
+  condition: ModelCondition;
+  units: number;
+  stock: number;
+  minSalePrice: number;
+};
+
+// Product card data returned by the storefront listing: one card per model (its main listing).
 export type ProductSummary = ProductPricing & GunplaAttributes & {
   partnerId?: number | null;
   id: number;
@@ -40,6 +49,30 @@ export type ProductSummary = ProductPricing & GunplaAttributes & {
   sold?: number;
   salesChannel: SalesChannel;
   category?: Pick<Category, 'id' | 'name' | 'slug'>;
+  // Listings only: every condition the model is on sale in, and their stock together.
+  conditions?: ConditionSummary[];
+  groupStock?: number;
+};
+
+// One unit a customer can choose on the product page: the main listing or one of its condition options. Its id is the
+// product to put in the cart.
+export type ProductConditionOption = ProductPricing & {
+  id: number;
+  uuid: string;
+  slug: string;
+  sku: string;
+  isMain: boolean;
+  condition: ModelCondition;
+  conditionNote: string | null;
+  missingAccessories: string[];
+  defects: string[];
+  includedAccessories: string[];
+  boxCondition: string | null;
+  assemblyState: GunplaAttributes['assemblyState'];
+  imageUrl: string;
+  images: string[];
+  stock: number;
+  price: number;
 };
 
 export type RatingDistribution = Record<'1' | '2' | '3' | '4' | '5', number>;
@@ -49,25 +82,54 @@ export type ProductDetail = ProductSummary & {
   description?: string | null;
   availableSizes: string[];
   sold: number;
-  productionDate?: string | null;
   weight?: string | null;
   dimensions?: string | null;
-  categoryId: number;
+  categoryId: number | null;
   images: string[];
   imageAttributions?: { imageUrl: string; creator: string; source: string; license: string; licenseUrl: string }[];
   ratingDistribution: RatingDistribution;
+  // The main listing first, then its condition options; the unit the page was opened with.
+  conditionOptions?: ProductConditionOption[];
+  selectedOptionId?: number;
 };
 
 export type AdminProductListItem = ProductSummary & {
   sku: string;
   sold: number;
   importPrice: number;
+  pricingReferenceMemberVnd?: number | null;
   isArchived: boolean;
   inventoryStatus: InventoryStatus;
   createdAt: string;
+  productionDate?: string | null;
 };
 
-export type AdminProduct = Omit<ProductDetail, 'ratingDistribution' | keyof ProductPricing> & {
+// One unit of a model in Admin: the main listing or a condition option, with its price, cost and stock.
+export type AdminProductUnit = ProductPricing & {
+  id: number;
+  sku: string;
+  name: string;
+  isMain: boolean;
+  condition: ModelCondition;
+  conditionNote?: string | null;
+  missingAccessories: string[];
+  defects: string[];
+  price: number;
+  pricingReferenceMemberVnd?: number | null;
+  importPrice: number;
+  stock: number;
+  sold: number;
+  imageUrl: string;
+  isArchived: boolean;
+  inventoryStatus: InventoryStatus;
+};
+
+export type AdminProduct = Omit<ProductDetail, 'ratingDistribution' | 'conditionOptions' | 'selectedOptionId' | keyof ProductPricing> & {
+  productionDate?: string | null;
+  // Set on a condition option: the main listing it belongs to.
+  parentProductId?: number | null;
+  listing?: { id: number; name: string; sku: string } | null;
+  units?: AdminProductUnit[];
   pricingReferenceMemberVnd?: number | null;
   pricingIssueCount?: number;
   buybackPriceVnd?: number | null;
@@ -92,6 +154,7 @@ export type Review = {
 
 export type ProductFilterOptions = {
   brands: string[];
+  scales: string[];
   priceRange: { min: number; max: number };
 };
 
@@ -99,9 +162,7 @@ export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'name' | 'best
 
 export type ProductQuery = {
   assemblyState?: string;
-  grade?: string;
   scale?: string;
-  series?: string;
   condition?: string;
   q?: string;
   category?: string;
@@ -133,7 +194,7 @@ export type Supplier = {
 export type ProductPayload = GunplaAttributes & {
   pricingReferenceMemberVnd?: number;
   pricingIssueCount?: number;
-  buybackPriceVnd?: number;
+  buybackPriceVnd?: number | null;
   expectedStock?: number;
   expectedPrice?: number;
   name: string;
@@ -141,7 +202,7 @@ export type ProductPayload = GunplaAttributes & {
   sku: string;
   description: string;
   gender: ProductGender;
-  categoryId: number;
+  categoryId: number | null;
   supplierId: number | null;
   availableSizes: string[];
   price: number;
@@ -150,6 +211,7 @@ export type ProductPayload = GunplaAttributes & {
   weight: string;
   dimensions: string;
   packaging?: ProductPackaging | null;
+  // The received date ("Ngày nhập"), staff only; empty means the day the product is added.
   productionDate: string | null;
   imageUrl: string;
   images: string[];
@@ -157,3 +219,45 @@ export type ProductPayload = GunplaAttributes & {
   isArchived: boolean;
   inventoryStatus: InventoryStatus;
 };
+
+// Admin "Thống kê kho": the shop's own catalogue, archived products and partner merchandise excluded.
+export type InventoryStats = {
+  totals: {
+    listings: number;
+    options: number;
+    names: number;
+    unitsInStock: number;
+    unitsOutOfStock: number;
+    stock: number;
+    brands: number;
+    costValue: number;
+    listValue: number;
+    memberValue: number;
+    marginValue: number;
+    missingCost: number;
+    averageDaysInStock: number;
+  };
+  brands: { brand: string; listings: number; unitsInStock: number; stock: number; costValue: number; memberValue: number }[];
+  conditions: { condition: ModelCondition; units: number; unitsInStock: number; stock: number }[];
+};
+
+// A new condition option of a listing (Admin): the model comes from the listing.
+export type ConditionOptionPayload = Pick<
+  ProductPayload,
+  | 'condition'
+  | 'conditionNote'
+  | 'missingAccessories'
+  | 'defects'
+  | 'includedAccessories'
+  | 'boxCondition'
+  | 'assemblyState'
+  | 'pricingReferenceMemberVnd'
+  | 'pricingIssueCount'
+  | 'price'
+  | 'buybackPriceVnd'
+  | 'importPrice'
+  | 'stock'
+  | 'productionDate'
+> &
+  // Without photos of its own the option shows the listing's.
+  Partial<Pick<ProductPayload, 'imageUrl' | 'images'>> & { sku?: string };

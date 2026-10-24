@@ -1,9 +1,9 @@
 'use client';
 
-import { catalogFormula } from '@/shared/sale-pricing';
+import { catalogPricing } from '@/shared/sale-pricing';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { GRADES, ASSEMBLY_STATES } from '@/shared/gunpla';
+import { ASSEMBLY_STATES, CONDITIONS } from '@/shared/gunpla';
 import TextField, { inputClassName } from '@/components/FormElements/TextField';
 import SelectField from '@/components/FormElements/SelectField';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -18,19 +18,25 @@ interface SectionProps {
   onChange: <K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) => void;
 }
 
+// The model itself. A condition option shows its listing's model read-only (`readOnly`): it is edited on the listing.
 export const BasicInfoFields = ({
   values,
   errors,
   onChange,
   categories,
-}: SectionProps & { categories: Category[] }) => {
-  const t = useTranslations('adminProducts');
+  readOnly = false,
+  withCondition = true,
+}: SectionProps & { categories: Category[]; readOnly?: boolean; withCondition?: boolean }) => {
+  const t = useTranslations('adminProducts'),
+    catalog = useTranslations('catalog');
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      {readOnly && <p className="text-sm text-body md:col-span-2">{t('inheritedNote')}</p>}
       <TextField
         label={t('name')}
         name="name"
         value={values.name}
+        disabled={readOnly}
         onChange={(event) => onChange('name', event.target.value)}
         error={errors.name ? t(`validation.${errors.name}`) : undefined}
       />
@@ -38,19 +44,53 @@ export const BasicInfoFields = ({
         label={t('brand')}
         name="brandName"
         value={values.brandName}
+        disabled={readOnly}
         onChange={(event) => onChange('brandName', event.target.value)}
         error={errors.brandName ? t(`validation.${errors.brandName}`) : undefined}
       />
-      <SelectField
-        label={t('category')}
-        name="categoryId"
-        placeholder={t('selectCategory')}
-        options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
-        value={values.categoryId}
-        onChange={(event) => onChange('categoryId', event.target.value)}
-        error={errors.categoryId ? t(`validation.${errors.categoryId}`) : undefined}
-      />
-      <GunplaFields values={values} errors={errors} onChange={onChange} />
+      <div>
+        <SelectField
+          label={t('category')}
+          name="categoryId"
+          placeholder={t('noCategory')}
+          options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
+          value={values.categoryId}
+          disabled={readOnly}
+          onChange={(event) => onChange('categoryId', event.target.value)}
+        />
+        <p className="mt-1 text-xs text-body">{t('categoryHint')}</p>
+      </div>
+      {(['scale', 'modelCode'] as const).map((field) => (
+        <TextField
+          key={field}
+          label={catalog(field)}
+          name={field}
+          value={values[field]}
+          disabled={readOnly}
+          onChange={(event) => onChange(field, event.target.value)}
+        />
+      ))}
+      {withCondition && (
+        <fieldset className="grid grid-cols-1 gap-5 rounded-lg border border-stroke p-4 md:col-span-2 md:grid-cols-2 dark:border-dark-3">
+          <legend className="px-1 text-sm font-semibold text-black dark:text-white">{t('conditionSection')}</legend>
+          <ConditionFields values={values} errors={errors} onChange={onChange} />
+        </fieldset>
+      )}
+      {(['descriptionEn', 'descriptionVi'] as const).map((field) => (
+        <div className="md:col-span-2" key={field}>
+          <label className="mu-field" htmlFor={field}>
+            {catalog(field)}
+          </label>
+          <textarea
+            id={field}
+            className="mu-input"
+            rows={3}
+            value={values[field]}
+            disabled={readOnly}
+            onChange={(event) => onChange(field, event.target.value)}
+          />
+        </div>
+      ))}
       <div className="md:col-span-2">
         <label htmlFor="description" className="mb-2 block text-sm font-medium text-black dark:text-white">
           {t('description')}
@@ -60,6 +100,7 @@ export const BasicInfoFields = ({
           rows={5}
           className={inputClassName}
           value={values.description}
+          disabled={readOnly}
           onChange={(event) => onChange('description', event.target.value)}
         />
       </div>
@@ -67,15 +108,74 @@ export const BasicInfoFields = ({
   );
 };
 
+// The condition of one unit: what a customer chooses between on the product page. Incomplete and defective units must
+// list what is missing or wrong.
+export const ConditionFields = ({ values, errors, onChange }: SectionProps) => {
+  const catalog = useTranslations('catalog'),
+    t = useTranslations('adminProducts');
+  const listField = (field: 'includedAccessories' | 'missingAccessories' | 'defects', label: string) => (
+    <div className="md:col-span-2" key={field}>
+      <label className="mu-field" htmlFor={field}>
+        {label}
+      </label>
+      <textarea
+        id={field}
+        className="mu-input"
+        rows={3}
+        value={values[field]}
+        aria-invalid={errors[field] ? true : undefined}
+        onChange={(event) => onChange(field, event.target.value)}
+      />
+      {errors[field] && <p className="mt-1 text-sm text-danger">{t(`validation.${errors[field]}`)}</p>}
+    </div>
+  );
+  return (
+    <>
+      <div>
+        <SelectField
+          label={catalog('condition')}
+          name="condition"
+          options={CONDITIONS.map((value) => ({ value, label: catalog(value) }))}
+          value={values.condition}
+          onChange={(event) => onChange('condition', event.target.value as ProductFormValues['condition'])}
+        />
+        <p className="mt-1 text-xs text-body">{catalog(`conditionDescriptions.${values.condition}`)}</p>
+      </div>
+      <SelectField
+        label={catalog('assembly')}
+        name="assemblyState"
+        options={ASSEMBLY_STATES.map((value) => ({ value, label: catalog(value) }))}
+        value={values.assemblyState}
+        onChange={(event) => onChange('assemblyState', event.target.value as ProductFormValues['assemblyState'])}
+      />
+      <TextField
+        label={catalog('box')}
+        name="boxCondition"
+        value={values.boxCondition}
+        onChange={(event) => onChange('boxCondition', event.target.value)}
+      />
+      <TextField
+        label={t('conditionNote')}
+        name="conditionNote"
+        value={values.conditionNote}
+        onChange={(event) => onChange('conditionNote', event.target.value)}
+      />
+      {values.condition === 'incomplete' && listField('missingAccessories', t('missingAccessories'))}
+      {(values.condition === 'defective' || values.defects.trim() !== '') && listField('defects', t('defectsList'))}
+      {listField('includedAccessories', t('includedAccessories'))}
+    </>
+  );
+};
+
 export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
   const t = useTranslations('adminProducts'),
     locale = useLocale(),
     en = locale === 'en';
-  let result: ReturnType<typeof catalogFormula> | undefined;
+  let result: ReturnType<typeof catalogPricing> | undefined;
   let formulaError = '';
   if (values.pricingReferenceMemberVnd) {
     try {
-      result = catalogFormula(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
+      result = catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
     } catch (error) {
       formulaError = en
         ? 'The reference price or condition needs appraisal under the standard buyback table.'
@@ -108,7 +208,15 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
         <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <dt className="text-xs text-body">{en ? 'Expected buyback B' : 'Giá thu dự kiến B'}</dt>
-            <dd className="mt-1 font-bold">{result ? formatVND(result.buybackPriceVnd, locale) : '—'}</dd>
+            <dd className="mt-1 font-bold">
+              {result?.buybackPriceVnd != null
+                ? formatVND(result.buybackPriceVnd, locale)
+                : result
+                  ? en
+                    ? 'Appraisal'
+                    : 'Cần thẩm định'
+                  : '—'}
+            </dd>
           </div>
           <div>
             <dt className="text-xs text-body">{en ? 'Public list price R' : 'Giá niêm yết R'}</dt>
@@ -121,8 +229,8 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
         </dl>
         <p className="mt-3 text-xs leading-6 text-body">
           {en
-            ? 'B = S − tier deduction − 50,000 × issues. R ≈ S ÷ 0.9. Serious damage or reference above 5 million requires appraisal; no automatic price is invented.'
-            : 'B = S − khoản trừ theo bậc − 50.000 × số lỗi. R ≈ S ÷ 0,9. Lỗi nặng hoặc tham chiếu trên 5 triệu cần thẩm định, không tự đặt công thức ngoài bảng.'}
+            ? 'B = S − tier deduction − 50,000 × issues. R ≈ S ÷ 0.9. Above 5 million R still follows S, but a buyback is appraised (no formula B) and issues cannot be priced.'
+            : 'B = S − khoản trừ theo bậc − 50.000 × số lỗi. R ≈ S ÷ 0,9. Trên 5 triệu, R vẫn theo S nhưng giá thu cần thẩm định (không có B theo công thức) và không áp số lỗi.'}
         </p>
         {formulaError && (
           <p role="alert" className="mt-2 text-sm text-danger">
@@ -185,13 +293,16 @@ export const InventoryFields = ({ values, errors, onChange }: SectionProps) => {
         value={values.dimensions}
         onChange={(event) => onChange('dimensions', event.target.value)}
       />
-      <TextField
-        label={t('receivedDate')}
-        name="productionDate"
-        type="date"
-        value={values.productionDate}
-        onChange={(event) => onChange('productionDate', event.target.value)}
-      />
+      <div>
+        <TextField
+          label={t('receivedDate')}
+          name="productionDate"
+          type="date"
+          value={values.productionDate}
+          onChange={(event) => onChange('productionDate', event.target.value)}
+        />
+        <p className="mt-1 text-xs text-body">{t('receivedDateHint')}</p>
+      </div>
       <fieldset className="grid grid-cols-2 gap-4 rounded-lg border border-stroke p-4 md:col-span-2 md:grid-cols-4 dark:border-dark-3">
         <legend className="px-1 text-sm font-semibold text-black dark:text-white">{t('packaging.title')}</legend>
         <p className="col-span-2 text-sm text-dark-5 md:col-span-4">{t('packaging.hint')}</p>
@@ -298,57 +409,3 @@ export const StatusFields = ({ values, onChange }: Omit<SectionProps, 'errors'>)
     </div>
   );
 };
-
-function GunplaFields({ values, onChange }: SectionProps) {
-  const t = useTranslations('catalog'),
-    admin = useTranslations('adminProducts');
-  return (
-    <>
-      <SelectField
-        label={t('grade')}
-        name="grade"
-        placeholder={admin('unknownGrade')}
-        options={GRADES.map((value) => ({ value, label: value }))}
-        value={values.grade}
-        onChange={(event) => onChange('grade', event.target.value as ProductFormValues['grade'])}
-      />
-      {(['scale', 'series', 'modelCode', 'boxCondition'] as const).map((field) => (
-        <TextField
-          key={field}
-          label={t(field === 'boxCondition' ? 'box' : field)}
-          name={field}
-          value={values[field]}
-          onChange={(event) => onChange(field, event.target.value)}
-        />
-      ))}
-      <SelectField
-        label={t('condition')}
-        name="condition"
-        options={['new', 'preowned'].map((value) => ({ value, label: t(value) }))}
-        value={values.condition}
-        onChange={(event) => onChange('condition', event.target.value as ProductFormValues['condition'])}
-      />
-      <SelectField
-        label={t('assembly')}
-        name="assemblyState"
-        options={ASSEMBLY_STATES.map((value) => ({ value, label: t(value) }))}
-        value={values.assemblyState}
-        onChange={(event) => onChange('assemblyState', event.target.value as ProductFormValues['assemblyState'])}
-      />
-      {(['includedAccessories', 'defects', 'descriptionEn', 'descriptionVi'] as const).map((field) => (
-        <div className="md:col-span-2" key={field}>
-          <label className="mu-field" htmlFor={field}>
-            {t(field === 'includedAccessories' ? 'accessories' : field)}
-          </label>
-          <textarea
-            id={field}
-            className="mu-input"
-            rows={3}
-            value={values[field]}
-            onChange={(event) => onChange(field, event.target.value)}
-          />
-        </div>
-      ))}
-    </>
-  );
-}

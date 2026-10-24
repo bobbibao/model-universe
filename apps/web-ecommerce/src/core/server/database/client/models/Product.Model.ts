@@ -4,7 +4,7 @@ import { slugify } from '../../../../../shared/slug';
 import CategoryModel from './Category.Model';
 import SupplierModel from './Supplier.Model';
 import { seedProductData } from '../seeders/Product.Seeder';
-import type { GunplaGrade, ModelCondition, AssemblyState } from '../../../../../shared/gunpla';
+import type { ModelCondition, AssemblyState } from '../../../../../shared/gunpla';
 import type { ProductPackaging } from '../../../../../shared/packing/rules';
 
 export type ProductGender = 'male' | 'female' | 'unisex';
@@ -67,13 +67,7 @@ export default class ProductModel extends Model {
   brandName!: string;
 
   @Column(DataType.STRING)
-  grade?: GunplaGrade;
-
-  @Column(DataType.STRING)
   scale?: string;
-
-  @Column(DataType.STRING)
-  series?: string;
 
   @Column(DataType.STRING)
   modelCode?: string;
@@ -92,6 +86,19 @@ export default class ProductModel extends Model {
 
   @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] })
   defects!: string[];
+
+  // What this unit lacks (condition `incomplete`) and a free note on its condition, shown to customers.
+  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] })
+  missingAccessories!: string[];
+
+  @Column(DataType.TEXT)
+  conditionNote?: string | null;
+
+  // A condition option of another product (its main listing, one level deep): the same model in another condition
+  // with its own SKU, price, cost, stock and photos. The storefront lists the main listing once and offers its options
+  // on the product page; carts, orders and stock work on each row as on any product. Null for a main listing.
+  @Column(DataType.INTEGER)
+  parentProductId!: number | null;
 
   @Column(DataType.TEXT)
   descriptionEn?: string;
@@ -138,7 +145,9 @@ export default class ProductModel extends Model {
   @Column({ type: DataType.ENUM(...SALES_CHANNELS), allowNull: false, defaultValue: 'web' })
   salesChannel!: SalesChannel;
 
-  @Column(DataType.DATE)
+  // The date the stock was received ("Ngày nhập"; the column keeps its historical name). Staff only, never sent to the
+  // storefront; defaults to the day the product is added.
+  @Column({ type: DataType.DATE, defaultValue: DataType.NOW })
   productionDate?: Date;
 
   // Average review rating, kept in sync by the review logic.
@@ -154,13 +163,14 @@ export default class ProductModel extends Model {
   @Column(DataType.STRING)
   dimensions?: string;
 
-  // The retail box as shipped, for the package optimizer (null: the grade's typical box is used).
+  // The retail box as shipped, for the package optimizer (null: the shop's fallback box is used).
   @Column(DataType.JSONB)
   packaging?: ProductPackaging | null;
 
+  // Optional: the owner's catalogue leaves products uncategorized (categories are not shown to customers).
   @ForeignKey(() => CategoryModel)
-  @Column({ type: DataType.INTEGER, allowNull: false })
-  categoryId!: number;
+  @Column(DataType.INTEGER)
+  categoryId!: number | null;
 
   @ForeignKey(() => SupplierModel)
   @Column(DataType.INTEGER)

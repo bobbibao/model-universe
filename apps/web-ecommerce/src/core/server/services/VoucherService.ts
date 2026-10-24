@@ -341,8 +341,7 @@ export default class VoucherService {
         }).plainProfitVnd;
     const inCart = new Set(shopLines.map((line) => line.productId));
     const cartProducts = [...inCart].map((id) => products.get(id as number)).filter(Boolean) as ProductModel[];
-    const series = new Set(cartProducts.map((product) => product.series).filter(Boolean));
-    const grades = new Set(cartProducts.map((product) => product.grade).filter(Boolean));
+    const brands = new Set(cartProducts.map((product) => product.brandName));
     const candidates = (
       await ProductModel.findAll({
         where: { id: { [Op.notIn]: [...inCart] }, partnerId: null, stock: { [Op.gt]: 0 }, importPrice: { [Op.gt]: 0 } },
@@ -379,15 +378,15 @@ export default class VoucherService {
       const unlocks = unlocked.voucher.code !== current?.voucher.code || unlockedSaving > currentSaving;
       if (!unlocks || !upsellAllowed(originalProfit, unlocked.evaluation)) continue;
       const coupon = coupons.find((item) => item.code === unlocked.voucher.code)!;
-      const compatible = (product.series && series.has(product.series)) || (product.grade && grades.has(product.grade));
+      const compatible = brands.has(product.brandName);
       suggestions.push({
         product: {
           id: product.id,
           name: product.name,
           imageUrl: product.imageUrl,
           priceVnd: addOn.salePrice,
-          series: product.series ?? null,
-          grade: product.grade ?? null,
+          brandName: product.brandName,
+          scale: product.scale ?? null,
         },
         compatible: !!compatible,
         currentVoucher: current ? { code: current.voucher.code, discountVnd: currentSaving } : null,
