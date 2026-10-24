@@ -21,12 +21,13 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
     document.body.style.overflow = 'hidden';
     const sidebar = document.getElementById('sidebar');
     const controls = () =>
-      Array.from(sidebar?.querySelectorAll<HTMLElement>('a[href],button') ?? []).filter(
-        (element) => element.getClientRects().length > 0,
-      );
+      Array.from(
+        sidebar?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled])') ?? [],
+      ).filter((element) => element.getClientRects().length > 0);
     // Wait for the drawer's visibility style to be applied before transferring focus.
     const focusFrame = requestAnimationFrame(() => controls()[0]?.focus());
     const keydown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       if (event.key === 'Escape') setSidebarOpen(false);
       if (event.key !== 'Tab') return;
       const elements = controls(),

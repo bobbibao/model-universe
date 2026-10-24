@@ -14,6 +14,8 @@ import ProductGrid from '../components/ProductGrid';
 import StorePagination from '../components/StorePagination';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { shopPath } from '@/shared/slug';
+import AppliedFilters from '../components/AppliedFilters';
+import Link from '@/i18n/navigation';
 
 const PAGE_SIZE = 12;
 const DEFAULT_SORT: ProductSort = 'newest';
@@ -22,6 +24,7 @@ const DEFAULT_SORT: ProductSort = 'newest';
 // the query string and choosing another category moves to its own path (one canonical URL per category).
 const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   const t = useTranslations('catalog');
+  const ux = useTranslations('commerceUX');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -192,6 +195,9 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
           </h1>
           <p className="mu-note">{t('subtitle')}</p>
         </div>
+        <Link href="/kit-finder" className="catalog-finder-link">
+          {ux('finder')} <span aria-hidden="true">↗</span>
+        </Link>
       </header>
       <div className="catalog-layout">
         <section className="catalog-main" aria-label={t('title')} aria-busy={loading}>
@@ -238,6 +244,23 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
               </select>
             </div>
           </div>
+          <AppliedFilters
+            values={applied}
+            categories={categories}
+            onRemove={(key) =>
+              navigate({
+                ...applied,
+                [key]:
+                  key === 'inStock' || key === 'outletOnly'
+                    ? false
+                    : key === 'minPrice' || key === 'maxPrice'
+                      ? undefined
+                      : '',
+                page: 1,
+              })
+            }
+            onReset={() => navigate({})}
+          />
           {failed ? (
             <div role="alert" className="catalog-error">
               <p>{t('loadFailed')}</p>
@@ -250,7 +273,9 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
               {loading ? common('loading') : pagination ? t('results', { count: pagination.total }) : ' '}
             </p>
           )}
-          {!failed && <ProductGrid products={products} loading={loading} emptyText={t('empty')} />}
+          {!failed && (
+            <ProductGrid products={products} loading={loading} emptyText={t('empty')} onReset={() => navigate({})} />
+          )}
           {!failed && (
             <StorePagination
               pagination={pagination}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import PriceTag, { compactCount, useCountdown } from '@/components/PriceTag';
 import PromoIcon, { type PromoIconName } from '@/components/PromoIcon';
@@ -14,6 +14,7 @@ import type { ProductDetail } from '@/shared/types/product';
 // customer can scan it, plus a link to collect more vouchers.
 export default function OfferPanel({ product }: { product: ProductDetail }) {
   const locale = useLocale();
+  const ux = useTranslations('commerceUX');
   const en = locale === 'en';
   const money = (value: number) => formatVND(value, locale);
   const shopOwned = !product.partnerId;
@@ -121,31 +122,37 @@ export default function OfferPanel({ product }: { product: ProductDetail }) {
           </p>
         )}
       </div>
-      {offers.length > 0 ? (
-        <ul className="offer-list">
-          {offers.map((offer) => (
-            <li key={offer.icon}>
-              <span className="offer-list-icon">
-                <PromoIcon name={offer.icon} size={18} />
-              </span>
-              <span>
-                <strong>{offer.title}</strong>
-                <small>{offer.text}</small>
-              </span>
-            </li>
-          ))}
-        </ul>
+      {shopOwned ? (
+        <details className="offer-benefits">
+          <summary>
+            {ux('availableOffers')}
+            <span>
+              {offers.length} <span aria-hidden="true">＋</span>
+            </span>
+          </summary>
+          <ul className="offer-list">
+            {offers.map((offer) => (
+              <li key={offer.icon}>
+                <span className="offer-list-icon">
+                  <PromoIcon name={offer.icon} size={18} />
+                </span>
+                <span>
+                  <strong>{offer.title}</strong>
+                  <small>{offer.text}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Link href="/uu-dai" className="offer-more">
+            <PromoIcon name="ticket" size={16} />
+            {en ? 'Collect more vouchers' : 'Lấy thêm mã giảm giá'}
+            <PromoIcon name="arrow" size={16} />
+          </Link>
+        </details>
       ) : (
         <p className="offer-note">
           {en ? 'Partner listing: shop vouchers do not apply.' : 'Sản phẩm của đối tác: không áp dụng mã của shop.'}
         </p>
-      )}
-      {shopOwned && (
-        <Link href="/uu-dai" className="offer-more">
-          <PromoIcon name="ticket" size={16} />
-          {en ? 'Collect more vouchers' : 'Lấy thêm mã giảm giá'}
-          <PromoIcon name="arrow" size={16} />
-        </Link>
       )}
     </section>
   );

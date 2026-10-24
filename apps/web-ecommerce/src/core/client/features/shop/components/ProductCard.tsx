@@ -17,6 +17,7 @@ import { formatVND } from '@/shared/server/utils/utils';
 // ends within three days. A model sold out new but in stock in another condition shows that condition's lowest price.
 const ProductCard = ({ product }: { product: ProductSummary }) => {
   const t = useTranslations('catalog');
+  const ux = useTranslations('commerceUX');
   const locale = useLocale();
   const en = locale === 'en';
   const conditions = product.conditions ?? [
@@ -44,7 +45,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         <ProductStage
           src={product.imageUrl}
           alt={product.name}
-          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 100vw"
+          sizes="(min-width: 1440px) 320px, (min-width: 1024px) 28vw, (min-width: 640px) 33vw, 50vw"
           className="studio-card-stage"
         />
         {product.stock > 0 && onSale && (
@@ -119,6 +120,10 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
             </p>
           )}
         </div>
+        <Link href={href} className="product-tile-action" aria-label={ux('viewProduct', { name: product.name })}>
+          {ux(groupStock > 0 ? 'chooseProduct' : 'viewDetails')}
+          <span aria-hidden="true">↗</span>
+        </Link>
       </div>
     </div>
   );

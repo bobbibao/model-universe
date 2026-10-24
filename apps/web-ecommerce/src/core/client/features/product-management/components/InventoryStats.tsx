@@ -28,10 +28,21 @@ const InventoryStats = () => {
   const count = (value: number) => value.toLocaleString(locale === 'en' ? 'en-US' : 'vi-VN');
   const { totals } = stats;
   return (
-    <details className="inventory-stats" open>
+    <details className="inventory-stats">
       <summary>
         <span>{t('title')}</span>
         <small>{t('note')}</small>
+        <span className="inventory-summary-snapshot">
+          <span>
+            {t('stock')} <strong>{count(totals.stock)}</strong>
+          </span>
+          <span>
+            {t('listings')} <strong>{count(totals.listings)}</strong>
+          </span>
+          <span>
+            {t('costValue')} <strong>{formatVND(totals.costValue, locale)}</strong>
+          </span>
+        </span>
       </summary>
       <div className="inventory-kpis">
         <Kpi label={t('stock')} value={count(totals.stock)} hint={t('stockHint')} />

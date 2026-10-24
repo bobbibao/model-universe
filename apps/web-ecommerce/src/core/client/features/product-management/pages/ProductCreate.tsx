@@ -119,7 +119,15 @@ const ProductCreate = () => {
                 </div>
                 <div>
                   <dt className="inline text-body">{t('price')}</dt>
-                  <dd className="inline font-medium">{values.pricingReferenceMemberVnd ? formatVND(catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount)).listPriceVnd, locale) : values.price && formatVND(Number(values.price), locale)}</dd>
+                  <dd className="inline font-medium">
+                    {values.pricingReferenceMemberVnd
+                      ? formatVND(
+                          catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount))
+                            .listPriceVnd,
+                          locale,
+                        )
+                      : values.price && formatVND(Number(values.price), locale)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="inline text-body">{t('stock')}</dt>
@@ -134,7 +142,7 @@ const ProductCreate = () => {
           </div>
         )}
 
-        <div className="mt-8 flex flex-wrap justify-between gap-3">
+        <div className="admin-editor-actions mt-8 flex flex-wrap justify-between gap-3">
           <button
             type="button"
             onClick={() => router.push('/admin/products')}
