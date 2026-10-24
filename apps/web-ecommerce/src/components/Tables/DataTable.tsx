@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { usePathname } from '@/i18n/navigation';
+import useLocalStorage from '@/hooks/useLocalStorage';
 import type { Pagination, SortState } from '@/shared/types/pagination';
 import AdminIcon from '@/components/Admin/AdminIcon';
 
@@ -10,6 +12,7 @@ export interface DataTableColumn<T> {
   header: React.ReactNode;
   sortable?: boolean;
   className?: string;
+  essential?: boolean;
   render?: (row: T) => React.ReactNode;
 }
 
@@ -51,6 +54,27 @@ function DataTable<T>({
   onPageChange,
 }: DataTableProps<T>) {
   const t = useTranslations('dataTable');
+  const ux = useTranslations('commerceUX');
+  const pathname = usePathname();
+  const tableId = useId();
+  const pickerRef = useRef<HTMLDetailsElement>(null);
+  const [compact, setCompact] = useLocalStorage('mu-admin-table-compact', false);
+  // Store presentation preferences only. The schema suffix prevents preferences leaking between tables on a route.
+  const [hidden, setHidden] = useLocalStorage<string[]>(
+    `mu-table-columns:${pathname}:${columns.map((c) => c.key).join(',')}`,
+    [],
+  );
+  const hiddenKeys = Array.isArray(hidden) ? hidden : [];
+  const visibleColumns = columns.filter(
+    (column, index) => index === 0 || column.essential || !hiddenKeys.includes(column.key),
+  );
+  useEffect(() => {
+    const closeOutside = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) pickerRef.current.open = false;
+    };
+    document.addEventListener('mousedown', closeOutside);
+    return () => document.removeEventListener('mousedown', closeOutside);
+  }, []);
   const handleSort = (column: DataTableColumn<T>) => {
     if (!column.sortable || !onSortChange) return;
     const direction = sort?.key === column.key && sort.direction === 'asc' ? 'desc' : 'asc';
@@ -58,7 +82,7 @@ function DataTable<T>({
   };
 
   return (
-    <div className="admin-table" aria-busy={loading}>
+    <div className={`admin-table${compact === true ? ' is-compact' : ''}`} aria-busy={loading}>
       {(title || actions) && (
         <div className="admin-table-toolbar">
           {title && <h2>{title}</h2>}
@@ -66,12 +90,68 @@ function DataTable<T>({
         </div>
       )}
 
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full table-auto">
+      <div className="admin-table-viewbar">
+        <span role="status" aria-live="polite">
+          {loading ? t('loading') : ux('recordCount', { count: pagination?.total ?? data.length })}
+        </span>
+        <div className="admin-table-viewtools">
+          <button type="button" aria-pressed={compact === true} onClick={() => setCompact(compact !== true)}>
+            <AdminIcon name="density" size={16} />
+            {ux('compactRows')}
+          </button>
+          <details
+            ref={pickerRef}
+            className="admin-column-picker"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                event.currentTarget.open = false;
+                event.currentTarget.querySelector('summary')?.focus();
+              }
+            }}
+          >
+            <summary>
+              <AdminIcon name="columns" size={16} />
+              {ux('columns')}
+            </summary>
+            <fieldset>
+              <legend className="sr-only">{ux('columns')}</legend>
+              {columns.map((column, index) => (
+                <label key={column.key}>
+                  <input
+                    type="checkbox"
+                    checked={index === 0 || column.essential || !hiddenKeys.includes(column.key)}
+                    disabled={index === 0 || column.essential}
+                    onChange={(event) =>
+                      setHidden(
+                        event.target.checked
+                          ? hiddenKeys.filter((key) => key !== column.key)
+                          : [...hiddenKeys, column.key],
+                      )
+                    }
+                  />
+                  <span>{column.header}</span>
+                </label>
+              ))}
+              <button type="button" onClick={() => setHidden([])}>
+                {ux('restoreColumns')}
+              </button>
+            </fieldset>
+          </details>
+        </div>
+      </div>
+
+      <div
+        className="admin-table-scroll max-w-full overflow-x-auto"
+        role="region"
+        aria-label={typeof title === 'string' ? title : ux('tableRegion')}
+        tabIndex={0}
+      >
+        <table id={tableId} className="w-full table-auto">
           {typeof title === 'string' && <caption className="sr-only">{title}</caption>}
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              {columns.map((column) => (
+              {visibleColumns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
@@ -91,6 +171,7 @@ function DataTable<T>({
                   {column.sortable && onSortChange ? (
                     <button
                       type="button"
+                      disabled={loading}
                       className="inline-flex items-center text-left"
                       onClick={() => handleSort(column)}
                     >
@@ -107,7 +188,7 @@ function DataTable<T>({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-10 text-center">
+                <td colSpan={visibleColumns.length} className="px-4 py-10 text-center">
                   <span
                     role="status"
                     aria-label={t('loading')}
@@ -117,7 +198,7 @@ function DataTable<T>({
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-10 text-center text-body dark:text-bodydark">
+                <td colSpan={visibleColumns.length} className="px-4 py-10 text-center text-body dark:text-bodydark">
                   <div className="admin-table-empty">
                     <AdminIcon name="box" size={32} />
                     <p>{emptyText ?? t('empty')}</p>
@@ -133,7 +214,7 @@ function DataTable<T>({
                     onRowClick ? 'cursor-pointer hover:bg-gray-2 dark:hover:bg-meta-4' : ''
                   }`}
                 >
-                  {columns.map((column, index) => (
+                  {visibleColumns.map((column, index) => (
                     <td
                       key={column.key}
                       className={`px-4 py-4 text-black dark:text-bodydark1 ${column.className || ''}`}
@@ -166,22 +247,32 @@ function DataTable<T>({
         </table>
       </div>
 
-      {pagination && pagination.totalPages > 1 && onPageChange && (
+      {pagination && onPageChange && (
         <div className="admin-table-pagination">
           <span className="text-body dark:text-bodydark">
-            {t('pagination', { page: pagination.page, pages: pagination.totalPages, total: pagination.total })}
+            {t('pagination', {
+              page: pagination.page,
+              pages: Math.max(1, pagination.totalPages),
+              total: pagination.total,
+            })}
           </span>
           <div className="flex items-center gap-2">
-            <PageButton disabled={!pagination.hasPreviousPage} onClick={() => onPageChange(1)}>
+            <PageButton disabled={loading || !pagination.hasPreviousPage} onClick={() => onPageChange(1)}>
               <span aria-label={t('first')}>«</span>
             </PageButton>
-            <PageButton disabled={!pagination.hasPreviousPage} onClick={() => onPageChange(pagination.page - 1)}>
+            <PageButton
+              disabled={loading || !pagination.hasPreviousPage}
+              onClick={() => onPageChange(pagination.page - 1)}
+            >
               {t('previous')}
             </PageButton>
-            <PageButton disabled={!pagination.hasNextPage} onClick={() => onPageChange(pagination.page + 1)}>
+            <PageButton disabled={loading || !pagination.hasNextPage} onClick={() => onPageChange(pagination.page + 1)}>
               {t('next')}
             </PageButton>
-            <PageButton disabled={!pagination.hasNextPage} onClick={() => onPageChange(pagination.totalPages)}>
+            <PageButton
+              disabled={loading || !pagination.hasNextPage}
+              onClick={() => onPageChange(pagination.totalPages)}
+            >
               <span aria-label={t('last')}>»</span>
             </PageButton>
           </div>

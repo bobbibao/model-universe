@@ -23,14 +23,15 @@ import ProductReviews from '../components/ProductReviews';
 import RatingStars from '../components/RatingStars';
 import RestockAlert from '../components/RestockAlert';
 import { trackAddToCart, trackViewContent } from '@/shared/client/utils/tracking';
+import AdminIcon from '@/components/Admin/AdminIcon';
 
 // The URL parameter that keeps the chosen condition (a condition option's product id) when the page is shared.
 const CONDITION_PARAM = 'tinh-trang';
 
 const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="rounded-md bg-gray-2 px-4 py-3 dark:bg-store-card">
-    <p className="text-sm text-body dark:text-store-muted">{label}</p>
-    <p className="font-semibold">{value}</p>
+    <dt className="text-sm text-body dark:text-store-muted">{label}</dt>
+    <dd className="font-semibold">{value}</dd>
   </div>
 );
 
@@ -68,12 +69,15 @@ const unitsOf = (product: ProductDetailType): ProductConditionOption[] =>
 // in stock, else the first unit in stock.
 const initialUnitId = (product: ProductDetailType, requested: number | null) => {
   const units = unitsOf(product);
-  const wanted = units.find((unit) => unit.id === requested || (!requested && unit.id === product.selectedOptionId && !unit.isMain));
-  return (wanted ?? (units[0].stock > 0 ? units[0] : units.find((unit) => unit.stock > 0) ?? units[0])).id;
+  const wanted = units.find(
+    (unit) => unit.id === requested || (!requested && unit.id === product.selectedOptionId && !unit.isMain),
+  );
+  return (wanted ?? (units[0].stock > 0 ? units[0] : (units.find((unit) => unit.stock > 0) ?? units[0]))).id;
 };
 
 const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType } = {}) => {
   const t = useTranslations('catalog');
+  const ux = useTranslations('commerceUX');
   const seller = useTranslations('sellerStore');
   const locale = useLocale();
   // The SEO page passes the slug; older /shop/product/<id> links redirect to it.
@@ -90,6 +94,9 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [reserveBusy, setReserveBusy] = useState(false);
   const reservationRequest = useRef<{ key: string; quantity: number } | undefined>(undefined);
+  const purchaseRef = useRef<HTMLDivElement>(null);
+  const [purchaseVisible, setPurchaseVisible] = useState(true);
+  const [addedUnit, setAddedUnit] = useState<number | null>(null);
   const router = useRouter();
   const { addItem } = useCart();
   const { user } = useCurrentUser();
@@ -110,7 +117,10 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
       if (resetSelection) {
         setSize(result?.availableSizes[0] || '');
         setQuantity(1);
-        if (result) setUnitId(initialUnitId(result, Number(new URLSearchParams(window.location.search).get(CONDITION_PARAM)) || null));
+        if (result)
+          setUnitId(
+            initialUnitId(result, Number(new URLSearchParams(window.location.search).get(CONDITION_PARAM)) || null),
+          );
       }
     },
     [productKey],
@@ -130,10 +140,21 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   }, [loadProduct, user]);
   useCustomerActionRefresh('wishlist_add,wishlist_remove,review', refreshAssistantChanges);
 
+  useEffect(() => {
+    const element = purchaseRef.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => setPurchaseVisible(entry.isIntersecting), { threshold: 0 });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [product?.id]);
+  useEffect(() => setAddedUnit(null), [unitId, quantity, size]);
+
   const units = useMemo(() => (product ? unitsOf(product) : []), [product]);
   // The chosen unit: what is priced, pictured, put in the cart, saved or reserved.
   const unit = units.find((item) => item.id === unitId) ?? units[0];
-  const unitPath = product ? `${productPath(product)}${unit && !unit.isMain ? `?${CONDITION_PARAM}=${unit.id}` : ''}` : '';
+  const unitPath = product
+    ? `${productPath(product)}${unit && !unit.isMain ? `?${CONDITION_PARAM}=${unit.id}` : ''}`
+    : '';
 
   const chooseUnit = (id: number) => {
     setUnitId(id);
@@ -188,17 +209,26 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   // The listing as the chosen unit: its price, discount and stock (the model's name and brand stay the listing's).
   const offer: ProductDetailType = { ...product, ...unit, id: unit.id, images: unit.images };
   const listOrInspect = (items: string[]) => items.join(', ') || t('inspectionRequired');
+  const addToCart = () => {
+    if (!inStock) return;
+    if (addItem({ ...offer, name: product.name, brandName: product.brandName }, size, quantity)) {
+      trackAddToCart({ id: String(unit.id), name: product.name, price: unit.salePrice, quantity });
+      setAddedUnit(unit.id);
+    }
+  };
 
   return (
     <div className="studio-product-detail mx-auto max-w-7xl px-4 py-10">
-      <nav className="mb-6 text-sm text-body dark:text-store-muted">
+      <nav aria-label={ux('breadcrumb')} className="product-breadcrumb mb-6 text-sm text-body dark:text-store-muted">
         <Link href="/cua-hang" className="hover:text-brand-hover">
           {t('title')}
         </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{product.name}</span>
       </nav>
 
-      <div className="grid gap-10 lg:grid-cols-2">
-        <div>
+      <div className="product-detail-layout">
+        <div className="product-detail-media">
           <ProductGallery images={[unit.imageUrl, ...unit.images]} alt={`${product.name} · ${t(unit.condition)}`} />
           {!!product.imageAttributions?.length && (
             <details className="mt-4 text-xs text-body">
@@ -219,7 +249,10 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
           )}
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="product-detail-offer flex flex-col gap-5">
+          <p className="product-detail-brand">
+            {product.brandName} <span> / {product.scale || product.modelCode || 'MODEL UNIVERSE'}</span>
+          </p>
           <h1 className="text-3xl font-bold">{product.name}</h1>
           <div className="flex items-center gap-2 text-body dark:text-store-muted">
             {product.reviewCount > 0 ? (
@@ -238,19 +271,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               {seller('view')}
             </Link>
           )}
-          <p className="whitespace-pre-line leading-relaxed">
-            {(locale === 'vi' ? product.descriptionVi : product.descriptionEn) || product.description}
-          </p>
-          <button
-            onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
-            className="flex items-center justify-between gap-3 rounded-xl border border-brand-hover/25 bg-brand/10 px-4 py-4 text-left hover:bg-brand/20"
-          >
-            <span>
-              <strong className="block text-sm">✦ {t('askAssistant')}</strong>
-              <span className="mt-1 block text-xs text-body dark:text-store-muted">{t('assistantNote')}</span>
-            </span>
-            <span aria-hidden="true">↗</span>
-          </button>
 
           {product.availableSizes.length > 0 && (
             <div>
@@ -272,54 +292,81 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             </div>
           )}
 
-          <div>
-            <span className="mb-2 block font-medium">{t('quantity')}</span>
-            <div className="flex w-40 items-center rounded border-[1.5px] border-stroke dark:border-store-card">
+          <div
+            className="product-purchase"
+            id="product-purchase"
+            ref={purchaseRef}
+            role="group"
+            aria-label={ux('purchaseActions')}
+            tabIndex={-1}
+          >
+            <div className="product-purchase-quantity">
+              <span className="mb-2 block font-medium">{t('quantity')}</span>
+              <div className="flex w-40 items-center rounded border-[1.5px] border-stroke dark:border-store-card">
+                <button
+                  className="px-4 py-2 text-lg disabled:opacity-40"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  aria-label={t('decrease')}
+                >
+                  −
+                </button>
+                <span className="flex-1 text-center font-semibold">{quantity}</span>
+                <button
+                  className="px-4 py-2 text-lg disabled:opacity-40"
+                  onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
+                  disabled={quantity >= unit.stock}
+                  aria-label={t('increase')}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="product-purchase-actions flex flex-wrap gap-3">
               <button
-                className="px-4 py-2 text-lg disabled:opacity-40"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-                aria-label={t('decrease')}
+                disabled={!inStock}
+                onClick={addToCart}
+                className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
-                −
+                {inStock ? t('addToCart') : t('soldOut')}
               </button>
-              <span className="flex-1 text-center font-semibold">{quantity}</span>
               <button
-                className="px-4 py-2 text-lg disabled:opacity-40"
-                onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
-                disabled={quantity >= unit.stock}
-                aria-label={t('increase')}
+                onClick={toggleWishlist}
+                disabled={wishlistBusy}
+                className="rounded-md bg-gray px-6 py-3 font-semibold text-black hover:opacity-90 disabled:opacity-60 dark:bg-store-card dark:text-store-text"
               >
-                +
+                {wishlistItem ? t('unsave') : t('save')}
               </button>
+            </div>
+            <div className="product-purchase-feedback" role="status" aria-live="polite">
+              {addedUnit === unit.id ? (
+                <>
+                  <AdminIcon name="check" size={18} />
+                  <span>{ux('addedToCart')}</span>
+                  <Link href="/cart">{ux('viewCart')} →</Link>
+                </>
+              ) : (
+                <span>{ux('checkoutHint')}</span>
+              )}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <button
-              disabled={!inStock}
-              onClick={() => {
-                if (addItem({ ...offer, name: product.name, brandName: product.brandName }, size, quantity)) {
-                  trackAddToCart({ id: String(unit.id), name: product.name, price: unit.salePrice, quantity });
-                }
-              }}
-              className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {inStock ? t('addToCart') : t('soldOut')}
-            </button>
-            <button
-              onClick={toggleWishlist}
-              disabled={wishlistBusy}
-              className="rounded-md bg-gray px-6 py-3 font-semibold text-black hover:opacity-90 disabled:opacity-60 dark:bg-store-card dark:text-store-text"
-            >
-              {wishlistItem ? t('unsave') : t('save')}
-            </button>
-          </div>
+          <button
+            onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
+            className="flex items-center justify-between gap-3 rounded-xl border border-brand-hover/25 bg-brand/10 px-4 py-4 text-left hover:bg-brand/20"
+          >
+            <span>
+              <strong className="block text-sm">✦ {t('askAssistant')}</strong>
+              <span className="mt-1 block text-xs text-body dark:text-store-muted">{t('assistantNote')}</span>
+            </span>
+            <span aria-hidden="true">↗</span>
+          </button>
 
           {product.modelCode && !product.partnerId && (
             <button
               disabled={!inStock || reserveBusy}
-              className="mu-button w-full disabled:opacity-50"
+              className="mu-button mu-button-secondary w-full disabled:opacity-50"
               onClick={async () => {
                 if (!user) {
                   router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
@@ -362,7 +409,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             <p className="mu-note">{t('unboxing')}</p>
           </div>
           {!inStock && <RestockAlert key={unit.id} productId={unit.id} />}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <dl className="product-specifications grid grid-cols-2 gap-3 sm:grid-cols-3">
             <InfoItem label={t('brand')} value={product.brandName} />
             <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
             <InfoItem label={t('scale')} value={product.scale || '—'} />
@@ -380,9 +427,21 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               }
             />
             <InfoItem label="SKU" value={unit.sku} />
-          </div>
+          </dl>
         </div>
       </div>
+
+      <section className="product-story" aria-labelledby="product-story-title">
+        <div>
+          <p className="mu-eyebrow">MODEL UNIVERSE / COLLECTOR NOTES</p>
+          <h2 id="product-story-title">{ux('aboutProduct')}</h2>
+        </div>
+        <p className="whitespace-pre-line leading-relaxed">
+          {(locale === 'vi' ? product.descriptionVi : product.descriptionEn) ||
+            product.description ||
+            ux('descriptionPending')}
+        </p>
+      </section>
 
       <ProductReviews
         productId={product.id}
@@ -391,6 +450,30 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         distribution={product.ratingDistribution}
         onReviewSubmitted={() => loadProduct(false)}
       />
+      {!purchaseVisible && (
+        <div className="product-dock" aria-label={ux('purchaseActions')}>
+          <div>
+            <strong>{product.name}</strong>
+            <span>
+              {t(unit.condition)} · {formatVND(unit.salePrice, locale)}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="mu-button"
+            onClick={() => {
+              document.getElementById('product-purchase')?.scrollIntoView({
+                behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+                block: 'center',
+              });
+              const target = purchaseRef.current?.querySelector<HTMLButtonElement>('.product-purchase-actions button');
+              (target && !target.disabled ? target : purchaseRef.current)?.focus({ preventScroll: true });
+            }}
+          >
+            {inStock ? ux('chooseAndBuy') : t('soldOut')} <span aria-hidden="true">↑</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -442,7 +525,9 @@ const ConditionPicker = ({
         </div>
       )}
       <div className={`condition-details is-${selected.condition}`} aria-live="polite">
-        {units.length === 1 && <span className={`condition-chip is-${selected.condition}`}>{t(selected.condition)}</span>}
+        {units.length === 1 && (
+          <span className={`condition-chip is-${selected.condition}`}>{t(selected.condition)}</span>
+        )}
         <p>{t(`conditionDescriptions.${selected.condition}`)}</p>
         {facts.length > 0 && (
           <ul>

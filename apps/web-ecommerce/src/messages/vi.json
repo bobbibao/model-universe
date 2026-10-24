@@ -3650,5 +3650,37 @@
       "outstanding": "Điểm khách đang giữ",
       "problems": "Vấn đề kỳ gần nhất"
     }
+  },
+  "commerceUX": {
+    "appliedFilters": "Bộ lọc đang áp dụng",
+    "removeFilter": "Bỏ bộ lọc: {name}",
+    "clearFilters": "Xóa bộ lọc",
+    "finder": "Cần giúp chọn mô hình?",
+    "emptyHint": "Thử bỏ bớt điều kiện hoặc tìm theo tên, hãng và mã mô hình.",
+    "viewProduct": "Xem {name}",
+    "chooseProduct": "Chọn phiên bản",
+    "viewDetails": "Xem chi tiết",
+    "breadcrumb": "Đường dẫn",
+    "addedToCart": "Đã thêm vào giỏ hàng",
+    "viewCart": "Xem giỏ hàng",
+    "checkoutHint": "Phí vận chuyển và ưu đãi được tính tại giỏ hàng.",
+    "aboutProduct": "Về mô hình này",
+    "descriptionPending": "Thông tin mô hình đang được cập nhật. Xem thông số và tình trạng ở trên hoặc liên hệ cửa hàng để được tư vấn.",
+    "purchaseActions": "Thao tác mua hàng",
+    "chooseAndBuy": "Chọn & mua",
+    "enlargePhoto": "Xem ảnh lớn",
+    "recordCount": "{count, number} bản ghi",
+    "compactRows": "Hàng gọn",
+    "columns": "Cột hiển thị",
+    "restoreColumns": "Hiện tất cả cột",
+    "tableRegion": "Bảng dữ liệu, có thể cuộn",
+    "findWorkspace": "Tìm chức năng…",
+    "noWorkspace": "Không tìm thấy chức năng.",
+    "loadFailed": "Không tải được dữ liệu. Vui lòng thử lại.",
+    "retry": "Thử lại",
+    "filteredRecords": "Đang lọc danh sách",
+    "editorSections": "Các phần chỉnh sửa sản phẩm",
+    "formErrors": "Có {count} mục cần kiểm tra. Vui lòng sửa các trường được đánh dấu.",
+    "availableOffers": "Ưu đãi thành viên & vận chuyển"
   }
 }

@@ -12,6 +12,7 @@ import '@/css/store-workspaces.css';
 import '@/css/checkout-payment.css';
 import '@/css/promotions.css';
 import '@/css/product-conditions.css';
+import '@/css/commerce-experience.css';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import AppProviders from '@/components/AppProviders';

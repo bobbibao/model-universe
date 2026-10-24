@@ -3650,5 +3650,37 @@
       "outstanding": "Points customers hold",
       "problems": "Problems, latest day"
     }
+  },
+  "commerceUX": {
+    "appliedFilters": "Applied filters",
+    "removeFilter": "Remove filter: {name}",
+    "clearFilters": "Clear filters",
+    "finder": "Need help choosing a kit?",
+    "emptyHint": "Try removing a filter or searching by model name, brand or code.",
+    "viewProduct": "View {name}",
+    "chooseProduct": "Choose an option",
+    "viewDetails": "View details",
+    "breadcrumb": "Breadcrumb",
+    "addedToCart": "Added to your cart",
+    "viewCart": "View cart",
+    "checkoutHint": "Shipping and offers are calculated in your cart.",
+    "aboutProduct": "About this model",
+    "descriptionPending": "Model information is being updated. Check the specifications and condition above or contact the store for advice.",
+    "purchaseActions": "Purchase actions",
+    "chooseAndBuy": "Choose & buy",
+    "enlargePhoto": "Enlarge photo",
+    "recordCount": "{count, number} records",
+    "compactRows": "Compact rows",
+    "columns": "Columns",
+    "restoreColumns": "Show all columns",
+    "tableRegion": "Scrollable data table",
+    "findWorkspace": "Find a workspace…",
+    "noWorkspace": "No workspace found.",
+    "loadFailed": "Unable to load records. Please try again.",
+    "retry": "Retry",
+    "filteredRecords": "Filters are active",
+    "editorSections": "Product editor sections",
+    "formErrors": "Please check {count} highlighted fields before saving.",
+    "availableOffers": "Member & shipping offers"
   }
 }

@@ -28,9 +28,15 @@ import {
   validateProductForm,
 } from '../components/productForm';
 
-const Card = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-    <h3 className="mb-5 text-lg font-semibold text-black dark:text-white">{title}</h3>
+const Card = ({ title, id, children }: { title: string; id: string; children: React.ReactNode }) => (
+  <section
+    id={id}
+    aria-labelledby={`${id}-title`}
+    className="admin-editor-section rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark"
+  >
+    <h2 id={`${id}-title`} className="mb-5 text-lg font-semibold text-black dark:text-white">
+      {title}
+    </h2>
     {children}
   </section>
 );
@@ -38,6 +44,7 @@ const Card = ({ title, children }: { title: string; children: React.ReactNode })
 const ProductEdit = () => {
   const router = useRouter();
   const t = useTranslations('adminProducts');
+  const ux = useTranslations('commerceUX');
   const params = useParams<{ id: string }>();
   const productId = Number(params.id);
   const { categories, suppliers } = useProductFormOptions();
@@ -80,7 +87,10 @@ const ProductEdit = () => {
     const formErrors: ProductFormErrors = validateProductForm(values);
     if (!mainImage) formErrors.mainImage = 'mainImageRequired';
     setErrors(formErrors);
-    if (Object.keys(formErrors).length > 0 || !mainImage) return;
+    if (Object.keys(formErrors).length > 0 || !mainImage) {
+      requestAnimationFrame(() => document.querySelector<HTMLElement>('.admin-page [aria-invalid="true"]')?.focus());
+      return;
+    }
 
     setSaving(true);
     const urls = await uploadPendingImages([mainImage, ...gallery]);
@@ -93,7 +103,7 @@ const ProductEdit = () => {
       ? await ProductApi.updateProduct(productId, {
           ...buildProductPayload(values, urls[0], urls.slice(1)),
           expectedStock: product?.stock,
-            expectedPrice: product?.price,
+          expectedPrice: product?.price,
         })
       : undefined;
     setSaving(false);
@@ -135,13 +145,28 @@ const ProductEdit = () => {
       {option && product.listing && (
         <p className="-mt-3 mb-6 flex flex-wrap items-center gap-2 rounded-md border border-brand-hover/30 bg-brand/10 px-4 py-3 text-sm">
           <span>{t('conditionOf', { name: product.listing.name })}</span>
-          <Link href={`/admin/products/${product.listing.id}`} className="font-semibold text-brand-hover hover:underline">
+          <Link
+            href={`/admin/products/${product.listing.id}`}
+            className="font-semibold text-brand-hover hover:underline"
+          >
             {t('openListing')} →
           </Link>
         </p>
       )}
-      <div className="flex flex-col gap-6">
-        <Card title={t('basics')}>
+      <nav className="admin-editor-nav" aria-label={ux('editorSections')}>
+        {['basics', 'conditions', 'images', 'pricing', 'supplierStatus', 'inventory'].map((key) => (
+          <a key={key} href={`#edit-${key}`}>
+            {t(key)}
+          </a>
+        ))}
+      </nav>
+      {Object.keys(errors).length > 0 && (
+        <p className="admin-load-error" role="alert">
+          {ux('formErrors', { count: Object.keys(errors).length })}
+        </p>
+      )}
+      <div className="admin-product-editor flex flex-col gap-6">
+        <Card id="edit-basics" title={t('basics')}>
           <BasicInfoFields
             values={values}
             errors={errors}
@@ -150,10 +175,10 @@ const ProductEdit = () => {
             readOnly={option}
           />
         </Card>
-        <Card title={t('conditions')}>
+        <Card id="edit-conditions" title={t('conditions')}>
           <ProductConditions product={product} onCreated={load} />
         </Card>
-        <Card title={t('images')}>
+        <Card id="edit-images" title={t('images')}>
           <ProductImagesField
             mainImage={mainImage}
             gallery={gallery}
@@ -163,21 +188,21 @@ const ProductEdit = () => {
           />
         </Card>
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <Card title={t('pricing')}>
+          <Card id="edit-pricing" title={t('pricing')}>
             <PricingFields values={values} errors={errors} onChange={onChange} />
           </Card>
-          <Card title={t('supplierStatus')}>
+          <Card id="edit-supplierStatus" title={t('supplierStatus')}>
             <div className="flex flex-col gap-6">
               <SupplierField values={values} onChange={onChange} suppliers={supplierOptions} />
               <StatusFields values={values} onChange={onChange} />
             </div>
           </Card>
         </div>
-        <Card title={t('inventory')}>
+        <Card id="edit-inventory" title={t('inventory')}>
           <InventoryFields values={values} errors={errors} onChange={onChange} />
         </Card>
 
-        <div className="flex flex-wrap justify-between gap-3">
+        <div className="admin-editor-actions flex flex-wrap justify-between gap-3">
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}

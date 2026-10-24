@@ -1,13 +1,17 @@
 import type { ProductSummary } from '@/shared/types/product';
 import ProductCard from './ProductCard';
+import { useTranslations } from 'next-intl';
+import AdminIcon from '@/components/Admin/AdminIcon';
 
 interface ProductGridProps {
   products: ProductSummary[];
   loading?: boolean;
   emptyText?: string;
+  onReset?: () => void;
 }
 
-const ProductGrid = ({ products, loading = false, emptyText = 'No models found.' }: ProductGridProps) => {
+const ProductGrid = ({ products, loading = false, emptyText = 'No models found.', onReset }: ProductGridProps) => {
+  const ux = useTranslations('commerceUX');
   if (loading) {
     return (
       <div
@@ -28,7 +32,18 @@ const ProductGrid = ({ products, loading = false, emptyText = 'No models found.'
     );
   }
   if (products.length === 0) {
-    return <p className="py-20 text-center text-lg text-body dark:text-store-muted">{emptyText}</p>;
+    return (
+      <div className="catalog-empty">
+        <AdminIcon name="search" size={32} />
+        <h2>{emptyText}</h2>
+        <p>{ux('emptyHint')}</p>
+        {onReset && (
+          <button type="button" className="mu-button" onClick={onReset}>
+            {ux('clearFilters')}
+          </button>
+        )}
+      </div>
+    );
   }
   return (
     <div className="catalog-product-grid grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">

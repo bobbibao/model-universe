@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 
@@ -30,6 +30,9 @@ const ProductList = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const ux = useTranslations('commerceUX');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
@@ -49,25 +52,31 @@ const ProductList = () => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const loadProducts = useCallback(async () => {
-    setLoading(true);
-    const result = await ProductApi.getAdminProducts({
-      q: search,
-      categoryId,
-      status,
-      page,
-      per_page: PAGE_SIZE,
-      sort: sort.key,
-      direction: sort.direction,
-    });
-    setProducts(result?.data || []);
-    setPagination(result?.pagination);
-    setLoading(false);
-  }, [search, categoryId, status, page, sort]);
-
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    let cancelled = false;
+    const loadProducts = async () => {
+      setLoading(true);
+      setFailed(false);
+      const result = await ProductApi.getAdminProducts({
+        q: search,
+        categoryId,
+        status,
+        page,
+        per_page: PAGE_SIZE,
+        sort: sort.key,
+        direction: sort.direction,
+      });
+      if (cancelled) return;
+      setFailed(!result);
+      setProducts(result?.data || []);
+      setPagination(result?.pagination);
+      setLoading(false);
+    };
+    void loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [search, categoryId, status, page, sort, retry]);
 
   const columns: DataTableColumn<AdminProductListItem>[] = [
     {
@@ -82,12 +91,19 @@ const ProductList = () => {
     { key: 'id', header: 'ID', sortable: true },
     {
       key: 'name',
+      essential: true,
       header: t('name'),
       sortable: true,
       className: 'min-w-[240px]',
       render: (product) => (
         <div>
-          <p className="font-medium">{product.name}</p>
+          <Link
+            href={`/admin/products/${product.id}`}
+            onClick={(event) => event.stopPropagation()}
+            className="font-medium hover:underline"
+          >
+            {product.name}
+          </Link>
           <p className="text-sm text-body">SKU: {product.sku}</p>
         </div>
       ),
@@ -181,6 +197,31 @@ const ProductList = () => {
     <>
       <Breadcrumb pageName={t('title')} />
       <InventoryStats />
+      {failed && (
+        <div role="alert" className="admin-load-error">
+          <span>{ux('loadFailed')}</span>
+          <button type="button" onClick={() => setRetry((value) => value + 1)}>
+            {ux('retry')}
+          </button>
+        </div>
+      )}
+      {(searchInput || categoryId || status) && (
+        <div className="admin-filter-summary">
+          <span>{ux('filteredRecords')}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchInput('');
+              setSearch('');
+              setCategoryId('');
+              setStatus('');
+              setPage(1);
+            }}
+          >
+            {ux('clearFilters')}
+          </button>
+        </div>
+      )}
       <DataTable
         title={t('list')}
         actions={
@@ -235,7 +276,7 @@ const ProductList = () => {
         data={products}
         rowKey={(product) => product.id}
         loading={loading}
-        emptyText={t('empty')}
+        emptyText={failed ? ux('loadFailed') : t('empty')}
         onRowClick={(product) => router.push(`/admin/products/${product.id}`)}
         sort={sort}
         onSortChange={(nextSort) => {
