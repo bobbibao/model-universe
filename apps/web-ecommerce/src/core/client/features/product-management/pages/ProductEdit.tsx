@@ -91,6 +91,8 @@ const ProductEdit = () => {
 
   const save = async () => {
     const formErrors: ProductFormErrors = validateProductForm(values);
+    if (product?.condition === 'preowned' && Number(values.stock) > product.stock)
+      formErrors.stock = 'stockChangeRestricted';
     if (!mainImage) formErrors.mainImage = 'mainImageRequired';
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0 || !mainImage) {
@@ -168,98 +170,119 @@ const ProductEdit = () => {
               {ux('formErrors', { count: Object.keys(errors).length })}
             </p>
           )}
-          <WorkspaceTabs
-            label={ux('editorSections')}
-            value={activeTab}
-            onChange={setActiveTab}
-            tabs={[
-              {
-                id: 'basics',
-                label: t('basics'),
-                count: Object.keys(errors).filter((key) => tabForError(key) === 'basics').length || undefined,
-                content: (
-                  <BasicInfoFields
-                    values={values}
-                    errors={errors}
-                    onChange={onChange}
-                    categories={categories}
-                    readOnly={option}
-                    withCondition={false}
-                    withDescriptions={false}
-                  />
-                ),
-              },
-              {
-                id: 'conditions',
-                label: t('conditionSection'),
-                count: Object.keys(errors).filter((key) => tabForError(key) === 'conditions').length || undefined,
-                content: (
-                  <div className="compact-condition-editor">
-                    <ProductConditions
-                      product={product}
-                      onCreated={load}
-                      onEditCurrent={() => {
-                        const field = document.querySelector<HTMLElement>('#condition-fields select');
-                        field?.focus();
-                        field?.scrollIntoView({ block: 'center', behavior: 'instant' });
-                      }}
+          <fieldset disabled={saving} className="product-editor-fields">
+            <WorkspaceTabs
+              label={ux('editorSections')}
+              value={activeTab}
+              onChange={setActiveTab}
+              tabs={[
+                {
+                  id: 'basics',
+                  label: t('basics'),
+                  count: Object.keys(errors).filter((key) => tabForError(key) === 'basics').length || undefined,
+                  content: (
+                    <BasicInfoFields
+                      values={values}
+                      errors={errors}
+                      onChange={onChange}
+                      categories={categories}
+                      readOnly={option}
+                      withCondition={false}
+                      withDescriptions={false}
                     />
-                    <section className="condition-fields" id="condition-fields">
-                      <h3>{t('editingCondition', { sku: product.sku })}</h3>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <ConditionFields values={values} errors={errors} onChange={onChange} />
-                      </div>
-                    </section>
-                  </div>
-                ),
-              },
-              {
-                id: 'images',
-                label: t('images'),
-                count: Object.keys(errors).filter((key) => tabForError(key) === 'images').length || undefined,
-                content: (
-                  <ProductImagesField
-                    mainImage={mainImage}
-                    gallery={gallery}
-                    onMainImageChange={setMainImage}
-                    onGalleryChange={setGallery}
-                    error={errors.mainImage ? t(`validation.${errors.mainImage}`) : undefined}
-                  />
-                ),
-              },
-              {
-                id: 'pricing',
-                label: t('pricing'),
-                count: Object.keys(errors).filter((key) => tabForError(key) === 'pricing').length || undefined,
-                content: <PricingFields values={values} errors={errors} onChange={onChange} />,
-              },
-              {
-                id: 'inventory',
-                label: t('inventory'),
-                count: Object.keys(errors).filter((key) => tabForError(key) === 'inventory').length || undefined,
-                content: <InventoryFields values={values} errors={errors} onChange={onChange} />,
-              },
-              {
-                id: 'description',
-                label: ux('descriptionTab'),
-                content: <DescriptionFields values={values} errors={errors} onChange={onChange} readOnly={option} />,
-              },
-              {
-                id: 'supplierStatus',
-                label: t('supplierStatus'),
-                content: (
-                  <div className="grid gap-6">
-                    <SupplierField values={values} onChange={onChange} suppliers={supplierOptions} />
-                    <StatusFields values={values} onChange={onChange} />
-                  </div>
-                ),
-              },
-            ]}
-          />
+                  ),
+                },
+                {
+                  id: 'conditions',
+                  label: t('conditionSection'),
+                  count: Object.keys(errors).filter((key) => tabForError(key) === 'conditions').length || undefined,
+                  content: (
+                    <div className="compact-condition-editor">
+                      <ProductConditions
+                        product={product}
+                        onCreated={load}
+                        onEditCurrent={() => {
+                          const field = document.querySelector<HTMLElement>('#condition-fields select:not(:disabled)');
+                          field?.focus();
+                          field?.scrollIntoView({ block: 'center', behavior: 'instant' });
+                        }}
+                      />
+                      <section className="condition-fields" id="condition-fields">
+                        <h3>{t('editingCondition', { sku: product.sku })}</h3>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <ConditionFields
+                            values={values}
+                            errors={errors}
+                            onChange={onChange}
+                            lockedCondition={product.condition === 'preowned'}
+                          />
+                        </div>
+                      </section>
+                    </div>
+                  ),
+                },
+                {
+                  id: 'images',
+                  label: t('images'),
+                  count: Object.keys(errors).filter((key) => tabForError(key) === 'images').length || undefined,
+                  content: (
+                    <ProductImagesField
+                      mainImage={mainImage}
+                      gallery={gallery}
+                      onMainImageChange={setMainImage}
+                      onGalleryChange={setGallery}
+                      error={errors.mainImage ? t(`validation.${errors.mainImage}`) : undefined}
+                    />
+                  ),
+                },
+                {
+                  id: 'pricing',
+                  label: t('pricing'),
+                  count: Object.keys(errors).filter((key) => tabForError(key) === 'pricing').length || undefined,
+                  content: <PricingFields values={values} errors={errors} onChange={onChange} />,
+                },
+                {
+                  id: 'inventory',
+                  label: t('inventory'),
+                  count: Object.keys(errors).filter((key) => tabForError(key) === 'inventory').length || undefined,
+                  content: (
+                    <InventoryFields
+                      values={values}
+                      errors={errors}
+                      onChange={onChange}
+                      readOnly={option}
+                      maxStock={product.condition === 'preowned' ? product.stock : undefined}
+                    />
+                  ),
+                },
+                {
+                  id: 'description',
+                  label: ux('descriptionTab'),
+                  content: <DescriptionFields values={values} errors={errors} onChange={onChange} readOnly={option} />,
+                },
+                {
+                  id: 'supplierStatus',
+                  label: t('supplierStatus'),
+                  content: (
+                    <div className="grid gap-6">
+                      <SupplierField
+                        values={values}
+                        onChange={onChange}
+                        suppliers={supplierOptions}
+                        readOnly={option}
+                      />
+                      <StatusFields values={values} onChange={onChange} />
+                    </div>
+                  ),
+                },
+              ]}
+            />
+          </fieldset>
           <div className="admin-editor-actions flex flex-wrap justify-between gap-3">
             <button
               type="button"
               onClick={() => setConfirmingDelete(true)}
+              disabled={saving}
               className="rounded-md border border-danger px-5 py-2 font-medium text-danger hover:bg-danger hover:text-white"
             >
               {t('remove')}

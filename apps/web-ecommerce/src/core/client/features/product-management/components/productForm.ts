@@ -1,4 +1,5 @@
 import { catalogPricing } from '@/shared/sale-pricing';
+import { parseDateValue } from '@/components/DateTimeInput/date-values';
 import type { ModelCondition, AssemblyState } from '@/shared/gunpla';
 import type { AdminProduct, InventoryStatus, ProductPayload } from '@/shared/types/product';
 
@@ -120,7 +121,8 @@ export const toFormValues = (product: AdminProduct): ProductFormValues => ({
   inventoryStatus: product.inventoryStatus,
 });
 
-const isWholeNumber = (value: string, min: number) => /^\d+$/.test(value.trim()) && Number(value) >= min;
+const isWholeNumber = (value: string, min: number) =>
+  /^\d+$/.test(value.trim()) && Number.isSafeInteger(Number(value)) && Number(value) >= min;
 
 export const lines = (value: string) =>
   value
@@ -146,9 +148,16 @@ export const validateBasics = (values: ProductFormValues): ProductFormErrors => 
 
 export const validatePricing = (values: ProductFormValues): ProductFormErrors => {
   const errors: ProductFormErrors = {};
+  if (
+    values.pricingReferenceMemberVnd &&
+    (!isWholeNumber(values.pricingIssueCount, 0) || Number(values.pricingIssueCount) > 100)
+  )
+    errors.pricingIssueCount = 'issueCountInvalid';
   if (values.pricingReferenceMemberVnd) {
+    if (!isWholeNumber(values.pricingReferenceMemberVnd, 1)) errors.price = 'priceInvalid';
     try {
-      catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
+      if (!errors.price && !errors.pricingIssueCount)
+        catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
     } catch {
       errors.price = 'priceInvalid';
     }
@@ -157,13 +166,25 @@ export const validatePricing = (values: ProductFormValues): ProductFormErrors =>
   return errors;
 };
 
+export const validateReceivedDate = (values: ProductFormValues): ProductFormErrors =>
+  values.productionDate && (values.productionDate.length !== 10 || !parseDateValue(values.productionDate))
+    ? { productionDate: 'receivedDateInvalid' }
+    : {};
+
 export const validateInventory = (values: ProductFormValues): ProductFormErrors => {
   const errors: ProductFormErrors = {};
-  if (!isWholeNumber(values.stock, 0)) errors.stock = 'stockInvalid';
   if (!values.sku.trim()) errors.sku = 'skuRequired';
+  if (!isWholeNumber(values.stock, 0)) errors.stock = 'stockInvalid';
+  else if (values.condition === 'preowned' && Number(values.stock) > 1) errors.stock = 'preownedStockInvalid';
+  Object.assign(errors, validateReceivedDate(values));
   const pack = [values.packLengthCm, values.packWidthCm, values.packHeightCm, values.packWeightGram];
-  if (pack.some((value) => value.trim()) && !pack.every((value) => isWholeNumber(value, 1)))
-    errors.packLengthCm = 'packagingInvalid';
+  if (pack.some((value) => value.trim())) {
+    for (const key of ['packLengthCm', 'packWidthCm', 'packHeightCm', 'packWeightGram'] as const) {
+      const max = key === 'packWeightGram' ? 50_000 : 200;
+      if (!isWholeNumber(values[key], 1) || Number(values[key]) > max)
+        errors[key] = key === 'packWeightGram' ? 'packagingWeightInvalid' : 'packagingSideInvalid';
+    }
+  }
   return errors;
 };
 
