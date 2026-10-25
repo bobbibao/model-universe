@@ -14,7 +14,7 @@ export default class FulfillmentNotices {
   async facts(order: OrderModel, transaction?: Transaction): Promise<Messages.OrderFacts> {
     const [items, user] = await Promise.all([
       OrderItemModel.findAll({ where: { orderId: order.id }, attributes: ['productName', 'quantity'], transaction }),
-      UserModel.findByPk(order.userId, { attributes: ['firstName', 'lastName'], transaction }),
+      order.userId ? UserModel.findByPk(order.userId, { attributes: ['firstName', 'lastName'], transaction }) : null,
     ]);
     return {
       orderCode: transferMemo(order.id),

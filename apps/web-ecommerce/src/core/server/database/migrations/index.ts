@@ -1101,4 +1101,19 @@ export const MIGRATIONS: Migration[] = [
       });
     },
   },
+  {
+    name: '2026-10-25-47-admin-direct-sales',
+    up: async ({ context: { sequelize } }) => {
+      await ensureColumns(sequelize.getQueryInterface(), OrderModel, [
+        'salesChannel',
+        'createdByUserId',
+        'directSale',
+        'directSaleKey',
+      ]);
+      await sequelize.query('ALTER TABLE "order" ALTER COLUMN "userId" DROP NOT NULL');
+      await sequelize.query(
+        'CREATE UNIQUE INDEX IF NOT EXISTS order_direct_sale_key ON "order" ("directSaleKey") WHERE "directSaleKey" IS NOT NULL',
+      );
+    },
+  },
 ];

@@ -23,6 +23,7 @@ export default function OrderDetail() {
   const { id } = useParams<{ id: string }>(),
     orderId = Number(id);
   const t = useTranslations('orderOperations'),
+    direct = useTranslations('directSales'),
     checkout = useTranslations('checkout'),
     common = useTranslations('common'),
     locale = useLocale();
@@ -101,6 +102,17 @@ export default function OrderDetail() {
       <div className="grid gap-6 xl:grid-cols-3">
         <section className="mu-panel p-5 xl:col-span-2">
           <OrderDetails order={order} />
+          {order.directSale && (
+            <div className="mt-4 rounded border border-stroke p-3 text-sm space-y-1 dark:border-strokedark">
+              <p className="font-semibold">
+                {direct(order.salesChannel || 'COUNTER')} · {direct(order.directSale.fulfillment)}
+              </p>
+              <p>
+                {direct(order.directSale.payment)} · {direct('createdBy', { id: order.createdByUserId || 0 })}
+              </p>
+              <p className="mu-note">{order.user ? direct('linkedCustomer') : direct('guestLabel')}</p>
+            </div>
+          )}
           {order.user && (
             <p className="mu-note mt-5">
               {order.user.firstName} {order.user.lastName} · {order.user.email}
@@ -154,7 +166,7 @@ export default function OrderDetail() {
               </p>
             )}
             {blocked && <p className="mu-note">{t('prepayment.blocksShipping')}</p>}
-            <p className="mu-note">{t('deliveryIsNotPayment')}</p>
+            {order.paymentStatus !== 'PAID' && <p className="mu-note">{t('deliveryIsNotPayment')}</p>}
           </section>
           <PrepaymentPanel order={order} onChange={setOrder} />
           <FulfillmentPanel order={order} onChange={setOrder} />
@@ -195,7 +207,7 @@ export default function OrderDetail() {
             )}
           {order.collectionReceipt && (
             <section className="mu-panel p-5">
-              <h2 className="font-bold">{t('collection')}</h2>
+              <h2 className="font-bold">{order.directSale ? direct('receiptTitle') : t('collection')}</h2>
               <p className="mt-3">{formatVND(order.collectionReceipt.amountVnd, locale)}</p>
               <p className="mu-note break-all">{order.collectionReceipt.externalReference}</p>
               <p className="mu-note">{new Date(order.collectionReceipt.createdAt).toLocaleString(locale)}</p>

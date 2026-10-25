@@ -164,6 +164,109 @@ async function capture(page: Page, name: string) {
   await page.screenshot({ path: `../../.artifacts/model-universe/commerce-experience/${name}.png` });
 }
 
+for (const locale of ['vi', 'en'] as const) {
+  for (const width of [1440, 390]) {
+    test(`${locale} ${width}: direct sales select exact units, require real receipts and keep retry identity`, async ({
+      page,
+      context,
+    }) => {
+      await fixture(page, true);
+      const m = (locale === 'vi' ? vi : en).directSales;
+      await context.addCookies([
+        { name: 'access_token', value: await signSessionToken(900001, 'ADMIN'), url: previewUrl, httpOnly: true },
+      ]);
+      await page.addInitScript(
+        (theme) => localStorage.setItem('color-theme', JSON.stringify(theme)),
+        width === 1440 ? 'light' : 'dark',
+      );
+      await page.setViewportSize({ width, height: 1000 });
+      const payloads: Record<string, unknown>[] = [];
+      let salePrice = 1100000;
+      await page.route('**/api/admin/orders/direct-sale**', async (route) => {
+        const path = new URL(route.request().url()).pathname;
+        if (path.endsWith('/products'))
+          return route.fulfill({
+            json: [
+              {
+                id: 801001,
+                name: 'MG Gundam Ver.3.0',
+                sku: 'TEST-2HAND',
+                condition: 'preowned',
+                conditionNote: 'Inspected, original box',
+                stock: 1,
+                salePrice,
+                imageUrl: '/images/store/product-placeholder.svg',
+              },
+            ],
+          });
+        if (path.endsWith('/customers'))
+          return route.fulfill({
+            json: [{ id: 801002, name: 'Test Collector', phone: '0901234567', email: 'collector@example.test' }],
+          });
+        payloads.push(route.request().postDataJSON());
+        return route.fulfill({ status: 409, json: { statusCode: 409, userMessages: ['Fixture retry test'] } });
+      });
+      await page.goto(`/${locale}/admin/orders/new`);
+      const form = page.getByRole('form', { name: m.title });
+      await expect(form.getByRole('button', { name: m.complete })).toBeDisabled();
+      await form
+        .getByRole('button', {
+          name: m.addProduct.replace('{name}', 'MG Gundam Ver.3.0').replace('{sku}', 'TEST-2HAND'),
+        })
+        .click();
+      await expect(form.locator('input[name="quantity-801001"]')).toHaveAttribute('max', '1');
+      await expect(
+        form.getByRole('button', {
+          name: m.addProduct.replace('{name}', 'MG Gundam Ver.3.0').replace('{sku}', 'TEST-2HAND'),
+        }),
+      ).toBeDisabled();
+      await form.locator('input[name="externalReference"]').fill('CASH-UI-00001');
+      await form.locator('input[name="moneyVerified"]').check();
+      await capture(page, `direct-sale-${locale}-${width}`);
+      await form.getByRole('button', { name: m.complete }).click();
+      await expect(form.getByRole('alert')).toHaveText(m.failed);
+      expect(payloads[0]).toMatchObject({
+        customerId: null,
+        payment: 'CASH',
+        expectedTotal: 1100000,
+        moneyVerified: true,
+        items: [{ productId: 801001, quantity: 1 }],
+      });
+      await form.getByRole('button', { name: m.complete }).click();
+      await expect.poll(() => payloads.length).toBe(2);
+      expect(payloads[1].requestKey).toBe(payloads[0].requestKey);
+      salePrice = 1200000;
+      await form.getByRole('button', { name: m.refresh, exact: true }).click();
+      await expect(form.locator('.direct-sale-total strong')).toContainText(
+        locale === 'vi' ? '1.200.000' : '1,200,000',
+      );
+      await expect(form.locator('input[name="moneyVerified"]')).not.toBeChecked();
+      await form.locator('select[name="fulfillment"]').selectOption('DELIVERY');
+      await form.locator('select[name="payment"]').selectOption('UNPAID');
+      await expect(form.locator('input[name="externalReference"]')).toHaveCount(0);
+      await expect(form.locator('input[name="address"]')).toHaveAttribute('required', '');
+      await form.locator('input[name="customerSearch"]').fill('collector');
+      await form.getByRole('button', { name: /Test Collector/ }).click();
+      await expect(form.locator('input[name="recipientName"]')).toHaveValue('Test Collector');
+      await expect(form.locator('input[name="phone"]')).toHaveValue('0901234567');
+      await form.locator('input[name="address"]').fill('12 Fixture Road');
+      await form.locator('input[name="city"]').fill('HCM');
+      await form.getByRole('button', { name: m.create }).click();
+      await expect.poll(() => payloads.length).toBe(3);
+      expect(payloads[2]).toMatchObject({
+        customerId: 801002,
+        expectedTotal: 1200000,
+        fulfillment: 'DELIVERY',
+        payment: 'UNPAID',
+        moneyVerified: false,
+        externalReference: '',
+      });
+      expect(payloads[2].requestKey).not.toBe(payloads[0].requestKey);
+      await capture(page, `direct-sale-delivery-${locale}-${width}`);
+    });
+  }
+}
+
 async function conditionFixture(page: Page, admin = false) {
   const writes = await fixture(page, admin);
   const options = (['new', 'preowned', 'incomplete', 'defective'] as const).map((condition, index) => ({

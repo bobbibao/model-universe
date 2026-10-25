@@ -83,13 +83,17 @@ export default function OrderDetails({
             </p>
           )}
           <p className={`mu-note${order.status === 'CANCELLED' ? ' hidden' : ''}`}>
-            {t(
-              order.paymentSource === 'BANK_TRANSFER'
-                ? 'bankTransfer'
-                : order.paymentSource === 'TRANSFER_PLUS_COD'
-                  ? 'mixedPayment'
-                  : 'cod',
-            )}{' '}
+            {order.paymentSource === 'CASH'
+              ? locale === 'vi'
+                ? 'Tiền mặt đã xác nhận'
+                : 'Verified cash payment'
+              : t(
+                  order.paymentSource === 'BANK_TRANSFER'
+                    ? 'bankTransfer'
+                    : order.paymentSource === 'TRANSFER_PLUS_COD'
+                      ? 'mixedPayment'
+                      : 'cod',
+                )}{' '}
             · {t(`paymentStatus.${order.paymentStatus}`)}
           </p>
         </div>
@@ -121,7 +125,7 @@ export default function OrderDetails({
           {(benefits.earnedPoints ?? 0) > 0 && order.status !== 'CANCELLED' && (
             <p className="mu-note">{benefitText('points', { points: benefits.earnedPoints! })}</p>
           )}
-          {order.paymentPlan && order.status !== 'CANCELLED' && (
+          {order.paymentPlan && !order.directSale && order.status !== 'CANCELLED' && (
             <Row
               label={t(order.paymentPlan === 'full' ? 'payment.fullDue' : 'payment.depositDue')}
               value={`${money(order.upfrontDueVnd || 0)} · ${t((order.prepaidVnd || 0) >= (order.upfrontDueVnd || 0) ? 'payment.received' : 'payment.awaiting')}`}

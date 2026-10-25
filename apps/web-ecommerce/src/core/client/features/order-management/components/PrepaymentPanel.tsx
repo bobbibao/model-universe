@@ -10,6 +10,7 @@ import type { Order, OrderPrepayment } from '@/shared/types/order';
 // prepaid order is cancelled. Each is recorded once from the actual bank transaction.
 export default function PrepaymentPanel({ order, onChange }: { order: Order; onChange: (order: Order) => void }) {
   const t = useTranslations('orderOperations.prepayment'),
+    direct = useTranslations('directSales'),
     ops = useTranslations('orderOperations'),
     locale = useLocale();
   const [busy, setBusy] = useState(false);
@@ -50,8 +51,10 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
   const entry = (row: OrderPrepayment) => (
     <div key={row.id} className="prepayment-entry">
       <strong>
-        {t(row.kind === 'receipt' ? 'received' : row.kind === 'topup' ? 'topupReceived' : 'refunded')} ·{' '}
-        {money(row.amountVnd)}
+        {order.directSale && row.kind === 'receipt'
+          ? direct('advanceReceived')
+          : t(row.kind === 'receipt' ? 'received' : row.kind === 'topup' ? 'topupReceived' : 'refunded')}{' '}
+        · {money(row.amountVnd)}
       </strong>
       <span className="break-all">{row.externalReference}</span>
       <span>{new Date(row.createdAt).toLocaleString(locale)}</span>
@@ -61,25 +64,31 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
   return (
     <section className="mu-panel space-y-4 p-5" aria-labelledby={`prepayment-${order.id}`}>
       <h2 id={`prepayment-${order.id}`} className="text-xl font-bold">
-        {t('title')}
+        {order.directSale ? direct('advanceTitle') : t('title')}
       </h2>
       <dl className="prepayment-facts">
         <div>
-          <dt>{t('plan')}</dt>
-          <dd>{t(order.paymentPlan === 'full' ? 'planFull' : 'planDeposit')}</dd>
+          <dt>{order.directSale ? direct('paymentMethod') : t('plan')}</dt>
+          <dd>
+            {order.directSale
+              ? direct(order.directSale.payment)
+              : t(order.paymentPlan === 'full' ? 'planFull' : 'planDeposit')}
+          </dd>
         </div>
         <div>
-          <dt>{t('due')}</dt>
+          <dt>{order.directSale ? direct('total') : t('due')}</dt>
           <dd>{money(due)}</dd>
         </div>
         <div>
           <dt>{t('codBalance')}</dt>
           <dd>{money(Math.max(0, order.total - Math.max(prepaid, due)))}</dd>
         </div>
-        <div>
-          <dt>{t('memo')}</dt>
-          <dd>{order.transferInstructions?.memo || `MU${order.id}`}</dd>
-        </div>
+        {!order.directSale && (
+          <div>
+            <dt>{t('memo')}</dt>
+            <dd>{order.transferInstructions?.memo || `MU${order.id}`}</dd>
+          </div>
+        )}
       </dl>
       {receipt && entry(receipt)}
       {topups.map(entry)}
@@ -106,7 +115,7 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
             />
           </label>
           <label className="mu-field">
-            {t('reference')}
+            {order.directSale ? direct('reference') : t('reference')}
             <input name="externalReference" minLength={8} maxLength={128} required />
           </label>
           <label className="mu-field">
@@ -115,7 +124,7 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
           </label>
           <label className="flex items-start gap-2 text-sm">
             <input className="mt-1" name="moneyVerified" type="checkbox" required />
-            {kind === 'refund' ? t('refundVerified') : ops('verified')}
+            {kind === 'refund' ? (order.directSale ? direct('refundVerified') : t('refundVerified')) : ops('verified')}
           </label>
           <button className="mu-button" disabled={busy}>
             {t(kind === 'receipt' ? 'recordReceipt' : kind === 'topup' ? 'recordTopup' : 'recordRefund')}
