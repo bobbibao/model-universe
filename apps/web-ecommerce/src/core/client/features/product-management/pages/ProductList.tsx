@@ -115,11 +115,19 @@ const ProductList = () => {
       key: 'conditions',
       header: t('conditionColumn'),
       render: (product) => (
-        <div className="flex flex-wrap gap-1">
+        <div className="catalog-condition-summary">
           {(product.conditions ?? []).map((summary) => (
-            <span key={summary.condition} className={`condition-chip is-${summary.condition}`}>
-              {catalog(summary.condition)} · {summary.stock}
-            </span>
+            <div key={summary.condition}>
+              <span className={`condition-chip is-${summary.condition}`}>{catalog(summary.condition)}</span>
+              <span className={summary.stock === 0 ? 'is-empty' : ''} aria-label={`${t('stock')}: ${summary.stock}`}>
+                {summary.stock}
+              </span>
+              <small>
+                {summary.stock > 0
+                  ? catalog('fromPrice', { price: formatVND(summary.minSalePrice, locale) })
+                  : catalog('conditionSoldOut')}
+              </small>
+            </div>
           ))}
         </div>
       ),
@@ -129,7 +137,7 @@ const ProductList = () => {
       header: t('price'),
       sortable: true,
       render: (product) => (
-        <div>
+        <div className="catalog-price-summary">
           <p>{formatVND(product.salePrice, locale)}</p>
           {product.discountPercent > 0 && (
             <p className="text-xs text-body">

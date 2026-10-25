@@ -24,6 +24,8 @@ import RatingStars from '../components/RatingStars';
 import RestockAlert from '../components/RestockAlert';
 import { trackAddToCart, trackViewContent } from '@/shared/client/utils/tracking';
 import AdminIcon from '@/components/Admin/AdminIcon';
+import ProductImage from '@/components/ProductImage';
+import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
 
 // The URL parameter that keeps the chosen condition (a condition option's product id) when the page is shared.
 const CONDITION_PARAM = 'tinh-trang';
@@ -97,6 +99,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const purchaseRef = useRef<HTMLDivElement>(null);
   const [purchaseVisible, setPurchaseVisible] = useState(true);
   const [addedUnit, setAddedUnit] = useState<number | null>(null);
+  const [informationTab, setInformationTab] = useState('description');
   const router = useRouter();
   const { addItem } = useCart();
   const { user } = useCurrentUser();
@@ -380,61 +383,86 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               {t('reserve')}
             </button>
           )}
-          <div className="rounded-lg border border-stroke p-5">
-            <h2 className="font-bold">{t('details')}</h2>
-            <p className="mu-note">
-              {t('accessories')}: {listOrInspect(unit.includedAccessories)}
-            </p>
-            {unit.missingAccessories.length > 0 && (
-              <p className="mu-note">
-                {t('missingAccessories')}: {unit.missingAccessories.join(', ')}
-              </p>
-            )}
-            <p className="mu-note">
-              {t('defects')}: {listOrInspect(unit.defects)}
-            </p>
-            <p className="mu-note">{t('unboxing')}</p>
-          </div>
-          <dl className="product-specifications grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <InfoItem label={t('brand')} value={product.brandName} />
-            <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
-            <InfoItem label={t('scale')} value={product.scale || '—'} />
-            <InfoItem label={t('condition')} value={t(unit.condition)} />
-            <InfoItem label={t('assembly')} value={unit.assemblyState ? t(unit.assemblyState) : '—'} />
-            <InfoItem label={t('box')} value={unit.boxCondition || '—'} />
-            <InfoItem
-              label={t('availability')}
-              value={
-                inStock ? (
-                  <span className="text-success">{t('availableCount', { count: unit.stock })}</span>
-                ) : (
-                  <span className="text-danger">{t('soldOut')}</span>
-                )
-              }
-            />
-            <InfoItem label="SKU" value={unit.sku} />
-          </dl>
         </div>
       </div>
 
-      <section className="product-story" aria-labelledby="product-story-title">
-        <div>
-          <p className="mu-eyebrow">MODEL UNIVERSE / COLLECTOR NOTES</p>
-          <h2 id="product-story-title">{ux('aboutProduct')}</h2>
-        </div>
-        <p className="whitespace-pre-line leading-relaxed">
-          {(locale === 'vi' ? product.descriptionVi : product.descriptionEn) ||
-            product.description ||
-            ux('descriptionPending')}
-        </p>
-      </section>
-
-      <ProductReviews
-        productId={product.id}
-        rating={product.rating}
-        reviewCount={product.reviewCount}
-        distribution={product.ratingDistribution}
-        onReviewSubmitted={() => loadProduct(false)}
+      <WorkspaceTabs
+        className="product-information"
+        label={t('details')}
+        value={informationTab}
+        onChange={setInformationTab}
+        tabs={[
+          {
+            id: 'description',
+            label: ux('descriptionTab'),
+            content: (
+              <section className="product-story" aria-labelledby="product-story-title">
+                <h2 id="product-story-title">{ux('aboutProduct')}</h2>
+                <p className="whitespace-pre-line leading-relaxed">
+                  {(locale === 'vi' ? product.descriptionVi : product.descriptionEn) ||
+                    product.description ||
+                    ux('descriptionPending')}
+                </p>
+              </section>
+            ),
+          },
+          {
+            id: 'details',
+            label: t('details'),
+            content: (
+              <div className="product-information-details">
+                <div className="product-condition-disclosure">
+                  <h2 className="font-bold">{t('details')}</h2>
+                  <p className="mu-note">
+                    {t('accessories')}: {listOrInspect(unit.includedAccessories)}
+                  </p>
+                  {unit.missingAccessories.length > 0 && (
+                    <p className="mu-note">
+                      {t('missingAccessories')}: {unit.missingAccessories.join(', ')}
+                    </p>
+                  )}
+                  <p className="mu-note">
+                    {t('defects')}: {listOrInspect(unit.defects)}
+                  </p>
+                  <p className="mu-note">{t('unboxing')}</p>
+                </div>
+                <dl className="product-specifications grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <InfoItem label={t('brand')} value={product.brandName} />
+                  <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
+                  <InfoItem label={t('scale')} value={product.scale || '—'} />
+                  <InfoItem label={t('condition')} value={t(unit.condition)} />
+                  <InfoItem label={t('assembly')} value={unit.assemblyState ? t(unit.assemblyState) : '—'} />
+                  <InfoItem label={t('box')} value={unit.boxCondition || '—'} />
+                  <InfoItem
+                    label={t('availability')}
+                    value={
+                      inStock ? (
+                        <span className="text-success">{t('availableCount', { count: unit.stock })}</span>
+                      ) : (
+                        <span className="text-danger">{t('soldOut')}</span>
+                      )
+                    }
+                  />
+                  <InfoItem label="SKU" value={unit.sku} />
+                </dl>
+              </div>
+            ),
+          },
+          {
+            id: 'reviews',
+            label: t('reviews'),
+            count: product.reviewCount,
+            content: (
+              <ProductReviews
+                productId={product.id}
+                rating={product.rating}
+                reviewCount={product.reviewCount}
+                distribution={product.ratingDistribution}
+                onReviewSubmitted={() => loadProduct(false)}
+              />
+            ),
+          },
+        ]}
       />
       {!purchaseVisible && (
         <div className="product-dock" aria-label={ux('purchaseActions')}>
@@ -502,11 +530,23 @@ const ConditionPicker = ({
                 onChange={() => onSelect(unit.id)}
               />
               <span className="condition-option-card">
-                <span className={`condition-chip is-${unit.condition}`}>{t(unit.condition)}</span>
-                <strong>{formatVND(unit.salePrice, locale)}</strong>
-                {unit.salePrice < unit.price && <s>{formatVND(unit.price, locale)}</s>}
-                <small>{unit.stock > 0 ? t('conditionStock', { count: unit.stock }) : t('conditionSoldOut')}</small>
-                {unit.conditionNote && <em>{unit.conditionNote}</em>}
+                <span className="condition-option-radio" aria-hidden="true" />
+                <span className="condition-option-image" aria-hidden="true">
+                  <ProductImage src={unit.imageUrl} alt="" sizes="48px" className="object-contain" />
+                </span>
+                <span className="condition-option-description">
+                  <span className={`condition-chip is-${unit.condition}`}>{t(unit.condition)}</span>
+                  <span className="condition-option-note">
+                    {unit.conditionNote || t(`conditionDescriptions.${unit.condition}`)}
+                  </span>
+                </span>
+                <span className="condition-option-price">
+                  <strong>{formatVND(unit.salePrice, locale)}</strong>
+                  {unit.salePrice < unit.price && <s>{formatVND(unit.price, locale)}</s>}
+                  <small className={unit.stock > 0 ? 'is-available' : ''}>
+                    {unit.stock > 0 ? t('conditionStock', { count: unit.stock }) : t('conditionSoldOut')}
+                  </small>
+                </span>
               </span>
             </label>
           ))}

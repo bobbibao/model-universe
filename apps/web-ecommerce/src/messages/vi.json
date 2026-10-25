@@ -1904,7 +1904,7 @@
     "receivedDateHint": "Chỉ nhân viên thấy. Để trống: ngày thêm sản phẩm.",
     "conditionSection": "Tình trạng của sản phẩm này",
     "conditions": "Tình trạng & tồn kho",
-    "conditionsHint": "Cùng một mẫu có thể bán ở nhiều tình trạng (mới, 2hand, thiếu phụ kiện, có lỗi). Mỗi tình trạng có SKU, giá, giá vốn, ảnh và tồn kho riêng; khách chọn tình trạng ngay trên trang sản phẩm.",
+    "conditionsHint": "Mỗi listing có SKU, giá, ảnh và tồn kho riêng.",
     "addCondition": "Thêm tình trạng",
     "mainListing": "Sản phẩm chính",
     "conditionOption": "Tình trạng phụ",
@@ -1953,7 +1953,12 @@
       "stockUnits": "Số lượng tồn",
       "value": "Vốn tồn",
       "condition": "Tình trạng"
-    }
+    },
+    "conditionListings": "Các listing theo tình trạng",
+    "editingUnit": "Đang chỉnh sửa",
+    "editingCondition": "Chỉnh tình trạng · {sku}",
+    "conditionInventory": "Tồn kho theo tình trạng",
+    "conditionInventoryHint": "Tổng các listing chưa lưu trữ. Trạng thái kho được hiển thị riêng tại từng listing."
   },
   "adminCoupons": {
     "page": "Khuyến mãi",

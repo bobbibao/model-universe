@@ -1011,23 +1011,6 @@
 .studio-service-hub-grid .studio-service-card:first-child p {
   max-width: 450px;
 }
-.admin-workspace {
-  --admin-bg: #f6f6f2;
-  --admin-accent: #6f48cc;
-  --admin-line: #e6e3ed;
-  --admin-ink: #272336;
-  --admin-muted: #7d758b;
-  --admin-soft: #f6f4fa;
-}
-.dark .admin-workspace {
-  --admin-bg: #131020;
-  --admin-surface: #201a30;
-  --admin-soft: #282038;
-  --admin-line: #392e49;
-  --admin-ink: #ede7f7;
-  --admin-muted: #b2a5c4;
-  --admin-accent: #c9b8fb;
-}
 .admin-workspace .admin-sidebar {
   background: #211b30;
   border-right: 0;
