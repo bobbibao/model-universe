@@ -301,30 +301,32 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             aria-label={ux('purchaseActions')}
             tabIndex={-1}
           >
-            <div className="product-purchase-quantity">
-              <span className="mb-2 block font-medium">{t('quantity')}</span>
-              <div className="flex w-40 items-center rounded border-[1.5px] border-stroke dark:border-store-card">
-                <button
-                  className="px-4 py-2 text-lg disabled:opacity-40"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
-                  aria-label={t('decrease')}
-                >
-                  −
-                </button>
-                <span className="flex-1 text-center font-semibold">{quantity}</span>
-                <button
-                  className="px-4 py-2 text-lg disabled:opacity-40"
-                  onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
-                  disabled={quantity >= unit.stock}
-                  aria-label={t('increase')}
-                >
-                  +
-                </button>
+            {inStock && (
+              <div className="product-purchase-quantity">
+                <span className="mb-2 block font-medium">{t('quantity')}</span>
+                <div className="flex w-40 items-center rounded border-[1.5px] border-stroke dark:border-store-card">
+                  <button
+                    className="px-4 py-2 text-lg disabled:opacity-40"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    aria-label={t('decrease')}
+                  >
+                    −
+                  </button>
+                  <span className="flex-1 text-center font-semibold">{quantity}</span>
+                  <button
+                    className="px-4 py-2 text-lg disabled:opacity-40"
+                    onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
+                    disabled={quantity >= unit.stock}
+                    aria-label={t('increase')}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="product-purchase-actions flex flex-wrap gap-3">
+            <div className={`product-purchase-actions flex flex-wrap gap-3${inStock ? '' : ' is-restock'}`}>
               {inStock ? (
                 <button
                   disabled={!inStock}
@@ -344,17 +346,19 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 {wishlistItem ? t('unsave') : t('save')}
               </button>
             </div>
-            <div className="product-purchase-feedback" role="status" aria-live="polite">
-              {addedUnit === unit.id ? (
-                <>
-                  <AdminIcon name="check" size={18} />
-                  <span>{ux('addedToCart')}</span>
-                  <Link href="/cart">{ux('viewCart')} →</Link>
-                </>
-              ) : (
-                <span>{ux('checkoutHint')}</span>
-              )}
-            </div>
+            {inStock && (
+              <div className="product-purchase-feedback" role="status" aria-live="polite">
+                {addedUnit === unit.id ? (
+                  <>
+                    <AdminIcon name="check" size={18} />
+                    <span>{ux('addedToCart')}</span>
+                    <Link href="/cart">{ux('viewCart')} →</Link>
+                  </>
+                ) : (
+                  <span>{ux('checkoutHint')}</span>
+                )}
+              </div>
+            )}
           </div>
 
           <button
