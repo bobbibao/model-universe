@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
 import ConfirmModal from '@/components/Modal/ConfirmModal';
@@ -48,6 +48,7 @@ const ProductEdit = () => {
   const [activeTab, setActiveTab] = useState('basics');
   const params = useParams<{ id: string }>();
   const productId = Number(params.id);
+  const section = useSearchParams().get('section');
   const { categories, suppliers } = useProductFormOptions();
   const [product, setProduct] = useState<AdminProduct | null>();
   const [values, setValues] = useState<ProductFormValues>(emptyProductForm);
@@ -74,6 +75,10 @@ const ProductEdit = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (section === 'conditions') setActiveTab('conditions');
+  }, [productId, section]);
 
   // An inactive supplier is not offered in the options but must stay selectable for products that use it.
   const supplierOptions = useMemo(() => {
@@ -190,10 +195,21 @@ const ProductEdit = () => {
                 count: Object.keys(errors).filter((key) => tabForError(key) === 'conditions').length || undefined,
                 content: (
                   <div className="compact-condition-editor">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <ConditionFields values={values} errors={errors} onChange={onChange} />
-                    </div>
-                    <ProductConditions product={product} onCreated={load} />
+                    <ProductConditions
+                      product={product}
+                      onCreated={load}
+                      onEditCurrent={() => {
+                        const field = document.querySelector<HTMLElement>('#condition-fields select');
+                        field?.focus();
+                        field?.scrollIntoView({ block: 'center', behavior: 'instant' });
+                      }}
+                    />
+                    <section className="condition-fields" id="condition-fields">
+                      <h3>{t('editingCondition', { sku: product.sku })}</h3>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <ConditionFields values={values} errors={errors} onChange={onChange} />
+                      </div>
+                    </section>
                   </div>
                 ),
               },

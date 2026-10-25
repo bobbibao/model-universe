@@ -6,9 +6,8 @@ import vi from '../src/messages/vi.json';
 import en from '../src/messages/en.json';
 
 // UI mutations are intercepted. Only the public catalog is read from the local stack.
-const localPreview = /^http:\/\/(localhost|127\.0\.0\.1):6050$/.test(
-  process.env.E2E_BASE_URL || 'http://localhost:6050',
-);
+const previewUrl = process.env.E2E_BASE_URL || 'http://localhost:6050';
+const localPreview = /^http:\/\/(localhost|127\.0\.0\.1):605[03]$/.test(previewUrl);
 let model: ProductDetail;
 test.beforeAll(async ({ request }) => {
   test.skip(!localPreview, 'This fixture suite runs only against the local development stack.');
@@ -165,6 +164,181 @@ async function capture(page: Page, name: string) {
   await page.screenshot({ path: `../../.artifacts/model-universe/commerce-experience/${name}.png` });
 }
 
+async function conditionFixture(page: Page, admin = false) {
+  const writes = await fixture(page, admin);
+  const options = (['new', 'preowned', 'incomplete', 'defective'] as const).map((condition, index) => ({
+    ...model,
+    id: index === 0 ? model.id : model.id + 900000 + index,
+    isMain: index === 0,
+    condition,
+    conditionNote: index === 0 ? null : `Inspected ${condition} unit. ${'Check the included photos. '.repeat(5)}`,
+    missingAccessories: condition === 'incomplete' ? ['Missing display stand'] : [],
+    defects: condition === 'defective' ? ['Cracked shoulder armor'] : [],
+    includedAccessories: ['Manual', 'Original box'],
+    stock: [8, 4, 0, 1][index],
+    price: [1650000, 1100000, 750000, 600000][index],
+    salePrice: [1650000, 1100000, 750000, 600000][index],
+    discountPercent: 0,
+    sku: `UI-${condition.toUpperCase()}`,
+    imageUrl: model.imageUrl,
+    images: [],
+    isArchived: false,
+    inventoryStatus: 'available',
+  }));
+  const units = [...options, { ...options[1], id: model.id + 990000, sku: 'UI-ARCHIVED', isArchived: true, stock: 99 }];
+  const product = {
+    ...model,
+    ...options[0],
+    reviewCount: 0,
+    rating: 0,
+    groupStock: 13,
+    conditionOptions: options,
+    units,
+    conditions: options.map((unit) => ({
+      condition: unit.condition,
+      stock: unit.stock,
+      units: 1,
+      minSalePrice: unit.salePrice,
+    })),
+  };
+  await page.route('**/api/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (
+      path === `/api/products/${model.slug}` ||
+      path === `/api/products/${model.id}` ||
+      path === `/api/admin/products/${model.id}`
+    )
+      return route.fulfill({ json: product });
+    if (path === '/api/admin/products')
+      return route.fulfill({
+        json: { payload: { data: [product], pagination: { total: 1, page: 1, totalPages: 1 } } },
+      });
+    const unit = units.find((item) => path === `/api/admin/products/${item.id}`);
+    if (unit)
+      return route.fulfill({
+        json: {
+          ...product,
+          ...unit,
+          parentProductId: model.id,
+          listing: { id: model.id, name: model.name, sku: options[0].sku },
+        },
+      });
+    return route.fallback();
+  });
+  return { writes, options };
+}
+
+for (const locale of ['vi', 'en'] as const)
+  for (const width of [1440, 768, 390]) {
+    const m = locale === 'vi' ? vi : en;
+    test(`${locale} ${width}: condition cards select the priced unit, disclose issues and keep cart identity`, async ({
+      page,
+    }) => {
+      const { writes, options } = await conditionFixture(page);
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.setViewportSize({ width, height: 1000 });
+      if (width === 768) await page.addInitScript(() => localStorage.setItem('color-theme', JSON.stringify('dark')));
+      await page.goto(`/${locale}/san-pham/${model.slug}`);
+      const radios = page.getByRole('radio');
+      await expect(radios).toHaveCount(4);
+      await expect(page.locator('.condition-option .condition-chip.is-new')).toHaveCSS('color', 'rgb(22, 101, 52)');
+      await radios.nth(0).focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(radios.nth(1)).toBeChecked();
+      await expect(page).toHaveURL(new RegExp(`tinh-trang=${options[1].id}`));
+      const purchase = page.locator('.product-purchase');
+      await purchase.getByRole('button', { name: m.catalog.increase, exact: true }).click();
+      await radios.nth(3).check();
+      await expect(page.locator('.condition-details')).toContainText('Cracked shoulder armor');
+      await expect(purchase.getByRole('button', { name: m.catalog.increase, exact: true })).toBeDisabled();
+      await purchase.getByRole('button', { name: m.catalog.addToCart, exact: true }).click();
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('cart') || '[]')[0])).toMatchObject({
+        productId: options[3].id,
+        quantity: 1,
+        price: options[3].salePrice,
+      });
+      await radios.nth(2).check();
+      await expect(page.locator('.condition-details')).toContainText('Missing display stand');
+      await expect(page.locator('.product-purchase-quantity')).toHaveCount(0);
+      await expect(purchase.getByRole('link', { name: m.customerTools.startAlert, exact: true })).toHaveAttribute(
+        'href',
+        new RegExp(encodeURIComponent('/shop/product/' + options[2].id)),
+      );
+      const tabs = page.locator('.product-information');
+      await tabs.getByRole('tab', { name: m.catalog.details, exact: true }).click();
+      await expect(tabs.getByRole('tabpanel')).toContainText(options[2].sku);
+      await expect(tabs.getByRole('tabpanel')).toContainText('Manual, Original box');
+      await page.keyboard.press('End');
+      await expect(tabs.getByRole('tabpanel')).toContainText(m.catalog.noProductReviews);
+      await page.keyboard.press('Home');
+      await expect(tabs.locator('.product-story')).toBeVisible();
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await capture(page, `${locale}-${width}-condition-picker`);
+      await page.locator('.condition-picker').screenshot({
+        path: `../../.artifacts/model-universe/commerce-experience/${locale}-${width}-condition-cards.png`,
+      });
+      expect(writes.filter((path) => path !== '/api/cart/quote')).toEqual([]);
+      expect(errors).toEqual([]);
+    });
+
+    test(`${locale} ${width}: admin condition listings retain drafts, exclude archive totals and open the exact unit`, async ({
+      page,
+      context,
+    }) => {
+      const { writes, options } = await conditionFixture(page, true);
+      await context.addCookies([
+        { name: 'access_token', value: await signSessionToken(900001, 'ADMIN'), url: previewUrl, httpOnly: true },
+      ]);
+      await page.addInitScript(
+        (theme) => localStorage.setItem('color-theme', JSON.stringify(theme)),
+        width === 390 ? 'dark' : 'light',
+      );
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(`/${locale}/admin/products/${model.id}?section=conditions`);
+      const table = page.locator('.condition-listing-table');
+      await expect(table.locator('tbody tr')).toHaveCount(5);
+      await expect(page.locator('.condition-inventory-total strong')).toHaveText('13');
+      expect(
+        await page
+          .locator('.admin-workspace')
+          .evaluate((el) => getComputedStyle(el).getPropertyValue('--admin-accent').trim()),
+      ).toBe(width === 390 ? '#c9b8fb' : '#6541b7');
+      await expect(page.locator('.condition-inventory dd')).toHaveText(['8', '4', '0', '1']);
+      await expect(table.locator('.is-current')).toContainText(m.adminProducts.editingUnit);
+      await page.getByRole('button', { name: m.adminProducts.openUnit + ' · ' + options[0].sku, exact: true }).click();
+      await expect(page.locator('#condition-fields select[name="condition"]')).toBeFocused();
+      const note = page.locator('#condition-fields input[name="conditionNote"]');
+      await note.fill('Retained condition draft');
+      await page.getByRole('tab', { name: m.adminProducts.images, exact: true }).click();
+      await page.getByRole('tab', { name: m.adminProducts.conditionSection, exact: true }).click();
+      await expect(note).toHaveValue('Retained condition draft');
+      await page.getByRole('button', { name: m.adminProducts.addCondition, exact: true }).click();
+      const modal = page.getByRole('dialog');
+      await modal.getByRole('button', { name: m.adminProducts.createOption, exact: true }).click();
+      await expect(modal).toContainText(m.adminProducts.validation.priceInvalid);
+      await page.keyboard.press('Escape');
+      await expect(modal).toHaveCount(0);
+      await expect(page.locator('.admin-editor-actions')).toBeInViewport();
+      await page.locator('.condition-table-scroll').evaluate((el) => (el.scrollLeft = 0));
+      await page
+        .locator('.compact-admin-editor .workspace-tab-panel:not([hidden])')
+        .evaluate((el) => (el.scrollTop = 0));
+      await capture(page, `${locale}-${width}-condition-admin`);
+      const edit = table.getByRole('link', { name: m.adminProducts.openUnit + ' · ' + options[1].sku, exact: true });
+      await edit.click();
+      await expect(page).toHaveURL(new RegExp(`/admin/products/${options[1].id}\\?section=conditions`));
+      await expect(page.locator('.condition-listing-table .is-current')).toContainText(options[1].sku);
+      await expect(page.getByRole('tab', { name: m.adminProducts.conditionSection, exact: true })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await page.goto(`/${locale}/admin/products`);
+      await expect(page.locator('.catalog-condition-summary > div')).toHaveCount(4);
+      expect(writes).toEqual([]);
+    });
+  }
+
 for (const locale of ['vi', 'en'] as const)
   for (const width of [1440, 390]) {
     const messages = locale === 'vi' ? vi : en;
@@ -197,7 +371,7 @@ for (const locale of ['vi', 'en'] as const)
     });
 
     test(`${locale} ${width}: gallery focus, cart feedback, stock limit and purchase return`, async ({ page }) => {
-      const writes = await fixture(page);
+      const writes = await fixture(page, false, true);
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
       await page.setViewportSize({ width, height: 1000 });
@@ -223,7 +397,8 @@ for (const locale of ['vi', 'en'] as const)
       await purchase.getByRole('button', { name: messages.catalog.addToCart, exact: true }).click();
       await expect(purchase.getByRole('status')).toContainText(messages.commerceUX.addedToCart);
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('cart') || '[]')[0].quantity)).toBe(3);
-      await page.locator('.product-story').scrollIntoViewIfNeeded();
+      await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+      await expect(purchase).not.toBeInViewport();
       await expect(page.locator('.product-dock')).toBeVisible();
       await page.locator('.product-dock button').click();
       await expect(purchase.getByRole('button', { name: messages.catalog.addToCart, exact: true })).toBeFocused();
@@ -249,7 +424,7 @@ for (const locale of ['vi', 'en'] as const)
         {
           name: 'access_token',
           value: await signSessionToken(900001, 'ADMIN'),
-          url: 'http://localhost:6050',
+          url: previewUrl,
           httpOnly: true,
         },
       ]);
@@ -268,6 +443,8 @@ for (const locale of ['vi', 'en'] as const)
         page.locator('thead').getByRole('columnheader', { name: messages.adminProducts.sold, exact: true }),
       ).toHaveCount(0);
       await page.reload();
+      await expect(page.locator('.admin-table')).toHaveCount(1);
+      await expect(page.locator('.admin-table')).toHaveAttribute('aria-busy', 'false');
       await expect(page.locator('.admin-table')).toHaveClass(/is-compact/);
       await expect(
         page.locator('thead').getByRole('columnheader', { name: messages.adminProducts.sold, exact: true }),
@@ -324,7 +501,7 @@ for (const locale of ['vi', 'en'] as const) {
       {
         name: 'access_token',
         value: await signSessionToken(900001, 'ADMIN'),
-        url: 'http://localhost:6050',
+        url: previewUrl,
         httpOnly: true,
       },
     ]);
@@ -362,7 +539,7 @@ for (const locale of ['vi', 'en'] as const) {
       {
         name: 'access_token',
         value: await signSessionToken(900001, 'ADMIN'),
-        url: 'http://localhost:6050',
+        url: previewUrl,
         httpOnly: true,
       },
     ]);

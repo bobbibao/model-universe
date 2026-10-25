@@ -263,6 +263,77 @@
   font-size: 15px;
   max-width: 70ch;
 }
+/* Supporting information sits below the gallery and purchase flow. */
+.product-information {
+  margin-top: 40px;
+  border: 1px solid var(--commerce-line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.product-information > .workspace-tablist {
+  padding-inline: 16px;
+  border-color: var(--commerce-line);
+}
+.product-information .workspace-tablist > button {
+  min-height: 52px;
+  padding-inline: 18px;
+  color: var(--studio-muted);
+  font-size: 13px;
+}
+.product-information .workspace-tablist > button[aria-selected='true'] {
+  color: var(--commerce-accent);
+  background: #faf8fd;
+}
+.product-information .workspace-tab-panel {
+  padding: 28px;
+  overflow: visible;
+}
+.product-information .product-story {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  grid-template-columns: minmax(160px, 1fr) minmax(0, 3fr);
+  gap: 32px;
+}
+.product-information .product-story h2 {
+  margin: 0;
+  font-size: 19px;
+}
+.product-information-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 32px;
+}
+.product-condition-disclosure h2 {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+.product-condition-disclosure p + p {
+  margin-top: 8px;
+}
+.product-information .workspace-tab-panel > section:not(.product-story) {
+  margin-top: 0;
+}
+@media (max-width: 767px) {
+  .product-information {
+    margin-top: 28px;
+  }
+  .product-information > .workspace-tablist {
+    padding-inline: 4px;
+  }
+  .product-information .workspace-tablist > button {
+    padding-inline: 12px;
+  }
+  .product-information .workspace-tab-panel {
+    padding: 20px 16px;
+  }
+  .product-information .product-story,
+  .product-information-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}
 .product-dock {
   position: fixed;
   bottom: 20px;

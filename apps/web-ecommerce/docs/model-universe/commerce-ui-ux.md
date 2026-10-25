@@ -1,16 +1,22 @@
 # Commerce UI/UX — storefront and model admin
 
-Updated 25 October 2026. The latest revision removes redundant admin chrome and restores the product-detail design from before the compact tab experiment.
+Updated 25 October 2026. The latest revision develops the condition comparison and model-management workspace from the supplied commerce references, retaining the Collector Studio brand and compact admin shell.
 
 ## Product detail
 
-The admin cleanup revision restored the product detail and offer panel from the parent of commit `efbfaa6`; the restock action update below builds on that layout. This restores the previous gallery and purchase layout, condition cards, inline condition disclosure, expandable benefits, description, specifications and purchase-return dock. The compact storefront tabs and their CSS have been removed. The catalog and existing brand system remain in place.
+The gallery stays large and sticky beside the purchase flow on desktop, with the existing zoom, thumbnails and mobile stack. Condition options now use full-width selectable rows: native radio, unit photo, semantic condition badge, short note, actual selling price and stock. The selected unit's complete note, missing accessories and defects remain immediately visible; sold-out options remain selectable and offer restock notification. Selection continues to control the unit ID, gallery, price, quantity limits, shared URL, wishlist and cart.
+
+Description, specifications/accessories and reviews use retained tabs below the gallery and purchase area. This removes the long specifications block from the purchase column without bringing back the rejected whole-page compact tab layout. Reviews, unboxing guidance, benefits, assistant, reservations and the purchase-return dock retain their existing behavior. No shipping, warranty or return promises have been invented to match the reference.
 
 ## Admin workspace
 
 The shared breadcrumb component now supplies only a screen-reader heading. The visible page heading and breadcrumb row have been removed across admin; the global header still identifies the current destination. Obsolete heading styles have also been removed.
 
-The model editor no longer repeats the model photo, name, SKU, price and stock in a summary sidebar, or the extra ID/sold caption. Its form uses the available width. A condition option retains its useful link to the parent listing in a compact notice.
+The model editor no longer repeats the model photo, name, SKU, price and stock in a summary sidebar, or the extra ID/sold caption. A condition option retains its useful link to the parent listing in a compact notice.
+
+The condition tab now starts with a listing table: SKU/photo, condition and disclosed issues, aligned selling/list prices, stock, actual archive/inventory status and a labelled edit action. A current-listing marker identifies the form below. Edit links open the exact unit directly in the condition tab; the current row's edit button focuses its form. Add-condition keeps the existing validation, image upload and API flow. The small stock summary belongs to this tab and sums non-archived listings, including zero-stock conditions; archive rows remain visible in the table. It does not claim warehouse movements or a separate inventory source. On smaller screens it stacks below the table, which scrolls horizontally inside its own labelled region.
+
+The model-level catalog keeps its existing grouping, search, filters, sorting and column preferences. Its condition column now separates each condition's badge, stock count and lowest in-stock selling price, so staff can compare conditions before opening the model.
 
 The catalog and inventory statistics remain peer tabs. The editor retains its identity, condition/options, images, pricing, inventory/packaging, descriptions and supplier/display tabs. Draft values survive tab changes. Validation opens the affected tab and focuses its invalid field. Save, discard and delete remain visible in the workspace footer. The creation wizard retains its step validation and navigation.
 
@@ -20,6 +26,8 @@ Catalog, editor and creation workspaces reclaim the space previously reserved fo
 
 `WorkspaceTabs` retains labelled tablists, matching tab/panel IDs, selected state and roving tabindex. Arrow keys, Home and End navigate between retained panels. `compact-workspaces.css` now contains only the shared tabs and admin geometry. Vietnamese and English remain supported.
 
+Admin theme tokens now have one owner in `admin-workspace.css`, shared with portaled dialogs; competing Collector Studio token declarations have been removed. The purple accent, neutral surfaces and dark theme therefore stay consistent across tables, tabs and dialogs. Storefront condition tokens explicitly retain the light palette even when an admin dark-theme preference is stored.
+
 No dependency, database schema, secret or Google Drive file is changed. Browser fixtures intercept mutations and use a synthetic middleware session; only existing public catalog data is read.
 
 ## Verification
@@ -28,12 +36,14 @@ Run the local stack with `yarn dev`, then:
 
 ```text
 yarn e2e e2e/commerce-experience.spec.ts --reporter=list
-yarn build
+yarn exec next build --no-lint
 ```
 
-The suite covers restored product gallery/cart/purchase-return behavior, admin heading removal, retained drafts, validation, table preferences and the creation wizard in Vietnamese and English. Screenshots are saved under `.artifacts/model-universe/commerce-experience/` and are not committed.
+The suite runs against local port 6050 or the isolated UI preview on 6053 (`E2E_BASE_URL=http://localhost:6053`). It covers condition selection by keyboard, correct cart SKU/price/quantity, zero-stock notification, full issue/accessory disclosure, information tabs, archive-excluding totals, current-unit editing, option links, modal validation and retained drafts at 1440/768/390px in Vietnamese and English. Existing gallery, filters, catalog preferences, creation wizard, restock and QR-lock cases remain. Screenshots are saved under `.artifacts/model-universe/commerce-experience/` and are not committed.
 
-Validation completed: all 18 browser cases passed. The changed UI components passed ESLint, and the optimized Next.js production build (including type checking) passed. Existing lint warnings outside the changed components remain. Desktop and mobile screenshots were visually reviewed. This UI verification does not certify real payments or every admin integration. Deployment remains separate from the local commit and merge.
+Validation completed for this revision: all 38 browser cases passed in one final run, including public catalog/product reads. The changed UI components and browser specification passed ESLint; the optimized Next.js production build with type checking passed. The build uses `--no-lint` because the existing full-project ESLint plugin throws in `src/shared/client/utils/eventEmitter.ts` (`@typescript-eslint/no-duplicate-enum-values`); this does not replace the successful targeted lint checks. Desktop, tablet and mobile screenshots were visually reviewed in light and dark themes. Testing caught and fixed an absolutely positioned screen-reader table label escaping the mobile scroll region. Existing purchase-return tests now use a genuinely long description and scroll beyond the purchase area, and reload assertions wait for the old DOM to settle before checking persisted table preferences.
+
+The isolated preview runs at `http://localhost:6053/vi`, proxying the already-running API on 6070 after the previous 6050 stack stopped. No duplicate server jobs, data seeding or database migrations were started. Browser mutations are intercepted. This UI verification does not certify real payments or every admin integration; deployment remains separate from the local commit and merge.
 
 ## Purchase updates — 25 October 2026
 
