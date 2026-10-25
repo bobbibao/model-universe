@@ -81,7 +81,7 @@ export const assertOwnerCatalogValid = (rows: OwnerCatalogRow[]): void => {
     if (row.buyInVnd !== null && !isWhole(row.buyInVnd, 0)) throw new Error(`Invalid buy-in price for ${label}`);
     if (row.memberPriceVnd === null || !isWhole(row.memberPriceVnd, 1))
       throw new Error(`Invalid selling price for ${label}`);
-    catalogPricing(row.memberPriceVnd, 0);
+    catalogPricing(row.memberPriceVnd);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(row.receivedOn) || Number.isNaN(Date.parse(row.receivedOn)))
       throw new Error(`Invalid received date for ${label}`);
     // A second-hand unit is unique and needs its own photographs: it is added in Admin, never in bulk.
@@ -167,9 +167,10 @@ const describe = (row: OwnerCatalogRow) => {
 };
 
 // The product columns the workbook decides. Images, SKU, featured flag, holds and sales channel stay as staff set them;
-// the category is left empty (categories are not shown to customers).
+// the category is left empty (categories are not shown to customers). The workbook's selling price is the target S
+// awaiting approval ("CHỜ DUYỆT"); its column R is empty, so the shop sells at S (owner rule of 2026-10-25).
 export const ownerProductValues = (row: OwnerCatalogRow) => {
-  const pricing = catalogPricing(row.memberPriceVnd as number, 0);
+  const pricing = catalogPricing(row.memberPriceVnd as number);
   const { en, vi } = describe(row);
   const packaging: ProductPackaging = {
     lengthCm: row.lengthCm,
@@ -192,7 +193,8 @@ export const ownerProductValues = (row: OwnerCatalogRow) => {
     packaging,
     weight: `${row.weightGram / 1000} kg`,
     dimensions: `${row.lengthCm} × ${row.widthCm} × ${row.heightCm} cm`,
-    price: pricing.listPriceVnd,
+    price: pricing.referenceMemberVnd,
+    listPriceVerified: false,
     importPrice: row.buyInVnd ?? 0,
     pricingReferenceMemberVnd: pricing.referenceMemberVnd,
     pricingIssueCount: 0,
@@ -278,7 +280,15 @@ export const syncOwnerCatalog = async (
     if (existing && kept.has(existing.id)) throw new Error(`Two catalogue rows match product #${existing.id}`);
     if (existing) {
       const before = pricingOf(existing);
-      existing.set(values);
+      // An approved real list price R stays; a changed S waits for a new approval.
+      const { price, listPriceVerified, ...rest } = values;
+      existing.set({
+        ...rest,
+        ...(existing.listPriceVerified ? {} : { price, listPriceVerified }),
+        ...(existing.pricingReferenceMemberVnd !== values.pricingReferenceMemberVnd
+          ? { targetPriceApprovedAt: null, targetPriceApprovedByUserId: null }
+          : {}),
+      });
       if (existing.changed()) {
         await existing.save({ transaction });
         result.updated++;

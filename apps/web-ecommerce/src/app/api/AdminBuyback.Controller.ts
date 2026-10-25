@@ -29,6 +29,16 @@ export default class AdminBuybackController extends ApiBaseController {
     try { return this.sendSuccess(res, await this.service.payout(Number(req.params.id), this.user(req), req.body || {})); }
     catch (error) { return this.handleError(res, error, 'Buyback verified payout'); }
   }
+  @Post('/:id/qc')
+  async qcReview(req: Request, res: Response) {
+    try { return this.sendSuccess(res, await this.service.qcReview(Number(req.params.id), this.user(req), req.body || {})); }
+    catch (error) { return this.handleError(res, error, 'Buyback pre-listing QC'); }
+  }
+  @Post('/:id/publish')
+  async publish(req: Request, res: Response) {
+    try { return this.sendSuccess(res, await this.service.publish(Number(req.params.id), this.user(req), req.body || {})); }
+    catch (error) { return this.handleError(res, error, 'Buyback listing publication'); }
+  }
   @Post('/:id/intake')
   async intake(req: Request, res: Response) {
     try { return this.sendSuccess(res, await this.service.intake(Number(req.params.id), this.user(req), req.body || {})); }

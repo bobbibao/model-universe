@@ -48,8 +48,8 @@ const uploadEvidence = async (input: HTMLInputElement, purpose: 'buyback' | 'buy
   return ids;
 };
 
-// Buyback 2.0 details of one request: the estimate and declared issues, missing evidence, the inspection comparison
-// and inspection recordings, and the 2.0 actions (request/add evidence, formula offers, inspected issues, review).
+// The pricing details of one request: the estimate (B17) and declared issues, missing evidence, the inspection
+// comparison and inspection recordings, and the actions (request/add evidence, formula offers, inspected issues, review).
 export default function BuybackPricingSections({ selected, admin, busy, post }: { selected: BuybackRequest; admin: boolean; busy: boolean; post: Post }) {
   const v2 = useTranslations('buybackV2'),
     t = useTranslations('buyback'),

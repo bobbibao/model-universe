@@ -7,7 +7,6 @@ import {
   type OwnerCatalogRow,
 } from '../../src/core/server/database/client/seeders/OwnerCatalog';
 import { loadCatalogEntries } from '../../src/core/server/database/client/seeders/ModelUniverseCatalog';
-import { memberPrice } from '../../src/shared/pricing';
 
 const rows = loadOwnerCatalog();
 const research = new Map(loadCatalogEntries().map((entry) => [entry.id, entry]));
@@ -48,14 +47,20 @@ describe("owner's catalogue workbook", () => {
     }
   });
 
-  it('prices from S by the catalogue formula, also above the buy-back table', () => {
+  // Owner rule of 2026-10-25: the sheet's price is S awaiting approval and its R column is empty, so the shop sells at S.
+  it('sells at S until a real list price is approved, with B17 at every price', () => {
     const kit = ownerProductValues(rows.find((row) => row.name.startsWith('MNP-XH01 - '))!);
-    expect(memberPrice(kit.price)).toBe(650_000);
-    expect(kit).toMatchObject({ importPrice: 450_000, pricingReferenceMemberVnd: 650_000, scale: '1/100', stock: 1 });
-    expect(kit.buybackPriceVnd).toBeGreaterThan(0);
+    expect(kit).toMatchObject({
+      price: 650_000,
+      listPriceVerified: false,
+      importPrice: 450_000,
+      pricingReferenceMemberVnd: 650_000,
+      buybackPriceVnd: 110_500,
+      scale: '1/100',
+      stock: 1,
+    });
     const starColor = ownerProductValues(rows.find((row) => row.name.startsWith('MNQ-XH05CX'))!);
-    expect(memberPrice(starColor.price)).toBe(40_000_000);
-    expect(starColor.buybackPriceVnd).toBeNull();
+    expect(starColor).toMatchObject({ price: 40_000_000, buybackPriceVnd: 6_800_000 });
   });
 
   it('takes the box, received date and condition from the sheet and leaves the category empty', () => {

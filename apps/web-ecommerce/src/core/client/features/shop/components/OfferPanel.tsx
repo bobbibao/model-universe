@@ -23,10 +23,12 @@ export default function OfferPanel({ product }: { product: ProductDetail }) {
   const countdown = useCountdown(onSale ? product.discountEndsAt : null);
   const freeship = shopOwned ? [...FREESHIP_TIERS].reverse().find((tier) => pays >= tier.minOrderVnd) : undefined;
   const nextFreeship = shopOwned ? FREESHIP_TIERS.find((tier) => pays < tier.minOrderVnd) : undefined;
-  const points = shopOwned ? earnedPoints(onSale ? pays : memberPrice(pays)) : 0;
+  // Member and voucher codes apply to an approved real list price only; a product sold at its target price S has none.
+  const memberOffer = shopOwned && !onSale && product.listPriceVerified !== false;
+  const points = shopOwned ? earnedPoints(memberOffer ? memberPrice(pays) : pays) : 0;
   const offers: { icon: PromoIconName; title: string; text: string }[] = shopOwned
     ? [
-        ...(!onSale
+        ...(memberOffer
           ? [
               {
                 icon: 'crown' as const,

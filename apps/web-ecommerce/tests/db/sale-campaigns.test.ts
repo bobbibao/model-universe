@@ -162,14 +162,13 @@ describe('store sale campaigns', () => {
     expect(await SaleCampaignModel.count({ where: { kind: 'weekly' } })).toBe(1);
   });
 
-  it('requires formula inputs for new catalog prices and rejects output tampering', async () => {
+  it('requires the target price S for new catalog products and rejects output tampering', async () => {
     const data = {
       name: 'Formula kit',
       brandName: 'Test',
       sku: 'FORMULA-KIT',
       imageUrl: '/images/catalog/gundam-unicorn.webp',
       categoryId: product.categoryId,
-      price: 1_222_222,
       importPrice: 900_000,
       stock: 1,
       pricingReferenceMemberVnd: 1_100_000,
@@ -177,8 +176,8 @@ describe('store sale campaigns', () => {
     };
     const catalog = new ProductService();
     const validated = await catalog.validateCatalogInput(data);
-    expect(validated.values.price).toBe(1_222_222);
-    expect(validated.values.buybackPriceVnd).toBe(850_000); // 1,100,000 − 250,000 (v5.0 table)
+    // A new product sells at S until a real list price R is approved; its buy-back reference is B17 = 17% × S.
+    expect(validated.values).toMatchObject({ price: 1_100_000, listPriceVerified: false, buybackPriceVnd: 187_000 });
     await expect(catalog.validateCatalogInput({ ...data, price: 999_999 })).rejects.toThrow();
     await expect(catalog.validateCatalogInput({ ...data, buybackPriceVnd: 1 })).rejects.toThrow();
     await expect(

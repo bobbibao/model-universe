@@ -1,15 +1,23 @@
-// Buyback pricing (docs/business/buyback-policy.md): the expected buyback price is the shop's reference selling price S
-// minus the tier's base deduction, minus 50,000 VND for every recorded ordinary issue. The tier is chosen by S, never by
-// the amount paid. Shared by the server (it recomputes every amount) and the client (it shows the estimate while the
-// customer declares the condition). Whole VND integers only.
+// Buyback pricing (docs/business/source/vi/buyback-17-percent-specification.md, owner rule of 2026-10-25): the expected
+// buyback price B17 is 17% of the shop's approved target selling price S of the same SKU and version, rounded half up
+// to whole VND. It is offered only for a matched SKU with an approved S and an item declared without any issue; anything
+// else (an issue, serious damage, no or unapproved S) goes to an admin, who prices it: no tier table, no deduction per
+// issue. Shared by the server (it recomputes every amount) and the client (it shows the estimate while the customer
+// declares the condition). Whole VND integers only.
 //
-// The table is the one fixed by the owner's unified rules v5.0 of 2026-10-20 (also in the buyback policy and
-// specification since that date); requests already quoted keep the deduction they were quoted with.
+// Requests quoted before 2026-10-25 keep the rule they were quoted with (the tier table of the unified rules v5.0).
 
-export const BUYBACK_RULE_VERSION = 'buyback-5.0';
+export const BUYBACK_RULE_VERSION = 'buyback-17';
+export const BUYBACK_RATE_PERCENT = 17;
+// The former rule (v5.0): S minus a tier deduction minus 50,000 VND per issue. Only for requests quoted under it.
+export const LEGACY_BUYBACK_RULE_VERSION = 'buyback-5.0';
 export const DEDUCTION_PER_ISSUE_VND = 50_000;
 
-// Inclusive upper bounds. Above the last tier (more than 5,000,000 VND) the shop prices the model manually.
+// B17 = ROUND(0.17 × S): 17% of S, never a 17% discount. Half up, on integers (S = 5,000,001 gives 850,000).
+export const b17 = (targetPriceVnd: number): number =>
+  Math.floor((targetPriceVnd * BUYBACK_RATE_PERCENT * 2 + 100) / 200);
+
+// The former tier table (inclusive upper bounds), kept for requests quoted under it and for history only.
 export const BUYBACK_TIERS: readonly { maxReferenceVnd: number; baseDeductionVnd: number }[] = [
   { maxReferenceVnd: 500_000, baseDeductionVnd: 100_000 },
   { maxReferenceVnd: 1_000_000, baseDeductionVnd: 200_000 },
@@ -46,7 +54,13 @@ export interface BuybackIssue {
   description: string;
 }
 
-export type ManualReviewReason = 'no_reference_price' | 'above_tier_table' | 'zero_estimate' | 'serious_damage';
+export type ManualReviewReason =
+  | 'no_reference_price'
+  | 'reference_not_approved'
+  | 'issues_declared'
+  | 'above_tier_table'
+  | 'zero_estimate'
+  | 'serious_damage';
 
 export interface BuybackEstimate {
   ruleVersion: string;
@@ -77,9 +91,37 @@ export const countIssues = (issues: readonly Pick<BuybackIssue, 'type' | 'quanti
   return count;
 };
 
-// `quoted` is the estimate a request was first quoted with: its base deduction and rule version are kept, so a later
-// table change never alters the terms of a request already quoted.
+// `referencePriceVnd` is S and `approved` whether an admin approved it. `quoted` is the estimate a request was first
+// quoted with: a request quoted under the former tier rule keeps it, so a rule change never alters agreed terms.
 export const estimateBuyback = (
+  referencePriceVnd: number | null,
+  issues: readonly Pick<BuybackIssue, 'type' | 'quantity'>[],
+  options: {
+    seriousDamage?: boolean;
+    approved?: boolean;
+    quoted?: Pick<BuybackEstimate, 'baseDeductionVnd' | 'ruleVersion'> | null;
+  } = {},
+): BuybackEstimate => {
+  if (options.quoted?.ruleVersion && options.quoted.ruleVersion !== BUYBACK_RULE_VERSION)
+    return estimateLegacyBuyback(referencePriceVnd, issues, options);
+  const issueCount = countIssues(issues);
+  const common = {
+    ruleVersion: BUYBACK_RULE_VERSION,
+    referencePriceVnd: referencePriceVnd && referencePriceVnd > 0 ? referencePriceVnd : null,
+    baseDeductionVnd: null,
+    issueCount,
+    deductionPerIssueVnd: 0,
+    issueDeductionVnd: 0,
+  };
+  if (!common.referencePriceVnd) return { ...common, estimateVnd: null, manualReview: 'no_reference_price' };
+  if (!options.approved) return { ...common, estimateVnd: null, manualReview: 'reference_not_approved' };
+  if (options.seriousDamage) return { ...common, estimateVnd: null, manualReview: 'serious_damage' };
+  if (issueCount > 0) return { ...common, estimateVnd: null, manualReview: 'issues_declared' };
+  return { ...common, estimateVnd: b17(common.referencePriceVnd), manualReview: null };
+};
+
+// A former tier rule (v5.0 or earlier) for a request quoted under it: S minus its quoted tier deduction minus 50,000 VND per issue.
+const estimateLegacyBuyback = (
   referencePriceVnd: number | null,
   issues: readonly Pick<BuybackIssue, 'type' | 'quantity'>[],
   options: { seriousDamage?: boolean; quoted?: Pick<BuybackEstimate, 'baseDeductionVnd' | 'ruleVersion'> | null } = {},
@@ -94,7 +136,7 @@ export const estimateBuyback = (
         : baseDeduction(referencePriceVnd)
       : null;
   const common = {
-    ruleVersion: quoted?.ruleVersion ?? BUYBACK_RULE_VERSION,
+    ruleVersion: quoted?.ruleVersion ?? LEGACY_BUYBACK_RULE_VERSION,
     referencePriceVnd: referencePriceVnd && referencePriceVnd > 0 ? referencePriceVnd : null,
     baseDeductionVnd: base,
     issueCount,
@@ -126,6 +168,8 @@ export interface InspectionComparison {
 export const compareInspection = (
   declared: readonly Pick<BuybackIssue, 'type' | 'quantity'>[],
   inspected: readonly Pick<BuybackIssue, 'type' | 'quantity'>[],
+  // The quoted rule's deduction per issue: 0 under B17 (issues are priced by an admin), 50,000 VND under the former rule.
+  deductionPerIssueVnd = DEDUCTION_PER_ISSUE_VND,
 ): InspectionComparison => {
   const perType = (issues: readonly Pick<BuybackIssue, 'type' | 'quantity'>[]) => {
     const map = new Map<BuybackIssueType, number>();
@@ -148,23 +192,25 @@ export const compareInspection = (
     inspectedIssueCount,
     newIssueCount,
     resolvedIssueCount,
-    initialDeductionVnd: declaredIssueCount * DEDUCTION_PER_ISSUE_VND,
-    finalDeductionVnd: inspectedIssueCount * DEDUCTION_PER_ISSUE_VND,
-    deductionDifferenceVnd: (inspectedIssueCount - declaredIssueCount) * DEDUCTION_PER_ISSUE_VND,
+    initialDeductionVnd: declaredIssueCount * deductionPerIssueVnd,
+    finalDeductionVnd: inspectedIssueCount * deductionPerIssueVnd,
+    deductionDifferenceVnd: (inspectedIssueCount - declaredIssueCount) * deductionPerIssueVnd,
   };
 };
 
-// Selling-price candidates that produce a known buyback price B under the tier table (no issues): every S = B + tier
-// deduction that falls inside its own tier, lowest first. Several tiers can match near a boundary; the lowest valid S is
-// the proposal, the others are recorded, staff confirm one, and a price outside every candidate is a separate decision.
+// A trade (§9): the customer hands in a model and takes a shop item. D = the item's price − the approved buy-back total;
+// D > 0 the customer pays the difference, D < 0 the shop pays it back once an admin approves that, D is unknown
+// (INCOMPLETE) while the buy-back price is not final. The trade credit is not a voucher and earns no points.
+export const tradeDifference = (itemPriceVnd: number, buybackVnd: number | null) =>
+  buybackVnd === null
+    ? { differenceVnd: null, status: 'incomplete' as const }
+    : { differenceVnd: itemPriceVnd - buybackVnd, status: 'ready' as const };
+
+// The target selling price S whose B17 is a known buyback price B: the smallest S with b17(S) = B (none when no S gives
+// exactly B). A proposal for staff: S is still approved on its own merits (cost, market, margin).
 export const resaleCandidates = (buybackVnd: number): { sellingPriceVnd: number; baseDeductionVnd: number }[] => {
-  const candidates: { sellingPriceVnd: number; baseDeductionVnd: number }[] = [];
-  let lower = 0;
-  for (const tier of BUYBACK_TIERS) {
-    const selling = buybackVnd + tier.baseDeductionVnd;
-    if (selling > lower && selling <= tier.maxReferenceVnd)
-      candidates.push({ sellingPriceVnd: selling, baseDeductionVnd: tier.baseDeductionVnd });
-    lower = tier.maxReferenceVnd;
-  }
-  return candidates;
+  if (!Number.isSafeInteger(buybackVnd) || buybackVnd < 1) return [];
+  // b17(S) >= B exactly when 0.17 × S >= B − 0.5.
+  const selling = Math.max(1, Math.ceil(((buybackVnd * 2 - 1) * 100) / (BUYBACK_RATE_PERCENT * 2)));
+  return b17(selling) === buybackVnd ? [{ sellingPriceVnd: selling, baseDeductionVnd: selling - buybackVnd }] : [];
 };

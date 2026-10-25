@@ -112,7 +112,14 @@ export default class ProductModel extends Model {
   @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 })
   importPrice!: number;
 
+  // S: the shop's target selling price (owner rule of 2026-10-25), approved by an admin (`targetPriceApprovedAt`).
   @Column(DataType.INTEGER) pricingReferenceMemberVnd!: number | null;
+  @Column(DataType.DATE) targetPriceApprovedAt!: Date | null;
+  @Column(DataType.INTEGER) targetPriceApprovedByUserId!: number | null;
+  // Whether `price` is a real published list price R approved with its proof. Until then the shop sells at S, with no
+  // member or voucher code on top (codes apply to a real R only; R is never derived from S).
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
+  listPriceVerified!: boolean;
   @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 }) pricingIssueCount!: number;
   @Column(DataType.INTEGER) buybackPriceVnd!: number | null;
 

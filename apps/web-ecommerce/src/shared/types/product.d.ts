@@ -46,6 +46,8 @@ export type ProductSummary = ProductPricing & GunplaAttributes & {
   isFeatured: boolean;
   sold?: number;
   salesChannel: SalesChannel;
+  // False while a shop product is sold at its target price S (no real list price R approved): no member price then.
+  listPriceVerified?: boolean;
   category?: Pick<Category, 'id' | 'name' | 'slug'>;
   // Listings only: every condition the model is on sale in, and their stock together.
   conditions?: ConditionSummary[];
@@ -71,6 +73,7 @@ export type ProductConditionOption = ProductPricing & {
   images: string[];
   stock: number;
   price: number;
+  listPriceVerified?: boolean;
 };
 
 export type RatingDistribution = Record<'1' | '2' | '3' | '4' | '5', number>;
@@ -130,6 +133,9 @@ export type AdminProduct = Omit<ProductDetail, 'ratingDistribution' | 'condition
   pricingReferenceMemberVnd?: number | null;
   pricingIssueCount?: number;
   buybackPriceVnd?: number | null;
+  // S approved by an admin; `listPriceVerified`: `price` is an approved real list price R (else the shop sells at S).
+  targetPriceApprovedAt?: string | null;
+  listPriceVerified?: boolean;
   importPrice: number;
   isArchived: boolean;
   inventoryStatus: InventoryStatus;
@@ -199,7 +205,8 @@ export type ProductPayload = GunplaAttributes & {
   description: string;
   categoryId: number | null;
   supplierId: number | null;
-  price: number;
+  // A partner seller's own price; the shop's catalogue sends S (`pricingReferenceMemberVnd`) and the server sets it.
+  price?: number;
   importPrice: number;
   stock: number;
   weight: string;

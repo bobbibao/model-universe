@@ -115,7 +115,7 @@ export default function PricingWorkspace() {
                 <ul className="mu-note">
                   {result.resaleCandidates.map((candidate) => (
                     <li key={candidate.sellingPriceVnd}>
-                      {t('candidate', { price: money(candidate.sellingPriceVnd), deduction: money(candidate.baseDeductionVnd) })}
+                      {t('candidate', { price: money(candidate.sellingPriceVnd) })}
                     </li>
                   ))}
                 </ul>

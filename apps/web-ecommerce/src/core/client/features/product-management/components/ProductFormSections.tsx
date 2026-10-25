@@ -196,19 +196,19 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
   let formulaError = '';
   if (values.pricingReferenceMemberVnd) {
     try {
-      result = catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
+      result = catalogPricing(Number(values.pricingReferenceMemberVnd));
     } catch (error) {
-      formulaError = en
-        ? 'The reference price or condition needs appraisal under the standard buyback table.'
-        : (error as Error).message;
+      formulaError = en ? 'The target price must be a whole VND amount above 0.' : (error as Error).message;
     }
   }
+  // The price charged: the approved real list price R, else S (owner rule of 2026-10-25; R is never derived from S).
+  const charged = values.listPriceVerified ? Number(values.price) : result?.referenceMemberVnd;
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       <TextField
-        label={en ? 'Market reference · member price S (VND)' : 'Tham chiếu thị trường · giá thành viên S (đ)'}
+        label={en ? 'Target selling price S (VND)' : 'Giá bán mục tiêu S (đ)'}
         name="pricingReferenceMemberVnd"
-        required={!values.price}
+        required
         type="number"
         min={1}
         step={1}
@@ -219,20 +219,13 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
         placeholder="1100000"
         onChange={(e) => onChange('pricingReferenceMemberVnd', e.target.value)}
       />
-      <TextField
-        label={en ? 'Ordinary issues (50,000 VND each)' : 'Số lỗi thông thường (50.000đ/lỗi)'}
-        name="pricingIssueCount"
-        disabled={!values.pricingReferenceMemberVnd}
-        hint={!values.pricingReferenceMemberVnd ? t('fieldGuide.referenceFirst') : undefined}
-        error={errors.pricingIssueCount ? t(`validation.${errors.pricingIssueCount}`) : undefined}
-        type="number"
-        step={1}
-        required
-        min={0}
-        max={100}
-        value={values.pricingIssueCount}
-        onChange={(e) => onChange('pricingIssueCount', e.target.value)}
-      />
+      <div className="flex items-end text-sm">
+        <span
+          className={`rounded-full px-3 py-1 font-semibold ${values.targetPriceApproved ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}
+        >
+          {values.targetPriceApproved ? (en ? 'S approved' : 'S đã duyệt') : en ? 'S awaiting approval' : 'S chờ duyệt'}
+        </span>
+      </div>
       <div className="md:col-span-2">
         <TextField
           label={
@@ -257,32 +250,30 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
         <p className="text-sm font-semibold">
           {en ? 'Calculated prices · outputs cannot be edited' : 'Giá theo công thức · không nhập đè kết quả'}
         </p>
-        <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-body">{en ? 'Expected buyback B' : 'Giá thu dự kiến B'}</dt>
-            <dd className="mt-1 font-bold">
-              {result?.buybackPriceVnd != null
-                ? formatVND(result.buybackPriceVnd, locale)
-                : result
-                  ? en
-                    ? 'Appraisal'
-                    : 'Cần thẩm định'
-                  : '—'}
-            </dd>
+            <dt className="text-xs text-body">
+              {en ? 'Buyback reference B17 = 17% × S' : 'Giá thu tham chiếu B17 = 17% × S'}
+            </dt>
+            <dd className="mt-1 font-bold">{result ? formatVND(result.buybackPriceVnd, locale) : '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs text-body">{en ? 'Public list price R' : 'Giá niêm yết R'}</dt>
-            <dd className="mt-1 font-bold">{formatVND(result?.listPriceVnd || Number(values.price) || 0, locale)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-body">{en ? 'After an eligible 10% code' : 'Sau mã 10% hợp lệ'}</dt>
-            <dd className="mt-1 font-bold">{result ? formatVND(result.referenceMemberVnd, locale) : '—'}</dd>
+            <dt className="text-xs text-body">
+              {values.listPriceVerified
+                ? en
+                  ? 'Price charged · approved real list price R'
+                  : 'Giá bán · giá niêm yết thật R đã duyệt'
+                : en
+                  ? 'Price charged · S until a real R is approved'
+                  : 'Giá bán · bằng S cho đến khi R thật được duyệt'}
+            </dt>
+            <dd className="mt-1 font-bold">{charged ? formatVND(charged, locale) : '—'}</dd>
           </div>
         </dl>
         <p className="mt-3 text-xs leading-6 text-body">
           {en
-            ? 'B = S − tier deduction − 50,000 × issues. R ≈ S ÷ 0.9. Above 5 million R still follows S, but a buyback is appraised (no formula B) and issues cannot be priced.'
-            : 'B = S − khoản trừ theo bậc − 50.000 × số lỗi. R ≈ S ÷ 0,9. Trên 5 triệu, R vẫn theo S nhưng giá thu cần thẩm định (không có B theo công thức) và không áp số lỗi.'}
+            ? 'B17 is 17% of S, rounded to whole VND, and is offered only for a matching SKU with an approved S and no declared issue; anything else is priced by an admin. R is never derived from S: it is entered with its proof on the pricing approvals page and approved by two admins. Until then member and voucher discounts do not apply.'
+            : 'B17 bằng 17% của S, làm tròn đến đồng, chỉ áp cho đúng SKU có S đã duyệt và không khai lỗi; trường hợp khác do admin định giá. R không suy ra từ S: nhập kèm bằng chứng ở trang duyệt giá và cần hai admin duyệt. Trước đó không áp giá thành viên hay mã giảm giá.'}
         </p>
         {formulaError && (
           <p role="alert" className="mt-2 text-sm text-danger">

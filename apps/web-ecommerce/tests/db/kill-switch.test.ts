@@ -1,7 +1,14 @@
 import type { Express } from 'express';
 import type { Sequelize } from 'sequelize-typescript';
-import { seedTestDatabase, testApp } from './support/testDb';
-import { callAgent, callApproved, establishedProducts, setAgentSetting, useApprovalSecret } from './support/agentApi';
+import { seedTestDatabase, testApp, withVerifiedListPrices } from './support/testDb';
+import {
+  callAgent,
+  callApproved,
+  establishedProducts,
+  setAgentSetting,
+  useApprovalSecret,
+  withTestMargin,
+} from './support/agentApi';
 
 // The owner's kill switch (`growth.enabled = false`): every shop_change is refused with 403 agent_disabled, even with
 // a valid grant; protective writes (end, pause, revert) and ingestion still run.
@@ -12,8 +19,12 @@ describe('Agent API: kill switch', () => {
   beforeAll(async () => {
     useApprovalSecret();
     sequelize = await seedTestDatabase();
+    await withVerifiedListPrices(sequelize);
     app = await testApp('AgentApi.Controller');
-    skus = (await establishedProducts(sequelize, 2)).map((p) => p.sku);
+    skus = await withTestMargin(
+      sequelize,
+      (await establishedProducts(sequelize, 2)).map((p) => p.sku),
+    );
   }, 600_000);
   afterAll(() => sequelize.close());
 

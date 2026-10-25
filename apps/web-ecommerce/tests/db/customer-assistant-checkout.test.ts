@@ -1,5 +1,5 @@
 import type { Sequelize } from 'sequelize-typescript';
-import { seedTestDatabase, testApp } from './support/testDb';
+import { seedTestDatabase, testApp, withVerifiedListPrices } from './support/testDb';
 import request from 'supertest';
 import CartService from '../../src/core/server/services/CartService';
 import OrderService from '../../src/core/server/services/OrderService';
@@ -24,6 +24,7 @@ describe('customer assistant checkout on a throwaway database', () => {
     process.env.CONVERSIONS_MODE = 'fake';
     jest.spyOn(ConversionService.prototype, 'recordPurchase').mockResolvedValue(undefined as never);
     db = await seedTestDatabase();
+    await withVerifiedListPrices(db);
     product = (await ProductModel.findOne({
       where: { ...STOREFRONT_VISIBLE, stock: { [Op.gt]: 5 } },
       order: [['id', 'ASC']],

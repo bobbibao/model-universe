@@ -14,6 +14,9 @@ import ProductModel from '../../src/core/server/database/client/models/Product.M
 import ProductImageModel from '../../src/core/server/database/client/models/ProductImage.Model';
 import BuybackPayoutModel from '../../src/core/server/database/client/models/BuybackPayout.Model';
 import BuybackEventModel from '../../src/core/server/database/client/models/BuybackEvent.Model';
+import LoyaltyLedgerModel from '../../src/core/server/database/client/models/LoyaltyLedger.Model';
+import PricingApprovalService from '../../src/core/server/services/PricingApprovalService';
+import { LISTING_QC_CHECKS } from '../../src/shared/listing-qc';
 import { DEPOSIT, prepay } from './support/checkout';
 
 describe('buyback inspection, agreement, payout and source intake', () => {
@@ -36,7 +39,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
     repairHistory: 'Custom paint; no reported repairs',
   };
   const photos = ['strike-freedom-custom.webp', 'strike-freedom-custom-side.webp', 'strike-freedom-custom-detail.webp'];
-  const create = async () => {
+  const create = async (extra: Record<string, unknown> = {}) => {
     const evidenceIds: number[] = [];
     for (const [index, name] of photos.entries())
       evidenceIds.push(
@@ -65,11 +68,11 @@ describe('buyback inspection, agreement, payout and source intake', () => {
         })
       ).id,
     );
-    const data = { requestKey: `buyback-fixture-${++sequence}`, asset, evidenceIds, confirmations: true };
+    const data = { requestKey: `buyback-fixture-${++sequence}`, asset, evidenceIds, confirmations: true, ...extra };
     return { data, row: await service.create(userId, data) };
   };
-  const readyForDecision = async () => {
-    let { row } = await create();
+  const readyForDecision = async (extra: Record<string, unknown> = {}) => {
+    let { row } = await create(extra);
     row = await service.act(
       row.id,
       adminId,
@@ -120,8 +123,8 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       true,
     );
   };
-  const readyForPayout = async () => {
-    const row = await readyForDecision();
+  const readyForPayout = async (extra: Record<string, unknown> = {}) => {
+    const row = await readyForDecision(extra);
     return service.act(row.id, userId, { expectedVersion: row.version, action: 'accept' });
   };
   beforeAll(async () => {
@@ -259,7 +262,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
     await expect(db.query('UPDATE buyback_payout SET "amountVnd"=1')).rejects.toThrow(/append-only/);
     await expect(db.query("DELETE FROM buyback_event WHERE action='payout'")).rejects.toThrow(/append-only/);
   });
-  it('activates one actual photographed preowned SKU after ownership, once, preserving its source', async () => {
+  it('takes one actual photographed preowned SKU into stock after ownership and QC, once, then publishes it', async () => {
     let row = await readyForPayout();
     const original = (await ProductModel.findOne({ order: [['id', 'ASC']] }))!.get({ plain: true });
     const publicUrls: string[] = [];
@@ -274,6 +277,9 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       id: undefined,
       uuid: undefined,
       slug: undefined,
+      parentProductId: null,
+      pricingReferenceMemberVnd: 1_500_000,
+      targetPriceApprovedAt: null,
       sku: `BUYBACK-ACTUAL-${row.id}`,
       name: asset.name,
       modelCode: asset.modelCode,
@@ -304,12 +310,46 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       details: 'Fixture executed payout',
       moneyVerified: true,
     });
+    // No stock intake before a passed pre-listing QC of this exact listing (owner specification of 2026-10-25, §12-§13).
+    await expect(service.intake(row.id, adminId, { ...data, expectedVersion: row.version })).rejects.toMatchObject({
+      code: 'QC_REQUIRED',
+    });
+    const allChecks = Object.fromEntries(LISTING_QC_CHECKS.map((check) => [check, true]));
+    const review = (checks: Record<string, boolean>) =>
+      service.qcReview(row.id, adminId, {
+        expectedVersion: row.version,
+        productId: draft.id,
+        checks,
+        details: 'Fixture QC',
+      });
+    // A system check cannot be ticked: the draft's target price S is not approved yet.
+    row = await review(allChecks);
+    expect(row.qcReview).toMatchObject({ result: 'failed', failed: ['QC10'] });
+    await new PricingApprovalService().approveTarget(draft.id, adminId);
+    row = await review({ ...allChecks, QC05: false });
+    expect(row.qcReview).toMatchObject({ result: 'failed', failed: ['QC05'] });
+    row = await review(allChecks);
+    expect(row.qcReview).toMatchObject({ result: 'passed', failed: [] });
+    // Editing the listing after the review voids it.
+    await draft.update({ conditionNote: 'Edited after QC' });
+    await expect(service.intake(row.id, adminId, { ...data, expectedVersion: row.version })).rejects.toMatchObject({
+      code: 'QC_REQUIRED',
+    });
+    row = await review(allChecks);
     await service.intake(row.id, adminId, { ...data, expectedVersion: row.version });
     await service.intake(row.id, adminId, data);
     expect((await draft.reload()).stock).toBe(1);
     expect(draft.importPrice).toBe(850000);
-    expect(draft.isArchived).toBe(false);
+    // A DRAFT listing: still hidden until the publication check.
+    expect(draft.isArchived).toBe(true);
     expect(await BuybackEventModel.count({ where: { buybackRequestId: row.id, action: 'intake' } })).toBe(1);
+    row = await service.detail(row.id, adminId, true);
+    row = await service.publish(row.id, adminId, { expectedVersion: row.version });
+    expect((await draft.reload()).isArchived).toBe(false);
+    expect(row.listing).toMatchObject({ id: draft.id, isArchived: false, stock: 1 });
+    await expect(service.publish(row.id, adminId, { expectedVersion: row.version })).rejects.toMatchObject({
+      statusCode: 409,
+    });
     await expect(ProductModel.destroy({ where: { id: draft.id } })).rejects.toThrow(/foreign key/);
     expect((await new ProductService().remove(draft.id)).archived).toBe(true);
   });
@@ -431,72 +471,54 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       }),
     ).rejects.toMatchObject({ statusCode: 409 });
   });
-  it('prices 2.0 requests from the catalog member price, asks for missing video and compares the inspection both ways', async () => {
+  it('offers B17 = 17% of an approved target price S only for a matched model declared without issues', async () => {
     const product = (await ProductModel.findOne({
       where: { partnerId: null, isArchived: false },
       order: [['id', 'ASC']],
     }))!;
-    const ids: number[] = [];
-    for (let index = 0; index < 4; index++)
-      ids.push(
-        (
-          await EvidenceModel.create({
-            ownerUserId: userId,
-            purpose: 'buyback',
-            diskKey: `${crypto.randomUUID()}.webp`,
-            originalName: `v2-${index}.webp`,
-            mimeType: 'image/webp',
-            sizeBytes: 100,
-            sha256: crypto.createHash('sha256').update(`v2:${index}`).digest('hex'),
-          })
-        ).id,
-      );
+    await product.update({ pricingReferenceMemberVnd: 2_000_000, targetPriceApprovedAt: null });
     const declaredIssues = [
       { type: 'missing_box', quantity: 1, description: '' },
       { type: 'broken_part', quantity: 2, description: 'Left hand' },
     ];
-    let row = await service.create(userId, {
-      requestKey: 'buyback-v2-fixture',
-      asset,
-      evidenceIds: ids,
-      confirmations: true,
-      declaredIssues,
-      referenceProductId: product.id,
+    // S not approved yet: an admin prices it.
+    let { row } = await create({ referenceProductId: product.id });
+    expect(row.estimate).toMatchObject({
+      estimateVnd: null,
+      manualReview: 'reference_not_approved',
+      ruleVersion: 'buyback-17',
     });
-    // No video: the request waits for more evidence (TC14).
-    expect(row.status).toBe('need_more_evidence');
-    expect(row.estimate?.issueCount).toBe(3);
-    expect(row.estimate?.referencePriceVnd).toBe(product.price - Math.round(product.price / 10));
+    await product.update({ targetPriceApprovedAt: new Date() });
+    // Declared issues: no automatic deduction, an admin prices it.
+    ({ row } = await create({ referenceProductId: product.id, declaredIssues }));
+    expect(row.estimate).toMatchObject({
+      estimateVnd: null,
+      manualReview: 'issues_declared',
+      issueCount: 3,
+      referencePriceVnd: 2_000_000,
+    });
     await expect(
-      service.create(userId, { requestKey: 'buyback-v2-unconfirmed', asset, evidenceIds: ids }),
-    ).rejects.toMatchObject({ statusCode: 400 });
-    const video = await EvidenceModel.create({
-      ownerUserId: userId,
-      purpose: 'buyback',
-      diskKey: `${crypto.randomUUID()}.mp4`,
-      originalName: 'v2.mp4',
-      mimeType: 'video/mp4',
-      sizeBytes: 100,
-      sha256: 'b'.repeat(64),
-    });
-    row = await service.act(row.id, userId, {
-      expectedVersion: row.version,
-      action: 'add_evidence',
-      evidenceIds: [video.id],
-    });
-    expect(row.status).toBe('submitted');
-    if (row.estimate?.manualReview) return; // a catalog price above 5,000,000 VND is priced manually
+      service.act(
+        row.id,
+        adminId,
+        { expectedVersion: row.version, action: 'preliminary_offer', details: 'Formula' },
+        true,
+      ),
+    ).rejects.toMatchObject({ code: 'MANUAL_PRICE_REQUIRED' });
+    // No issue: B17 = 340,000 for S = 2,000,000, offered as the formula price.
+    ({ row } = await create({ referenceProductId: product.id }));
+    expect(row.estimate).toMatchObject({ estimateVnd: 340_000, manualReview: null, baseDeductionVnd: null });
     row = await service.act(
       row.id,
       adminId,
       { expectedVersion: row.version, action: 'preliminary_offer', details: 'Formula quote' },
       true,
     );
-    expect(row.preliminaryOffer).toMatchObject({ amountVnd: row.estimate!.estimateVnd, basis: 'formula' });
+    expect(row.preliminaryOffer).toMatchObject({ amountVnd: 340_000, basis: 'formula' });
     row = await service.act(row.id, userId, {
       expectedVersion: row.version,
       action: 'send_item',
-      inboundReference: 'FIXTURE-V2-INBOUND',
+      inboundReference: 'FIXTURE-B17-INBOUND',
       inboundCod: false,
     });
     row = await service.act(
@@ -509,12 +531,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       service.act(
         row.id,
         adminId,
-        {
-          expectedVersion: row.version,
-          action: 'final_offer',
-          details: 'No recording yet',
-          inspectedIssues: declaredIssues,
-        },
+        { expectedVersion: row.version, action: 'final_offer', details: 'No recording yet' },
         true,
       ),
     ).rejects.toMatchObject({ statusCode: 409, code: 'INSPECTION_EVIDENCE_REQUIRED' });
@@ -522,34 +539,88 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       ownerUserId: adminId,
       purpose: 'buyback_inspection',
       diskKey: `${crypto.randomUUID()}.mp4`,
-      originalName: 'v2-unboxing.mp4',
+      originalName: 'b17-unboxing.mp4',
       mimeType: 'video/mp4',
       sizeBytes: 100,
       sha256: 'c'.repeat(64),
     });
-    // The box was there after all (TC18), one more part is broken (TC17).
-    row = await service.act(
-      row.id,
-      adminId,
-      {
-        expectedVersion: row.version,
-        action: 'final_offer',
-        details: 'Inspection result',
-        inspectionEvidenceIds: [recording.id],
-        inspectedIssues: [{ type: 'broken_part', quantity: 3, description: '' }],
-      },
-      true,
-    );
-    expect(row.comparison).toMatchObject({ newIssueCount: 1, resolvedIssueCount: 1, deductionDifferenceVnd: 0 });
-    expect(row.finalOffer).toMatchObject({ amountVnd: row.estimate!.estimateVnd, basis: 'formula' });
+    // An issue found at inspection: the formula no longer applies, an admin prices it with its reason.
+    const inspection = {
+      expectedVersion: row.version,
+      action: 'final_offer',
+      details: 'Inspection result',
+      inspectionEvidenceIds: [recording.id],
+      inspectedIssues: [{ type: 'broken_part', quantity: 1, description: 'Antenna' }],
+    };
+    await expect(service.act(row.id, adminId, inspection, true)).rejects.toMatchObject({
+      code: 'MANUAL_PRICE_REQUIRED',
+    });
+    row = await service.act(row.id, adminId, { ...inspection, amountVnd: 300_000 }, true);
+    expect(row.finalOffer).toMatchObject({ amountVnd: 300_000, basis: 'manual' });
+    expect(row.comparison).toMatchObject({ newIssueCount: 1, resolvedIssueCount: 0, deductionDifferenceVnd: 0 });
     row = await service.act(row.id, userId, {
       expectedVersion: row.version,
       action: 'request_review',
-      details: 'Only two parts were broken',
+      details: 'The antenna was already loose when declared',
     });
     expect(row.status).toBe('reinspection_requested');
     await expect(service.act(row.id, userId, { expectedVersion: row.version, action: 'accept' })).rejects.toMatchObject(
       { statusCode: 409 },
     );
+  });
+  it('quotes a trade difference D, needs an admin for a negative D, settles it and earns no points', async () => {
+    const item = (await ProductModel.findOne({
+      where: { partnerId: null, isArchived: false, condition: 'new' },
+      order: [['id', 'DESC']],
+    }))!;
+    await item.update({ price: 1_000_000, stock: 2, inventoryStatus: 'available' });
+    const points = await LoyaltyLedgerModel.count({ where: { userId } });
+    // D = 1,000,000 − 850,000 = 150,000: the customer pays the difference.
+    let row = await readyForDecision({ tradeProductId: item.id });
+    expect(row.tradeQuote).toMatchObject({
+      revision: 2,
+      itemPriceVnd: 1_000_000,
+      buybackVnd: 850_000,
+      differenceVnd: 150_000,
+      status: 'ready',
+    });
+    row = await service.act(row.id, userId, { expectedVersion: row.version, action: 'accept' });
+    const settle = {
+      expectedVersion: row.version,
+      externalReference: 'TRADE-DIFFERENCE-IN',
+      details: 'Fixture difference received',
+      moneyVerified: true,
+    };
+    await expect(service.payout(row.id, adminId, { ...settle, amountVnd: 850_000 })).rejects.toMatchObject({
+      statusCode: 409,
+    });
+    row = await service.payout(row.id, adminId, { ...settle, amountVnd: 150_000 });
+    expect(row).toMatchObject({ status: 'completed', tradeQuote: { status: 'settled' } });
+    expect(row.payout).toMatchObject({ amountVnd: 150_000, direction: 'customer_pays' });
+    expect((await item.reload()).stock).toBe(1);
+    // D < 0: the shop pays back 150,000 only after an admin approves it.
+    await item.update({ price: 700_000 });
+    row = await readyForDecision({ tradeProductId: item.id });
+    expect(row.tradeQuote).toMatchObject({ differenceVnd: -150_000, refundApprovedByUserId: null });
+    await expect(service.act(row.id, userId, { expectedVersion: row.version, action: 'accept' })).rejects.toMatchObject(
+      {
+        code: 'TRADE_REFUND_APPROVAL',
+      },
+    );
+    await expect(
+      service.act(row.id, userId, { expectedVersion: row.version, action: 'approve_trade_refund' }),
+    ).rejects.toMatchObject({ statusCode: 403 });
+    row = await service.act(row.id, adminId, { expectedVersion: row.version, action: 'approve_trade_refund' }, true);
+    row = await service.act(row.id, userId, { expectedVersion: row.version, action: 'accept' });
+    row = await service.payout(row.id, adminId, {
+      expectedVersion: row.version,
+      amountVnd: 150_000,
+      externalReference: 'TRADE-DIFFERENCE-OUT',
+      details: 'Fixture difference paid back',
+      moneyVerified: true,
+    });
+    expect(row.payout).toMatchObject({ direction: 'shop_pays' });
+    expect((await item.reload()).stock).toBe(0);
+    expect(await LoyaltyLedgerModel.count({ where: { userId } })).toBe(points);
   });
 });

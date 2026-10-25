@@ -80,10 +80,11 @@ const LIST_ATTRIBUTES = [
   'reviewCount',
   'isFeatured',
   'salesChannel',
+  'listPriceVerified',
 ];
 
 // Staff-only columns: never sent to the storefront (the received date included).
-const PRIVATE_ATTRIBUTES = ['importPrice', 'pricingReferenceMemberVnd', 'pricingIssueCount', 'buybackPriceVnd', 'supplierId', 'isArchived', 'inventoryStatus', 'listingRequestKey', 'listingRequestDigest', 'productionDate', 'parentProductId'];
+const PRIVATE_ATTRIBUTES = ['importPrice', 'pricingReferenceMemberVnd', 'pricingIssueCount', 'buybackPriceVnd', 'supplierId', 'isArchived', 'inventoryStatus', 'listingRequestKey', 'listingRequestDigest', 'productionDate', 'parentProductId', 'targetPriceApprovedAt', 'targetPriceApprovedByUserId'];
 
 // What a condition option shares with its main listing: the model itself. Staff edit it on the main listing only.
 const IDENTITY_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'description', 'descriptionEn', 'descriptionVi', 'categoryId', 'supplierId', 'weight', 'dimensions', 'packaging'] as const;
@@ -284,6 +285,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       images: galleryUrls(row),
       stock: row.stock,
       price: row.price,
+      listPriceVerified: row.listPriceVerified,
       ...toPricing(row.price, discounts.get(row.id)),
     });
     const optionUnits = options
@@ -373,24 +375,29 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const sku = asTrimmedString(data.sku);
     const imageUrl = asTrimmedString(data.imageUrl);
     const current = currentId ? await ProductModel.findByPk(currentId) : null;
+    // The shop's own catalogue (owner rule of 2026-10-25): staff set the target price S; the buy-back reference B17
+    // follows it; the price charged is the approved real list price R once one is approved (PricingApprovalService),
+    // else S. R is never typed here nor derived from S. A partner seller's listing (`sellerPrice`) keeps its price.
     let formula: ReturnType<typeof catalogPricing> | undefined;
-    const reference = options.sellerPrice
+    const target = options.sellerPrice
       ? undefined
-      : (toInteger(data.pricingReferenceMemberVnd) ?? current?.pricingReferenceMemberVnd);
-    if (options.sellerPrice) {
-      // Validated with the other fields below (a whole VND amount above 0).
-    } else if (reference) {
-      try { formula = catalogPricing(reference, toInteger(data.pricingIssueCount) ?? current?.pricingIssueCount ?? 0); }
+      : (toInteger(data.pricingReferenceMemberVnd) ?? current?.pricingReferenceMemberVnd ?? undefined);
+    // A product saved before S existed keeps its price until staff set one.
+    const keepsLegacyPrice = !options.sellerPrice && !target && !!current && (data.price == null || toInteger(data.price) === current.price);
+    if (!options.sellerPrice && !keepsLegacyPrice) {
+      if (!target) throw HttpError.badRequest('Cần giá bán mục tiêu S của sản phẩm.');
+      try { formula = catalogPricing(target); }
       catch (error) { throw HttpError.badRequest((error as Error).message); }
-      // An empty value (null) means "not sent", as the admin form leaves derived prices empty.
-      if (data.price != null && toInteger(data.price) !== formula.listPriceVnd)
-        throw HttpError.badRequest('Giá bán được tính tự động từ giá tham chiếu. Không nhập đè giá bán.');
       if (data.buybackPriceVnd != null && toInteger(data.buybackPriceVnd) !== formula.buybackPriceVnd)
-        throw HttpError.badRequest('Giá thu được tính tự động. Không nhập đè giá thu.');
-    } else if (!current || toInteger(data.price) !== current.price) {
-      throw HttpError.badRequest('Cần giá bán thành viên tham chiếu để tính giá thu và giá niêm yết.');
+        throw HttpError.badRequest('Giá thu B17 được tính tự động. Không nhập đè giá thu.');
     }
-    const price = options.sellerPrice ? toInteger(data.price) : (formula?.listPriceVnd ?? current?.price);
+    const verified = !options.sellerPrice && !!current?.listPriceVerified;
+    const price = options.sellerPrice ? toInteger(data.price) : verified || keepsLegacyPrice ? current?.price : formula?.referenceMemberVnd;
+    // The price charged is never typed for the shop's own catalogue: an empty value (null) means "not sent".
+    if (!options.sellerPrice && data.price != null && toInteger(data.price) !== price)
+      throw HttpError.badRequest('Giá bán là S (hoặc giá niêm yết thật R đã duyệt). Không nhập đè giá bán.');
+    // A changed S waits for a new approval.
+    const targetChanged = !!formula && formula.referenceMemberVnd !== current?.pricingReferenceMemberVnd;
     const importPrice = toInteger(data.importPrice) ?? 0;
     const stock = toInteger(data.stock) ?? 0;
     const categoryId = toInteger(data.categoryId);
@@ -464,7 +471,15 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         description: asTrimmedString(data.description) || null,
         price: price as number,
         importPrice,
-        ...(formula ? { pricingReferenceMemberVnd: formula.referenceMemberVnd, pricingIssueCount: formula.ordinaryIssueCount, buybackPriceVnd: formula.buybackPriceVnd } : {}),
+        ...(formula
+          ? {
+              pricingReferenceMemberVnd: formula.referenceMemberVnd,
+              pricingIssueCount: 0,
+              buybackPriceVnd: formula.buybackPriceVnd,
+              listPriceVerified: verified,
+              ...(targetChanged ? { targetPriceApprovedAt: null, targetPriceApprovedByUserId: null } : {}),
+            }
+          : {}),
         stock,
         imageUrl,
         categoryId: categoryId || null,

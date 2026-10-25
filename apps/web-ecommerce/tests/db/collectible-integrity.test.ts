@@ -1,5 +1,4 @@
 import type { Sequelize } from 'sequelize-typescript';
-import { catalogFormula } from '../../src/shared/sale-pricing';
 import { seedTestDatabase } from './support/testDb';
 import ProductModel from '../../src/core/server/database/client/models/Product.Model';
 import ProductImageModel from '../../src/core/server/database/client/models/ProductImage.Model';
@@ -24,7 +23,7 @@ describe('unique collectible and marketplace checkout integrity', () => {
     adminId = (await UserModel.findOne({ where: { role: 'ADMIN' } }))!.id;
     supplierId = (await SupplierModel.findOne({ where: { isActive: true } }))!.id;
     const source = (await ProductModel.findOne({ where: { condition: 'new', isArchived: false } }))!;
-    const base = { categoryId: source.categoryId, brandName: 'Synthetic Fixture Manufacturer', price: 200000, importPrice: 0, sold: 0 };
+    const base = { categoryId: source.categoryId, brandName: 'Synthetic Fixture Manufacturer', price: 200000, importPrice: 0, sold: 0, listPriceVerified: false };
     fresh = await ProductModel.create({ ...base, sku: 'INTEGRITY-NEW', name: 'Synthetic new kit', condition: 'new', stock: 3, imageUrl: source.imageUrl });
     used = await ProductModel.create({ ...base, sku: 'INTEGRITY-USED', name: 'Synthetic unique used kit', condition: 'preowned', stock: 0, imageUrl: photos[0] });
     await ProductImageModel.bulkCreate(photos.slice(1).map((url, sortOrder) => ({ productId: used.id, url, sortOrder })));
@@ -44,8 +43,8 @@ describe('unique collectible and marketplace checkout integrity', () => {
     await expect(catalog.update(used.id, { ...body, condition: undefined, stock: 1, expectedStock: 0 })).rejects.toMatchObject({ code: 'UNIQUE_ITEM_INTAKE_REQUIRED' });
     await expect(catalog.update(used.id, { ...body, condition: 'new' })).rejects.toMatchObject({ code: 'UNIQUE_ITEM_INTAKE_REQUIRED' });
     expect((await used.reload()).condition).toBe('preowned'); expect(used.stock).toBe(0);
-    // Shop prices come from the reference member price (src/shared/sale-pricing.ts), never a typed list price.
-    const repriced = catalogFormula(189000, 0);
+    // Shop prices come from the target price S (src/shared/sale-pricing.ts), never a typed list price: without an
+    // approved real list price R the shop sells at S.
     await catalog.update(used.id, {
       ...body,
       condition: undefined,
@@ -54,7 +53,7 @@ describe('unique collectible and marketplace checkout integrity', () => {
       pricingIssueCount: 0,
       expectedPrice: body.price,
     });
-    expect((await used.reload()).price).toBe(repriced.listPriceVnd);
+    expect(await used.reload()).toMatchObject({ price: 189000, buybackPriceVnd: 32130, listPriceVerified: false });
   });
   it('checks distinct actual view URLs on both creates and updates with omitted condition', async () => {
     const catalog = new ProductService(), body = await catalog.getAdminById(used.id);

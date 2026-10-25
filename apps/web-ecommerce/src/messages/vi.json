@@ -1173,12 +1173,18 @@
       "accept_return": "Khách đã chấp nhận điều kiện trả lại",
       "return_dispatched": "Đã ghi nhận bàn giao trả lại",
       "payout": "Đã xác minh chi trả và chuyển sở hữu",
-      "intake": "Đã kích hoạt tồn kho có nguồn thu mua",
+      "intake": "Đã nhập kho, tin đăng ở trạng thái nháp",
       "request_evidence": "Shop yêu cầu bổ sung ảnh/video",
       "add_evidence": "Khách đã bổ sung ảnh/video",
-      "request_review": "Khách yêu cầu kiểm tra lại"
+      "request_review": "Khách yêu cầu kiểm tra lại",
+      "qc_passed": "QC trước đăng bán: đạt",
+      "qc_failed": "QC trước đăng bán: chưa đạt",
+      "published": "Đã đăng bán sau kiểm tra cuối",
+      "approve_trade_refund": "Admin duyệt khoản shop trả lại"
     },
-    "historyDetails": "Xem báo giá và quyết định đã lưu"
+    "historyDetails": "Xem báo giá và quyết định đã lưu",
+    "paidByCustomer": "Đã nhận khoản chênh lệch",
+    "tradeSettlementNote": "Ghi nhận khoản chênh lệch D đúng số đã chấp nhận (0 nếu ngang giá) và bàn giao món đổi; món đổi được trừ khỏi kho."
   },
   "pawn": {
     "title": "Giữ bộ sưu tập. Mở giá trị mô hình.",
@@ -2832,10 +2838,10 @@
     "cost": "Giá vốn C gồm chi phí (VND)",
     "basket": "Giỏ từ hai sản phẩm (v6.2 dùng cùng ngưỡng cho mọi giỏ)",
     "calculate": "Tính",
-    "candidates": "Giá bán ứng viên theo bảng thu",
-    "candidate": "Bán {price} (bậc trừ {deduction})",
-    "noCandidate": "Không có giá bán nào khớp bảng thu; ghi nhận là định giá riêng.",
-    "listFromMember": "S {member} → giá niêm yết R {list} (kiểm tra: sau mã 10% = {check})",
+    "candidates": "Giá bán mục tiêu S cho giá thu này (B17 = 17% × S)",
+    "candidate": "S = {price}",
+    "noCandidate": "Không có S nào cho đúng giá thu này theo B17; ghi nhận là định giá riêng.",
+    "listFromMember": "Tham khảo: S {member} ứng với R {list} khi mã 10% áp lên R thật (kiểm tra: {check}). Không dùng để tạo R: R phải là giá công bố thật được duyệt.",
     "baseline": "Lợi nhuận chuẩn 10%: {amount}",
     "minimumProfit": "Lợi nhuận tối thiểu phải giữ: {amount}",
     "minimumPayment": "Giá khách trả thấp nhất: {amount}",
@@ -2884,20 +2890,20 @@
     "step4": "4. Xác nhận gửi yêu cầu",
     "catalogSearch": "Tìm mô hình trong danh mục (hãng, tên, mã kit, SKU)",
     "catalogPlaceholder": "Ví dụ: RX-78-2, HG Aerial…",
-    "catalogChosen": "Mô hình tham chiếu: {name} – giá niêm yết {price}",
+    "catalogChosen": "Mô hình tham chiếu: {name} – giá bán {price}",
     "catalogClear": "Bỏ chọn",
-    "catalogHint": "Không tìm thấy mô hình? Vẫn có thể gửi để shop định giá thủ công.",
-    "issuesNote": "Mỗi lỗi thông thường trừ {amount}. Thiếu hộp, hộp hư và lắp xấu tính một lỗi cho cả mô hình.",
+    "catalogHint": "Không tìm thấy mô hình? Vẫn có thể gửi để Admin định giá.",
+    "issuesNote": "Khai đúng mọi lỗi và phụ kiện thiếu. Có lỗi thì không áp giá tự động: Admin xem và báo giá riêng, không trừ cố định theo lỗi.",
     "issueType": "Loại lỗi",
     "quantity": "Số lượng",
     "issueDescription": "Vị trí / mô tả",
     "removeIssue": "Bỏ",
     "addIssue": "Thêm lỗi",
-    "seriousDamage": "Hư hỏng nghiêm trọng (mất chức năng, biến dạng lớn, thiếu bộ phận trọng yếu) – cần định giá thủ công.",
+    "seriousDamage": "Hư hỏng nghiêm trọng (mất chức năng, biến dạng lớn, thiếu bộ phận trọng yếu) – Admin định giá riêng.",
     "media": "Ảnh và video sản phẩm",
     "mediaNote": "Ảnh mặt trước, sau, hai bên, hộp, toàn bộ phụ kiện bày ra và cận cảnh từng lỗi; một video quay toàn bộ sản phẩm và phụ kiện. Ảnh tối đa 10 MB, video tối đa 100 MB. Không cần quay mặt người.",
     "mediaCount": "Đã tải {photos} ảnh, {videos} video (cần ít nhất 3 ảnh và 1 video).",
-    "warning": "Giá thu hiển thị là giá dự kiến theo tình trạng bạn khai báo. Khi nhận hàng, MODEL universe quay video mở kiện, kiểm tra toàn bộ mô hình và phụ kiện rồi gửi giá thu chính thức. Lỗi phát sinh được tính 50.000đ/lỗi thông thường hoặc báo giá riêng; bạn có quyền đồng ý, yêu cầu kiểm tra lại hoặc từ chối.",
+    "warning": "Giá thu hiển thị là giá dự kiến CHƯA CHỐT theo thông tin bạn khai. Khi nhận hàng, MODEL universe quay video mở kiện, kiểm tra toàn bộ mô hình và phụ kiện rồi gửi giá thu chính thức; lỗi phát sinh do Admin định giá. Bạn có quyền đồng ý, yêu cầu kiểm tra lại hoặc từ chối.",
     "confirm": {
       "honest": "Tôi cung cấp thông tin và tình trạng sản phẩm trung thực.",
       "issues": "Tôi đã khai báo các lỗi đã biết.",
@@ -2907,18 +2913,22 @@
       "decision": "Tôi đồng ý nhận kết quả kiểm tra và quyết định về giá thu cuối cùng; đã đọc quy định vận chuyển, hủy và hoàn trả."
     },
     "estimate": {
-      "reference": "Giá bán thực tham chiếu (giá thành viên)",
+      "reference": "Giá bán mục tiêu S của shop",
       "base": "Mức trừ cơ bản theo bậc",
       "issues": "Trừ lỗi: {count} × {each}",
       "total": "GIÁ THU DỰ KIẾN",
-      "manual": "Shop định giá thủ công",
+      "manual": "Admin định giá",
       "reasons": {
-        "no_reference_price": "Chưa có giá tham chiếu trong danh mục.",
+        "no_reference_price": "Chưa khớp mô hình trong danh mục: Admin định giá.",
         "above_tier_table": "Giá tham chiếu trên 5.000.000đ: shop thẩm định riêng.",
         "zero_estimate": "Khoản trừ lớn hơn giá thu cơ bản: shop xem xét riêng.",
-        "serious_damage": "Hư hỏng nghiêm trọng: shop kiểm tra và báo giá riêng."
+        "serious_damage": "Hư hỏng nghiêm trọng: Admin kiểm tra và báo giá riêng.",
+        "reference_not_approved": "Giá bán mục tiêu S của mô hình chưa được Admin duyệt: Admin định giá.",
+        "issues_declared": "Có lỗi hoặc thiếu phụ kiện: Admin xem và báo giá riêng, không trừ tự động."
       },
-      "note": "Đây không phải giá thu cuối cùng; giá chính thức chỉ có sau khi shop kiểm tra hàng thực tế."
+      "note": "Giá dự kiến CHƯA CHỐT: B17 là 17% của S, không phải giảm 17%. Giá chính thức chỉ có sau khi shop kiểm tra hàng thực tế.",
+      "legacyReference": "Giá bán thực tham chiếu (giá thành viên)",
+      "rate": "Giá thu B17"
     },
     "issueTypes": {
       "missing_box": "Thiếu hộp gốc",
@@ -2935,7 +2945,7 @@
       "other": "Lỗi khác (mỗi lỗi)"
     },
     "noIssues": "Không có lỗi được ghi nhận.",
-    "referenceProduct": "Mô hình tham chiếu: {name} ({sku}) – giá niêm yết {price}",
+    "referenceProduct": "Mô hình tham chiếu: {name} ({sku}) – giá bán mục tiêu S {price}",
     "declaredIssues": "Lỗi khách khai báo",
     "evidenceRequested": "Shop cần bổ sung",
     "addEvidence": "Tải thêm ảnh/video",
@@ -2954,9 +2964,16 @@
     "requestReview": "Yêu cầu kiểm tra lại (ghi rõ lỗi bạn không đồng ý)",
     "requestReviewButton": "Gửi yêu cầu kiểm tra lại",
     "manualAmount": "Giá thủ công (để trống để dùng công thức)",
-    "formulaNote": "Để trống: hệ thống tính theo bảng giá thu (mức trừ theo mốc giá, 50.000đ/lỗi). Nhập số tiền khác là báo giá thủ công, phải ghi lý do.",
+    "formulaNote": "Để trống: dùng giá thu B17 = 17% × S (chỉ khi S đã duyệt và hàng không lỗi). Nhập số tiền khác là báo giá thủ công, phải ghi lý do.",
     "inspectionUpload": "Video mở kiện và ảnh kiểm hàng",
-    "inspectionUploaded": "Đã có {count} tệp kiểm hàng (bắt buộc trước giá chính thức)."
+    "inspectionUploaded": "Đã có {count} tệp kiểm hàng (bắt buộc trước giá chính thức).",
+    "trade": {
+      "title": "5. Đổi lấy món của shop (tùy chọn)",
+      "hint": "Muốn đổi mô hình này lấy một món đang bán? Chọn món đó; phần chênh lệch được tính khi có giá thu cuối.",
+      "search": "Tìm món muốn nhận",
+      "chosen": "Đổi lấy: {name} – {price}",
+      "note": "Chênh lệch D = giá món shop − giá thu được duyệt. D > 0 bạn trả thêm; D < 0 shop trả lại sau khi Admin duyệt. Giá trị đổi hàng không tích điểm."
+    }
   },
   "address": {
     "masterDataUnavailable": "Không tải được danh mục địa chỉ. Vui lòng thử lại sau.",
@@ -3577,17 +3594,17 @@
   },
   "pricingApprovals": {
     "title": "Duyệt giá và giá vốn",
-    "intro": "Voucher được kiểm tra bằng giá niêm yết và giá vốn của từng sản phẩm. Bản nháp cần quản trị viên thứ hai duyệt; sản phẩm đổi giá sau khi duyệt bị chặn voucher cho tới khi giá mới được duyệt.",
+    "intro": "Giá bán mục tiêu S cần một quản trị viên duyệt trước khi giá thu B17 (17% × S) được báo cho khách. Giá niêm yết thật R được nhập kèm bằng chứng và cần quản trị viên thứ hai duyệt; tới lúc đó shop bán đúng giá S, không áp giá thành viên hay mã giảm giá.",
     "search": "Tên hoặc SKU",
     "empty": "Không có sản phẩm.",
-    "summary": "Giá {price} · giá nhập {receipt} · giá vốn dùng khi kiểm tra voucher {cost}",
+    "summary": "Đang bán {price} · S {target} · B17 {buyback} · giá nhập {receipt} · giá vốn kiểm tra voucher {cost}",
     "mismatch": "Giá khác giá niêm yết đã duyệt: voucher bị chặn đến khi giá mới được duyệt.",
-    "prices": "Giá niêm yết",
+    "prices": "Giá niêm yết thật R",
     "costs": "Hồ sơ giá vốn",
     "none": "Chưa có.",
     "proof": "Nơi giá được công bố (đường dẫn, hoá đơn, phiếu)",
     "reason": "Lý do",
-    "proposePrice": "Đề xuất duyệt giá niêm yết {price}",
+    "proposePrice": "Đề xuất giá niêm yết thật R",
     "proposeCost": "Đề xuất hồ sơ giá vốn",
     "approve": "Duyệt",
     "withdraw": "Rút lại",
@@ -3611,28 +3628,38 @@
       "all": "Tất cả sản phẩm",
       "pending": "Chờ quản trị viên thứ hai",
       "mismatch": "Đổi giá sau khi duyệt",
-      "unapproved": "Chưa duyệt giá",
-      "approved": "Đã có giá duyệt"
+      "unapproved": "Đang bán theo S",
+      "approved": "Đã có giá duyệt",
+      "target": "S chờ duyệt"
     },
     "columns": {
       "product": "Sản phẩm",
-      "price": "Giá đăng",
+      "price": "Giá đang bán",
       "cost": "Giá vốn kiểm tra",
-      "listPrice": "Giá niêm yết",
-      "costProfile": "Hồ sơ giá vốn"
+      "listPrice": "Giá niêm yết R",
+      "costProfile": "Hồ sơ giá vốn",
+      "target": "Giá mục tiêu S"
     },
     "chips": {
       "mismatch": "Lệch giá đã duyệt",
       "approved": "Đã duyệt v{version}",
       "none": "Chưa duyệt",
       "receipt": "Theo giá nhập",
-      "pending": "{count} chờ duyệt"
+      "pending": "{count} chờ duyệt",
+      "targetApproved": "S đã duyệt",
+      "targetPending": "CHỜ DUYỆT",
+      "soldAtTarget": "Bán theo S"
     },
     "manage": "Xem & duyệt",
     "receipt": "giá nhập {amount}",
     "unitTotal": "Tổng mỗi sản phẩm theo hồ sơ",
     "secondAdmin": "Bản nháp cần một quản trị viên khác duyệt; bạn không duyệt được đề xuất của chính mình.",
-    "ownProposal": "Đề xuất của bạn: cần quản trị viên khác duyệt"
+    "ownProposal": "Đề xuất của bạn: cần quản trị viên khác duyệt",
+    "listPriceInput": "Giá niêm yết thật R (đ)",
+    "approveTarget": "Duyệt S {price}",
+    "targetApprovedAt": "S đã duyệt ngày {date}",
+    "soldAtTarget": "Đang bán theo S: chưa có giá niêm yết thật R được duyệt nên không áp giá thành viên hay mã giảm giá.",
+    "noTarget": "Sản phẩm chưa có giá bán mục tiêu S: nhập S ở trang sửa sản phẩm."
   },
   "promotionReconciliation": {
     "title": "Đối soát khuyến mãi",
@@ -3702,6 +3729,66 @@
     "offersTab": "Ưu đãi",
     "catalogWorkspace": "Không gian danh mục mô hình",
     "savedPrice": "Giá đang lưu"
+  },
+  "buybackTrade": {
+    "title": "Đổi hàng · báo giá lần {revision}",
+    "item": "Món shop",
+    "itemPrice": "Giá món shop",
+    "buyback": "Giá thu được duyệt",
+    "pending": "Chờ giá thu cuối",
+    "difference": "Chênh lệch D",
+    "incomplete": "Chưa đủ (INCOMPLETE)",
+    "customerPays": "Khách trả thêm {amount}",
+    "shopPays": "Shop trả lại {amount}",
+    "even": "Ngang giá",
+    "status": {
+      "incomplete": "Báo giá chưa đủ: chờ giá thu cuối.",
+      "ready": "Báo giá đầy đủ, chờ khách chấp nhận.",
+      "accepted": "Khách đã chấp nhận báo giá này.",
+      "settled": "Đã thanh toán chênh lệch và bàn giao món đổi."
+    },
+    "refundApproved": "Admin đã duyệt khoản shop trả lại.",
+    "refundPending": "Khoản shop trả lại cần Admin duyệt trước khi khách chấp nhận.",
+    "noPoints": "Giá trị đổi hàng không phải voucher và không tích điểm.",
+    "approveRefund": "Duyệt khoản shop trả lại {amount}"
+  },
+  "listingQc": {
+    "title": "Kiểm duyệt trước đăng bán (QC)",
+    "result": {
+      "passed": "QC đạt: có thể nhập kho thành tin nháp.",
+      "failed": "QC chưa đạt."
+    },
+    "void": {
+      "superseded": "Lần QC này đã được thay bằng lần mới.",
+      "listing_changed": "QC hết hiệu lực: ảnh, giá, SKU hoặc tình trạng đã đổi sau khi duyệt. Cần duyệt lại."
+    },
+    "failed": "Chưa đạt: {checks}",
+    "checks": {
+      "QC01": "Đã nhận hàng vật lý có chứng cứ, không chỉ có mã vận đơn.",
+      "QC02": "Đã kiểm hàng bằng video/ảnh thật của đúng chiếc này (ảnh mẫu chỉ để tham khảo).",
+      "QC03": "Đúng SKU, hãng, mã kit, biến thể, màu, tỉ lệ và mã chiếc/lô; nghi giả mạo thì cách ly.",
+      "QC04": "Đã kiểm phụ kiện, hộp, part, khớp, sơn/custom, lỗi và mức độ nguyên bản; mô tả công khai trung thực.",
+      "QC05": "Khách có quyền bán/đổi, nguồn gốc và chứng từ hợp lệ; không phải hàng đang cầm, chưa giải chấp hay tranh chấp.",
+      "QC06": "Admin đã xác nhận giá thu cuối và khách đã chấp nhận (im lặng không phải đồng ý).",
+      "QC07": "Đã thanh toán/đối soát giao dịch thu hoặc Trade có chứng từ, không thanh toán trùng.",
+      "QC08": "Đúng một chiếc, chưa từng nhập hay đăng trùng.",
+      "QC09": "Giá vốn H đã xác nhận bằng phiếu nhập/chi trả; phí sửa, đóng gói, ship có chứng từ; không ghi đè vốn cũ.",
+      "QC10": "Giá bán mục tiêu S > 0 đã được Admin duyệt.",
+      "QC11": "Giá niêm yết R là giá THẬT có nguồn, hoặc bán đúng S khi chưa có R; không lấy S/0,9 để tạo giảm giá ảo.",
+      "QC12": "Đã kiểm lợi nhuận sau voucher, hạng, quà, phí ship và dự phòng điểm; thiếu dữ liệu thì không duyệt.",
+      "QC13": "Tồn thực khả dụng, giữ hàng chống bán trùng, quyền sở hữu của shop đã xác nhận.",
+      "QC14": "Đã đo khối lượng/kích thước kiện hàng khi cần (số mặc định theo tỉ lệ chỉ là ước tính).",
+      "QC15": "Ảnh, tên và mô tả không lộ số điện thoại, hóa đơn, địa chỉ, giá vốn hay thông tin khách.",
+      "QC16": "Người duyệt, thời điểm và lý do/bằng chứng ngoại lệ được lưu để hậu kiểm."
+    },
+    "system": "hệ thống tự kiểm",
+    "notes": "Ghi chú, bằng chứng và ngoại lệ",
+    "submit": "Lưu kết quả QC",
+    "intake": "Nhập kho (tin nháp)",
+    "intakeNote": "Chiếc này vào kho với số lượng 1, giá vốn bằng giá thu đã chi, tin đăng vẫn ẩn cho đến khi đăng bán.",
+    "publish": "Đăng bán",
+    "publishNote": "Kiểm cuối: QC còn hiệu lực, S đã duyệt, có giá, đúng 1 chiếc trong kho và ít nhất 3 ảnh thật.",
+    "published": "Đã đăng bán trên cửa hàng."
   },
   "directSales": {
     "quantityShort": "Số lượng",

@@ -7,7 +7,7 @@ import { CATEGORIES } from './Category.Seeder';
 import { hash } from './SeedCatalog';
 import type { AssemblyState } from '../../../../../shared/gunpla';
 import type { ProductPackaging } from '../../../../../shared/packing/rules';
-import { catalogFormula } from '../../../../../shared/sale-pricing';
+import { legacyCatalogFormula } from '../../../../../shared/sale-pricing';
 // Imported (not read from disk) so the compiled server carries it too. Source of truth for the third-party mecha
 // catalog; docs/model_universe_seed.md is the human-readable tracking sheet generated alongside it.
 import catalog from './data/model-universe-catalog.json';
@@ -120,7 +120,7 @@ export const ownerCatalogValues = (entry: CatalogEntry) => {
     fragile: true,
     orientation: 'flat',
   };
-  const formula = owner.buyInVnd && owner.memberPriceVnd ? catalogFormula(owner.memberPriceVnd, 0) : null;
+  const formula = owner.buyInVnd && owner.memberPriceVnd ? legacyCatalogFormula(owner.memberPriceVnd, 0) : null;
   return {
     packaging,
     pricing: formula

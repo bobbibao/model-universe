@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { Op } from 'sequelize';
 import type { Sequelize } from 'sequelize-typescript';
-import { seedTestDatabase } from './support/testDb';
+import { seedTestDatabase, withVerifiedListPrices } from './support/testDb';
 import OrderService from '../../src/core/server/services/OrderService';
 import PromotionService from '../../src/core/server/services/PromotionService';
 import CommercePolicyService from '../../src/core/server/services/CommercePolicyService';
@@ -57,6 +57,7 @@ describe('promotions: one voucher plus the rank benefit, drops, check-in, wheel 
     jest.spyOn(NotificationDispatchService.prototype, 'dispatchSoon').mockReturnValue(undefined);
     jest.spyOn(FulfillmentService.prototype, 'autoCreateShipment').mockResolvedValue(null);
     db = await seedTestDatabase();
+    await withVerifiedListPrices(db);
     product = (await ProductModel.findOne({
       where: { condition: 'new', isArchived: false, partnerId: null },
       order: [['id', 'ASC']],

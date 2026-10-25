@@ -11,7 +11,7 @@ import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import './pricing-admin.css';
 
 type Status = 'DRAFT' | 'APPROVED' | 'RETIRED';
-type Filter = 'all' | 'pending' | 'mismatch' | 'unapproved';
+type Filter = 'all' | 'pending' | 'mismatch' | 'unapproved' | 'target';
 interface PriceRecord {
   id: number;
   version: number;
@@ -42,6 +42,10 @@ interface Row {
   sku: string;
   name: string;
   priceVnd: number;
+  referenceMemberVnd: number | null;
+  buybackPriceVnd: number | null;
+  targetPriceApprovedAt: string | null;
+  listPriceVerified: boolean;
   receiptCostVnd: number;
   unitCostVnd: number;
   priceMismatch: boolean;
@@ -49,7 +53,14 @@ interface Row {
   costs: CostRecord[];
 }
 interface Listing {
-  summary: { products: number; pending: number; mismatch: number; approved: number };
+  summary: {
+    products: number;
+    pending: number;
+    mismatch: number;
+    approved: number;
+    targetPending: number;
+    soldAtTarget: number;
+  };
   count: number;
   rows: Row[];
 }
@@ -66,9 +77,9 @@ const COST_FIELDS = [
 ] as const;
 const costTotal = (record: CostRecord) => COST_FIELDS.reduce((sum, field) => sum + record[field], 0);
 
-// Approved list prices R and cost profiles (docs/business/pricing-voucher-specification.md, decision V3). One table to
-// scan: what each product's vouchers are checked with, and what waits for a second admin; one side panel per product
-// to propose, approve or withdraw.
+// Target prices S, real list prices R and cost profiles (docs/business/pricing-voucher-specification.md, decision V3;
+// owner rule of 2026-10-25). One table to scan: which S awaits approval, which products still sell at S, what vouchers
+// are checked with and what waits for a second admin; one side panel per product to approve, propose or withdraw.
 export default function PricingApprovalsWorkspace() {
   const t = useTranslations('pricingApprovals'),
     locale = useLocale();
@@ -123,8 +134,15 @@ export default function PricingApprovalsWorkspace() {
     }
   };
 
+  const targetChip = (row: Row) =>
+    row.targetPriceApprovedAt ? (
+      <span className="pa-chip is-success">{t('chips.targetApproved')}</span>
+    ) : (
+      <span className="pa-chip is-warning">{t('chips.targetPending')}</span>
+    );
   const priceChip = (row: Row) => {
     const approved = row.prices.find((record) => record.status === 'APPROVED');
+    if (!row.listPriceVerified) return <span className="pa-chip">{t('chips.soldAtTarget')}</span>;
     if (row.priceMismatch) return <span className="pa-chip is-danger">{t('chips.mismatch')}</span>;
     if (approved)
       return <span className="pa-chip is-success">{t('chips.approved', { version: approved.version })}</span>;
@@ -151,6 +169,16 @@ export default function PricingApprovalsWorkspace() {
         <span className="pa-cell">
           <strong className="truncate">{row.name}</strong>
           <small>{row.sku}</small>
+        </span>
+      ),
+    },
+    {
+      key: 'target',
+      header: t('columns.target'),
+      render: (row) => (
+        <span className="pa-cell">
+          <span className="pa-money">{row.referenceMemberVnd ? money(row.referenceMemberVnd) : '—'}</span>
+          {targetChip(row)}
         </span>
       ),
     },
@@ -191,12 +219,9 @@ export default function PricingApprovalsWorkspace() {
   const filters: { key: Filter; label: string; count?: number; tone?: string }[] = [
     { key: 'all', label: t('filters.all'), count: summary?.products },
     { key: 'pending', label: t('filters.pending'), count: summary?.pending, tone: 'is-warning' },
+    { key: 'target', label: t('filters.target'), count: summary?.targetPending, tone: 'is-warning' },
+    { key: 'unapproved', label: t('filters.unapproved'), count: summary?.soldAtTarget },
     { key: 'mismatch', label: t('filters.mismatch'), count: summary?.mismatch, tone: 'is-danger' },
-    {
-      key: 'unapproved',
-      label: t('filters.unapproved'),
-      count: summary ? summary.products - summary.approved : undefined,
-    },
   ];
 
   return (
@@ -321,7 +346,8 @@ function ProductRecords({
     const form = event.currentTarget,
       data = new FormData(form);
     const body: Record<string, unknown> = { productId: row.id, reason: data.get('reason') };
-    if (kind === 'price') Object.assign(body, { listPriceVnd: row.priceVnd, proof: data.get('proof') });
+    if (kind === 'price')
+      Object.assign(body, { listPriceVnd: Number(data.get('listPriceVnd')), proof: data.get('proof') });
     else Object.assign(body, cost);
     if (await onAct(`/admin/pricing/records/${kind}`, body)) form.reset();
   };
@@ -330,8 +356,31 @@ function ProductRecords({
     <div className="grid gap-4">
       <p className="text-sm">
         {row.sku} ·{' '}
-        {t('summary', { price: money(row.priceVnd), receipt: money(row.receiptCostVnd), cost: money(row.unitCostVnd) })}
+        {t('summary', {
+          price: money(row.priceVnd),
+          target: row.referenceMemberVnd ? money(row.referenceMemberVnd) : '—',
+          buyback: row.buybackPriceVnd != null ? money(row.buybackPriceVnd) : '—',
+          receipt: money(row.receiptCostVnd),
+          cost: money(row.unitCostVnd),
+        })}
       </p>
+      <div className="pa-actions">
+        {!row.referenceMemberVnd ? (
+          <span className="mu-note">{t('noTarget')}</span>
+        ) : row.targetPriceApprovedAt ? (
+          <span className="pa-chip is-success">{t('targetApprovedAt', { date: date(row.targetPriceApprovedAt) })}</span>
+        ) : (
+          <button
+            type="button"
+            className="pa-btn is-primary"
+            disabled={busy}
+            onClick={() => void onAct(`/admin/pricing/targets/${row.id}/approve`)}
+          >
+            {t('approveTarget', { price: money(row.referenceMemberVnd) })}
+          </button>
+        )}
+      </div>
+      {!row.listPriceVerified && <p className="mu-note">{t('soldAtTarget')}</p>}
       {row.priceMismatch && <p className="pa-chip is-danger !whitespace-normal !rounded-lg !p-3">{t('mismatch')}</p>}
       <div className="pa-segment" role="tablist">
         {(['price', 'cost'] as const).map((value) => (
@@ -359,6 +408,10 @@ function ProductRecords({
           </ul>
           <form className="pa-form" onSubmit={(event) => void submit('price')(event)}>
             <label className="is-wide">
+              {t('listPriceInput')}
+              <input className={inputClassName} name="listPriceVnd" type="number" min={1} step={1} required />
+            </label>
+            <label className="is-wide">
               {t('proof')}
               <input className={inputClassName} name="proof" required maxLength={1000} />
             </label>
@@ -367,7 +420,7 @@ function ProductRecords({
               <input className={inputClassName} name="reason" required maxLength={1000} />
             </label>
             <button className="pa-btn is-primary is-wide justify-self-start" disabled={busy}>
-              {t('proposePrice', { price: money(row.priceVnd) })}
+              {t('proposePrice')}
             </button>
           </form>
         </>

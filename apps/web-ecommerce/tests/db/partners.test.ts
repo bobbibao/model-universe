@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import type { Sequelize } from 'sequelize-typescript';
-import { seedTestDatabase } from './support/testDb';
+import { seedTestDatabase, withVerifiedListPrices } from './support/testDb';
 import PartnerService from '../../src/core/server/services/PartnerService';
 import UserModel from '../../src/core/server/database/internal/models/User.Model';
 import EvidenceModel from '../../src/core/server/database/client/models/Evidence.Model';
@@ -39,6 +39,7 @@ describe('private partner onboarding and staff verification', () => {
     });
   beforeAll(async () => {
     db = await seedTestDatabase();
+    await withVerifiedListPrices(db);
     [userId, otherId] = (
       await UserModel.findAll({ where: { role: 'USER', isActive: true }, limit: 2, order: [['id', 'ASC']] })
     ).map((user) => user.id);
@@ -201,6 +202,8 @@ describe('private partner onboarding and staff verification', () => {
   it('excludes unreviewed listings and partner value from shop-benefit eligibility', async () => {
     const partner = (await service.mine(otherId))!;
     const own = (await ProductModel.findOne({ where: { condition: 'new', isArchived: false } }))!;
+    // A 40% margin, so the 10% code passes the profit guard on this shop product.
+    await own.update({ importPrice: Math.round(own.price * 0.6), stock: Math.max(own.stock, 1) });
     // A disposable read-only quote fixture; no seller publication, guarantee or paid order is activated.
     const listing = await ProductModel.create({
       name: 'Synthetic partner quote fixture',

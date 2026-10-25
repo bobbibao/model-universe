@@ -84,16 +84,24 @@ describe('product form numeric and inherited data contracts', () => {
     expect(validateInventory({ ...inventory, productionDate: '' })).toEqual({});
   });
 
-  test('invalid issue counts identify the editable count instead of the derived price', () => {
-    expect(validatePricing({ ...inventory, pricingReferenceMemberVnd: '1100000', pricingIssueCount: '1.5' })).toEqual({
-      pricingIssueCount: 'issueCountInvalid',
-    });
+  // Owner rule of 2026-10-25: staff enter only the target price S; B17 follows it and the price charged is S until a
+  // real list price R is approved (there is no issue count any more).
+  test('the target price S is required and must be a whole VND amount', () => {
+    expect(validatePricing({ ...inventory, pricingReferenceMemberVnd: '1100000' })).toEqual({});
     expect(validatePricing({ ...inventory, pricingReferenceMemberVnd: '1100000.5' }).price).toBe('priceInvalid');
+    expect(validatePricing({ ...inventory, price: '1100000', pricingReferenceMemberVnd: '' }).price).toBe(
+      'priceInvalid',
+    );
   });
 
-  test('legacy prices do not validate an issue count that has no reference and is not submitted', () => {
-    const values = { ...inventory, price: '1100000', pricingReferenceMemberVnd: '', pricingIssueCount: '' };
-    expect(validatePricing(values)).toEqual({});
-    expect(buildProductPayload(values, '/uploads/model.webp', [])).not.toHaveProperty('pricingIssueCount');
+  test('the payload sends S and its B17, never a typed price or an issue count', () => {
+    const payload = buildProductPayload(
+      { ...inventory, price: '999', pricingReferenceMemberVnd: '1100000' },
+      '/uploads/model.webp',
+      [],
+    );
+    expect(payload).toMatchObject({ pricingReferenceMemberVnd: 1_100_000, buybackPriceVnd: 187_000 });
+    expect(payload).not.toHaveProperty('price');
+    expect(payload).not.toHaveProperty('pricingIssueCount');
   });
 });

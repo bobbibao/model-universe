@@ -197,7 +197,7 @@ describe('direct sales use the common ecommerce ledgers', () => {
     expect(await OrderModel.count({ where: { salesChannel: 'WEBSITE' } })).toBeGreaterThan(0);
     expect(await runMigrations(db)).toEqual([]);
     const foreignKeys = await db.getQueryInterface().getForeignKeyReferencesForTable('order');
-    expect(foreignKeys.some(key => key.columnName === 'createdByUserId')).toBe(true);
+    expect((foreignKeys as { columnName: string }[]).some((key) => key.columnName === 'createdByUserId')).toBe(true);
     expect((await service.products('', String(product.id))).map(row => row.id)).toEqual([product.id]);
     await expect(service.products('', 'invalid')).rejects.toMatchObject({ statusCode: 400 });
   });

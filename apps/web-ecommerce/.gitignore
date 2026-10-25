@@ -46,3 +46,5 @@ next-env.d.ts
 
 # Private business evidence; never published by the web server
 /.private-uploads/
+# Report of yarn images:import (which products still lack photos)
+/data/image_import_report.csv

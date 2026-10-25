@@ -6,16 +6,24 @@ import Api from '@/core/client/api/Api';
 import ProductApi from '@/core/client/api/Product';
 import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
-import { BUYBACK_ISSUE_TYPES, DEDUCTION_PER_ISSUE_VND, MAX_ISSUE_QUANTITY, type BuybackEstimate, type BuybackIssue } from '@/shared/buyback-pricing';
+import {
+  BUYBACK_ISSUE_TYPES,
+  BUYBACK_RATE_PERCENT,
+  BUYBACK_RULE_VERSION,
+  MAX_ISSUE_QUANTITY,
+  type BuybackEstimate,
+  type BuybackIssue,
+} from '@/shared/buyback-pricing';
 import type { ProductSummary } from '@/shared/types/product';
 import { COLLECTIBLE_ASSET_FIELDS } from './CollectibleSubmissionForm';
 
 const CONFIRMATIONS = ['honest', 'issues', 'media', 'estimate', 'inspection', 'decision'] as const;
 const MAX_FILES = 12;
 
-// "Sell to Model Universe" (buyback 2.0): choose the catalog model, declare its condition issue by issue, see the
-// expected price (reference member price − tier deduction − 50,000 VND per issue), upload photos and a video, confirm
-// the terms, send. The server recomputes the estimate and checks the media.
+// "Sell to Model Universe": choose the catalog model, declare its condition issue by issue, see the expected price
+// (B17 = 17% of the shop's approved target price S, only for a matched model declared without issues; anything else is
+// priced by an admin), optionally choose a shop item to trade for, upload photos and a video, confirm the terms, send.
+// The server recomputes the estimate and checks the media.
 export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: number) => Promise<void> }) {
   const t = useTranslations('buyback'),
     v2 = useTranslations('buybackV2'),
@@ -26,6 +34,9 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProductSummary[]>([]);
   const [reference, setReference] = useState<ProductSummary | null>(null);
+  const [tradeQuery, setTradeQuery] = useState('');
+  const [tradeResults, setTradeResults] = useState<ProductSummary[]>([]);
+  const [tradeItem, setTradeItem] = useState<ProductSummary | null>(null);
   const [issues, setIssues] = useState<BuybackIssue[]>([]);
   const [seriousDamage, setSeriousDamage] = useState(false);
   const [estimate, setEstimate] = useState<BuybackEstimate>();
@@ -45,6 +56,19 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
     }, 250);
     return () => clearTimeout(timer);
   }, [query]);
+
+  useEffect(() => {
+    if (tradeQuery.trim().length < 2) {
+      setTradeResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      void ProductApi.getProducts({ q: tradeQuery.trim(), per_page: 8 }).then((page) =>
+        setTradeResults((page?.data || []).filter((row) => !row.partnerId && row.stock > 0)),
+      );
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [tradeQuery]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -90,6 +114,7 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
       declaredIssues: issues,
       referenceProductId: reference?.id ?? null,
       seriousDamage,
+      ...(tradeItem ? { tradeProductId: tradeItem.id } : {}),
       confirmations: true,
     };
     const digest = JSON.stringify(data);
@@ -168,7 +193,7 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
 
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{v2('step2')}</h2>
-        <p className="mu-note">{v2('issuesNote', { amount: money(DEDUCTION_PER_ISSUE_VND) })}</p>
+        <p className="mu-note">{v2('issuesNote')}</p>
         {issues.map((issue, index) => (
           <div key={index} className="grid gap-2 sm:grid-cols-[1.2fr_.5fr_2fr_auto]">
             <select
@@ -214,6 +239,45 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
       </section>
 
       <section className="space-y-3">
+        <h2 className="text-xl font-bold">{v2('trade.title')}</h2>
+        <p className="mu-note">{v2('trade.hint')}</p>
+        {tradeItem ? (
+          <p className="text-sm">
+            {v2('trade.chosen', { name: tradeItem.name, price: money(tradeItem.price) })}{' '}
+            <button type="button" className="underline" onClick={() => setTradeItem(null)}>
+              {v2('catalogClear')}
+            </button>
+          </p>
+        ) : (
+          <>
+            <label className="mu-field">
+              {v2('trade.search')}
+              <input value={tradeQuery} onChange={(event) => setTradeQuery(event.target.value)} />
+            </label>
+            {tradeResults.length > 0 && (
+              <ul className="space-y-1 text-sm">
+                {tradeResults.map((row) => (
+                  <li key={row.id}>
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => {
+                        setTradeItem(row);
+                        setTradeQuery('');
+                      }}
+                    >
+                      {row.name} · {money(row.price)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+        {tradeItem && <p className="mu-note">{v2('trade.note')}</p>}
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-xl font-bold">{v2('step3')}</h2>
         <label className="mu-field">
           {v2('media')}
@@ -256,18 +320,29 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
   );
 }
 
+// B17 requests show S and 17% of it; a request quoted under the former tier rule keeps its deduction lines.
 export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
   const v2 = useTranslations('buybackV2'),
     locale = useLocale();
   const money = (amount: number) => formatVND(amount, locale);
+  const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION;
   return (
     <dl className="grid gap-1 rounded-md bg-gray-2 p-4 text-sm dark:bg-store-panel sm:grid-cols-2">
-      <dt>{v2('estimate.reference')}</dt>
+      <dt>{v2(legacy ? 'estimate.legacyReference' : 'estimate.reference')}</dt>
       <dd>{estimate.referencePriceVnd !== null ? money(estimate.referencePriceVnd) : '—'}</dd>
-      <dt>{v2('estimate.base')}</dt>
-      <dd>{estimate.baseDeductionVnd !== null ? `−${money(estimate.baseDeductionVnd)}` : '—'}</dd>
-      <dt>{v2('estimate.issues', { count: estimate.issueCount, each: money(estimate.deductionPerIssueVnd) })}</dt>
-      <dd>−{money(estimate.issueDeductionVnd)}</dd>
+      {legacy ? (
+        <>
+          <dt>{v2('estimate.base')}</dt>
+          <dd>{estimate.baseDeductionVnd !== null ? `−${money(estimate.baseDeductionVnd)}` : '—'}</dd>
+          <dt>{v2('estimate.issues', { count: estimate.issueCount, each: money(estimate.deductionPerIssueVnd) })}</dt>
+          <dd>−{money(estimate.issueDeductionVnd)}</dd>
+        </>
+      ) : (
+        <>
+          <dt>{v2('estimate.rate')}</dt>
+          <dd>{BUYBACK_RATE_PERCENT}% × S</dd>
+        </>
+      )}
       <dt className="font-bold">{v2('estimate.total')}</dt>
       <dd className="text-lg font-bold">{estimate.estimateVnd !== null && !estimate.manualReview ? money(estimate.estimateVnd) : v2('estimate.manual')}</dd>
       {estimate.manualReview && <dd className="mu-note sm:col-span-2">{v2(`estimate.reasons.${estimate.manualReview}`)}</dd>}
