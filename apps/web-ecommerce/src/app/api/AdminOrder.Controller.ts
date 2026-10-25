@@ -9,10 +9,26 @@ import { toInteger } from '../../shared/server/utils/ValidationUtils';
 import { apiMessage } from '../../shared/server/utils/ApiLocale';
 import FulfillmentService from '../../core/server/services/FulfillmentService';
 import PaymentGatewayService from '../../core/server/services/PaymentGatewayService';
+import DirectSaleService from '../../core/server/services/DirectSaleService';
 
 @Controller('/admin/orders')
 @ControllerModel('OrderModel')
 export default class AdminOrderController extends ApiBaseController {
+  @Get('/direct-sale/products')
+  async saleProducts(req: Request, res: Response) {
+    return this.run(res, 'Direct-sale products', () => new DirectSaleService().products(req.query.q, req.query.ids));
+  }
+
+  @Get('/direct-sale/customers')
+  async saleCustomers(req: Request, res: Response) {
+    return this.run(res, 'Direct-sale customers', () => new DirectSaleService().customers(req.query.q));
+  }
+
+  @Post('/direct-sale')
+  async directSale(req: Request, res: Response) {
+    return this.run(res, 'Create direct sale', () => new DirectSaleService().create(req.user!.id, req.body || {}));
+  }
+
   @Get('/')
   async getOrders(req: Request, res: Response) {
     try {
@@ -20,6 +36,7 @@ export default class AdminOrderController extends ApiBaseController {
       const { page, perPage, limit, offset } = parsePagination(req);
       const { rows, count } = await service.listAdmin({
         status: req.query.status as string | undefined,
+        channel: req.query.channel as string | undefined,
         q: req.query.q as string | undefined,
         sortKey: req.query.sort as string | undefined,
         sortDirection: req.query.direction as string | undefined,

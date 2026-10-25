@@ -1005,7 +1005,7 @@ export default class FulfillmentService {
       );
       if (!changed) return;
       const order = await this.lockedOrder(shipment.orderId, transaction);
-      const actor = input.actorUserId ?? order.userId;
+      const actor = input.actorUserId ?? order.createdByUserId ?? order.userId ?? undefined;
       // The order follows the parcel: picked up = shipped, delivered = delivered (COD still awaits reconciliation).
       if (
         ['PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED'].includes(input.status) &&

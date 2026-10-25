@@ -34,7 +34,10 @@ export type ShippingInfo = {
 
 export type Order = {
   id: number;
-  userId: number;
+  userId: number | null;
+  salesChannel?: 'WEBSITE' | 'COUNTER' | 'ASSISTED';
+  createdByUserId?: number | null;
+  directSale?: { fulfillment: 'HANDOVER' | 'DELIVERY'; payment: 'CASH' | 'BANK_TRANSFER' | 'UNPAID' } | null;
   status: OrderStatus;
   paymentMethod: 'COD';
   paymentStatus: PaymentStatus;

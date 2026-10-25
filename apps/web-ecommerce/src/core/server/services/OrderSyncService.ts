@@ -76,7 +76,7 @@ export default class OrderSyncService {
     const payments = new PaymentGatewayService();
     for (const link of links) {
       const order = await OrderModel.findByPk(link.orderId!);
-      if (order) await payments.sync(order.id, order.userId);
+      if (order?.userId) await payments.sync(order.id, order.userId);
       link.changed('updatedAt', true);
       await link.save();
     }
@@ -91,7 +91,8 @@ export default class OrderSyncService {
     const fulfillment = new FulfillmentService();
     let attempts = 0;
     for (const order of paid) {
-      if (attempts >= 5 || order.prepaidVnd < order.upfrontDueVnd || order.cancelRequest?.status === 'PENDING') continue;
+      if (attempts >= 5 || order.prepaidVnd < order.upfrontDueVnd || order.cancelRequest?.status === 'PENDING')
+        continue;
       const last = OrderSyncService.lastWaybillAttempt.get(order.id) || 0;
       if (Date.now() - last < 10 * MINUTE) continue;
       // Every parcel already has its waybill.
@@ -121,8 +122,8 @@ export default class OrderSyncService {
     const payments = new PaymentGatewayService();
     for (const order of overdue) {
       // A payment that reached payOS just before the deadline still counts.
-      if (paymentsEnabled()) await payments.sync(order.id, order.userId).catch(() => undefined);
-      if (await orders.systemCancel(order.id, 'payment_timeout', 'Quá hạn thanh toán') && paymentsEnabled())
+      if (paymentsEnabled() && order.userId) await payments.sync(order.id, order.userId).catch(() => undefined);
+      if ((await orders.systemCancel(order.id, 'payment_timeout', 'Quá hạn thanh toán')) && paymentsEnabled())
         await payments.cancelOrderLinks(order.id, 'Order payment deadline passed');
     }
   }
@@ -159,7 +160,8 @@ export default class OrderSyncService {
     const fulfillment = new FulfillmentService();
     for (const shipment of shipments) {
       const order = await OrderModel.findByPk(shipment.orderId);
-      if (order) await fulfillment.refreshTracking(order.id, order.userId, true);
+      const actor = order?.createdByUserId ?? order?.userId;
+      if (order && actor) await fulfillment.refreshTracking(order.id, actor, true);
     }
   }
 }

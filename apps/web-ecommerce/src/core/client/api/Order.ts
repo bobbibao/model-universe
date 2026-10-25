@@ -24,6 +24,7 @@ export interface PlaceOrderInput {
 }
 
 export interface AdminOrderListParams {
+  channel?: string;
   status?: OrderStatus | '';
   q?: string;
   page?: number;

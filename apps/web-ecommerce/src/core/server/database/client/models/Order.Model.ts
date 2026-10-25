@@ -28,8 +28,22 @@ export default class OrderModel extends Model {
   id!: number;
 
   @ForeignKey(() => UserModel)
-  @Column({ type: DataType.INTEGER, allowNull: false })
-  userId!: number;
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  userId!: number | null;
+
+  @Column({ type: DataType.STRING(16), allowNull: false, defaultValue: 'WEBSITE' })
+  salesChannel!: 'WEBSITE' | 'COUNTER' | 'ASSISTED';
+
+  @ForeignKey(() => UserModel)
+  @Column({ type: DataType.INTEGER, references: { model: 'user', key: 'id' }, onDelete: 'RESTRICT' })
+  createdByUserId!: number | null;
+
+  // Immutable creation snapshot; fulfillment and receipts continue in the common order workflow.
+  @Column(DataType.JSONB)
+  directSale!: { fulfillment: 'HANDOVER' | 'DELIVERY'; payment: 'CASH' | 'BANK_TRANSFER' | 'UNPAID' } | null;
+
+  @Column({ type: DataType.STRING(160), unique: true })
+  directSaleKey!: string | null;
 
   @Column({
     type: DataType.ENUM('PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'),
