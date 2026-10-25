@@ -117,7 +117,8 @@ const downloadPhoto = async (url: string, allowOctetStream = false): Promise<Pho
       .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 82 })
       .toBuffer();
-    const gray = await sharp(file.body).rotate().greyscale().resize(9, 8, { fit: 'fill' }).raw().toBuffer();
+    // From the stored WebP, as for photos already stored, so both sides of a comparison are hashed alike.
+    const gray = await sharp(webp).greyscale().resize(9, 8, { fit: 'fill' }).raw().toBuffer();
     return {
       hash: crypto.createHash('sha256').update(file.body).digest('hex'),
       shot: differenceHash(gray),
@@ -162,6 +163,16 @@ const photosOf = async (link: string): Promise<{ photos: Photo[]; status: Report
   if (photos.length)
     return { photos, status: 'ok', reason: reasons.length ? `${reasons.length} candidate(s) skipped` : '' };
   return { photos, status: 'failed', reason: [...new Set(reasons)].slice(0, 3).join('; ') || 'no usable image' };
+};
+
+// A photo this import stored (`<source hash>.webp`), and the shot of a stored file (null when it cannot be read).
+const IMPORTED = /^\/uploads\/products\/[0-9a-f]{32}\.webp$/;
+const shotOfFile = async (file: string): Promise<string | null> => {
+  try {
+    return differenceHash(await sharp(file).greyscale().resize(9, 8, { fit: 'fill' }).raw().toBuffer());
+  } catch {
+    return null;
+  }
 };
 
 const csvCell = (value: string | number) => {
@@ -224,30 +235,61 @@ DatabaseProvider.initialize()
           images: 0,
         });
       }
+      for (const photo of chosen) report[fromLink.get(photo)!].images++;
+      if (!product || !chosen.length || dryRun) continue;
+      // The photos this import stored before, by shot: a site may serve the same photo with other bytes on a later run,
+      // so a known shot is never added twice, and same-shot copies already in the gallery are removed.
+      const gallery: { id: number; url: string; sortOrder: number; destroy: () => Promise<void> }[] =
+        await ProductImageModel.findAll({ where: { productId: product.id }, order: [['sortOrder', 'ASC']] });
+      // When every link was read, an imported photo its source no longer shows (a related product the former gallery
+      // rule took) is removed too. A link that failed this time removes nothing.
+      const complete = report.slice(-links.length).every((line) => line.status !== 'failed');
+      const shots: string[] = [];
+      let mainGone = false;
+      const kept: typeof gallery = [];
+      for (const url of [product.imageUrl, ...gallery.map((image) => image.url)]) {
+        const shot = IMPORTED.test(url ?? '') ? await shotOfFile(path.join(folder, path.basename(url))) : null;
+        const image = gallery.find((row) => row.url === url);
+        const stale = !!shot && complete && !chosen.some((photo) => sameShot(photo.shot, shot));
+        const copy = !!shot && shots.some((known) => sameShot(known, shot));
+        if (image && (stale || copy)) await image.destroy();
+        else if (!image && stale) mainGone = true;
+        else {
+          if (shot) shots.push(shot);
+          if (image) kept.push(image);
+        }
+      }
+      gallery.splice(0, gallery.length, ...kept);
+      let replaceMain = !product.imageUrl?.startsWith('/uploads/');
+      if (mainGone) {
+        // The next imported photo becomes the main one.
+        const next = gallery.find((image) => IMPORTED.test(image.url));
+        if (next) await product.update({ imageUrl: next.url });
+        else replaceMain = true;
+        if (next) {
+          await next.destroy();
+          gallery.splice(gallery.indexOf(next), 1);
+        }
+      }
+      const known = new Set([product.imageUrl, ...gallery.map((image) => image.url)]);
       const urls: string[] = [];
       for (const photo of chosen) {
-        const name = `${photo.hash.slice(0, 32)}.webp`;
-        urls.push(`/uploads/products/${name}`);
-        report[fromLink.get(photo)!].images++;
-        const file = path.join(folder, name);
-        if (!dryRun && !fs.existsSync(file)) fs.writeFileSync(file, photo.webp);
+        const url = `/uploads/products/${photo.hash.slice(0, 32)}.webp`;
+        if (known.has(url) || shots.some((shot) => sameShot(shot, photo.shot))) continue;
+        const file = path.join(folder, path.basename(url));
+        if (!fs.existsSync(file)) fs.writeFileSync(file, photo.webp);
+        shots.push(photo.shot);
+        urls.push(url);
       }
-      if (!product || !urls.length || dryRun) continue;
-      const gallery: { url: string; sortOrder: number }[] = await ProductImageModel.findAll({
-        where: { productId: product.id },
-        attributes: ['url', 'sortOrder'],
-      });
-      const known = new Set([product.imageUrl, ...gallery.map((image) => image.url)]);
-      const shopPhoto = product.imageUrl?.startsWith('/uploads/');
-      const additions = urls.filter((url) => !known.has(url));
-      if (!shopPhoto && !known.has(urls[0])) {
+      const additions = [...urls];
+      if (replaceMain && urls.length) {
         await product.update({ imageUrl: urls[0] });
-        additions.splice(additions.indexOf(urls[0]), 1);
+        additions.shift();
       }
       let sortOrder = Math.max(-1, ...gallery.map((image) => image.sortOrder));
       for (const url of additions)
         await ProductImageModel.create({ productId: product.id, url, sortOrder: ++sortOrder });
-      console.log(`${row.key}: ${urls.length} distinct photo(s), ${additions.length} added to the gallery`);
+      console.log(`${row.key}: ${chosen.length} distinct photo(s), ${urls.length} new`);
     }
     fs.mkdirSync(path.dirname(reportPath), { recursive: true });
     const columns: (keyof ReportRow)[] = ['product_key', 'source_url', 'status', 'reason', 'images'];

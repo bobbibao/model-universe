@@ -115,6 +115,20 @@ const jsonLdImages = (html: string): string[] => {
 const GALLERY =
   /<(?:div|ul|section|figure)\b[^>]*\s(?:class|id)\s*=\s*["'][^"']*(?:woocommerce-product-gallery|product[-_]?(?:gallery|images?|media|photos?|thumbs?|slider|single)|gallery[-_]?(?:product|main|top))[^"']*["'][^>]*>/i;
 
+// The element that starts at `start`, up to its own closing tag (nested elements of the same name counted), so the
+// gallery never runs into what follows it (related products). At most 60,000 characters.
+const elementAt = (html: string, start: number) => {
+  const name = html.slice(start + 1).match(/^\w+/)?.[0] ?? 'div';
+  const tags = new RegExp(`<(/?)${name}\\b[^>]*>`, 'gi');
+  tags.lastIndex = start;
+  let depth = 0;
+  for (let match = tags.exec(html); match && match.index - start < 60_000; match = tags.exec(html)) {
+    depth += match[1] ? -1 : 1;
+    if (depth === 0) return html.slice(start, match.index + match[0].length);
+  }
+  return html.slice(start, start + 60_000);
+};
+
 // The photo candidates of a product page, best first: og:image (and its secure URL), twitter:image, JSON-LD
 // Product.image, then the main gallery's images and zoom links (full-size attributes before `src`). Logos and icons
 // are dropped; images under 400 px are dropped after download, when their size is known.
@@ -129,7 +143,7 @@ export const extractPageImages = (html: string, pageUrl: string, maxGallery = 12
   }
   const gallery: string[] = [];
   const start = html.search(GALLERY);
-  const section = start < 0 ? '' : html.slice(start, start + 40_000);
+  const section = start < 0 ? '' : elementAt(html, start);
   for (const tag of section.match(/<(?:img|a)\b[^>]*>/gi) ?? []) {
     const src = tag.toLowerCase().startsWith('<a')
       ? [attribute(tag, 'href')].find((href) => href && IMAGE_EXTENSION.test(href.split('?')[0]))

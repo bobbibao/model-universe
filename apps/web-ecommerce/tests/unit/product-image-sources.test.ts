@@ -61,6 +61,15 @@ describe('product image sources of the owner workbook', () => {
     expect(extractPageImages('<img src="/a.jpg">', 'https://shop.vn/x')).toEqual([]);
   });
 
+  it('stops the gallery at its own closing tag, before related products', () => {
+    const html = `<div class="product-gallery"><div><img src="/p/main.jpg"></div><img src="/p/side.jpg"></div>
+      <div class="related"><img src="/p/other-kit.jpg"></div>`;
+    expect(extractPageImages(html, 'https://shop.vn/x')).toEqual([
+      'https://shop.vn/p/main.jpg',
+      'https://shop.vn/p/side.jpg',
+    ]);
+  });
+
   it('recognises the same shot at another size by its difference hash', () => {
     const gradient = Uint8Array.from({ length: 72 }, (_, index) => (index * 37) % 251);
     const brighter = gradient.map((value) => Math.min(255, value + 3));
