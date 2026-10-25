@@ -18,7 +18,6 @@ export default function AnnouncementTicker() {
         ? `Free shipping up to ${formatVND(top.maxShippingVnd, locale)} on orders from ${formatVND(top.minOrderVnd, locale)}`
         : `Freeship tới ${formatVND(top.maxShippingVnd, locale)} cho đơn từ ${formatVND(top.minOrderVnd, locale)}`,
     ],
-    ['ticket', en ? 'New vouchers at 00:00 · 12:00 · 20:00' : 'Mã mới mở lúc 00:00 · 12:00 · 20:00'],
     [
       'coin',
       en

@@ -2,7 +2,7 @@
 
 import FreeshipProgress from '../components/FreeshipProgress';
 import VoucherSection from '../components/VoucherSection';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
@@ -78,7 +78,7 @@ function PendingCheckoutBar({
       </span>
       <span className="flex flex-wrap gap-2">
         <button type="button" className="mu-button" onClick={onPay}>
-          {t(seconds > 0 ? 'openQr' : 'renew')}
+          {t('openQr')}
         </button>
         <button type="button" className="store-text-link" onClick={onCancel}>
           {t('cancelPayment')}
@@ -107,6 +107,7 @@ const Cart = () => {
     .reduce((sum, entry) => sum + (entry.line?.lineTotal || 0), 0);
   const hasPartnerItems = entries.some((entry) => !!entry.line?.product?.partnerId);
   const {
+    setPaymentPlan,
     coupon,
     setCoupon,
     shipping,
@@ -259,9 +260,17 @@ const Cart = () => {
   // Online payment: the QR checkout (the order is created only once the payment arrives).
   const [session, setSession] = useState<CheckoutSession | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [placing, setPlacing] = useState(false);
+  const checkoutSubmitting = useRef(false);
+  const [recoveringCheckout, setRecoveringCheckout] = useState(true);
+  const pendingCheckout = session && ['OPEN', 'PAID'].includes(session.status) ? session : null;
+  useEffect(() => {
+    if (pendingCheckout) setPaymentPlan(pendingCheckout.paymentPlan);
+  }, [pendingCheckout, setPaymentPlan]);
   const onSession = useCallback((next: CheckoutSession | null) => {
     if (!next || ['CANCELLED', 'EXPIRED', 'FAILED'].includes(next.status)) {
       storeSession(null);
+      CheckoutApi.forget();
       if (next?.status === 'CANCELLED') {
         setSession(null);
         setPaymentOpen(false);
@@ -284,7 +293,11 @@ const Cart = () => {
   // The customer's open checkout, from the server (any tab or device): shown above the bag instead of a second
   // "Thanh toán". The browser's last checkout, when it was paid meanwhile, empties the bag and shows its order.
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setRecoveringCheckout(false);
+      return;
+    }
+    setRecoveringCheckout(true);
     let active = true;
     void (async () => {
       const id = storedSession();
@@ -292,10 +305,14 @@ const Cart = () => {
         const last = await CheckoutApi.status(id).catch(() => null);
         if (!active) return;
         if (last?.status === 'COMPLETED' && last.orderId) return onPaid(last.orderId);
-        if (!last || !['OPEN', 'PAID'].includes(last.status)) storeSession(null);
+        if (!last || !['OPEN', 'PAID'].includes(last.status)) {
+          storeSession(null);
+          CheckoutApi.forget();
+        }
       }
       const open = await CheckoutApi.open().catch(() => []);
       if (active && open[0]) setSession(open[0]);
+      if (active) setRecoveringCheckout(false);
     })();
     return () => {
       active = false;
@@ -336,42 +353,52 @@ const Cart = () => {
   };
 
   const placeOrder = async () => {
-    const input = {
-      items: entries.map(({ item }) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
-      shipping: orderShipping,
-      // Only the benefits the quote accepted; a refused code is shown in the cart, not sent.
-      couponCode: checkedQuote?.couponCode || undefined,
-      freeshipCode: checkedQuote?.freeshipCode || undefined,
-      expectedTotal: total,
-      // The signed quote of the shown prices and benefits; the server refuses the order if anything changed since.
-      quoteId: checkedQuote?.quote?.id,
-      paymentPlan,
-      depositVnd,
-      fulfillmentMethod,
-      ...(courier ? { deliveryAddress } : { meeting: { date: meeting.date, slot: meeting.slot } }),
-    };
-    if (onlinePayment) {
-      // The QR dialog: the order is created once the payment arrives; the cart stays until then.
-      try {
-        const opened = await CheckoutApi.start(input, locale);
-        setConfirming(false);
-        storeSession(opened.id);
-        setSession(opened);
-        setPaymentOpen(true);
-      } catch {
-        setConfirming(false);
+    if (checkoutSubmitting.current) return;
+    checkoutSubmitting.current = true;
+    setPlacing(true);
+    try {
+      const input = {
+        items: entries.map(({ item }) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
+        shipping: orderShipping,
+        // Only the benefits the quote accepted; a refused code is shown in the cart, not sent.
+        couponCode: checkedQuote?.couponCode || undefined,
+        freeshipCode: checkedQuote?.freeshipCode || undefined,
+        expectedTotal: total,
+        // The signed quote of the shown prices and benefits; the server refuses the order if anything changed since.
+        quoteId: checkedQuote?.quote?.id,
+        paymentPlan,
+        depositVnd,
+        fulfillmentMethod,
+        ...(courier ? { deliveryAddress } : { meeting: { date: meeting.date, slot: meeting.slot } }),
+      };
+      if (onlinePayment) {
+        // The QR dialog: the order is created once the payment arrives; the cart stays until then.
+        try {
+          const opened = await CheckoutApi.start(input, locale);
+          setConfirming(false);
+          storeSession(opened.id);
+          setSession(opened);
+          setPaymentOpen(true);
+        } catch {
+          const pending = await CheckoutApi.open().catch(() => []);
+          if (pending[0]) setSession(pending[0]);
+          setConfirming(false);
+          refreshQuote();
+        }
+        return;
+      }
+      const order = await OrderApi.placeOrder(input);
+      setConfirming(false);
+      if (order) {
+        clearCart();
+        router.push(`/thank-you?orderId=${order.id}`);
+      } else {
+        // Stock or prices may have changed: refresh the cart check.
         refreshQuote();
       }
-      return;
-    }
-    const order = await OrderApi.placeOrder(input);
-    setConfirming(false);
-    if (order) {
-      clearCart();
-      router.push(`/thank-you?orderId=${order.id}`);
-    } else {
-      // Stock or prices may have changed: refresh the cart check.
-      refreshQuote();
+    } finally {
+      checkoutSubmitting.current = false;
+      setPlacing(false);
     }
   };
 
@@ -458,6 +485,8 @@ const Cart = () => {
                 )}
               </div>
               <PaymentPlanPicker
+                disabled={confirming || placing || recoveringCheckout || !!pendingCheckout}
+                lockedPayment={pendingCheckout ?? undefined}
                 total={total}
                 basis={merchandiseTotal}
                 floor={depositFloor}
@@ -642,7 +671,9 @@ const Cart = () => {
         }
         confirmLabel={t(onlinePayment ? 'confirmPay' : 'confirm')}
         onConfirm={placeOrder}
-        onClose={() => setConfirming(false)}
+        onClose={() => {
+          if (!placing) setConfirming(false);
+        }}
       />
       {session && (
         <CheckoutPaymentModal

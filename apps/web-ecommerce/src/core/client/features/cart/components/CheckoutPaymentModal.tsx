@@ -10,7 +10,7 @@ import { formatVND } from '@/shared/server/utils/utils';
 const POLL_MS = 3_000;
 
 // The QR payment of an online checkout: the VietQR to scan with any banking app, the transfer details, a countdown
-// until the QR expires, and a switch between the deposit and full payment (a new QR). The dialog polls the session;
+// until the QR expires, and its locked payment plan. The dialog polls the session;
 // once payOS confirms the money the order exists and `onPaid` receives it. Closing the dialog keeps the session open.
 export default function CheckoutPaymentModal({
   session: initial,
@@ -75,19 +75,10 @@ export default function CheckoutPaymentModal({
   };
 
   const total = session.totalVnd;
-  // Only two ways to pay (owner decision 2026-10-18): the deposit or the full amount.
-  const plans = [
-    { key: 'deposit', label: t('deposit'), plan: 'deposit' as const, amount: session.depositAmountVnd },
-    { key: 'full', label: t('full'), plan: 'full' as const, amount: total },
-  ].filter((option, index, all) => all.findIndex((other) => other.amount === option.amount) === index);
-  const choose = (option: (typeof plans)[number]) =>
-    run(() =>
-      CheckoutApi.changePlan(session.id, option.plan, option.plan === 'deposit' ? option.amount : undefined, locale),
-    );
-
   const payment = session.payment;
   const expired =
-    session.status === 'EXPIRED' || (session.status === 'OPEN' && ((!!payment && seconds === 0) || !!session.underpaid));
+    session.status === 'EXPIRED' ||
+    (session.status === 'OPEN' && ((!!payment && seconds === 0) || !!session.underpaid));
   const row = (label: string, value: string) => (
     <div className="checkout-qr-row" key={label}>
       <dt>{label}</dt>
@@ -105,22 +96,9 @@ export default function CheckoutPaymentModal({
             <PaymentQr payment={payment} seconds={seconds} />
             <div className="checkout-qr-details">
               <p className="mu-note">{t('memoNote')}</p>
-              <fieldset className="checkout-qr-plans" disabled={busy}>
-                <legend>{t('changeMethod')}</legend>
-                <div role="group">
-                  {plans.map((option) => (
-                    <button
-                      key={option.key}
-                      type="button"
-                      aria-pressed={option.amount === session.upfrontDueVnd}
-                      onClick={() => option.amount !== session.upfrontDueVnd && void choose(option)}
-                    >
-                      {option.label}
-                      <small>{money(option.amount)}</small>
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
+              <p className="payment-plan-note">
+                <strong>{t(session.paymentPlan === 'deposit' ? 'deposit' : 'full')}</strong> · {t('planLocked')}
+              </p>
               <dl className="checkout-qr-summary">
                 {row(t('orderTotal'), money(total))}
                 {session.shipping &&
@@ -142,23 +120,7 @@ export default function CheckoutPaymentModal({
         {expired && (
           <div className="checkout-qr-state">
             <p>{t(session.underpaid ? 'underpaid' : 'expired')}</p>
-            <button
-              type="button"
-              className="mu-button"
-              disabled={busy}
-              onClick={() =>
-                void run(() =>
-                  CheckoutApi.changePlan(
-                    session.id,
-                    session.paymentPlan,
-                    session.paymentPlan === 'deposit' ? session.upfrontDueVnd : undefined,
-                    locale,
-                  ),
-                )
-              }
-            >
-              {t('renew')}
-            </button>
+            <p className="mu-note">{t('restartExpired')}</p>
           </div>
         )}
         {session.status === 'CANCELLED' && <p className="checkout-qr-state">{t('cancelled')}</p>}

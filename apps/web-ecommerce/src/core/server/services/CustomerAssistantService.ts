@@ -498,7 +498,7 @@ export default class CustomerAssistantService {
           payment:
             `Every order is paid upfront: a deposit of at least ${MIN_DEPOSIT_PERCENT}% of the merchandise (the rest is ` +
             'paid in cash to the courier on delivery) or the full amount. With online payment the customer scans a ' +
-            'payOS VietQR code valid for 30 minutes and may switch between deposit and full payment meanwhile; the ' +
+            'payOS VietQR code valid for 30 minutes. The plan and amount lock when checkout starts; changing the plan requires explicit cancellation and a new checkout. The ' +
             'order is created only once the payment succeeds, and the waybill right after.',
           shipping:
             'Home delivery through SuperAI: at checkout the shop compares the carriers (GHN, J&T, SPX, Viettel Post, ' +

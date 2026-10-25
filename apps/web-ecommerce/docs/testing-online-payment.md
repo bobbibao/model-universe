@@ -48,7 +48,7 @@ simulated waybill appear.
 | --- | --- | --- |
 | Paid deposit | `--session <id>` on a deposit QR | Order with the deposit recorded, COD = the rest, waybill created |
 | Paid in full | switch to **Toàn bộ** in the dialog, then `--session <id>` | Order paid, COD 0 |
-| Plan switch | switch plans, then send for the session | Only the latest QR counts; the old one is cancelled at payOS |
+| Plan lock | attempt to change deposit/full after checkout starts, close/reopen the QR and reload | The selection stays locked; the plan endpoint returns PAYMENT_PLAN_LOCKED without issuing or cancelling a QR. A new session is refused while another is pending; explicit cancellation permits starting again. |
 | Repeated webhook | run the same command again with `--force` | One order, one payment, one email |
 | Forged webhook | change `PAYOS_CHECKSUM_KEY` for the command (`-e PAYOS_CHECKSUM_KEY=x`) | `401`, nothing recorded |
 | Underpaid | `--amount` below the QR amount | Staff alert, session not completed, no order |

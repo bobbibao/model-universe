@@ -85,23 +85,12 @@ tiers. These features are not in the owner documents; they are kept under the v6
   `WVC…`), main vouchers under the same checks.
 - **Missions**, each paid once: complete profile 20, first delivered order 30, a review of at least 30 characters 15,
   share 5.
-- **Timed voucher drops** at 00:00, 12:00 and 20:00 Vietnam time, created by the 60-second job for today and tomorrow
-  (`D<YYMMDD>-<hh>`). Customers must save one before using it (`requiresClaim`); each has a limited number of saves:
-
-  | Opens | Benefit | Minimum order | Saves |
-  |---|---|---:|---:|
-  | 00:00 | Free shipping 30k | 300k | 50 |
-  | 12:00 | 8%, capped 100k | 800k | 30 |
-  | 20:00 | 12%, capped 200k | 1.5M | 20 |
-
-  Saving is atomic: `voucher_claim` is unique per (code, customer), and `claimedCount` is bounded by `claimLimit`.
-
 Admin coupons can be made into drops too: benefit type (discount / free shipping with its cap), minimum tier, "customers
 must save first", maximum saves and opening time.
 
 ## Screens
 
-- **Home**: event banners (flash sale countdown, drops, wheel), quick doors and today's vouchers to save.
+- **Home**: event banners (sale campaigns, vouchers, wheel), quick doors and today's vouchers to save.
 - **`/uu-dai`**: member card (tier, points for vouchers, the rank benefit), check-in strip, wheel, drops, missions and the
   tier table with each tier's rank benefit.
 - **Product card and detail**: the discount is highlighted (sale/event ribbon or "member price −10%", free-shipping
@@ -129,3 +118,5 @@ must save first", maximum saves and opening time.
 - `tests/unit/promotions.test.ts`: voucher, rank and free shipping together; points; check-in and wheel tables.
 - `tests/db/promotions.test.ts`: a refused loss code, Diamond on the member code, the rank refused at 69.11%, points not
   cash, no profit figures for customers, drop saves and sell-out, check-in/wheel/missions, the tier rank in the hub.
+
+The automatic time-slot voucher promotion has been removed (owner decision 2026-10-25). No scheduled coupons are generated or advertised. Previously generated time-slot codes cannot be claimed, suggested or redeemed; historical orders and voucher records are retained.

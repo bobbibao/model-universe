@@ -1,3 +1,4 @@
+import { isRetiredTimedCoupon } from '../../../shared/retired-promotions';
 import { Op, Transaction } from 'sequelize';
 import VoucherClaimModel from '../database/client/models/VoucherClaim.Model';
 import LoyaltyLedgerModel from '../database/client/models/LoyaltyLedger.Model';
@@ -133,6 +134,7 @@ export default class VoucherService {
     });
     return rows.filter(
       (coupon) =>
+        !isRetiredTimedCoupon(coupon.code) &&
         !coupon.usedAt &&
         !coupon.reservedOrderId &&
         (coupon.usageLimit === null || coupon.usageLimit === undefined || coupon.usageCount < coupon.usageLimit) &&

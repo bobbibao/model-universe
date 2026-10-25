@@ -7,7 +7,7 @@ import Link from '@/i18n/navigation';
 import PromoIcon, { type PromoIconName } from '@/components/PromoIcon';
 import PromotionApi, { type PromotionsHub as Hub, type VoucherDrop } from '@/core/client/api/Promotion';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
-import { CHECKIN_POINTS, DAILY_DROPS, TIER_ORDER } from '@/shared/promotions';
+import { CHECKIN_POINTS, TIER_ORDER } from '@/shared/promotions';
 import { RANK_BENEFITS } from '@/shared/voucher-stack';
 import { LOYALTY_TIERS } from '@/shared/loyalty-rules';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -63,8 +63,6 @@ export default function PromotionsHub() {
   const vouchers = [...hub.standing, ...hub.drops].filter((drop) => filter === 'all' || drop.benefitType === filter);
   const openDrops = hub.drops.filter((drop) => new Date(drop.startsAt).getTime() <= Date.now() && !drop.claimed);
   const missionsDone = hub.missions.filter((mission) => mission.claimed).length;
-  const now = new Date();
-  const vnHour = (now.getUTCHours() + 7) % 24;
   const claim = (target: VoucherDrop) =>
     void act(
       () => PromotionApi.claim(target.id),
@@ -129,7 +127,7 @@ export default function PromotionsHub() {
             <PromoIcon name="ticket" />
             <span>
               <strong>{t('openVouchers', { count: openDrops.length })}</strong>
-              <small>{t('dropTimes')}</small>
+              <small>{t('dropsTitle')}</small>
             </span>
           </a>
         </div>
@@ -156,18 +154,6 @@ export default function PromotionsHub() {
             ))}
           </div>
         </header>
-        <ol className="drop-timeline" aria-label={t('dropTimes')}>
-          {DAILY_DROPS.map((drop) => {
-            const state = vnHour >= drop.hour ? 'is-open' : 'is-later';
-            return (
-              <li key={drop.slug} className={state}>
-                <b>{String(drop.hour).padStart(2, '0')}:00</b>
-                <span>{drop.title}</span>
-                <small>{state === 'is-open' ? t('slotOpen') : t('slotLater')}</small>
-              </li>
-            );
-          })}
-        </ol>
         {vouchers.length ? (
           <div className="voucher-grid">
             {vouchers.map((drop, index) => (

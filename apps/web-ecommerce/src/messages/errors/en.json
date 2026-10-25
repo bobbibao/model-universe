@@ -57,5 +57,8 @@
   "QUOTE_EXPIRED": "The quote has expired. Review your cart and confirm again.",
   "QUOTE_INVALID": "The quote is not valid. Reload your cart.",
   "SEPARATE_APPROVER": "Another admin must approve your proposal.",
-  "APPROVED_RECORD": "An approved record is replaced only by approving a newer proposal."
+  "APPROVED_RECORD": "An approved record is replaced only by approving a newer proposal.",
+  "PAYMENT_PLAN_LOCKED": "The payment plan is locked for this checkout.",
+  "CHECKOUT_PENDING": "Resume or cancel your pending checkout first.",
+  "PROMOTION_RETIRED": "This timed promotion is no longer available."
 }

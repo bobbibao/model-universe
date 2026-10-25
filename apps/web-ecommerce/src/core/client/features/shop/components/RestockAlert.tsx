@@ -1,62 +1,46 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import Api from '@/core/client/api/Api';
 import Link from '@/i18n/navigation';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
-import type { RestockPreference } from '@/shared/types/customer-tools';
-
-export default function RestockAlert({ productId }: { productId: number }) {
+import { useRestockAlerts } from '@/shared/client/providers/RestockAlertsProvider';
+export default function RestockAlert({
+  productId,
+  returnTo,
+  className = 'mu-button',
+}: {
+  productId: number;
+  returnTo?: string;
+  className?: string;
+}) {
   const t = useTranslations('customerTools'),
-    { user } = useCurrentUser();
-  const [active, setActive] = useState(false),
-    [busy, setBusy] = useState(false),
-    [loaded, setLoaded] = useState(false),
+    { user } = useCurrentUser(),
+    { rows, loading, save } = useRestockAlerts();
+  const [busy, setBusy] = useState(false),
     [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let current = true;
-    setLoaded(false);
-    setActive(false);
-    setFailed(false);
-    if (user)
-      void Api.get('/notifications/restocks')
-        .then((response: { data: RestockPreference[] }) => {
-          if (current) {
-            setActive(response.data.some((row: RestockPreference) => row.productId === productId && row.active));
-            setLoaded(true);
-          }
-        })
-        .catch(() => {
-          if (current) setFailed(true);
-        });
-    return () => {
-      current = false;
-    };
-  }, [user, productId]);
+  const active = rows.some((row) => row.productId === productId && row.active);
   return (
-    <div className="space-y-3 rounded-lg border border-store-muted/30 p-4">
-      <p className="mu-note">{t('alertNote')}</p>
+    <div className="restock-action">
       {!user ? (
         <Link
-          className="mu-button-secondary"
-          href={`/auth/signin?redirect=${encodeURIComponent(`/shop/product/${productId}`)}`}
+          className={className}
+          href={'/auth/signin?redirect=' + encodeURIComponent(returnTo || '/shop/product/' + productId)}
         >
-          {t('signInAlert')}
+          {t('startAlert')}
         </Link>
       ) : (
         <button
-          className="mu-button-secondary"
-          disabled={busy || (!loaded && !failed)}
+          type="button"
+          className={className}
+          disabled={busy || loading}
+          aria-pressed={active}
           onClick={async () => {
             setBusy(true);
+            setFailed(false);
             try {
-              const rows = (await Api.post(`/notifications/restocks/${productId}`, { active: !active }))
-                .data as RestockPreference[];
-              setActive(rows.some((row) => row.productId === productId && row.active));
-              setLoaded(true);
-              setFailed(false);
+              await save(productId, !active);
             } catch {
-              /* Never claim an unconfirmed preference. */
+              setFailed(true);
             } finally {
               setBusy(false);
             }
@@ -70,9 +54,11 @@ export default function RestockAlert({ productId }: { productId: number }) {
           {t('alertActive')}
         </p>
       )}
-      <Link className="block underline" href="/account/notifications">
-        {t('inbox')}
-      </Link>
+      {failed && (
+        <p role="alert" className="mu-note">
+          {t('alertFailed')}
+        </p>
+      )}
     </div>
   );
 }

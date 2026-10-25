@@ -765,3 +765,19 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
     transform: none;
   }
 }
+
+.restock-action {
+  flex: 1;
+  min-width: 0;
+}
+.restock-action > a,
+.restock-action > button {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+.restock-action [role='status'],
+.restock-action [role='alert'] {
+  margin-top: 8px;
+  font-size: 11px;
+}

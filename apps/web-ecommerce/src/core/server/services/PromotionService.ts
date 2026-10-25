@@ -1,3 +1,4 @@
+import { isRetiredTimedCoupon } from '../../../shared/retired-promotions';
 import crypto from 'crypto';
 import LoyaltyService from './LoyaltyService';
 import { Op, type Transaction } from 'sequelize';
@@ -14,7 +15,6 @@ import { toInteger } from '../../../shared/server/utils/ValidationUtils';
 import { loyaltyBalances } from '../../../shared/loyalty-rules';
 import { vnDate } from '../../../shared/fulfillment';
 import {
-  DAILY_DROPS,
   MISSIONS,
   WHEEL_PRIZES,
   checkinReward,
@@ -173,7 +173,8 @@ export default class PromotionService {
     const benefits = evaluateCheckout({
       lines: toStackLines(priced),
       voucher: voucher && !approved ? couponVoucher(voucher) : null,
-      approvedVoucher: voucher && approved ? { code: voucher.code, discountVnd: couponDiscount(voucher, priced) } : null,
+      approvedVoucher:
+        voucher && approved ? { code: voucher.code, discountVnd: couponDiscount(voucher, priced) } : null,
       rank,
       freeship: freeship ? { minOrderVnd: freeship.minOrderVnd, maxShippingVnd: freeship.maxShippingVnd ?? 0 } : null,
       shippingFeeVnd: input.shippingFeeVnd,
@@ -535,7 +536,7 @@ export default class PromotionService {
       await this.customer(userId, transaction);
       const coupon = await CouponModel.findByPk(couponId, { transaction, lock: transaction.LOCK.UPDATE });
       const now = Date.now();
-      if (!coupon?.requiresClaim || !coupon.isActive || coupon.ownerUserId)
+      if (!coupon?.requiresClaim || !coupon.isActive || coupon.ownerUserId || isRetiredTimedCoupon(coupon.code))
         throw HttpError.notFound('Mã không tồn tại.');
       if (new Date(coupon.startDate).getTime() > now)
         throw HttpError.conflict('Mã chưa mở, hãy quay lại đúng giờ.', 'DROP_NOT_OPEN');
@@ -553,8 +554,6 @@ export default class PromotionService {
     });
   }
 
-  // Today's and tomorrow's voucher drops (DAILY_DROPS), created once each (codes D<YYMMDD>-<hour>); each one can be saved
-  // from its hour and used for three days.
   // The offers the storefront always advertises: the public free-shipping codes by order size (FREESHIP_TIERS) and the
   // monthly 10% member code template behind every "member price". Profit-guarded like every shop code; created once and
   // renewed before they lapse, never changed when an admin has edited them.
@@ -599,38 +598,6 @@ export default class PromotionService {
       });
       if (!created && coupon.isActive && coupon.expirationDate.getTime() < now.getTime() + 30 * DAY_MS)
         await coupon.update({ expirationDate: until });
-    }
-  }
-
-  async ensureDailyDrops(now = new Date()) {
-    for (const offset of [0, 1]) {
-      const day = vnDate(new Date(now.getTime() + offset * DAY_MS));
-      const [year, month, date] = day.split('-').map(Number);
-      for (const drop of DAILY_DROPS) {
-        const startDate = new Date(Date.UTC(year, month - 1, date, drop.hour - 7));
-        await CouponModel.findOrCreate({
-          where: { code: `D${day.replace(/-/g, '').slice(2)}-${drop.slug}` },
-          defaults: {
-            code: `D${day.replace(/-/g, '').slice(2)}-${drop.slug}`,
-            title: drop.title,
-            description: 'Mã săn theo khung giờ, số lượng có hạn.',
-            discountPercent: drop.discountPercent,
-            maxDiscountVnd: drop.maxDiscountVnd,
-            maxShippingVnd: drop.maxShippingVnd,
-            benefitType: drop.benefitType,
-            minOrderVnd: drop.minOrderVnd,
-            usageLimit: drop.claimLimit,
-            startDate,
-            expirationDate: new Date(startDate.getTime() + 3 * DAY_MS),
-            isActive: true,
-            source: 'admin',
-            kind: 'standard',
-            profitGuard: true,
-            requiresClaim: true,
-            claimLimit: drop.claimLimit,
-          },
-        });
-      }
     }
   }
 
@@ -721,27 +688,29 @@ export default class PromotionService {
           claimLimit: null,
           claimed: false,
         })),
-      drops: drops.map((drop) => ({
-        id: drop.id,
-        kind: 'drop' as const,
-        code: claimed.has(drop.id) ? drop.code : null,
-        title: drop.title,
-        benefitType: drop.benefitType,
-        discountPercent: drop.discountPercent,
-        fixedAmountVnd: drop.fixedAmountVnd || null,
-        maxDiscountVnd: drop.maxDiscountVnd ?? null,
-        maxShippingVnd: drop.maxShippingVnd ?? null,
-        minOrderVnd: drop.minOrderVnd,
-        minTier: drop.minTier ?? null,
-        startsAt: drop.startDate,
-        expiresAt: drop.expirationDate,
-        remaining:
-          drop.claimLimit === null || drop.claimLimit === undefined
-            ? null
-            : Math.max(0, drop.claimLimit - drop.claimedCount),
-        claimLimit: drop.claimLimit ?? null,
-        claimed: claimed.has(drop.id),
-      })),
+      drops: drops
+        .filter((drop) => !isRetiredTimedCoupon(drop.code))
+        .map((drop) => ({
+          id: drop.id,
+          kind: 'drop' as const,
+          code: claimed.has(drop.id) ? drop.code : null,
+          title: drop.title,
+          benefitType: drop.benefitType,
+          discountPercent: drop.discountPercent,
+          fixedAmountVnd: drop.fixedAmountVnd || null,
+          maxDiscountVnd: drop.maxDiscountVnd ?? null,
+          maxShippingVnd: drop.maxShippingVnd ?? null,
+          minOrderVnd: drop.minOrderVnd,
+          minTier: drop.minTier ?? null,
+          startsAt: drop.startDate,
+          expiresAt: drop.expirationDate,
+          remaining:
+            drop.claimLimit === null || drop.claimLimit === undefined
+              ? null
+              : Math.max(0, drop.claimLimit - drop.claimedCount),
+          claimLimit: drop.claimLimit ?? null,
+          claimed: claimed.has(drop.id),
+        })),
       member: userId
         ? {
             tier: balances.tier.name,

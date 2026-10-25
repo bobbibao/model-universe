@@ -299,7 +299,7 @@ Not covered by the documents, decided the same way:
 
 - **Agent campaign codes** keep their own approved rules (the legal 50% limit, the autonomy policy and the margin floor,
   invariants 1 and 4) and take no rank benefit; free shipping on top of them must still pass the checks.
-- **Engagement** (check-in, wheel, missions, timed drops) stays. Its codes are main vouchers under the same checks; its
+- **Engagement** (check-in, wheel, missions) stays. Its codes are main vouchers under the same checks; its
   points never count for tiers and are spent only on point vouchers.
 - **Standing codes.** `MEMBER-MONTHLY` is the standard 10% member code that L10 is defined on. `FREESHIP30` and
   `FREESHIP50` stay: shop-funded shipping is a cost inside the profit check, so a free-shipping code is refused whenever
@@ -342,7 +342,7 @@ rules.
 | Backend result codes | `VOUCHER_INVALID` / `VOUCHER_ONLY_VALID` / `STACK_VALID` with reasons | **Done** in the cart quote and the wallet evaluation; customers see a plain reason, never a profit figure |
 | Point earning | one point per 40,000 VND after `COMPLETED` and the return-control period | **Done**: multiplier removed (orders first rewarded with a multiplier keep it for refund recalculations); points wait for `returnControlDays` of the loyalty policy after delivery and are credited by the minute job `LoyaltyService.creditMatured`; the member page shows the credit date |
 | Agent campaign codes | not covered by the owner documents | **Decided** (above): own approved rules, no rank benefit, free shipping on top must pass the checks |
-| Engagement (check-in, wheel, missions, timed drops) | not in the owner documents | **Decided** (above): kept; codes are main vouchers under the same checks |
+| Engagement (check-in, wheel, missions) | not in the owner documents | **Decided** (above): kept; codes are main vouchers under the same checks |
 | Standing codes | `MU-*` library, all DRAFT until approved | **Decided** (above): `MEMBER-MONTHLY`, `FREESHIP30` and `FREESHIP50` stay, checked by v6.2 at use |
 | Quotes | signed quote with TTL, re-confirmation on change | **Done**: signed quote id (30 minutes) checked when the order is placed, plus the confirmed total; rate limits on quotes with codes and on redemptions |
 | Price and cost data | approved R with proof and version; versioned cost profile | **Done (V3)**: `product_price_approval` and `product_cost_profile` (versioned, proposer and second approver, audited), read by the cart, checkout, wallet, add-ons, simulation and the direct-sale floor (`PricingApprovalService`); without records R is the formula-published price and C the receipt price. Admin → Pricing → Approved prices and costs. The owner workbook's defaults are applied (migration `2026-10-23-42-catalog-owner-defaults`) |

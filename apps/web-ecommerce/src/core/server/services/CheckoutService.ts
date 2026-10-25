@@ -9,7 +9,6 @@ import { normalizeCartItems } from './CartService';
 import UserModel from '../database/internal/models/User.Model';
 import HttpError from '../../../shared/server/utils/HttpError';
 import Logger from '../../../shared/server/utils/logger';
-import { isPaymentPlan } from '../../../shared/payment';
 import { formatVND } from '../../../shared/server/utils/utils';
 import type { Attribution } from '../../../shared/server/utils/AttributionUtils';
 import type { ConsentChoice } from '../../../shared/server/utils/ConsentUtils';
@@ -43,7 +42,7 @@ const digest = (value: unknown) =>
 
 // Online checkout (payOS): the order exists only once its upfront payment is confirmed. A checkout session holds the
 // validated request, the totals and the carrier fee the customer saw, and a VietQR payment link valid for
-// PAYOS_LINK_MINUTES (30 by default). The customer may switch between a deposit and full payment (a new QR) or cancel.
+// PAYOS_LINK_MINUTES (30 by default). The selected plan and amount stay fixed; the customer may explicitly cancel an unpaid session.
 // When payOS confirms the money (webhook or status check) the order is placed with exactly that request, the payment is
 // recorded on it and the waybill follows automatically. While the QR is open the stock is held for the customer (as
 // large marketplaces do for orders awaiting payment) and given back when the session expires, is cancelled or fails;
@@ -142,15 +141,36 @@ export default class CheckoutService {
       await this.refresh(existing);
       return this.view(existing);
     }
-    const preview = await this.orders.previewOrder(userId, quoteId === undefined ? request : { ...request, quoteId });
-    // One open checkout per customer: an earlier one is cancelled and its stock given back.
-    for (const earlier of await CheckoutSessionModel.findAll({ where: { userId, status: 'OPEN' } })) {
-      await this.payments.cancelSessionLinks(earlier.id, 'Replaced by a new checkout');
-      await earlier.update({ status: 'CANCELLED', failureReason: 'replaced by a new checkout' });
-      await this.releaseHold(earlier.id);
+    // Expire stale sessions before checking; an active payment cannot be replaced implicitly.
+    for (const pending of await CheckoutSessionModel.findAll({
+      where: { userId, status: { [Op.in]: ['OPEN', 'PAID'] } },
+    })) {
+      await this.refresh(pending);
+      if (pending.requestKey === requestKey && digest(pending.payload) === digest(request)) return this.view(pending);
+      if (pending.status === 'OPEN' || pending.status === 'PAID')
+        throw HttpError.conflict('Resume or cancel your existing checkout.', 'CHECKOUT_PENDING');
     }
+    const preview = await this.orders.previewOrder(userId, quoteId === undefined ? request : { ...request, quoteId });
+    let created = false;
     const session = await DatabaseProvider.getInstance().transaction(async (transaction) => {
+      // Serialize checkout creation for the same customer across tabs/devices.
+      await UserModel.findByPk(userId, { transaction, lock: transaction.LOCK.UPDATE });
+      const replay = await CheckoutSessionModel.findOne({ where: { userId, requestKey }, transaction });
+      if (replay) {
+        if (digest(replay.payload) !== digest(request)) throw HttpError.conflict('Checkout reference already used.');
+        return replay;
+      }
+      const pending = await CheckoutSessionModel.findOne({
+        where: { userId, status: { [Op.in]: ['OPEN', 'PAID'] } },
+        transaction,
+      });
+      if (pending)
+        throw HttpError.conflict(
+          'Resume or explicitly cancel the existing checkout before starting another.',
+          'CHECKOUT_PENDING',
+        );
       const holds = await this.holdStock(request.items, transaction);
+      created = true;
       return CheckoutSessionModel.create(
         {
           userId,
@@ -171,6 +191,7 @@ export default class CheckoutService {
         { transaction },
       );
     });
+    if (!created) return this.view(session);
     try {
       await this.payments.createSessionLink(session, await this.buyer(userId, request), locale);
     } catch (error) {
@@ -263,39 +284,10 @@ export default class CheckoutService {
     }
   }
 
-  // Deposit ↔ full payment (or another deposit level) while the QR is open: totals are checked again and a new QR with
-  // a fresh countdown replaces the old one, which is cancelled at payOS.
-  async changePlan(userId: number, sessionId: number, data: Record<string, unknown>, locale = 'vi') {
-    const session = await this.owned(userId, sessionId);
-    await this.refresh(session);
-    if (session.status !== 'OPEN')
-      throw HttpError.conflict('This checkout is no longer waiting for payment.', 'CHECKOUT_CLOSED');
-    if (!isPaymentPlan(data.paymentPlan))
-      throw HttpError.badRequest(
-        'Choose a deposit of at least 10% or full payment.',
-        undefined,
-        'PAYMENT_PLAN_REQUIRED',
-      );
-    const request = {
-      ...session.payload,
-      paymentPlan: data.paymentPlan,
-      depositVnd: data.paymentPlan === 'deposit' ? data.depositVnd : undefined,
-    };
-    const preview = await this.orders.previewOrder(userId, request, session.shippingQuote, (transaction) =>
-      this.releaseHold(session.id, transaction),
-    );
-    await this.payments.cancelSessionLinks(session.id, 'Payment method changed');
-    await session.update({
-      payload: request,
-      paymentPlan: request.paymentPlan,
-      depositVnd: request.paymentPlan === 'deposit' ? preview.upfrontDue : null,
-      totalVnd: preview.total,
-      upfrontDueVnd: preview.upfrontDue,
-      depositAmountVnd: preview.depositDue,
-      expiresAt: new Date(Date.now() + paymentLinkMinutes() * 60_000),
-    });
-    await this.payments.createSessionLink(session, await this.buyer(userId, request), locale);
-    return this.view(session);
+  // Compatibility endpoint: a checkout's plan and payable amount are immutable after creation.
+  async changePlan(userId: number, sessionId: number) {
+    await this.owned(userId, sessionId);
+    throw HttpError.conflict('The payment plan is locked for this checkout.', 'PAYMENT_PLAN_LOCKED');
   }
 
   async cancel(userId: number, sessionId: number) {

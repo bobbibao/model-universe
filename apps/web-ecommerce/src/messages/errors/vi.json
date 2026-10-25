@@ -57,5 +57,8 @@
   "QUOTE_EXPIRED": "Báo giá đã hết hạn. Vui lòng xem lại giỏ hàng và xác nhận lại.",
   "QUOTE_INVALID": "Báo giá không hợp lệ. Vui lòng tải lại giỏ hàng.",
   "SEPARATE_APPROVER": "Cần một quản trị viên khác duyệt đề xuất của bạn.",
-  "APPROVED_RECORD": "Bản đã duyệt chỉ được thay bằng cách duyệt một bản đề xuất mới hơn."
+  "APPROVED_RECORD": "Bản đã duyệt chỉ được thay bằng cách duyệt một bản đề xuất mới hơn.",
+  "PAYMENT_PLAN_LOCKED": "Phương án thanh toán đã được khóa cho phiên này.",
+  "CHECKOUT_PENDING": "Bạn đang có phiên chờ thanh toán. Hãy tiếp tục hoặc hủy phiên đó trước.",
+  "PROMOTION_RETIRED": "Mã ưu đãi theo giờ đã ngừng áp dụng."
 }
