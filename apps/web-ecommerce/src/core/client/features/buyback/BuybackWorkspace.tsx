@@ -11,7 +11,7 @@ import BuybackSubmissionForm from './BuybackSubmissionForm';
 import BuybackPricingSections from './BuybackPricingSections';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { BuybackRequest } from '@/shared/types/buyback';
-import ProductPicker, { type PickedProduct } from '@/core/client/features/inventory/components/ProductPicker';
+import { ListingSteps, TradeQuotePanel } from './BuybackListingSections';
 
 export default function BuybackWorkspace({ admin = false }: { admin?: boolean }) {
   const t = useTranslations('buyback'),
@@ -24,7 +24,6 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
   const [busy, setBusy] = useState(false),
     [failed, setFailed] = useState(false),
     [showForm, setShowForm] = useState(false);
-  const [product, setProduct] = useState<PickedProduct | null>(null);
   const root = admin ? '/admin/buyback' : '/buyback';
   const load = useCallback(async () => {
     if (!user) return;
@@ -38,7 +37,6 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
   useEffect(() => {
     setRows([]);
     setSelected(null);
-    setProduct(null);
     void load();
   }, [load]);
   useEffect(() => {
@@ -49,7 +47,6 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
     setBusy(true);
     try {
       setSelected((await Api.get(`${root}/${id}`)).data);
-      setProduct(null);
     } catch {
       setFailed(true);
     } finally {
@@ -75,10 +72,8 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
     const form = new FormData(event.currentTarget),
       data: Record<string, unknown> = { ...Object.fromEntries(form), action };
     if (form.has('amountVnd')) data.amountVnd = Number(form.get('amountVnd'));
-    for (const key of ['moneyVerified', 'handoverVerified', 'actualPhotosVerified'])
-      if (form.has(key)) data[key] = true;
+    for (const key of ['moneyVerified', 'handoverVerified']) if (form.has(key)) data[key] = true;
     if (action === 'send_item') data.inboundCod = false;
-    if (endpoint === 'intake') data.productId = product?.id;
     void post(endpoint, data);
   };
   const detailsField = (
@@ -236,9 +231,12 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
                       </div>
                     ),
                 )}
+                <TradeQuotePanel selected={selected} admin={admin} busy={busy} post={post} />
                 {selected.payout && (
                   <div className="rounded-lg bg-cyan-50 p-4">
-                    <h3 className="font-bold">{t('paid')}</h3>
+                    <h3 className="font-bold">
+                      {t(selected.payout.direction === 'customer_pays' ? 'paidByCustomer' : 'paid')}
+                    </h3>
                     <p className="mt-2 font-bold">{formatVND(selected.payout.amountVnd, locale)}</p>
                     <p className="mu-note break-all">
                       {selected.payout.externalReference} · {new Date(selected.payout.createdAt).toLocaleString(locale)}
@@ -311,16 +309,20 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
                 )}
                 {admin && selected.status === 'awaiting_payout' && (
                   <form className="space-y-4" onSubmit={(event) => submitAction(event, 'payout', 'payout')}>
-                    <p className="mu-note">{t('payoutNote')}</p>
+                    <p className="mu-note">{t(selected.tradeQuote ? 'tradeSettlementNote' : 'payoutNote')}</p>
                     <label className="mu-field">
                       {t('amount')}
                       <input
                         name="amountVnd"
                         type="number"
                         step="1"
-                        min="1"
+                        min={selected.tradeQuote ? 0 : 1}
                         required
-                        defaultValue={selected.finalOffer?.amountVnd}
+                        defaultValue={
+                          selected.tradeQuote
+                            ? Math.abs(selected.tradeQuote.differenceVnd ?? 0)
+                            : selected.finalOffer?.amountVnd
+                        }
                       />
                     </label>
                     <label className="mu-field">
@@ -349,23 +351,13 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
                     {button('returnDispatch')}
                   </form>
                 )}
-                {admin && selected.status === 'completed' && !selected.productId && (
-                  <form className="space-y-4" onSubmit={(event) => submitAction(event, 'intake', 'intake')}>
-                    <h3 className="font-bold">{t('intake')}</h3>
-                    <p className="mu-note">{t('intakeNote')}</p>
-                    <Link href="/admin/products/new" className="inline-block underline">
-                      {t('createDraft')}
-                    </Link>
-                    <ProductPicker value={product} onChange={setProduct} excludeIds={[]} />
-                    {detailsField}
-                    <label className="flex items-start gap-3 text-sm">
-                      <input name="actualPhotosVerified" type="checkbox" required />
-                      {t('actualPhotosVerified')}
-                    </label>
-                    <button className="mu-button" disabled={busy || !product}>
-                      {t('intake')}
-                    </button>
-                  </form>
+                {admin && (
+                  <ListingSteps
+                    key={`${selected.id}:${selected.version}`}
+                    selected={selected}
+                    busy={busy}
+                    post={post}
+                  />
                 )}
                 {selected.productId && (
                   <Link

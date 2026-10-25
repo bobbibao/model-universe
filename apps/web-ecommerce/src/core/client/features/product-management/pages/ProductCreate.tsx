@@ -1,7 +1,5 @@
 'use client';
 
-import { catalogPricing } from '@/shared/sale-pricing';
-
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
@@ -141,13 +139,8 @@ const ProductCreate = () => {
                   <div>
                     <dt className="inline text-body">{t('price')}</dt>
                     <dd className="inline font-medium">
-                      {values.pricingReferenceMemberVnd
-                        ? formatVND(
-                            catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount))
-                              .listPriceVnd,
-                            locale,
-                          )
-                        : values.price && formatVND(Number(values.price), locale)}
+                      {/* A new product sells at S until a real list price R is approved. */}
+                      {values.pricingReferenceMemberVnd && formatVND(Number(values.pricingReferenceMemberVnd), locale)}
                     </dd>
                   </div>
                   <div>

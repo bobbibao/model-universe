@@ -12,6 +12,7 @@ import RestockSubscriptionModel from '../client/models/RestockSubscription.Model
 import BuybackRequestModel from '../client/models/BuybackRequest.Model';
 import BuybackEventModel from '../client/models/BuybackEvent.Model';
 import BuybackPayoutModel from '../client/models/BuybackPayout.Model';
+import ListingQcReviewModel from '../client/models/ListingQcReview.Model';
 import PawnContractModel from '../client/models/PawnContract.Model';
 import PawnEventModel from '../client/models/PawnEvent.Model';
 import PawnPaymentModel from '../client/models/PawnPayment.Model';
@@ -70,6 +71,7 @@ import { estimatedPricing, loadCatalogEntries, ownerCatalogValues } from '../cli
 import { loadOwnerCatalog, ownerCatalogSeeded, syncOwnerCatalog } from '../client/seeders/OwnerCatalog';
 import { CATEGORIES } from '../client/seeders/Category.Seeder';
 import { RETURN_REASONS } from '../../../../shared/return-rules';
+import { b17 } from '../../../../shared/buyback-pricing';
 import Logger from '../../../../shared/server/utils/logger';
 import { purgeRows } from './purge';
 import { QueryTypes } from 'sequelize';
@@ -1016,6 +1018,12 @@ export const MIGRATIONS: Migration[] = [
       // replace what the researched seed estimated; every other shop-owned product is retired (OwnerCatalog.ts). A
       // development seed in this process already wrote the catalogue, with its demo stock and history: it is kept.
       if (ownerCatalogSeeded()) return;
+      // The sync writes the price-approval columns of 2026-10-25-47 (added here first; that migration adds them too).
+      await ensureColumns(context.sequelize.getQueryInterface(), ProductModel, [
+        'targetPriceApprovedAt',
+        'targetPriceApprovedByUserId',
+        'listPriceVerified',
+      ]);
       await context.sequelize.transaction((transaction) => syncOwnerCatalog(loadOwnerCatalog(), transaction));
     },
   },
@@ -1099,6 +1107,97 @@ export const MIGRATIONS: Migration[] = [
           await sequelize.query('DROP TYPE enum_return_item_reason_old', { transaction });
         }
       });
+    },
+  },
+  {
+    name: '2026-10-25-47-target-price-and-b17',
+    up: async ({ context }) => {
+      // Owner rule of 2026-10-25 (docs/business/source/vi/buyback-17-percent-specification.md): staff set a target
+      // selling price S, approved by an admin; the buy-back reference is B17 = ROUND(0.17 × S) at every price; the
+      // price charged is a real list price R approved with its proof, else S. The former list price R = S ÷ 0.9 was
+      // derived, never published: a shop product whose price is not an approved record goes back to S (no member or
+      // voucher code on top until a real R is approved). No S is approved by a migration. Running it again changes
+      // nothing.
+      const { sequelize } = context;
+      await ensureColumns(sequelize.getQueryInterface(), ProductModel, [
+        'targetPriceApprovedAt',
+        'targetPriceApprovedByUserId',
+        'listPriceVerified',
+      ]);
+      await sequelize.transaction(async (transaction) => {
+        const approved = new Set(
+          (await ProductPriceApprovalModel.findAll({ where: { status: 'APPROVED' }, transaction })).map(
+            (row) => `${row.productId}:${row.listPriceVnd}`,
+          ),
+        );
+        const products = await ProductModel.findAll({
+          attributes: ['id', 'price', 'pricingReferenceMemberVnd', 'pricingIssueCount', 'buybackPriceVnd', 'listPriceVerified'],
+          where: { partnerId: null },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        for (const product of products) {
+          const target = product.pricingReferenceMemberVnd;
+          const verified = approved.has(`${product.id}:${product.price}`);
+          const values = {
+            listPriceVerified: verified,
+            ...(target && target > 0
+              ? { buybackPriceVnd: b17(target), pricingIssueCount: 0, ...(verified ? {} : { price: target }) }
+              : {}),
+          };
+          const oldValue = {
+            listPriceVnd: product.price,
+            buybackPriceVnd: product.buybackPriceVnd,
+            listPriceVerified: product.listPriceVerified,
+          };
+          product.set(values);
+          if (!product.changed()) continue;
+          await product.save({ transaction });
+          await PromotionAuditModel.create(
+            {
+              actorUserId: null,
+              entityType: 'product_pricing',
+              entityId: product.id,
+              action: 'target_price_rule',
+              oldValue,
+              newValue: {
+                referenceMemberVnd: target,
+                listPriceVnd: product.price,
+                buybackPriceVnd: product.buybackPriceVnd,
+                listPriceVerified: product.listPriceVerified,
+              },
+            },
+            { transaction },
+          );
+        }
+      });
+    },
+  },
+  {
+    name: '2026-10-25-48-listing-qc-and-trade',
+    up: async ({ context }) => {
+      // Owner specification of 2026-10-25, §9 and §12-§13: the pre-listing QC review of a bought-back unit, a trade's
+      // shop item and quote revision on its request, and who paid whom in a settlement (a trade's positive difference
+      // is paid by the customer). Existing payouts are the shop's.
+      const { sequelize } = context;
+      const queryInterface = sequelize.getQueryInterface();
+      await ensureTables(ListingQcReviewModel);
+      await ensureColumns(queryInterface, BuybackRequestModel, ['tradeProductId', 'tradeQuote']);
+      await ensureColumns(queryInterface, BuybackPayoutModel, ['direction']);
+      for (const [table, column, parent] of [
+        ['listing_qc_review', 'buybackRequestId', 'buyback_request'],
+        ['listing_qc_review', 'productId', 'product'],
+        ['listing_qc_review', 'reviewerUserId', 'user'],
+        ['buyback_request', 'tradeProductId', 'product'],
+      ]) {
+        const constraint = `${table}_${column}_history_fk`;
+        await sequelize.query(
+          `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='${constraint}') THEN ALTER TABLE "${table}" ADD CONSTRAINT "${constraint}" FOREIGN KEY ("${column}") REFERENCES "${parent}"(id) ON DELETE RESTRICT ON UPDATE RESTRICT; END IF; END $$`,
+        );
+      }
+      await sequelize.query(
+        `DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='buyback_payout_direction_valid') THEN ALTER TABLE buyback_payout ADD CONSTRAINT buyback_payout_direction_valid CHECK (direction IN ('shop_pays', 'customer_pays')); END IF; END $$`,
+      );
     },
   },
 ];

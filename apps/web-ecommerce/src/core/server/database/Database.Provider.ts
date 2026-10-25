@@ -82,6 +82,7 @@ import LoyaltyRedemptionModel from './client/models/LoyaltyRedemption.Model';
 import BuybackRequestModel from './client/models/BuybackRequest.Model';
 import BuybackEventModel from './client/models/BuybackEvent.Model';
 import BuybackPayoutModel from './client/models/BuybackPayout.Model';
+import ListingQcReviewModel from './client/models/ListingQcReview.Model';
 import PawnContractModel from './client/models/PawnContract.Model';
 import PawnEventModel from './client/models/PawnEvent.Model';
 import PawnPaymentModel from './client/models/PawnPayment.Model';
@@ -179,6 +180,7 @@ export default class DatabaseProvider {
     BuybackRequestModel,
     BuybackEventModel,
     BuybackPayoutModel,
+    ListingQcReviewModel,
     PawnContractModel,
     PawnEventModel,
     PawnPaymentModel,

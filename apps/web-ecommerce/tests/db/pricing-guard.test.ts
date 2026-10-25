@@ -5,6 +5,7 @@ import OrderService from '../../src/core/server/services/OrderService';
 import CartService from '../../src/core/server/services/CartService';
 import CommercePolicyService from '../../src/core/server/services/CommercePolicyService';
 import PricingApprovalService from '../../src/core/server/services/PricingApprovalService';
+import ProductService from '../../src/core/server/services/ProductService';
 import PromotionReconciliationService, {
   previousVietnamDay,
 } from '../../src/core/server/services/PromotionReconciliationService';
@@ -60,9 +61,16 @@ describe('pricing guard: approved prices and costs, voucher policy, signed quote
       order: [['id', 'ASC']],
       limit: 2,
     });
-    // R 1,111,111 (member price 1,000,000), cost 800,000: the v6.2 TC09 case; KIT12 keeps 87.73% of L10.
+    // R 1,111,111 (member price 1,000,000), cost 800,000: the v6.2 TC09 case; KIT12 keeps 87.73% of L10. The price is
+    // a real list price (`listPriceVerified`), as codes apply to a real R only.
     for (const p of [product, other]) {
-      await p.update({ price: listPriceForMemberPrice(1_000_000), importPrice: 800_000, stock: 50, inventoryStatus: 'available' });
+      await p.update({
+        price: listPriceForMemberPrice(1_000_000),
+        listPriceVerified: true,
+        importPrice: 800_000,
+        stock: 50,
+        inventoryStatus: 'available',
+      });
       await ProductDiscountModel.destroy({ where: { productId: p.id } });
     }
     userId = (await UserModel.findOne({ where: { role: 'USER', isActive: true }, order: [['id', 'ASC']] }))!.id;
@@ -116,13 +124,18 @@ describe('pricing guard: approved prices and costs, voucher policy, signed quote
   });
 
   it('blocks codes when the price differs from its approved R, and under "required" without an approved R', async () => {
-    await expect(
-      approvals.proposePrice(adminId, { productId: product.id, listPriceVnd: product.price + 1, proof: 'Shop page', reason: 'R' }),
-    ).rejects.toMatchObject({ code: 'PRICE_CHANGED' });
-    const record = await approvals.proposePrice(adminId, { productId: product.id, listPriceVnd: product.price, proof: 'Shop page', reason: 'R' });
-    await approvals.approve('price', record.id, secondAdminId);
-    expect((await quote()).voucherStatus).toBe('VOUCHER_ONLY_VALID');
     const price = product.price;
+    // Sold at its target price S, with no real R approved (owner rule of 2026-10-25): no code applies.
+    await product.update({ price: 1_000_000, listPriceVerified: false });
+    expect(await quote()).toMatchObject({ voucherStatus: 'VOUCHER_INVALID', discount: 0 });
+    expect((await approvals.list({ filter: 'unapproved' })).rows.map((row) => row.id)).toContain(product.id);
+    // R is entered with its proof (never derived from S); once a second admin approves it, it is the price charged.
+    const record = await approvals.proposePrice(adminId, { productId: product.id, listPriceVnd: price, proof: 'Shop page', reason: 'R' });
+    expect((await product.reload()).price).toBe(1_000_000);
+    await expect(approvals.approve('price', record.id, adminId)).rejects.toMatchObject({ code: 'SEPARATE_APPROVER' });
+    await approvals.approve('price', record.id, secondAdminId);
+    expect(await product.reload()).toMatchObject({ price, listPriceVerified: true });
+    expect((await quote()).voucherStatus).toBe('VOUCHER_ONLY_VALID');
     await product.update({ price: price + 1_000 });
     try {
       expect(await quote()).toMatchObject({ voucherStatus: 'VOUCHER_INVALID', discount: 0 });
@@ -211,5 +224,30 @@ describe('pricing guard: approved prices and costs, voucher policy, signed quote
     expect(await AdminAlertModel.count({ where: { dedupeKey: `promotion-reconciliation:${day}` } })).toBe(1);
     expect(await reconciliation.run(now)).toBeNull();
     expect(await PromotionReconciliationModel.count({ where: { day } })).toBe(1);
+  });
+
+  it('approves a target price S once, audited, and a changed S waits for a new approval', async () => {
+    const catalog = new ProductService();
+    await product.update({ pricingReferenceMemberVnd: 1_000_000, targetPriceApprovedAt: null });
+    await expect(approvals.approveTarget(product.id, userId)).rejects.toMatchObject({ statusCode: 403 });
+    const approved = await approvals.approveTarget(product.id, adminId);
+    expect(approved.targetPriceApprovedAt).toBeTruthy();
+    expect((await approvals.list({ filter: 'target' })).rows.map((row) => row.id)).not.toContain(product.id);
+    const body = await catalog.getAdminById(product.id);
+    await catalog.update(product.id, {
+      ...body,
+      price: undefined,
+      buybackPriceVnd: null,
+      pricingReferenceMemberVnd: 1_050_000,
+      expectedPrice: body.price,
+      expectedStock: body.stock,
+    });
+    // A verified R stays the price charged; the new S and its B17 wait for approval.
+    expect(await product.reload()).toMatchObject({
+      price: body.price,
+      pricingReferenceMemberVnd: 1_050_000,
+      buybackPriceVnd: 178_500,
+      targetPriceApprovedAt: null,
+    });
   });
 });

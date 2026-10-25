@@ -21,7 +21,9 @@ export interface ProductFormValues {
   categoryId: string;
   price: string;
   pricingReferenceMemberVnd: string;
-  pricingIssueCount: string;
+  // Read only here: an admin approves S and the real list price R on the pricing approvals page.
+  targetPriceApproved: boolean;
+  listPriceVerified: boolean;
   importPrice: string;
   stock: string;
   sku: string;
@@ -61,7 +63,8 @@ export const emptyProductForm: ProductFormValues = {
   categoryId: '',
   price: '',
   pricingReferenceMemberVnd: '',
-  pricingIssueCount: '0',
+  targetPriceApproved: false,
+  listPriceVerified: false,
   importPrice: '',
   stock: '0',
   sku: '',
@@ -101,7 +104,8 @@ export const toFormValues = (product: AdminProduct): ProductFormValues => ({
   categoryId: product.categoryId ? String(product.categoryId) : '',
   price: String(product.price),
   pricingReferenceMemberVnd: product.pricingReferenceMemberVnd ? String(product.pricingReferenceMemberVnd) : '',
-  pricingIssueCount: String(product.pricingIssueCount || 0),
+  targetPriceApproved: !!product.targetPriceApprovedAt,
+  listPriceVerified: product.listPriceVerified ?? false,
   importPrice: String(product.importPrice),
   stock: String(product.stock),
   sku: product.sku,
@@ -146,13 +150,14 @@ export const validateBasics = (values: ProductFormValues): ProductFormErrors => 
 
 export const validatePricing = (values: ProductFormValues): ProductFormErrors => {
   const errors: ProductFormErrors = {};
-  if (values.pricingReferenceMemberVnd) {
+  // S is required: the shop sells at S until a real list price R is approved with its proof.
+  if (!isWholeNumber(values.pricingReferenceMemberVnd, 1)) errors.price = 'priceInvalid';
+  else
     try {
-      catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
+      catalogPricing(Number(values.pricingReferenceMemberVnd));
     } catch {
       errors.price = 'priceInvalid';
     }
-  } else if (!isWholeNumber(values.price, 1)) errors.price = 'priceInvalid';
   if (values.importPrice && !isWholeNumber(values.importPrice, 0)) errors.importPrice = 'importPriceInvalid';
   return errors;
 };
@@ -173,16 +178,11 @@ export const validateProductForm = (values: ProductFormValues): ProductFormError
   ...validateInventory(values),
 });
 
-// The price fields of a payload: R and B follow S by the catalogue formula (the server recomputes them).
+// The price fields of a payload: the target price S and its B17 (the server recomputes it). The price charged is not
+// sent: it is S until an approved real list price R replaces it (Admin > pricing approvals).
 export const pricingPayload = (values: ProductFormValues) => {
-  if (!values.pricingReferenceMemberVnd) return { price: Number(values.price) };
-  const pricing = catalogPricing(Number(values.pricingReferenceMemberVnd), Number(values.pricingIssueCount));
-  return {
-    pricingReferenceMemberVnd: pricing.referenceMemberVnd,
-    pricingIssueCount: pricing.ordinaryIssueCount,
-    price: pricing.listPriceVnd,
-    buybackPriceVnd: pricing.buybackPriceVnd,
-  };
+  const pricing = catalogPricing(Number(values.pricingReferenceMemberVnd));
+  return { pricingReferenceMemberVnd: pricing.referenceMemberVnd, buybackPriceVnd: pricing.buybackPriceVnd };
 };
 
 export const conditionPayload = (values: ProductFormValues) => ({

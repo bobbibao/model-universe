@@ -17,14 +17,17 @@ import EvidenceModel from '../database/client/models/Evidence.Model';
 import { isVideo } from './EvidenceService';
 import NotificationDispatchService from './NotificationDispatchService';
 import { emailBuybackQuote, emailBuybackReceived } from './delivery/Messages';
+import ListingQcService, { listingDigest, listingPhotos, plainReview } from './ListingQcService';
 import {
   compareInspection,
   estimateBuyback,
   isBuybackIssueType,
   MAX_ISSUE_QUANTITY,
+  tradeDifference,
   type BuybackIssue,
 } from '../../../shared/buyback-pricing';
-import { memberPrice } from '../../../shared/pricing';
+import { isListingQcCheck, type ListingQcChecks } from '../../../shared/listing-qc';
+import type { TradeQuote } from '../../../shared/types/buyback';
 
 // A request's customer-facing code (the specification's buyback_code).
 export const buybackCode = (id: number) => `TM${id}`;
@@ -50,9 +53,24 @@ export const parseIssues = (raw: unknown, field = 'issues'): BuybackIssue[] => {
   });
 };
 
-// The reference price is the shop's actual member selling price S (price after the standard 10% voucher) of the same
-// catalog model: the pricing rules 4.0 forbid using the list price R in buyback rules.
-const referenceFor = (product: ProductModel | null) => (product ? memberPrice(product.price) : null);
+// The reference is the shop's target selling price S of the same catalog SKU (owner rule of 2026-10-25), never the list
+// price R; B17 is offered only once an admin approved that S.
+const referenceFor = (product: ProductModel | null) => ({
+  reference: product?.pricingReferenceMemberVnd ?? null,
+  approved: !!product?.targetPriceApprovedAt,
+});
+
+// A shop item a customer can take in a trade: the shop's own, listed and in stock.
+const tradeItem = async (productId: unknown, transaction: Transaction) => {
+  const id = Number(productId);
+  const product =
+    Number.isSafeInteger(id) && id > 0
+      ? await ProductModel.findOne({ where: { id, partnerId: null }, transaction, lock: transaction.LOCK.UPDATE })
+      : null;
+  if (!product || product.isArchived || product.inventoryStatus !== 'available' || product.stock < 1)
+    throw HttpError.conflict('The shop item for this trade is not available.', 'TRADE_ITEM_UNAVAILABLE');
+  return product;
+};
 
 const text = (value: unknown, field: string, max = 1500) => {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max)
@@ -75,6 +93,7 @@ export default class BuybackService {
   private evidence = new EvidenceService();
   private policy = new CommercePolicyService();
   private notices = new NotificationDispatchService();
+  private qc = new ListingQcService();
 
   private async actor(id: number, admin: boolean, transaction?: Transaction) {
     const user = await UserModel.findByPk(id, { transaction });
@@ -125,17 +144,26 @@ export default class BuybackService {
       attributes: { exclude: ['requestDigest', 'requestKey'] },
     });
     if (!row) throw HttpError.notFound('Buyback request not found.');
-    const [events, evidence, inspectionEvidence, payout, product] = await Promise.all([
+    const [events, evidence, inspectionEvidence, payout, product, traded] = await Promise.all([
       BuybackEventModel.findAll({ where: { buybackRequestId: id }, order: [['id', 'ASC']] }),
       this.evidence.list(row.userId, 'buyback', id),
       this.evidence.listForEntity('buyback_inspection', id),
       BuybackPayoutModel.findOne({ where: { buybackRequestId: id } }),
       row.referenceProductId
-        ? ProductModel.findByPk(row.referenceProductId, { attributes: ['id', 'name', 'sku', 'price'] })
+        ? ProductModel.findByPk(row.referenceProductId, {
+            attributes: ['id', 'name', 'sku', 'pricingReferenceMemberVnd'],
+          })
+        : null,
+      row.tradeProductId
+        ? ProductModel.findByPk(row.tradeProductId, { attributes: ['id', 'name', 'sku', 'price', 'stock'] })
         : null,
     ]);
+    // The reference shown is the target price S the estimate uses.
     const referenceProduct = product
-      ? { id: product.id, name: product.name, sku: product.sku, priceVnd: product.price }
+      ? { id: product.id, name: product.name, sku: product.sku, priceVnd: product.pricingReferenceMemberVnd ?? 0 }
+      : null;
+    const tradeProduct = traded
+      ? { id: traded.id, name: traded.name, sku: traded.sku, priceVnd: traded.price, stock: traded.stock }
       : null;
     return {
       ...row.get({ plain: true }),
@@ -145,6 +173,26 @@ export default class BuybackService {
       inspectionEvidence,
       payout,
       referenceProduct,
+      tradeProduct,
+      ...(admin ? await this.listingState(row) : {}),
+    };
+  }
+  // The pre-listing QC review and the linked listing, for staff. A passed review of a listing changed since is shown
+  // void (it is recorded as such when staff next act on it).
+  private async listingState(row: BuybackRequestModel) {
+    const review = await this.qc.latest(row.id);
+    const productId = row.productId ?? review?.productId;
+    const listing = productId ? await ProductModel.findByPk(productId) : null;
+    const plain = plainReview(review);
+    if (plain && review && listing && plain.result === 'passed' && !plain.invalidatedAt)
+      if (review.listingDigest !== (await listingDigest(listing)))
+        Object.assign(plain, { invalidatedAt: new Date(), invalidatedReason: 'listing_changed' });
+    return {
+      qcReview: plain,
+      listing:
+        row.productId && listing
+          ? { id: listing.id, sku: listing.sku, isArchived: listing.isArchived, stock: listing.stock }
+          : null,
     };
   }
   async create(userId: number, data: Record<string, unknown>) {
@@ -183,10 +231,19 @@ export default class BuybackService {
     if (referenceProductId !== null && (!Number.isSafeInteger(referenceProductId) || referenceProductId < 1))
       throw HttpError.badRequest('Choose a catalog model or leave it empty.');
     const seriousDamage = data.seriousDamage === true;
+    const tradeProductId =
+      data.tradeProductId === undefined || data.tradeProductId === null ? null : Number(data.tradeProductId);
     const requestDigest = crypto
       .createHash('sha256')
       .update(
-        JSON.stringify({ asset, evidenceIds: data.evidenceIds, declaredIssues, referenceProductId, seriousDamage }),
+        JSON.stringify({
+          asset,
+          evidenceIds: data.evidenceIds,
+          declaredIssues,
+          referenceProductId,
+          seriousDamage,
+          ...(tradeProductId === null ? {} : { tradeProductId }),
+        }),
       )
       .digest('hex');
     const id = await DatabaseProvider.getInstance().transaction(async (transaction) => {
@@ -206,9 +263,32 @@ export default class BuybackService {
         ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction })
         : null;
       if (referenceProductId && !product) throw HttpError.notFound('Catalog model not found.');
-      const estimate = estimateBuyback(referenceFor(product), declaredIssues, { seriousDamage });
+      const { reference, approved } = referenceFor(product);
+      const estimate = estimateBuyback(reference, declaredIssues, { seriousDamage, approved });
+      // A trade starts INCOMPLETE: D is known only once the buy-back price is final.
+      const item = tradeProductId === null ? null : await tradeItem(tradeProductId, transaction);
+      const tradeQuote: TradeQuote | null = item
+        ? {
+            revision: 1,
+            productId: item.id,
+            itemPriceVnd: item.price,
+            buybackVnd: null,
+            ...tradeDifference(item.price, null),
+            refundApprovedByUserId: null,
+          }
+        : null;
       const row = await BuybackRequestModel.create(
-        { userId, requestKey, requestDigest, asset, referenceProductId, declaredIssues, estimate },
+        {
+          userId,
+          requestKey,
+          requestDigest,
+          asset,
+          referenceProductId,
+          declaredIssues,
+          estimate,
+          tradeProductId: item?.id ?? null,
+          tradeQuote,
+        },
         { transaction },
       );
       const bound = await this.evidence.bind(data.evidenceIds, userId, 'buyback', row.id, transaction);
@@ -226,7 +306,7 @@ export default class BuybackService {
         row,
         userId,
         'submitted',
-        { asset, declaredIssues, estimate, missingEvidence: missing },
+        { asset, declaredIssues, estimate, missingEvidence: missing, tradeQuote },
         transaction,
       );
       return row.id;
@@ -242,6 +322,7 @@ export default class BuybackService {
       'final_offer',
       'return_offer',
       'return_dispatched',
+      'approve_trade_refund',
     ];
     let notify: ((transaction: Transaction, row: BuybackRequestModel) => Promise<void>) | null = null;
     if (staffActions.includes(action) !== admin) throw HttpError.forbidden();
@@ -367,11 +448,23 @@ export default class BuybackService {
               'INSPECTION_EVIDENCE_REQUIRED',
             );
           const inspectedIssues = parseIssues(data.inspectedIssues, 'inspected issues');
-          const comparison = compareInspection(row.declaredIssues || [], inspectedIssues);
+          const comparison = compareInspection(
+            row.declaredIssues || [],
+            inspectedIssues,
+            row.estimate?.deductionPerIssueVnd ?? 0,
+          );
           const reference = row.estimate?.referencePriceVnd ?? null;
-          // The tier deduction stays the one the request was quoted with, even after a table change.
+          // The quoted S: approved when quoted, or approved since at the same amount. A request quoted under the former
+          // tier rule keeps its quoted deduction.
+          const product = row.referenceProductId
+            ? await ProductModel.findByPk(row.referenceProductId, { transaction })
+            : null;
+          const approved =
+            (!!row.estimate && row.estimate.manualReview !== 'reference_not_approved') ||
+            (!!product?.targetPriceApprovedAt && product.pricingReferenceMemberVnd === reference);
           const formulaEstimate = estimateBuyback(reference, inspectedIssues, {
             seriousDamage: data.seriousDamage === true,
+            approved,
             quoted: row.estimate,
           });
           const formula = formulaEstimate.manualReview ? null : formulaEstimate.estimateVnd;
@@ -387,11 +480,32 @@ export default class BuybackService {
             details: text(data.details, 'final appraisal and revision reason'),
             basis: amountVnd === formula ? ('formula' as const) : ('manual' as const),
           };
+          // A trade gets a new quote revision with the item's current price; the customer accepts it again.
+          let tradeQuote = row.tradeQuote;
+          if (row.tradeProductId && tradeQuote) {
+            const item = await ProductModel.findByPk(row.tradeProductId, { transaction });
+            const itemPriceVnd = item?.price ?? tradeQuote.itemPriceVnd;
+            tradeQuote = {
+              ...tradeQuote,
+              revision: tradeQuote.revision + 1,
+              itemPriceVnd,
+              buybackVnd: amountVnd,
+              ...tradeDifference(itemPriceVnd, amountVnd),
+              refundApprovedByUserId: null,
+            };
+          }
           await row.update(
-            { status: 'awaiting_acceptance', finalOffer: offer, inspectedIssues, comparison, reviewRequest: null },
+            {
+              status: 'awaiting_acceptance',
+              finalOffer: offer,
+              inspectedIssues,
+              comparison,
+              reviewRequest: null,
+              tradeQuote,
+            },
             { transaction },
           );
-          Object.assign(details, { offer, inspectedIssues, comparison });
+          Object.assign(details, { offer, inspectedIssues, comparison, ...(tradeQuote ? { tradeQuote } : {}) });
           notify = async (tx, current) => {
             const user = await UserModel.findByPk(current.userId, { transaction: tx });
             const estimateVnd = current.preliminaryOffer?.amountVnd ?? current.estimate?.estimateVnd ?? null;
@@ -437,9 +551,29 @@ export default class BuybackService {
           details.reason = reviewRequest;
           break;
         }
+        case 'approve_trade_refund': {
+          // D < 0: the shop owes the customer the difference; an admin approves that before the customer can accept.
+          const quote = row.tradeQuote;
+          if (row.status !== 'awaiting_acceptance' || quote?.status !== 'ready' || (quote.differenceVnd ?? 0) >= 0)
+            throw HttpError.conflict('No trade refund awaits approval.');
+          if (quote.refundApprovedByUserId) break;
+          const tradeQuote = { ...quote, refundApprovedByUserId: userId };
+          await row.update({ tradeQuote }, { transaction });
+          details.tradeQuote = tradeQuote;
+          break;
+        }
         case 'accept': {
           if (row.status !== 'awaiting_acceptance' || !row.finalOffer)
             throw HttpError.conflict('Accept only the current final inspected offer.');
+          const quote = row.tradeQuote;
+          if (quote) {
+            if (quote.status !== 'ready' || quote.differenceVnd === null)
+              throw HttpError.conflict('The trade quote is not complete yet.', 'TRADE_QUOTE_INCOMPLETE');
+            if (quote.differenceVnd < 0 && !quote.refundApprovedByUserId)
+              throw HttpError.conflict('An admin must approve the amount the shop pays back.', 'TRADE_REFUND_APPROVAL');
+            await row.update({ tradeQuote: { ...quote, status: 'accepted' } }, { transaction });
+            details.acceptedTradeQuote = row.tradeQuote;
+          }
           await row.update({ status: 'awaiting_payout' }, { transaction });
           details.acceptedOffer = row.finalOffer;
           break;
@@ -499,8 +633,10 @@ export default class BuybackService {
     this.notices.dispatchSoon();
     return this.detail(id, userId, admin);
   }
+  // The verified settlement: the buy-back payout, or for a trade the difference D (paid by whichever side owes it; none
+  // when D = 0) and the handover of the shop item, which leaves stock here. Trade credit is not an order: no points.
   async payout(id: number, userId: number, data: Record<string, unknown>) {
-    const amountVnd = amount(data.amountVnd),
+    const amountVnd = data.amountVnd === 0 ? 0 : amount(data.amountVnd),
       externalReference = reference(data.externalReference),
       reason = text(data.details, 'payout verification');
     if (data.moneyVerified !== true)
@@ -520,12 +656,27 @@ export default class BuybackService {
         return;
       }
       this.current(row, data.expectedVersion);
-      if (row.status !== 'awaiting_payout' || !row.finalOffer || row.finalOffer.amountVnd !== amountVnd)
+      const quote = row.tradeQuote;
+      const owed = quote ? Math.abs(quote.differenceVnd ?? 0) : row.finalOffer?.amountVnd;
+      if (
+        row.status !== 'awaiting_payout' ||
+        !row.finalOffer ||
+        (quote && quote.status !== 'accepted') ||
+        owed !== amountVnd
+      )
         throw HttpError.conflict('Pay the exact accepted final quote, once.');
-      await BuybackPayoutModel.create(
-        { buybackRequestId: id, actorUserId: userId, amountVnd, externalReference, reason },
-        { transaction },
-      );
+      if (amountVnd === 0 && !quote) throw HttpError.badRequest('Provide a positive whole VND amount.');
+      const direction = quote && (quote.differenceVnd ?? 0) > 0 ? ('customer_pays' as const) : ('shop_pays' as const);
+      if (amountVnd > 0)
+        await BuybackPayoutModel.create(
+          { buybackRequestId: id, actorUserId: userId, amountVnd, externalReference, reason, direction },
+          { transaction },
+        );
+      if (quote) {
+        const item = await tradeItem(quote.productId, transaction);
+        await item.update({ stock: item.stock - 1, sold: item.sold + 1 }, { transaction });
+        await row.update({ tradeQuote: { ...quote, status: 'settled' } }, { transaction });
+      }
       await row.update(
         { status: 'completed', ownershipTransferredAt: new Date(), version: row.version + 1 },
         { transaction },
@@ -534,12 +685,81 @@ export default class BuybackService {
         row,
         userId,
         'payout',
-        { amountVnd, externalReference, reason, acceptedOffer: row.finalOffer },
+        {
+          amountVnd,
+          direction,
+          externalReference,
+          reason,
+          acceptedOffer: row.finalOffer,
+          ...(quote ? { tradeQuote: row.tradeQuote } : {}),
+        },
         transaction,
       );
     });
     return this.detail(id, userId, true);
   }
+  // The pre-listing QC review (§12): the reviewer ticks the checks they verified; the server verifies the system checks
+  // itself. Any check not met fails the review. Reviewing again replaces the previous review.
+  async qcReview(id: number, userId: number, data: Record<string, unknown>) {
+    if (!Number.isSafeInteger(data.productId) || Number(data.productId) < 1)
+      throw HttpError.badRequest('Choose the draft listing of this model.');
+    const input = data.checks && typeof data.checks === 'object' ? (data.checks as Record<string, unknown>) : {};
+    const attested = Object.fromEntries(
+      Object.entries(input).filter(([check, value]) => isListingQcCheck(check) && value === true),
+    ) as Partial<ListingQcChecks>;
+    const notes = text(data.details, 'QC notes, evidence and exceptions');
+    await DatabaseProvider.getInstance().transaction(async (transaction) => {
+      const row = await this.locked(id, userId, true, transaction);
+      this.current(row, data.expectedVersion);
+      if (row.status !== 'completed') throw HttpError.conflict('QC follows the accepted quote and its settlement.');
+      const product = await ProductModel.findByPk(Number(data.productId), {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (
+        !product ||
+        product.partnerId ||
+        product.condition !== 'preowned' ||
+        product.modelCode !== row.asset.modelCode
+      )
+        throw HttpError.conflict('Use a shop-owned preowned draft with the inspected model code.');
+      if (row.productId && row.productId !== product.id)
+        throw HttpError.conflict('The model already has a source-linked inventory intake.');
+      const [inspectionFiles, accepted] = await Promise.all([
+        EvidenceModel.count({ where: { purpose: 'buyback_inspection', entityId: row.id }, transaction }),
+        BuybackEventModel.count({ where: { buybackRequestId: row.id, action: 'accept' }, transaction }),
+      ]);
+      const unused = row.productId
+        ? product.stock === 1
+        : product.isArchived &&
+          product.stock === 0 &&
+          product.sold === 0 &&
+          !(await BuybackRequestModel.count({ where: { productId: product.id }, transaction }));
+      const verified: Partial<ListingQcChecks> = {
+        QC01: !!row.inspection,
+        QC02: inspectionFiles > 0,
+        QC06: !!row.finalOffer && accepted > 0,
+        QC07: !!row.ownershipTransferredAt,
+        QC08: unused,
+        QC10: !!product.pricingReferenceMemberVnd && !!product.targetPriceApprovedAt,
+        QC16: true,
+      };
+      const review = await this.qc.record(
+        { buybackRequestId: row.id, product, reviewerUserId: userId, attested, verified, notes },
+        transaction,
+      );
+      await row.update({ version: row.version + 1 }, { transaction });
+      await this.event(
+        row,
+        userId,
+        review.result === 'passed' ? 'qc_passed' : 'qc_failed',
+        { productId: product.id, checks: review.checks, note: notes },
+        transaction,
+      );
+    });
+    return this.detail(id, userId, true);
+  }
+  // Stock intake after a passed QC (§13): the unit enters stock as a DRAFT listing, still hidden from the storefront.
   async intake(id: number, userId: number, data: Record<string, unknown>) {
     if (!Number.isSafeInteger(data.productId) || Number(data.productId) < 1 || data.actualPhotosVerified !== true)
       throw HttpError.badRequest('Choose an actual shop-photographed draft SKU.');
@@ -555,11 +775,16 @@ export default class BuybackService {
       this.current(row, data.expectedVersion);
       if (row.status !== 'completed' || !row.ownershipTransferredAt || !row.finalOffer)
         throw HttpError.conflict('Confirmed payout and ownership must precede sellable stock.');
+      const draft = await ProductModel.findByPk(productId, { transaction, lock: transaction.LOCK.UPDATE });
+      if (!draft || !(await this.qc.valid(row.id, draft, transaction)))
+        throw HttpError.conflict('Pass the pre-listing QC of this exact listing first.', 'QC_REQUIRED');
+      // The cost of a trade unit is its accepted buy-back price, as for a cash buy-back.
       const product = await activateOwnedCollectibleDraft(
         productId,
         row.asset.modelCode,
         row.finalOffer.amountVnd,
         transaction,
+        { publish: false },
       );
       await row.update({ productId, version: row.version + 1 }, { transaction });
       await this.event(
@@ -569,6 +794,31 @@ export default class BuybackService {
         { productId, sku: product.sku, condition: product.get({ plain: true }), note },
         transaction,
       );
+    });
+    return this.detail(id, userId, true);
+  }
+  // The publisher's final check (§13, §20): the QC still holds for this exact listing, S is approved, the price is set,
+  // one unit is in stock with at least three photos. Only then the listing goes ACTIVE (visible on the storefront).
+  async publish(id: number, userId: number, data: Record<string, unknown>) {
+    await DatabaseProvider.getInstance().transaction(async (transaction) => {
+      const row = await this.locked(id, userId, true, transaction);
+      this.current(row, data.expectedVersion);
+      const product = row.productId
+        ? await ProductModel.findByPk(row.productId, { transaction, lock: transaction.LOCK.UPDATE })
+        : null;
+      if (!product || !product.isArchived)
+        throw HttpError.conflict('Only a draft listing taken into stock is published.');
+      const problems: string[] = [];
+      if (!(await this.qc.valid(row.id, product, transaction))) problems.push('QC');
+      if (!product.pricingReferenceMemberVnd || !product.targetPriceApprovedAt) problems.push('S');
+      if (!(product.price > 0)) problems.push('price');
+      if (product.stock !== 1 || product.inventoryStatus !== 'available') problems.push('stock');
+      if (new Set(await listingPhotos(product, transaction)).size < 3) problems.push('photos');
+      if (problems.length)
+        throw HttpError.conflict(`The listing cannot be published yet: ${problems.join(', ')}.`, 'PUBLISH_BLOCKED');
+      await product.update({ isArchived: false }, { transaction });
+      await row.update({ version: row.version + 1 }, { transaction });
+      await this.event(row, userId, 'published', { productId: product.id, sku: product.sku }, transaction);
     });
     return this.detail(id, userId, true);
   }
@@ -583,8 +833,11 @@ export const estimateFor = async (data: Record<string, unknown>) => {
     id && Number.isSafeInteger(id) ? await ProductModel.findOne({ where: { id, partnerId: null } }) : null;
   return {
     referenceProduct: product
-      ? { id: product.id, name: product.name, sku: product.sku, listPriceVnd: product.price }
+      ? { id: product.id, name: product.name, sku: product.sku, priceVnd: product.pricingReferenceMemberVnd }
       : null,
-    estimate: estimateBuyback(referenceFor(product), issues, { seriousDamage: data.seriousDamage === true }),
+    estimate: estimateBuyback(referenceFor(product).reference, issues, {
+      seriousDamage: data.seriousDamage === true,
+      approved: referenceFor(product).approved,
+    }),
   };
 };

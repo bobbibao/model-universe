@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { Op } from 'sequelize';
 import type { Sequelize } from 'sequelize-typescript';
-import { seedTestDatabase } from './support/testDb';
+import { seedTestDatabase, withVerifiedListPrices } from './support/testDb';
 import OrderService from '../../src/core/server/services/OrderService';
 import FulfillmentService from '../../src/core/server/services/FulfillmentService';
 import VoucherService from '../../src/core/server/services/VoucherService';
@@ -119,6 +119,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
     // The background waybill after each verified payment is exercised explicitly in the payOS test.
     jest.spyOn(FulfillmentService.prototype, 'autoCreateShipment').mockResolvedValue(null);
     db = await seedTestDatabase();
+    await withVerifiedListPrices(db);
     product = (await ProductModel.findOne({
       where: { condition: 'new', isArchived: false, partnerId: null },
       order: [['id', 'ASC']],

@@ -56,6 +56,11 @@ export const seedTestDatabase = async (seedNow = new Date().toISOString()): Prom
   return DatabaseProvider.getInstance();
 };
 
+// For suites that exercise codes on the seeded catalogue: its prices count as approved real list prices R. The owner's
+// catalogue has no R yet, so the shop sells at S and no member or voucher code applies (owner rule of 2026-10-25).
+export const withVerifiedListPrices = (sequelize: Sequelize) =>
+  sequelize.query('UPDATE product SET "listPriceVerified" = true WHERE "partnerId" IS NULL');
+
 // An Express app with the given controllers' routes under /api and a signed-in admin (header `x-test-role: ADMIN`).
 export const testApp = async (...controllers: string[]) => {
   const { router } = await import('../../../src/shared/server/decorators/controller.decorator');

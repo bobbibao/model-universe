@@ -33,7 +33,7 @@ import {
 
 const tabForError = (key: string) => {
   if (key === 'mainImage') return 'images';
-  if (['price', 'importPrice', 'pricingReferenceMemberVnd', 'pricingIssueCount'].includes(key)) return 'pricing';
+  if (['price', 'importPrice', 'pricingReferenceMemberVnd'].includes(key)) return 'pricing';
   if (['missingAccessories', 'defects', 'includedAccessories', 'condition', 'conditionNote'].includes(key))
     return 'conditions';
   if (['stock', 'sku', 'weight', 'dimensions', 'productionDate'].includes(key) || key.startsWith('pack'))

@@ -12,7 +12,7 @@ import { CATEGORIES } from '../../src/core/server/database/client/seeders/Catego
 import loadedProducts from '../../src/core/server/database/client/seeders/data/products.json';
 import ownerRows from '../../src/core/server/database/client/seeders/data/catalog-6-brands-defaults.json';
 import { parseProductPackaging } from '../../src/shared/packing/rules';
-import { catalogFormula } from '../../src/shared/sale-pricing';
+import { legacyCatalogFormula } from '../../src/shared/sale-pricing';
 
 const entries = loadCatalogEntries();
 const byId = (id: string) => entries.find((entry) => entry.id === id)!;
@@ -104,7 +104,7 @@ describe('Model Universe mecha catalog seed', () => {
 
   it("prices CD-01 from the owner's buy-in and member price through the catalogue formula", () => {
     const [cd01] = entries.filter((entry) => entry.sku === 'CD-01');
-    const formula = catalogFormula(2_650_000, 0);
+    const formula = legacyCatalogFormula(2_650_000, 0);
     expect(toProductValues(cd01)).toMatchObject({
       price: formula.listPriceVnd,
       importPrice: 2_200_000,

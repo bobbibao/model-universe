@@ -14,7 +14,8 @@ import CommercePolicyService from './CommercePolicyService';
 
 // The price and cost data the v6.2 profit guard reads (docs/business/pricing-voucher-specification.md, decision V3).
 // R: the published product price, unless an approved price record exists and differs from it; under the policy
-// `pricingApproval: 'required'` only a price that matches an approved record counts. C: the approved cost profile
+// `pricingApproval: 'required'` only a price that matches an approved record counts. A product still sold at its
+// target price S (owner rule of 2026-10-25: `listPriceVerified` false, no real R approved yet) has no R at all. C: the approved cost profile
 // (with the latest receipt price when that is higher than its buy-in) or, without one, the receipt price
 // `importPrice`. A price or cost the guard cannot trust blocks every code (MISSING_DATA).
 export interface EffectivePricing {
@@ -23,6 +24,9 @@ export interface EffectivePricing {
 }
 
 export type PricingRecordKind = 'price' | 'cost';
+// `listPriceVerified` may be left unloaded by a caller; then only the approved records decide.
+type PricedProduct = Pick<ProductModel, 'id' | 'price' | 'importPrice' | 'partnerId'> &
+  Partial<Pick<ProductModel, 'listPriceVerified'>>;
 
 const COST_FIELDS = [
   'buyInVnd',
@@ -59,14 +63,14 @@ export default class PricingApprovalService {
 
   // Everything the guard needs for these products: the approved voucher policy (and its version, for the order
   // snapshot) and their effective price and cost.
-  async context(products: Iterable<Pick<ProductModel, 'id' | 'price' | 'importPrice' | 'partnerId'>>, transaction?: Transaction) {
+  async context(products: Iterable<PricedProduct>, transaction?: Transaction) {
     const { policy, version } = await this.policies.voucherPolicy(transaction);
     return { policy, policyVersion: version, pricing: await this.effective([...products], policy, transaction) };
   }
 
   // Approved records of these products, for the guard.
   async effective(
-    products: readonly Pick<ProductModel, 'id' | 'price' | 'importPrice' | 'partnerId'>[],
+    products: readonly PricedProduct[],
     policy: Pick<VoucherPolicy, 'pricingApproval'>,
     transaction?: Transaction,
   ): Promise<Map<number, EffectivePricing>> {
@@ -91,7 +95,9 @@ export default class PricingApprovalService {
             costVnd: profile ? profileUnitCostVnd(profile, receipt) : receipt,
             priceApproved: product.partnerId
               ? true
-              : approved
+              : product.listPriceVerified === false
+                ? false
+                : approved
                 ? approved.listPriceVnd === product.price
                 : policy.pricingApproval === 'recorded',
           },
@@ -102,7 +108,7 @@ export default class PricingApprovalService {
 
   // The unit cost C of these products (the approved cost profile, else the receipt price), for the direct-sale floor.
   async unitCosts(
-    products: readonly Pick<ProductModel, 'id' | 'price' | 'importPrice' | 'partnerId'>[],
+    products: readonly PricedProduct[],
     transaction?: Transaction,
   ) {
     const effective = await this.effective(products, { pricingApproval: 'recorded' }, transaction);
@@ -111,10 +117,12 @@ export default class PricingApprovalService {
 
   // Products with their approved and proposed records (newest first) for the admin page, with the counts staff scan
   // first. `filter`: 'pending' (a draft awaits a second admin), 'mismatch' (the price changed after approval),
-  // 'unapproved' (no approved list price yet).
+  // 'unapproved' (no approved real list price R yet: the shop sells at S), 'target' (S awaits approval).
   async list(query: { q?: unknown; filter?: unknown; limit?: unknown; offset?: unknown } = {}) {
     const q = typeof query.q === 'string' ? query.q.trim() : '';
-    const filter = ['pending', 'mismatch', 'unapproved'].includes(String(query.filter)) ? String(query.filter) : 'all';
+    const filter = ['pending', 'mismatch', 'unapproved', 'target'].includes(String(query.filter))
+      ? String(query.filter)
+      : 'all';
     const limit = Math.min(100, Math.max(1, Number(query.limit) || 30));
     const offset = Math.max(0, Number(query.offset) || 0);
     const db = DatabaseProvider.getInstance();
@@ -133,17 +141,35 @@ export default class PricingApprovalService {
       ...(q ? { [Op.or]: [{ name: { [Op.iLike]: `%${q}%` } }, { sku: { [Op.iLike]: `%${q}%` } }] } : {}),
       ...(filter === 'pending' ? { id: { [Op.in]: pendingIds } } : {}),
       ...(filter === 'mismatch' ? { id: { [Op.in]: mismatchIds } } : {}),
-      ...(filter === 'unapproved' ? { id: { [Op.notIn]: approvedIds.length ? approvedIds : [0] } } : {}),
+      ...(filter === 'unapproved'
+        ? { [Op.or]: [{ listPriceVerified: false }, { id: { [Op.notIn]: approvedIds.length ? approvedIds : [0] } }] }
+        : {}),
+      ...(filter === 'target' ? { targetPriceApprovedAt: null } : {}),
     };
-    const [{ rows: products, count }, activeCount] = await Promise.all([
+    const shop = { partnerId: null, isArchived: false };
+    const [{ rows: products, count }, activeCount, targetPending, soldAtTarget] = await Promise.all([
       ProductModel.findAndCountAll({
         where,
-        attributes: ['id', 'sku', 'name', 'imageUrl', 'price', 'importPrice', 'pricingReferenceMemberVnd', 'partnerId'],
+        attributes: [
+          'id',
+          'sku',
+          'name',
+          'imageUrl',
+          'price',
+          'importPrice',
+          'pricingReferenceMemberVnd',
+          'buybackPriceVnd',
+          'targetPriceApprovedAt',
+          'listPriceVerified',
+          'partnerId',
+        ],
         order: [['id', 'ASC']],
         limit,
         offset,
       }),
-      ProductModel.count({ where: { partnerId: null, isArchived: false } }),
+      ProductModel.count({ where: shop }),
+      ProductModel.count({ where: { ...shop, targetPriceApprovedAt: null } }),
+      ProductModel.count({ where: { ...shop, listPriceVerified: false } }),
     ]);
     const productIds = products.map((product) => product.id);
     const [costs, prices] = await Promise.all([
@@ -157,6 +183,8 @@ export default class PricingApprovalService {
         pending: pendingIds.length,
         mismatch: mismatchIds.length,
         approved: approvedIds.length,
+        targetPending,
+        soldAtTarget,
       },
       count,
       rows: products.map((product) => {
@@ -170,9 +198,12 @@ export default class PricingApprovalService {
           priceVnd: product.price,
           receiptCostVnd: product.importPrice,
           referenceMemberVnd: product.pricingReferenceMemberVnd,
+          buybackPriceVnd: product.buybackPriceVnd,
+          targetPriceApprovedAt: product.targetPriceApprovedAt,
+          listPriceVerified: product.listPriceVerified,
           unitCostVnd: effective.get(product.id)!.costVnd,
           // The product's current price differs from its approved R: codes are blocked until it is approved again.
-          priceMismatch: !!approvedPrice && approvedPrice.listPriceVnd !== product.price,
+          priceMismatch: product.listPriceVerified && !!approvedPrice && approvedPrice.listPriceVnd !== product.price,
           prices: priceRecords.slice(0, 5),
           costs: costs.filter((row) => row.productId === product.id).slice(0, 5),
         };
@@ -198,7 +229,30 @@ export default class PricingApprovalService {
       .then((max) => (Number(max) || 0) + 1);
   }
 
-  // A DRAFT list price R: the product's current price, with the proof that it is really published.
+  // Approve the target selling price S (owner rule of 2026-10-25): B17 = 17% × S is offered for buy-backs only once S
+  // is approved. One admin, audited; a changed S clears the approval (ProductService, the owner catalogue sync).
+  async approveTarget(productId: unknown, actorUserId: number) {
+    return DatabaseProvider.getInstance().transaction(async (transaction) => {
+      await this.admin(actorUserId, transaction);
+      const product = await this.product(productId, transaction);
+      if (!product.pricingReferenceMemberVnd) throw HttpError.conflict('Sản phẩm chưa có giá bán mục tiêu S.', 'NO_TARGET_PRICE');
+      if (product.targetPriceApprovedAt) return product;
+      await product.update({ targetPriceApprovedAt: new Date(), targetPriceApprovedByUserId: actorUserId }, { transaction });
+      await this.audit(
+        'product_pricing',
+        product.id,
+        'approve_target',
+        actorUserId,
+        null,
+        { referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd },
+        transaction,
+      );
+      return product;
+    });
+  }
+
+  // A DRAFT real list price R with the proof that it is really published (a listing, an invoice). R is entered, never
+  // derived from S; once a second admin approves it, it becomes the price charged.
   async proposePrice(actorUserId: number, data: Record<string, unknown>) {
     const proof = text(data.proof, 'Nơi công bố giá'),
       reason = text(data.reason, 'Lý do');
@@ -206,9 +260,6 @@ export default class PricingApprovalService {
       await this.admin(actorUserId, transaction);
       const product = await this.product(data.productId, transaction);
       const listPriceVnd = wholeVnd(data.listPriceVnd, 'Giá niêm yết', 1);
-      // R is the price the shop really publishes, never one derived in this form.
-      if (listPriceVnd !== product.price)
-        throw HttpError.conflict('Hãy đề xuất đúng giá sản phẩm đang đăng; muốn giá khác thì đổi giá sản phẩm trước.', 'PRICE_CHANGED');
       const row = await ProductPriceApprovalModel.create(
         {
           productId: product.id,
@@ -268,9 +319,14 @@ export default class PricingApprovalService {
       if (row.proposedByUserId === actorUserId)
         throw HttpError.conflict('Cần một quản trị viên khác duyệt đề xuất của bạn.', 'SEPARATE_APPROVER');
       const product = await this.product(row.productId, transaction);
-      if (kind === 'price' && (row as unknown as ProductPriceApprovalModel).listPriceVnd !== product.price)
-        throw HttpError.conflict('Giá sản phẩm đã đổi sau khi đề xuất. Hãy đề xuất lại theo giá hiện tại.', 'PRICE_CHANGED');
       const now = new Date();
+      if (kind === 'price') {
+        // The approved real list price R becomes the price charged (it replaces S or an earlier R).
+        const listPriceVnd = (row as unknown as ProductPriceApprovalModel).listPriceVnd;
+        const oldValue = { listPriceVnd: product.price, listPriceVerified: product.listPriceVerified };
+        await product.update({ price: listPriceVnd, listPriceVerified: true }, { transaction });
+        await this.audit('product_pricing', product.id, 'approve_list_price', actorUserId, oldValue, { listPriceVnd, listPriceVerified: true }, transaction);
+      }
       await model.update(
         { status: 'RETIRED' as PricingRecordStatus, retiredByUserId: actorUserId, retiredAt: now },
         { where: { productId: row.productId, status: 'APPROVED' }, transaction },

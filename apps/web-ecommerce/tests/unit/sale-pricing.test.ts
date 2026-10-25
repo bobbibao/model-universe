@@ -1,6 +1,6 @@
 import {
-  catalogFormula,
   catalogPricing,
+  legacyCatalogFormula,
   safeSalePercent,
   weeklySalePercent,
   vietnamWeekStart,
@@ -10,8 +10,9 @@ import { couponDiscount } from '../../src/core/server/services/CouponService';
 import { applyDiscount } from '../../src/core/server/services/ProductDiscountService';
 
 describe('shop sale and catalog pricing', () => {
-  it('calculates B and R from the spec example, with ordinary issue deductions', () => {
-    const result = catalogFormula(1_100_000, 2);
+  // The former formula (R ≈ S ÷ 0.9), kept only for the catalogue migration that applied it.
+  it('calculates the legacy B and R from the spec example, with ordinary issue deductions', () => {
+    const result = legacyCatalogFormula(1_100_000, 2);
     expect(result.buybackPriceVnd).toBe(750_000); // 1,100,000 − 250,000 − 2 × 50,000
     expect(result.listPriceVnd).toBe(1_222_222);
     expect(memberPrice(result.listPriceVnd)).toBe(1_100_000);
@@ -19,22 +20,22 @@ describe('shop sale and catalog pricing', () => {
   it.each([500_000, 500_001, 1_000_000, 1_000_001, 1_500_000, 2_000_000, 3_000_000, 5_000_000])(
     'round-trips the member price at %i',
     (s) => {
-      expect(memberPrice(catalogFormula(s, 0).listPriceVnd)).toBe(s);
+      expect(memberPrice(legacyCatalogFormula(s, 0).listPriceVnd)).toBe(s);
     },
   );
   it('does not invent formulas for appraisal-only goods or non-positive offers', () => {
-    expect(() => catalogFormula(5_000_001, 0)).toThrow();
-    expect(() => catalogFormula(100_000, 1)).toThrow();
-    expect(() => catalogFormula(900_000, -1)).toThrow();
+    expect(() => legacyCatalogFormula(5_000_001, 0)).toThrow();
+    expect(() => legacyCatalogFormula(100_000, 1)).toThrow();
+    expect(() => legacyCatalogFormula(900_000, -1)).toThrow();
   });
-  it('prices catalogue models above the buy-back table from S without a formula buy-back price', () => {
-    expect(catalogPricing(2_350_000, 0)).toEqual(catalogFormula(2_350_000, 0));
-    const metalBuild = catalogPricing(40_000_000, 0);
-    expect(memberPrice(metalBuild.listPriceVnd)).toBe(40_000_000);
-    expect(metalBuild).toMatchObject({ buybackPriceVnd: null, deductionVnd: null, referenceMemberVnd: 40_000_000 });
-    expect(() => catalogPricing(6_000_000, 1)).toThrow();
-    expect(() => catalogPricing(1_000_000_001, 0)).toThrow();
-    expect(() => catalogPricing(0, 0)).toThrow();
+  // Owner rule of 2026-10-25: S is the target price, B17 = ROUND(0.17 × S) at every price, and no R is derived from S.
+  it('prices the catalogue from S with B17 and no derived list price', () => {
+    expect(catalogPricing(1_100_000)).toEqual({ referenceMemberVnd: 1_100_000, buybackPriceVnd: 187_000 });
+    expect(catalogPricing(40_000_000)).toEqual({ referenceMemberVnd: 40_000_000, buybackPriceVnd: 6_800_000 });
+    expect(catalogPricing(5_000_001).buybackPriceVnd).toBe(850_000);
+    expect(() => catalogPricing(1_000_000_001)).toThrow();
+    expect(() => catalogPricing(0)).toThrow();
+    expect(() => catalogPricing(1.5)).toThrow();
   });
   it('selects deeper weekly discounts only when the original profit floor allows them', () => {
     expect(weeklySalePercent(1_000_000, 100_000, 60, 25)).toBe(15);

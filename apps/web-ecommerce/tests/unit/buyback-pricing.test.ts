@@ -1,4 +1,5 @@
 import {
+  b17,
   compareInspection,
   countIssues,
   estimateBuyback,
@@ -6,91 +7,69 @@ import {
   type BuybackIssue,
 } from '../../src/shared/buyback-pricing';
 
-// Buyback specification chapter XV (TC01–TC25) and chapter IV examples, with the table of the unified rules v5.0
-// (tests T1–T9).
+// Buy-back at 17% of the approved target price S: the owner's specification of 2026-10-25, section V (§18) and the
+// examples of §5 (docs/business/source/vi/buyback-17-percent-specification.md).
 const issue = (type: BuybackIssue['type'], quantity: number) => ({ type, quantity });
 
-describe('buyback pricing (v5.0 table)', () => {
+describe('buyback pricing B17 = ROUND(0.17 × S)', () => {
   it.each([
-    [500_000, 400_000],
-    [1_000_000, 800_000],
-    [1_500_000, 1_250_000],
-    [2_000_000, 1_650_000],
-    [3_000_000, 2_550_000],
-    [5_000_000, 4_500_000],
-  ])('TC01–TC06: a %i VND model without issues is bought at %i VND', (reference, expected) => {
-    expect(estimateBuyback(reference, [])).toMatchObject({ estimateVnd: expected, manualReview: null });
+    [1_000_000, 170_000],
+    [2_000_000, 340_000],
+    [2_250_000, 382_500],
+    [5_000_000, 850_000],
+    [5_000_001, 850_000],
+    [10_000_000, 1_700_000],
+    [20_000_000, 3_400_000],
+  ])('S = %i gives B17 = %i, without steps at 5, 10 or 20 million', (s, expected) => {
+    expect(b17(s)).toBe(expected);
+    expect(estimateBuyback(s, [], { approved: true })).toMatchObject({
+      estimateVnd: expected,
+      manualReview: null,
+      ruleVersion: 'buyback-17',
+      baseDeductionVnd: null,
+      issueDeductionVnd: 0,
+    });
   });
 
-  it('uses inclusive tier boundaries (500,001 VND is in the second tier)', () => {
-    expect(estimateBuyback(500_001, []).baseDeductionVnd).toBe(200_000);
+  it('rounds half up on whole VND (0.5 goes up)', () => {
+    expect(b17(50)).toBe(9); // 8.5
+    expect(b17(1)).toBe(0); // 0.17
+    expect(b17(3)).toBe(1); // 0.51
   });
 
-  it.each([
-    ['TC07 missing box', [issue('missing_box', 1)], 50_000],
-    ['TC08 poor assembly', [issue('poor_assembly', 1)], 50_000],
-    ['TC09 two broken parts', [issue('broken_part', 2)], 100_000],
-    ['TC10 three missing accessories', [issue('missing_accessory', 3)], 150_000],
-    ['TC11 glue in two places', [issue('glue_mark', 2)], 100_000],
-    ['TC12 three other issues', [issue('other', 3)], 150_000],
-  ])('%s deducts %i VND', (_, issues, deduction) => {
-    expect(estimateBuyback(2_000_000, issues).issueDeductionVnd).toBe(deduction);
+  it('never deducts per issue: an issue, serious damage, or a missing or unapproved S goes to an admin', () => {
+    expect(estimateBuyback(2_000_000, [issue('missing_box', 1)], { approved: true })).toMatchObject({
+      estimateVnd: null,
+      manualReview: 'issues_declared',
+    });
+    expect(estimateBuyback(2_000_000, [], { approved: true, seriousDamage: true }).manualReview).toBe('serious_damage');
+    expect(estimateBuyback(2_000_000, []).manualReview).toBe('reference_not_approved');
+    expect(estimateBuyback(null, [], { approved: true }).manualReview).toBe('no_reference_price');
   });
 
-  it('TC13: a whole-model condition reported twice is charged once', () => {
+  it('counts issues for the inspection record only', () => {
     expect(countIssues([issue('missing_box', 1), issue('missing_box', 1), issue('poor_assembly', 3)])).toBe(2);
-  });
-
-  it('matches the worked examples (1,150,000 / 1,300,000 / 4,250,000 VND)', () => {
-    expect(estimateBuyback(1_500_000, [issue('missing_box', 1), issue('broken_part', 1)]).estimateVnd).toBe(1_150_000);
-    expect(
-      estimateBuyback(2_000_000, [
-        issue('missing_box', 1),
-        issue('broken_part', 2),
-        issue('poor_assembly', 1),
-        issue('glue_mark', 1),
-        issue('missing_accessory', 2),
-      ]).estimateVnd,
-    ).toBe(1_300_000);
-    expect(estimateBuyback(5_000_000, [issue('broken_part', 2), issue('missing_accessory', 3)]).estimateVnd).toBe(4_250_000);
-  });
-
-  it('TC24/TC25: serious damage, missing reference and prices above 5 million go to manual pricing', () => {
-    expect(estimateBuyback(2_000_000, [], { seriousDamage: true }).manualReview).toBe('serious_damage');
-    expect(estimateBuyback(5_000_001, []).manualReview).toBe('above_tier_table');
-    expect(estimateBuyback(null, []).manualReview).toBe('no_reference_price');
-    expect(estimateBuyback(500_000, [issue('other', 8)])).toMatchObject({ estimateVnd: null, manualReview: 'zero_estimate' });
-  });
-
-  it('TC17/TC18: the inspection adjusts both ways', () => {
     const declared = [issue('missing_box', 1), issue('broken_part', 2)];
-    const added = compareInspection(declared, [...declared, issue('missing_accessory', 1)]);
-    expect(added).toMatchObject({ newIssueCount: 1, resolvedIssueCount: 0, deductionDifferenceVnd: 50_000 });
-    const fewer = compareInspection(declared, [issue('broken_part', 1)]);
-    expect(fewer).toMatchObject({ newIssueCount: 0, resolvedIssueCount: 2, deductionDifferenceVnd: -100_000 });
+    expect(compareInspection(declared, [...declared, issue('missing_accessory', 1)])).toMatchObject({
+      newIssueCount: 1,
+      resolvedIssueCount: 0,
+    });
   });
 
-  it('T8: a 900,000 VND buy-in without defects works back to S = 1,150,000 (not 1,100,000)', () => {
-    expect(resaleCandidates(900_000)).toEqual([{ sellingPriceVnd: 1_150_000, baseDeductionVnd: 250_000 }]);
+  it('a request quoted under a former tier rule keeps its terms (no retroactive change)', () => {
+    const quoted = { baseDeductionVnd: 250_000, ruleVersion: 'buyback-5.0' };
+    expect(estimateBuyback(1_500_000, [issue('broken_part', 1)], { quoted })).toMatchObject({
+      estimateVnd: 1_200_000,
+      ruleVersion: 'buyback-5.0',
+    });
+    expect(estimateBuyback(1_500_000, [], { quoted: { baseDeductionVnd: 200_000, ruleVersion: 'buyback-2.0' } })).toMatchObject(
+      { estimateVnd: 1_300_000, ruleVersion: 'buyback-2.0' },
+    );
   });
 
-  it('a request quoted under an earlier table keeps its base deduction and rule version', () => {
-    const quoted = { baseDeductionVnd: 200_000, ruleVersion: 'buyback-2.0' };
-    expect(estimateBuyback(1_500_000, [], { quoted })).toMatchObject({ estimateVnd: 1_300_000, ruleVersion: 'buyback-2.0' });
-    expect(estimateBuyback(1_500_000, [], { quoted: null })).toMatchObject({ estimateVnd: 1_250_000, ruleVersion: 'buyback-5.0' });
-  });
-
-  it('T9: near a boundary every valid S is listed, lowest first', () => {
-    expect(resaleCandidates(1_250_000)).toEqual([
-      { sellingPriceVnd: 1_500_000, baseDeductionVnd: 250_000 },
-      { sellingPriceVnd: 1_600_000, baseDeductionVnd: 350_000 },
-    ]);
-  });
-
-  it('policy section 4 and 8 examples: 2,000,000 with box, part and two accessories → 1,450,000, then 1,350,000', () => {
-    const declared = [issue('missing_box', 1), issue('broken_part', 1), issue('missing_accessory', 2)];
-    expect(estimateBuyback(2_000_000, declared).estimateVnd).toBe(1_450_000);
-    const inspected = [issue('missing_box', 1), issue('broken_part', 2), issue('missing_accessory', 3)];
-    expect(estimateBuyback(2_000_000, inspected).estimateVnd).toBe(1_350_000);
+  it('works a known B17 back to the smallest S that gives it', () => {
+    expect(resaleCandidates(340_000)).toEqual([{ sellingPriceVnd: 1_999_998, baseDeductionVnd: 1_659_998 }]);
+    expect(b17(1_999_998)).toBe(340_000);
+    expect(b17(1_999_997)).toBe(339_999);
   });
 });

@@ -1,7 +1,7 @@
 import type { Sequelize } from 'sequelize-typescript';
 import { earnedPoints } from '../../src/shared/promotions';
 import { Op } from 'sequelize';
-import { seedTestDatabase } from './support/testDb';
+import { seedTestDatabase, withVerifiedListPrices } from './support/testDb';
 import LoyaltyService from '../../src/core/server/services/LoyaltyService';
 import CommercePolicyService from '../../src/core/server/services/CommercePolicyService';
 import OrderService from '../../src/core/server/services/OrderService';
@@ -59,6 +59,7 @@ describe('member transactions on disposable PostgreSQL', () => {
   beforeAll(async () => {
     jest.spyOn(ConversionService.prototype, 'recordPurchase').mockResolvedValue(undefined as never);
     db = await seedTestDatabase();
+    await withVerifiedListPrices(db);
     product = (await ProductModel.findOne({ where: { stock: { [Op.gt]: 5 } } }))!;
     // A real margin (cost 60% of the price): point vouchers pass the same profit checks as every main voucher (v6.2).
     await product.update({ price: 4000000, importPrice: 2400000, modelCode: 'RG-FIXTURE', stock: 40 });

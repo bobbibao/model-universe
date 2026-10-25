@@ -11,8 +11,9 @@ import PawnContractModel from '../database/client/models/PawnContract.Model';
 import HttpError from '../../../shared/server/utils/HttpError';
 import FileStorageService from './FileStorageService';
 
-// Used only after the source workflow has verified buyback ownership or contractual pawn disposal.
-export async function activateOwnedCollectibleDraft(productId: number, modelCode: string, acquisitionCostVnd: number, transaction: Transaction) {
+// Used only after the source workflow has verified buyback ownership or contractual pawn disposal. `publish: false`
+// takes the unit into stock as a DRAFT listing (still archived) for the buy-back publication check.
+export async function activateOwnedCollectibleDraft(productId: number, modelCode: string, acquisitionCostVnd: number, transaction: Transaction, { publish = true }: { publish?: boolean } = {}) {
   const product = await ProductModel.findByPk(productId, { transaction, lock: transaction.LOCK.UPDATE });
   if (!product || product.partnerId || !product.isArchived || product.stock !== 0 || product.sold !== 0 || product.condition !== 'preowned' || product.modelCode !== modelCode) throw HttpError.conflict('Use a fresh archived, zero-stock shop-owned preowned draft with the inspected model code.');
   // A transaction uses one PostgreSQL connection; do not issue overlapping queries on it.
@@ -29,6 +30,6 @@ export async function activateOwnedCollectibleDraft(productId: number, modelCode
   try { for (const url of photos) hashes.add(crypto.createHash('sha256').update(await fs.readFile(path.join(FileStorageService.getUploadRoot(), url.slice('/uploads/'.length)))).digest('hex')); }
   catch { throw HttpError.badRequest('An actual-item upload is missing. Reconcile the listing photographs before intake.'); }
   if (hashes.size < 3) throw HttpError.badRequest('Use three distinct actual-item views, not copies of the same photograph.');
-  await product.update({ stock: 1, importPrice: acquisitionCostVnd, isArchived: false, inventoryStatus: 'available' }, { transaction });
+  await product.update({ stock: 1, importPrice: acquisitionCostVnd, isArchived: !publish, inventoryStatus: 'available' }, { transaction });
   return product;
 }

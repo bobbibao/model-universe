@@ -58,6 +58,7 @@ const unitsOf = (product: ProductDetailType): ProductConditionOption[] =>
           images: product.images,
           stock: product.stock,
           price: product.price,
+          listPriceVerified: product.listPriceVerified,
           salePrice: product.salePrice,
           discountPercent: product.discountPercent,
           discountEndsAt: product.discountEndsAt,

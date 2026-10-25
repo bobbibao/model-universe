@@ -32,6 +32,11 @@ export default class AdminPricingController extends ApiBaseController {
     try { return this.sendSuccess(res, await this.approvals.proposePrice(req.user!.id, req.body || {}), 'Đã gửi đề xuất giá niêm yết; chờ quản trị viên khác duyệt.', 201); }
     catch (error) { return this.handleError(res, error, 'Propose a list price'); }
   }
+  @Post('/targets/:id/approve')
+  async approveTarget(req: Request, res: Response) {
+    try { return this.sendSuccess(res, await this.approvals.approveTarget(toInteger(req.params.id) || 0, req.user!.id), 'Đã duyệt giá bán mục tiêu S.'); }
+    catch (error) { return this.handleError(res, error, 'Approve a target price'); }
+  }
   @Post('/records/cost')
   async proposeCost(req: Request, res: Response) {
     try { return this.sendSuccess(res, await this.approvals.proposeCost(req.user!.id, req.body || {}), 'Đã gửi đề xuất hồ sơ giá vốn; chờ quản trị viên khác duyệt.', 201); }

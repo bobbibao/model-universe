@@ -1,5 +1,5 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
-import type { BuybackAsset, BuybackOffer, BuybackStatus } from '../../../../../shared/types/buyback';
+import type { BuybackAsset, BuybackOffer, BuybackStatus, TradeQuote } from '../../../../../shared/types/buyback';
 import type { BuybackEstimate, BuybackIssue, InspectionComparison } from '../../../../../shared/buyback-pricing';
 
 @Table({
@@ -31,5 +31,9 @@ export default class BuybackRequestModel extends Model {
   @Column(DataType.TEXT) evidenceRequest!: string | null;
   @Column(DataType.TEXT) reviewRequest!: string | null;
   @Column(DataType.JSONB) returnTerms!: { details: string; accepted: boolean; tracking: string | null } | null;
+  // A trade (owner specification of 2026-10-25, §9): the shop item the customer takes for this model, and the current
+  // quote revision of the difference D. Null for a plain buy-back.
+  @Column(DataType.INTEGER) tradeProductId!: number | null;
+  @Column(DataType.JSONB) tradeQuote!: TradeQuote | null;
   public static async seedData(): Promise<void> {}
 }

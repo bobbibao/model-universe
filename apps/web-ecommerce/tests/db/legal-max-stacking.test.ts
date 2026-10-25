@@ -1,6 +1,6 @@
 import type { Express } from 'express';
 import type { Sequelize } from 'sequelize-typescript';
-import { seedTestDatabase, testApp } from './support/testDb';
+import { seedTestDatabase, testApp, withVerifiedListPrices } from './support/testDb';
 import {
   callApproved,
   establishedProducts,
@@ -22,6 +22,7 @@ describe('legal maximum on stacked promotions', () => {
   beforeAll(async () => {
     useApprovalSecret();
     sequelize = await seedTestDatabase();
+    await withVerifiedListPrices(sequelize);
     app = await testApp('AgentApi.Controller');
     // Seeded products cost 60% of their price; a 10% floor lets a 30% discount through.
     await setAgentSetting(sequelize, 'growth.goal', {

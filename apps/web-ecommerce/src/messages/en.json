@@ -1173,12 +1173,18 @@
       "accept_return": "Customer accepted return terms",
       "return_dispatched": "Actual return handover recorded",
       "payout": "Actual payout and ownership transfer verified",
-      "intake": "Source-linked inventory activated",
+      "intake": "Taken into stock as a draft listing",
       "request_evidence": "Shop asked for more photos/video",
       "add_evidence": "Customer added photos/video",
-      "request_review": "Customer asked for a re-inspection"
+      "request_review": "Customer asked for a re-inspection",
+      "qc_passed": "Pre-listing QC passed",
+      "qc_failed": "Pre-listing QC not passed",
+      "published": "Published after the final check",
+      "approve_trade_refund": "Admin approved the amount the shop pays back"
     },
-    "historyDetails": "View the recorded quote and decision"
+    "historyDetails": "View the recorded quote and decision",
+    "paidByCustomer": "Difference received",
+    "tradeSettlementNote": "Record the accepted difference D exactly (0 when even) and the handover of the traded item; the item leaves stock."
   },
   "pawn": {
     "title": "Keep your collection. Unlock its value.",
@@ -2808,10 +2814,10 @@
     "cost": "Cost C including costs (VND)",
     "basket": "Basket of two or more products (v6.2 uses the same limits for every basket)",
     "calculate": "Calculate",
-    "candidates": "Selling price candidates from the buyback table",
-    "candidate": "Sell at {price} (tier deduction {deduction})",
-    "noCandidate": "No selling price matches the buyback table; record it as an individual price.",
-    "listFromMember": "S {member} → list price R {list} (check: after 10% = {check})",
+    "candidates": "Target price S for this buy-back price (B17 = 17% × S)",
+    "candidate": "S = {price}",
+    "noCandidate": "No S gives exactly this buy-back price under B17; record it as an individual price.",
+    "listFromMember": "Reference: S {member} matches R {list} when the 10% code applies to a real R (check: {check}). Never use it to create R: R must be a real, approved published price.",
     "baseline": "Standard 10% profit: {amount}",
     "minimumProfit": "Minimum profit to keep: {amount}",
     "minimumPayment": "Lowest customer payment: {amount}",
@@ -2860,20 +2866,20 @@
     "step4": "4. Confirm and send",
     "catalogSearch": "Find the model in the catalog (brand, name, kit code, SKU)",
     "catalogPlaceholder": "e.g. RX-78-2, HG Aerial…",
-    "catalogChosen": "Reference model: {name} – list price {price}",
+    "catalogChosen": "Reference model: {name} – price {price}",
     "catalogClear": "Clear",
-    "catalogHint": "Not in the catalog? You can still send it for a manual valuation.",
-    "issuesNote": "Each ordinary issue deducts {amount}. A missing box, a damaged box and poor assembly count once for the whole model.",
+    "catalogHint": "Not in the catalog? You can still send it for an admin to price.",
+    "issuesNote": "Declare every issue and missing accessory. With an issue no automatic price applies: an admin reviews and quotes it, with no fixed deduction per issue.",
     "issueType": "Issue type",
     "quantity": "Count",
     "issueDescription": "Location / description",
     "removeIssue": "Remove",
     "addIssue": "Add issue",
-    "seriousDamage": "Serious damage (lost function, major deformation, missing key parts) – needs a manual valuation.",
+    "seriousDamage": "Serious damage (lost function, major deformation, missing key parts) – priced by an admin.",
     "media": "Photos and video of the model",
     "mediaNote": "Front, back, both sides, the box, all accessories laid out and a close-up of each issue; one video of the whole model and accessories. Photos up to 10 MB, video up to 100 MB. No faces needed.",
     "mediaCount": "{photos} photos, {videos} videos uploaded (at least 3 photos and 1 video).",
-    "warning": "The price shown is an estimate based on your declaration. When the parcel arrives, MODEL universe records the unboxing, inspects the whole model and accessories, then sends the official price. New issues cost 50,000 VND each (ordinary issues) or are priced separately; you can accept, ask for a re-inspection or decline.",
+    "warning": "The price shown is a NOT-FINAL estimate from your declaration. When the parcel arrives, MODEL universe records the unboxing, inspects the whole model and accessories, then sends the official price; new issues are priced by an admin. You can accept, ask for a re-inspection or decline.",
     "confirm": {
       "honest": "The information and condition I provide are honest.",
       "issues": "I declared the issues I know of.",
@@ -2883,18 +2889,22 @@
       "decision": "I agree to receive the inspection result and decide on the final price; I read the shipping, cancellation and return terms."
     },
     "estimate": {
-      "reference": "Reference selling price (member price)",
+      "reference": "The shop's target selling price S",
       "base": "Tier base deduction",
       "issues": "Issue deduction: {count} × {each}",
       "total": "EXPECTED BUYBACK PRICE",
-      "manual": "Priced manually by the shop",
+      "manual": "Priced by an admin",
       "reasons": {
-        "no_reference_price": "No catalog reference price yet.",
+        "no_reference_price": "Not matched to a catalog model: priced by an admin.",
         "above_tier_table": "Reference price above 5,000,000 VND: appraised individually.",
         "zero_estimate": "Deductions exceed the base price: reviewed individually.",
-        "serious_damage": "Serious damage: inspected and priced individually."
+        "serious_damage": "Serious damage: inspected and priced by an admin.",
+        "reference_not_approved": "The model's target price S is not approved yet: priced by an admin.",
+        "issues_declared": "Issues or missing accessories: an admin reviews and quotes it, with no automatic deduction."
       },
-      "note": "This is not the final price; the official price comes only after the shop inspects the actual model."
+      "note": "A NOT-FINAL estimate: B17 is 17% of S, not a 17% discount. The official price comes only after the shop inspects the actual model.",
+      "legacyReference": "Reference selling price (member price)",
+      "rate": "Buy-back price B17"
     },
     "issueTypes": {
       "missing_box": "Missing original box",
@@ -2911,7 +2921,7 @@
       "other": "Other issue (each)"
     },
     "noIssues": "No issues recorded.",
-    "referenceProduct": "Reference model: {name} ({sku}) – list price {price}",
+    "referenceProduct": "Reference model: {name} ({sku}) – target price S {price}",
     "declaredIssues": "Issues the customer declared",
     "evidenceRequested": "The shop needs",
     "addEvidence": "Upload more photos/videos",
@@ -2930,9 +2940,16 @@
     "requestReview": "Ask for a re-inspection (which issues you dispute)",
     "requestReviewButton": "Send the re-inspection request",
     "manualAmount": "Manual price (empty: use the formula)",
-    "formulaNote": "Empty: the buyback table is applied (base deduction by price band, 50,000 VND per issue). Any other amount is a manual price and needs its reason.",
+    "formulaNote": "Empty: the B17 price = 17% × S is used (only with an approved S and no issues). Any other amount is a manual price and needs its reason.",
     "inspectionUpload": "Unboxing video and inspection photos",
-    "inspectionUploaded": "{count} inspection files (required before the official price)."
+    "inspectionUploaded": "{count} inspection files (required before the official price).",
+    "trade": {
+      "title": "5. Trade for a shop item (optional)",
+      "hint": "Want to trade this model for an item on sale? Choose it; the difference is worked out with the final buy-back price.",
+      "search": "Find the item you want",
+      "chosen": "Trading for: {name} – {price}",
+      "note": "Difference D = the item price − the approved buy-back price. D > 0 you pay the rest; D < 0 the shop pays it back once an admin approves. Trade value earns no points."
+    }
   },
   "address": {
     "masterDataUnavailable": "The address list could not be loaded. Please try again later.",
@@ -3553,17 +3570,17 @@
   },
   "pricingApprovals": {
     "title": "Approved prices and costs",
-    "intro": "Vouchers are checked with each product's list price and cost. A draft needs a second admin; a product whose price changed after approval takes no voucher until the new price is approved.",
+    "intro": "A target selling price S needs one admin to approve it before its buy-back price B17 (17% × S) is quoted to customers. A real list price R is entered with its proof and needs a second admin; until then the shop sells at S, with no member price or voucher on top.",
     "search": "Name or SKU",
     "empty": "No products found.",
-    "summary": "Price {price} · receipt cost {receipt} · cost used by voucher checks {cost}",
+    "summary": "Selling at {price} · S {target} · B17 {buyback} · receipt cost {receipt} · cost used by voucher checks {cost}",
     "mismatch": "The price differs from the approved list price: vouchers are blocked until the new price is approved.",
-    "prices": "List prices",
+    "prices": "Real list prices R",
     "costs": "Cost profiles",
     "none": "None yet.",
     "proof": "Where the price is published (link, invoice, receipt)",
     "reason": "Reason",
-    "proposePrice": "Propose {price} as the approved list price",
+    "proposePrice": "Propose a real list price R",
     "proposeCost": "Propose a cost profile",
     "approve": "Approve",
     "withdraw": "Withdraw",
@@ -3587,28 +3604,38 @@
       "all": "All products",
       "pending": "Awaiting a second admin",
       "mismatch": "Price changed after approval",
-      "unapproved": "No approved price",
-      "approved": "With an approved price"
+      "unapproved": "Sold at S",
+      "approved": "With an approved price",
+      "target": "S awaiting approval"
     },
     "columns": {
       "product": "Product",
-      "price": "Published price",
+      "price": "Selling at",
       "cost": "Cost checked",
-      "listPrice": "List price",
-      "costProfile": "Cost profile"
+      "listPrice": "List price R",
+      "costProfile": "Cost profile",
+      "target": "Target price S"
     },
     "chips": {
       "mismatch": "Differs from approved",
       "approved": "Approved v{version}",
       "none": "Not approved",
       "receipt": "Receipt price",
-      "pending": "{count} awaiting"
+      "pending": "{count} awaiting",
+      "targetApproved": "S approved",
+      "targetPending": "AWAITING APPROVAL",
+      "soldAtTarget": "Sold at S"
     },
     "manage": "Review",
     "receipt": "receipt {amount}",
     "unitTotal": "Per-unit total of the profile",
     "secondAdmin": "A draft needs another admin to approve it; you cannot approve your own proposal.",
-    "ownProposal": "Your proposal: another admin must approve it"
+    "ownProposal": "Your proposal: another admin must approve it",
+    "listPriceInput": "Real list price R (VND)",
+    "approveTarget": "Approve S {price}",
+    "targetApprovedAt": "S approved on {date}",
+    "soldAtTarget": "Sold at S: no real list price R is approved yet, so no member price or voucher applies.",
+    "noTarget": "This product has no target price S yet: set it on the product edit page."
   },
   "promotionReconciliation": {
     "title": "Promotion reconciliation",
@@ -3678,5 +3705,65 @@
     "offersTab": "Offers",
     "catalogWorkspace": "Model catalog workspace",
     "savedPrice": "Saved price"
+  },
+  "buybackTrade": {
+    "title": "Trade · quote revision {revision}",
+    "item": "Shop item",
+    "itemPrice": "Item price",
+    "buyback": "Approved buy-back price",
+    "pending": "Awaiting the final buy-back price",
+    "difference": "Difference D",
+    "incomplete": "Not complete (INCOMPLETE)",
+    "customerPays": "Customer pays {amount}",
+    "shopPays": "Shop pays back {amount}",
+    "even": "Even",
+    "status": {
+      "incomplete": "Quote not complete: awaiting the final buy-back price.",
+      "ready": "Quote complete, awaiting the customer.",
+      "accepted": "The customer accepted this quote.",
+      "settled": "Difference settled and the item handed over."
+    },
+    "refundApproved": "An admin approved the amount the shop pays back.",
+    "refundPending": "The amount the shop pays back needs an admin approval before the customer can accept.",
+    "noPoints": "Trade value is not a voucher and earns no points.",
+    "approveRefund": "Approve paying back {amount}"
+  },
+  "listingQc": {
+    "title": "Pre-listing review (QC)",
+    "result": {
+      "passed": "QC passed: the unit can be taken into stock as a draft listing.",
+      "failed": "QC not passed."
+    },
+    "void": {
+      "superseded": "This review was replaced by a newer one.",
+      "listing_changed": "QC void: photos, price, SKU or condition changed after the review. Review it again."
+    },
+    "failed": "Not met: {checks}",
+    "checks": {
+      "QC01": "The physical item was received, with evidence (not only a tracking number).",
+      "QC02": "Inspected on real video/photos of this exact unit (catalogue photos are reference only).",
+      "QC03": "SKU, brand, kit code, variant, colour, scale and unit/lot ID match; suspected fakes are quarantined.",
+      "QC04": "Accessories, box, parts, joints, paint/custom work, defects and originality checked; the public description is honest.",
+      "QC05": "The customer may sell or trade it, with a valid origin and documents; not pawned, unredeemed or disputed.",
+      "QC06": "An admin confirmed the final buy-back price and the customer accepted it (silence is not consent).",
+      "QC07": "The buy-back or trade is paid and reconciled with its documents, not paid twice.",
+      "QC08": "Exactly one unit, never taken in or listed before.",
+      "QC09": "Cost H is confirmed by its receipt or payout; repair, packing and shipping costs have documents; no old cost overwritten.",
+      "QC10": "A target price S > 0 is approved by an admin.",
+      "QC11": "The list price R is a REAL published price with its source, or the unit sells at S without one; never S/0.9 as a fake discount.",
+      "QC12": "Profit checked after vouchers, tiers, gifts, shipping and the points reserve; missing data blocks the review.",
+      "QC13": "Stock is really available, held against double selling, and owned by the shop.",
+      "QC14": "Parcel weight and size measured where needed (scale defaults are estimates only).",
+      "QC15": "Photos, name and description show no phone number, invoice, address, cost or customer details.",
+      "QC16": "The reviewer, time and any exception with its evidence are recorded for audit."
+    },
+    "system": "verified by the system",
+    "notes": "Notes, evidence and exceptions",
+    "submit": "Save the QC result",
+    "intake": "Take into stock (draft)",
+    "intakeNote": "The unit enters stock as one piece at the paid buy-back cost; the listing stays hidden until it is published.",
+    "publish": "Publish",
+    "publishNote": "Final check: QC still valid, S approved, a price, exactly one unit in stock and at least three real photos.",
+    "published": "Published on the storefront."
   }
 }
