@@ -2,6 +2,8 @@
 
 ## Storefront fixes · 26 October 2026
 
+The Admin product table also keeps each condition's stock beside its badge as `× quantity`, rather than floating against the next column. Sold-out captions and status badges remain on one line; badges may wrap as whole units. Price/stock/sold columns use aligned tabular numbers, with stable minimum widths for stock and status. The existing table scrolls horizontally on smaller screens so data stays readable in normal and compact row modes. Verification: production build/type checking, scoped ESLint and six browser checks (VI/EN at 1440, 1024 and 390px), including stock sorting and compact rows, passed.
+
 Product information tabs show counts as quiet inline text. On mobile, all three tabs fit the row with wrapping labels; active state uses text weight and colour rather than a second underline. Keyboard navigation and visible keyboard focus remain available.
 
 Catalog filters use four compact selects (including the owner-configured conditions), stock availability and one price control. The repeated hint/reset footer and nested refine section are removed; clear/remove actions remain beside applied filters. The sidebar scrolls with the page rather than creating its own scroll area. Product cards share the same surface and hover on home, catalog and sale-event pages; hovering changes the border/shadow without lifting the card.

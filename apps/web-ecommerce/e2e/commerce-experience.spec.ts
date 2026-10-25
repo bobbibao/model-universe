@@ -165,6 +165,103 @@ async function capture(page: Page, name: string) {
 }
 
 for (const locale of ['vi', 'en'] as const) {
+  for (const width of [1440, 1024, 390]) {
+    test(`${locale} ${width}: admin product cells keep stock adjacent and status text on one line`, async ({
+      page,
+      context,
+    }) => {
+      await fixture(page, true);
+      const m = locale === 'vi' ? vi : en;
+      await page.setViewportSize({ width, height: 900 });
+      await context.addCookies([
+        { name: 'access_token', value: await signSessionToken(900001, 'ADMIN'), url: previewUrl, httpOnly: true },
+      ]);
+      const sorts: string[] = [];
+      await page.route('**/api/admin/products?**', (route) => {
+        const query = new URL(route.request().url()).searchParams;
+        sorts.push(query.get('sort') || '');
+        const rows = [2, 7, 0].map((stock, index) => ({
+          ...model,
+          id: model.id + index,
+          sku: `TABLE-UNIT-${index}`,
+          name: `${model.name} · Collector Edition`,
+          salePrice: 6666667,
+          price: 6666667,
+          discountPercent: 0,
+          stock,
+          groupStock: stock + 1,
+          inventoryStatus: index === 1 ? 'quarantine' : 'available',
+          salesChannel: index === 2 ? 'outlet' : 'web',
+          isArchived: index === 2,
+          isFeatured: index === 1,
+          conditions: [
+            { condition: 'new', units: 1, stock, minSalePrice: 6666667 },
+            { condition: 'preowned', units: 1, stock: 0, minSalePrice: 3444444 },
+            { condition: 'incomplete', units: 1, stock: 1, minSalePrice: 1000000 },
+          ],
+        }));
+        return route.fulfill({
+          json: {
+            payload: {
+              data: rows,
+              pagination: {
+                total: rows.length,
+                page: 1,
+                perPage: 10,
+                totalPages: 1,
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
+            },
+          },
+        });
+      });
+      await page.goto(`/${locale}/admin/products`);
+      const table = page.locator('.admin-table:visible');
+      await expect(table).toHaveCount(1);
+      await expect(table).toHaveAttribute('aria-busy', 'false');
+      await expect(table.locator('tbody .catalog-stock-cell')).toHaveCount(3);
+      await expect(table.locator('.catalog-condition-stock').first()).toHaveAttribute(
+        'aria-label',
+        `${m.adminProducts.stock}: 2`,
+      );
+      await expect(table.locator('.catalog-condition-stock').first()).toHaveText('× 2');
+      const row = table.locator('.catalog-condition-summary > div').first();
+      const chip = (await row.locator('.condition-chip').boundingBox())!;
+      const count = (await row.locator('.catalog-condition-stock').boundingBox())!;
+      expect(count.x - chip.x - chip.width).toBeLessThan(24);
+      const assertLines = async () => {
+        const lines = await table
+          .locator('.catalog-status-badges > span, .catalog-condition-summary small')
+          .evaluateAll((elements) =>
+            elements.map((el) => {
+              const range = document.createRange();
+              range.selectNodeContents(el);
+              return {
+                lines: new Set([...range.getClientRects()].map((rect) => Math.round(rect.y))).size,
+                overflow: el.scrollWidth > el.clientWidth + 1,
+              };
+            }),
+          );
+        expect(lines.length).toBeGreaterThan(0);
+        expect(lines.every((item) => item.lines === 1 && !item.overflow)).toBe(true);
+      };
+      await assertLines();
+      await table.locator('th.catalog-stock-cell button').click();
+      await expect.poll(() => sorts.includes('stock')).toBe(true);
+      await expect(table).toHaveAttribute('aria-busy', 'false');
+      await table.getByRole('button', { name: m.commerceUX.compactRows, exact: true }).click();
+      await expect(table).toHaveClass(/is-compact/);
+      await assertLines();
+      await table.locator('.admin-table-scroll').evaluate((el) => {
+        el.scrollLeft = el.scrollWidth;
+      });
+      await capture(page, `admin-product-cells-${locale}-${width}`);
+    });
+  }
+}
+
+for (const locale of ['vi', 'en'] as const) {
   for (const width of [1366, 390]) {
     test(`${locale} ${width}: workspace polish keeps filters compact, tabs readable and event cards stable`, async ({
       page,
