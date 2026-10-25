@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
-import SaleShelf from '@/core/client/features/sales/SaleShelf';
 import ProductApi from '@/core/client/api/Product';
 import CategoryApi from '@/core/client/api/Category';
 import type { Pagination } from '@/shared/types/pagination';
@@ -15,7 +14,6 @@ import StorePagination from '../components/StorePagination';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { shopPath } from '@/shared/slug';
 import AppliedFilters from '../components/AppliedFilters';
-import Link from '@/i18n/navigation';
 
 const PAGE_SIZE = 12;
 const DEFAULT_SORT: ProductSort = 'newest';
@@ -24,7 +22,6 @@ const DEFAULT_SORT: ProductSort = 'newest';
 // the query string and choosing another category moves to its own path (one canonical URL per category).
 const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   const t = useTranslations('catalog');
-  const ux = useTranslations('commerceUX');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -184,19 +181,16 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   };
 
   return (
-    <div className="mu-wrap mu-section catalog-page">
-      {!categorySlug && !applied.q && <SaleShelf />}
+    <div className="mu-wrap catalog-page">
       <header className="catalog-page-header">
-        <div>
-          <p className="mu-eyebrow">MODEL UNIVERSE / CATALOG</p>
-          <h1 className="mu-heading">
-            {categories.find((category) => category.slug === applied.category)?.name || t('title')}
-          </h1>
-          <p className="mu-note">{t('subtitle')}</p>
-        </div>
-        <Link href="/kit-finder" className="catalog-finder-link">
-          {ux('finder')} <span aria-hidden="true">↗</span>
-        </Link>
+        <h1 className="mu-heading">
+          {categories.find((category) => category.slug === applied.category)?.name || t('title')}
+        </h1>
+        {!failed && (
+          <p role="status" aria-live="polite" className="catalog-results">
+            {loading ? common('loading') : pagination ? t('results', { count: pagination.total }) : ''}
+          </p>
+        )}
       </header>
       <div className="catalog-layout">
         <section className="catalog-main" aria-label={t('title')} aria-busy={loading}>
@@ -260,17 +254,13 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
             }
             onReset={() => navigate({})}
           />
-          {failed ? (
+          {failed && (
             <div role="alert" className="catalog-error">
               <p>{t('loadFailed')}</p>
               <button className="mu-button mu-button-secondary" onClick={() => setRetry((value) => value + 1)}>
                 {common('retry')}
               </button>
             </div>
-          ) : (
-            <p role="status" aria-live="polite" className="catalog-results">
-              {loading ? common('loading') : pagination ? t('results', { count: pagination.total }) : ' '}
-            </p>
           )}
           {!failed && (
             <ProductGrid products={products} loading={loading} emptyText={t('empty')} onReset={() => navigate({})} />

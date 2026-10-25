@@ -8,27 +8,15 @@
 .catalog-page-header {
   display: flex;
   justify-content: space-between;
-  align-items: end;
-  gap: 24px;
-}
-.catalog-finder-link {
-  display: inline-flex;
   align-items: center;
-  gap: 18px;
-  min-height: 44px;
-  font-size: 13px;
-  font-weight: 650;
-  white-space: nowrap;
-  border-bottom: 1px solid var(--commerce-line);
-}
-.catalog-finder-link:hover {
-  color: var(--commerce-accent);
+  gap: 8px 16px;
+  flex-wrap: wrap;
 }
 .catalog-applied {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding-top: 16px;
+  padding-block: 0 12px;
 }
 .catalog-applied button {
   display: inline-flex;
@@ -699,15 +687,6 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
   }
 }
 @media (max-width: 767px) {
-  .catalog-page-header {
-    align-items: start;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .catalog-finder-link {
-    min-height: 36px;
-    font-size: 12px;
-  }
   .product-detail-layout {
     grid-template-columns: minmax(0, 1fr);
   }
