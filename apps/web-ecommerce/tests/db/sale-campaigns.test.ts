@@ -176,8 +176,8 @@ describe('store sale campaigns', () => {
     };
     const catalog = new ProductService();
     const validated = await catalog.validateCatalogInput(data);
-    // A new product sells at S until a real list price R is approved; its buy-back reference is B17 = 17% × S.
-    expect(validated.values).toMatchObject({ price: 1_100_000, listPriceVerified: false, buybackPriceVnd: 187_000 });
+    // The web price R = ROUND(S / 0.9) and the buyback price B = 20% of S (500,000 < S ≤ 1,150,000) follow S.
+    expect(validated.values).toMatchObject({ price: 1_222_222, listPriceVerified: true, buybackPriceVnd: 220_000 });
     await expect(catalog.validateCatalogInput({ ...data, price: 999_999 })).rejects.toThrow();
     await expect(catalog.validateCatalogInput({ ...data, buybackPriceVnd: 1 })).rejects.toThrow();
     await expect(

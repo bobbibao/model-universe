@@ -389,9 +389,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const sku = asTrimmedString(data.sku);
     const imageUrl = asTrimmedString(data.imageUrl);
     const current = currentId ? await ProductModel.findByPk(currentId) : null;
-    // The shop's own catalogue (owner rule of 2026-10-25): staff set the target price S; the buy-back reference B17
-    // follows it; the price charged is the approved real list price R once one is approved (PricingApprovalService),
-    // else S. R is never typed here nor derived from S. A partner seller's listing (`sellerPrice`) keeps its price.
+    // The shop's own catalogue (owner rule of 2026-10-26): staff enter only the real selling price S, which counts as
+    // approved by the admin who saves it; the web list price R = ROUND(S / 0.9) is the product's price (MEMBER10 takes
+    // it back to S) and the buyback price B follows S by the three rates (sale-pricing.ts). Neither is ever typed. A
+    // partner seller's listing (`sellerPrice`) keeps its own price.
     let formula: ReturnType<typeof catalogPricing> | undefined;
     const target = options.sellerPrice
       ? undefined
@@ -399,19 +400,19 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     // A product saved before S existed keeps its price until staff set one.
     const keepsLegacyPrice = !options.sellerPrice && !target && !!current && (data.price == null || toInteger(data.price) === current.price);
     if (!options.sellerPrice && !keepsLegacyPrice) {
-      if (!target) throw HttpError.badRequest('Cần giá bán mục tiêu S của sản phẩm.');
+      if (!target) throw HttpError.badRequest('Cần giá bán thực S của sản phẩm.');
       try { formula = catalogPricing(target); }
       catch (error) { throw HttpError.badRequest((error as Error).message); }
       if (data.buybackPriceVnd != null && toInteger(data.buybackPriceVnd) !== formula.buybackPriceVnd)
-        throw HttpError.badRequest('Giá thu B17 được tính tự động. Không nhập đè giá thu.');
+        throw HttpError.badRequest('Giá thu B được tính tự động từ S. Không nhập đè giá thu.');
     }
-    const verified = !options.sellerPrice && !!current?.listPriceVerified;
-    const price = options.sellerPrice ? toInteger(data.price) : verified || keepsLegacyPrice ? current?.price : formula?.referenceMemberVnd;
-    // The price charged is never typed for the shop's own catalogue: an empty value (null) means "not sent".
+    const price = options.sellerPrice ? toInteger(data.price) : keepsLegacyPrice ? current?.price : formula?.listPriceVnd;
+    // The web price is never typed for the shop's own catalogue: an empty value (null) means "not sent".
     if (!options.sellerPrice && data.price != null && toInteger(data.price) !== price)
-      throw HttpError.badRequest('Giá bán là S (hoặc giá niêm yết thật R đã duyệt). Không nhập đè giá bán.');
-    // A changed S waits for a new approval.
-    const targetChanged = !!formula && formula.referenceMemberVnd !== current?.pricingReferenceMemberVnd;
+      throw HttpError.badRequest('Giá web R = S ÷ 0,9 được tính tự động. Không nhập đè giá bán.');
+    // A new or changed S is approved by the admin saving it.
+    const targetChanged =
+      !!formula && (formula.referenceMemberVnd !== current?.pricingReferenceMemberVnd || !current?.targetPriceApprovedAt);
     const importPrice = toInteger(data.importPrice) ?? 0;
     const stock = toInteger(data.stock) ?? 0;
     const categoryId = toInteger(data.categoryId);
@@ -492,8 +493,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
               pricingReferenceMemberVnd: formula.referenceMemberVnd,
               pricingIssueCount: 0,
               buybackPriceVnd: formula.buybackPriceVnd,
-              listPriceVerified: verified,
-              ...(targetChanged ? { targetPriceApprovedAt: null, targetPriceApprovedByUserId: null } : {}),
+              listPriceVerified: true,
+              ...(targetChanged ? { targetPriceApprovedAt: new Date(), targetPriceApprovedByUserId: null } : {}),
             }
           : {}),
         stock,

@@ -21,7 +21,8 @@ describe("owner's catalogue workbook", () => {
     expect(rows.filter((row) => row.stock > 0)).toHaveLength(15);
     expect(new Set(rows.map((row) => row.brand)).size).toBe(6);
     expect(sum(rows, (row) => (row.buyInVnd ?? 0) * row.stock)).toBe(18_550_000);
-    expect(sum(rows, (row) => (row.memberPriceVnd ?? 0) * row.stock)).toBe(23_900_000);
+    // S of the workbook of 26/10/2026; the recorded costs H are those before it (not recalculated).
+    expect(sum(rows, (row) => (row.memberPriceVnd ?? 0) * row.stock)).toBe(23_550_000);
     const byBrand = (brand: string) => rows.filter((row) => row.brand === brand);
     expect(
       ['Cangdao', 'Motor Nuclear', 'SNAA', 'IN ERA+', 'HEMOXIAN', 'MOSHOW'].map((brand) => [
@@ -48,19 +49,20 @@ describe("owner's catalogue workbook", () => {
   });
 
   // Owner rule of 2026-10-25: the sheet's price is S awaiting approval and its R column is empty, so the shop sells at S.
-  it('sells at S until a real list price is approved, with B17 at every price', () => {
+  // Owner rule of 2026-10-26: the sheet's S is entered; the web price R = ROUND(S / 0.9) and B by three rates follow it.
+  it('prices from S: the web price R = S ÷ 0.9 and the buyback price by three rates', () => {
     const kit = ownerProductValues(rows.find((row) => row.name.startsWith('MNP-XH01 - '))!);
     expect(kit).toMatchObject({
-      price: 650_000,
-      listPriceVerified: false,
+      price: 722_222,
+      listPriceVerified: true,
       importPrice: 450_000,
       pricingReferenceMemberVnd: 650_000,
-      buybackPriceVnd: 110_500,
+      buybackPriceVnd: 130_000,
       scale: '1/100',
       stock: 1,
     });
     const starColor = ownerProductValues(rows.find((row) => row.name.startsWith('MNQ-XH05CX'))!);
-    expect(starColor).toMatchObject({ price: 40_000_000, buybackPriceVnd: 6_800_000 });
+    expect(starColor).toMatchObject({ price: 44_444_444, buybackPriceVnd: 6_800_000 });
   });
 
   it('takes the box, received date and condition from the sheet and leaves the category empty', () => {
@@ -83,9 +85,9 @@ describe("owner's catalogue workbook", () => {
 
   it('reads a CSV export by its headers, keeping known keys and ignoring the image column', () => {
     const csv = [
-      'Tên sản phẩm (mã + tên + phiên bản màu),Tên hãng,Tỉ lệ mô hình,Khối lượng mặc định (kg),Dài mặc định (cm),Rộng mặc định (cm),Cao mặc định (cm),Giá thu vào (VNĐ),Giá bán ra (VNĐ),Số lượng,Tình trạng,Hình ảnh ,Ngày nhập kho,Số ngày tồn kho',
-      'CD-01B - Azure Dragon / Black Dragon (Nemesis Black),Cangdao,1/72,4,30,20,15,"2,300,000 ₫","2,750,000 ₫",2 ₫,,https://example.test/a.jpg,25/10/2026,0',
-      'SC-099 - Fixture Knight,SNAA,1/144,"1,5",15,10,10,"100,000 ₫","200,000 ₫",3 ₫,Thiếu phụ kiện,,01/11/2026,',
+      'Tên sản phẩm (mã + tên + phiên bản màu),Tên hãng,Tỉ lệ mô hình,Khối lượng mặc định (kg),Dài mặc định (cm),Rộng mặc định (cm),Cao mặc định (cm),Giá nhập/thu ghi nhận H (VNĐ; cần đối soát),Giá bán thực S (VNĐ) – NHẬP,Giá lời B (VNĐ) – TỰ TÍNH,Giá web R (VNĐ) – TỰ TÍNH,C50 – Giá cầm dự kiến = 50% S,Số lượng tồn,Tình trạng,Ảnh / liên kết ảnh,Ngày nhập kho,Số ngày tồn kho,Duyệt giá/đăng bán',
+      'CD-01B - Azure Dragon / Black Dragon (Nemesis Black),Cangdao,1/72,4,30,20,15,"2,300,000 ₫","2,700,000 ₫","459,000 ₫","3,000,000 ₫","1,350,000 ₫",2,,https://example.test/a.jpg,25/10/2026,1,CHỜ DUYỆT',
+      'SC-099 - Fixture Knight,SNAA,1/144,"1,5",15,10,10,"100,000 ₫","200,000 ₫",,,,3,Thiếu phụ kiện,,01/11/2026,,CHỜ DUYỆT',
     ].join('\n');
     const [known, added] = parseOwnerCatalogCsv(csv, rows);
     expect(known).toEqual(rows.find((row) => row.key === 'cd-cd-01b-black-version'));

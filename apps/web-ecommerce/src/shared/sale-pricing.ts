@@ -1,5 +1,6 @@
-import { evaluateVoucher, memberPrice, listPriceForMemberPrice } from './pricing';
-import { b17, baseDeduction, DEDUCTION_PER_ISSUE_VND } from './buyback-pricing';
+import { evaluateVoucher, memberPrice, listPriceForMemberPrice, webListPrice } from './pricing';
+import { baseDeduction, DEDUCTION_PER_ISSUE_VND, tierBuyback } from './buyback-pricing';
+import { pawnC50 } from './pawn-rules';
 
 // The former catalogue formula (v5.0): B = S − tier deduction − 50,000 × issues, R = S ÷ 0.9. Superseded on 2026-10-25;
 // kept only for the migration 2026-10-23-42 that applied it, never for new prices.
@@ -20,15 +21,21 @@ export function legacyCatalogFormula(referenceMemberVnd: number, ordinaryIssueCo
   };
 }
 
-// Catalogue prices (owner rule of 2026-10-25, docs/business/source/vi/buyback-17-percent-specification.md): S is the
-// shop's target selling price, approved by an admin; its buy-back reference is B17 = 17% of S. The public list price R
-// is only ever a real published price approved with its proof (PricingApprovalService), never derived as S ÷ 0.9;
-// until R is approved the shop sells at S.
+// Catalogue prices (owner rule of 2026-10-26, docs/business/source/vi/three-prices-specification.md): the shop enters only
+// the real selling price S; everything else follows it:
+// - R = ROUND(S / 0.9), the web list price; the member code MEMBER10 takes 10% off R and gives back exactly S;
+// - B = the buyback price by the three rates (buyback-pricing.ts);
+// - C50 = ROUND(S × 50%), the expected pawn amount (pawn-rules.ts).
 export const CATALOG_MAX_REFERENCE_VND = 1_000_000_000;
 export function catalogPricing(targetPriceVnd: number) {
   if (!Number.isSafeInteger(targetPriceVnd) || targetPriceVnd < 1 || targetPriceVnd > CATALOG_MAX_REFERENCE_VND)
-    throw new Error('Giá bán mục tiêu S phải là số nguyên từ 1đ đến 1.000.000.000đ.');
-  return { referenceMemberVnd: targetPriceVnd, buybackPriceVnd: b17(targetPriceVnd) };
+    throw new Error('Giá bán thực S phải là số nguyên từ 1đ đến 1.000.000.000đ.');
+  return {
+    referenceMemberVnd: targetPriceVnd,
+    listPriceVnd: webListPrice(targetPriceVnd),
+    buybackPriceVnd: tierBuyback(targetPriceVnd),
+    pawnPriceVnd: pawnC50(targetPriceVnd),
+  };
 }
 
 export function safeSalePercent(price: number, cost: number, requested: number): boolean {

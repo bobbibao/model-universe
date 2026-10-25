@@ -5,12 +5,13 @@ import PawnContractModel from '../database/client/models/PawnContract.Model';
 import PawnEventModel from '../database/client/models/PawnEvent.Model';
 import PawnPaymentModel from '../database/client/models/PawnPayment.Model';
 import EvidenceModel from '../database/client/models/Evidence.Model';
+import ProductModel from '../database/client/models/Product.Model';
 import UserModel from '../database/internal/models/User.Model';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { ASSEMBLY_STATES } from '../../../shared/gunpla';
 import type { BuybackAsset } from '../../../shared/types/buyback';
 import type { PawnTerms } from '../../../shared/types/pawn';
-import { PAWN_DAY_MS, pawnInterest, validatePawnPolicy, validatePawnPrincipal } from '../../../shared/pawn-rules';
+import { estimatePawn, PAWN_DAY_MS, pawnInterest, validatePawnPolicy, validatePawnPrincipal } from '../../../shared/pawn-rules';
 import EvidenceService from './EvidenceService';
 import CommercePolicyService from './CommercePolicyService';
 import MoneyReferenceService from './MoneyReferenceService';
@@ -92,7 +93,11 @@ export default class PawnService {
     for (const key of ['name', 'modelCode', 'version', 'assemblyState', 'boxCondition', 'accessories', 'defects', 'repairHistory'] as const) asset[key] = text(input[key], key, key === 'name' ? 255 : 1500);
     if (!ASSEMBLY_STATES.includes(asset.assemblyState as typeof ASSEMBLY_STATES[number])) throw HttpError.badRequest('Invalid assembly state.');
     if (!Array.isArray(data.evidenceIds) || data.evidenceIds.length < 3) throw HttpError.badRequest('Provide at least three distinct actual-item photographs.');
-    const requestDigest = crypto.createHash('sha256').update(JSON.stringify({ asset, evidenceIds: data.evidenceIds })).digest('hex');
+    // The catalogue model for the web quote C50 (only a model the shop sells new, declared without issues).
+    const referenceProductId = data.referenceProductId == null ? null : Number(data.referenceProductId);
+    if (referenceProductId !== null && (!Number.isSafeInteger(referenceProductId) || referenceProductId < 1)) throw HttpError.badRequest('Choose a catalogue model or leave it empty.');
+    const issuesDeclared = data.issuesDeclared === true;
+    const requestDigest = crypto.createHash('sha256').update(JSON.stringify({ asset, evidenceIds: data.evidenceIds, ...(referenceProductId ? { referenceProductId, issuesDeclared } : {}) })).digest('hex');
     const id = await DatabaseProvider.getInstance().transaction(async transaction => {
       await this.actor(userId, false, transaction);
       await DatabaseProvider.getInstance().query('SELECT pg_advisory_xact_lock(836211, hashtext(:key))', { replacements: { key: `${userId}:${requestKey}` }, transaction });
@@ -101,10 +106,13 @@ export default class PawnService {
         if (replay.requestDigest !== requestDigest) throw HttpError.conflict('The request key belongs to another model or evidence set.');
         return replay.id;
       }
-      const row = await PawnContractModel.create({ userId, requestKey, requestDigest, asset }, { transaction });
+      const product = referenceProductId ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction }) : null;
+      if (referenceProductId && !product) throw HttpError.notFound('Catalogue model not found.');
+      const webQuote = product ? estimatePawn(product.condition === 'new' ? product.pricingReferenceMemberVnd : null, { approved: !!product.targetPriceApprovedAt, issuesDeclared }) : null;
+      const row = await PawnContractModel.create({ userId, requestKey, requestDigest, asset, referenceProductId: product?.id ?? null, webQuote }, { transaction });
       const evidence = await this.evidence.bind(data.evidenceIds, userId, 'pawn', row.id, transaction);
       if (new Set(evidence.map(file => file.sha256)).size < 3) throw HttpError.badRequest('Provide three distinct model views.');
-      await this.event(row, userId, 'submitted', { asset }, transaction);
+      await this.event(row, userId, 'submitted', { asset, webQuote }, transaction);
       return row.id;
     });
     return this.detail(id, userId);

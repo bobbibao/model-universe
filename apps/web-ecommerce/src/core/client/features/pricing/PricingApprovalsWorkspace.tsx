@@ -140,14 +140,13 @@ export default function PricingApprovalsWorkspace() {
     ) : (
       <span className="pa-chip is-warning">{t('chips.targetPending')}</span>
     );
-  const priceChip = (row: Row) => {
-    const approved = row.prices.find((record) => record.status === 'APPROVED');
-    if (!row.listPriceVerified) return <span className="pa-chip">{t('chips.soldAtTarget')}</span>;
-    if (row.priceMismatch) return <span className="pa-chip is-danger">{t('chips.mismatch')}</span>;
-    if (approved)
-      return <span className="pa-chip is-success">{t('chips.approved', { version: approved.version })}</span>;
-    return <span className="pa-chip">{t('chips.none')}</span>;
-  };
+  // Owner rule of 2026-10-26: the web price follows S (R = S ÷ 0.9); a product whose price does not is flagged.
+  const priceChip = (row: Row) =>
+    row.priceMismatch ? (
+      <span className="pa-chip is-danger">{t('chips.mismatch')}</span>
+    ) : (
+      <span className="pa-chip is-success">{t('chips.followsS')}</span>
+    );
   const costChip = (row: Row) => {
     const approved = row.costs.find((record) => record.status === 'APPROVED');
     return approved ? (
@@ -219,8 +218,6 @@ export default function PricingApprovalsWorkspace() {
   const filters: { key: Filter; label: string; count?: number; tone?: string }[] = [
     { key: 'all', label: t('filters.all'), count: summary?.products },
     { key: 'pending', label: t('filters.pending'), count: summary?.pending, tone: 'is-warning' },
-    { key: 'target', label: t('filters.target'), count: summary?.targetPending, tone: 'is-warning' },
-    { key: 'unapproved', label: t('filters.unapproved'), count: summary?.soldAtTarget },
     { key: 'mismatch', label: t('filters.mismatch'), count: summary?.mismatch, tone: 'is-danger' },
   ];
 
@@ -302,7 +299,6 @@ function ProductRecords({
 }) {
   const t = useTranslations('pricingApprovals'),
     locale = useLocale();
-  const [tab, setTab] = useState<'price' | 'cost'>('price');
   const [cost, setCost] = useState<Record<(typeof COST_FIELDS)[number], number>>(() => ({
     buyInVnd: row.receiptCostVnd || 0,
     repairVnd: 0,
@@ -380,96 +376,52 @@ function ProductRecords({
           </button>
         )}
       </div>
-      {!row.listPriceVerified && <p className="mu-note">{t('soldAtTarget')}</p>}
       {row.priceMismatch && <p className="pa-chip is-danger !whitespace-normal !rounded-lg !p-3">{t('mismatch')}</p>}
-      <div className="pa-segment" role="tablist">
-        {(['price', 'cost'] as const).map((value) => (
-          <button key={value} type="button" role="tab" aria-pressed={tab === value} onClick={() => setTab(value)}>
-            {t(value === 'price' ? 'prices' : 'costs')}
+      <h3 className="font-bold">{t('costs')}</h3>
+      <>
+        <ul className="pa-history">
+          {row.costs.length === 0 && <li className="mu-note">{t('none')}</li>}
+          {row.costs.map((record) => (
+            <li key={record.id}>
+              <span>
+                <b>v{record.version}</b> · <span className="pa-money">{money(costTotal(record))}</span> ·{' '}
+                {date(record.createdAt)}
+                <br />
+                <small className="mu-note">{record.reason}</small>
+              </span>
+              {status(record.status)}
+              {record.status === 'DRAFT' && draftActions('cost', record.id, record.proposedByUserId)}
+            </li>
+          ))}
+        </ul>
+        <form className="pa-form" onSubmit={(event) => void submit('cost')(event)}>
+          {COST_FIELDS.map((field) => (
+            <label key={field}>
+              {t(`fields.${field}`)}
+              <input
+                className={inputClassName}
+                type="number"
+                min={field === 'buyInVnd' ? 1 : 0}
+                step={1}
+                required={field === 'buyInVnd'}
+                value={cost[field]}
+                onChange={(event) => setCost((current) => ({ ...current, [field]: Number(event.target.value) || 0 }))}
+              />
+            </label>
+          ))}
+          <div className="pa-total is-wide">
+            <span>{t('unitTotal')}</span>
+            <span className="pa-money">{money(Object.values(cost).reduce((sum, value) => sum + value, 0))}</span>
+          </div>
+          <label className="is-wide">
+            {t('reason')}
+            <input className={inputClassName} name="reason" required maxLength={1000} />
+          </label>
+          <button className="pa-btn is-primary is-wide justify-self-start" disabled={busy}>
+            {t('proposeCost')}
           </button>
-        ))}
-      </div>
-      {tab === 'price' ? (
-        <>
-          <ul className="pa-history">
-            {row.prices.length === 0 && <li className="mu-note">{t('none')}</li>}
-            {row.prices.map((record) => (
-              <li key={record.id}>
-                <span>
-                  <b>v{record.version}</b> · <span className="pa-money">{money(record.listPriceVnd)}</span> ·{' '}
-                  {date(record.createdAt)}
-                  <br />
-                  <small className="mu-note">{record.proof}</small>
-                </span>
-                {status(record.status)}
-                {record.status === 'DRAFT' && draftActions('price', record.id, record.proposedByUserId)}
-              </li>
-            ))}
-          </ul>
-          <form className="pa-form" onSubmit={(event) => void submit('price')(event)}>
-            <label className="is-wide">
-              {t('listPriceInput')}
-              <input className={inputClassName} name="listPriceVnd" type="number" min={1} step={1} required />
-            </label>
-            <label className="is-wide">
-              {t('proof')}
-              <input className={inputClassName} name="proof" required maxLength={1000} />
-            </label>
-            <label className="is-wide">
-              {t('reason')}
-              <input className={inputClassName} name="reason" required maxLength={1000} />
-            </label>
-            <button className="pa-btn is-primary is-wide justify-self-start" disabled={busy}>
-              {t('proposePrice')}
-            </button>
-          </form>
-        </>
-      ) : (
-        <>
-          <ul className="pa-history">
-            {row.costs.length === 0 && <li className="mu-note">{t('none')}</li>}
-            {row.costs.map((record) => (
-              <li key={record.id}>
-                <span>
-                  <b>v{record.version}</b> · <span className="pa-money">{money(costTotal(record))}</span> ·{' '}
-                  {date(record.createdAt)}
-                  <br />
-                  <small className="mu-note">{record.reason}</small>
-                </span>
-                {status(record.status)}
-                {record.status === 'DRAFT' && draftActions('cost', record.id, record.proposedByUserId)}
-              </li>
-            ))}
-          </ul>
-          <form className="pa-form" onSubmit={(event) => void submit('cost')(event)}>
-            {COST_FIELDS.map((field) => (
-              <label key={field}>
-                {t(`fields.${field}`)}
-                <input
-                  className={inputClassName}
-                  type="number"
-                  min={field === 'buyInVnd' ? 1 : 0}
-                  step={1}
-                  required={field === 'buyInVnd'}
-                  value={cost[field]}
-                  onChange={(event) => setCost((current) => ({ ...current, [field]: Number(event.target.value) || 0 }))}
-                />
-              </label>
-            ))}
-            <div className="pa-total is-wide">
-              <span>{t('unitTotal')}</span>
-              <span className="pa-money">{money(Object.values(cost).reduce((sum, value) => sum + value, 0))}</span>
-            </div>
-            <label className="is-wide">
-              {t('reason')}
-              <input className={inputClassName} name="reason" required maxLength={1000} />
-            </label>
-            <button className="pa-btn is-primary is-wide justify-self-start" disabled={busy}>
-              {t('proposeCost')}
-            </button>
-          </form>
-        </>
-      )}
+        </form>
+      </>
       <p className="mu-note">{t('secondAdmin')}</p>
     </div>
   );

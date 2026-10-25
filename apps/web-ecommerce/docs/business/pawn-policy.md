@@ -4,6 +4,7 @@ Canonical English operational interpretation, derived from the supplied policy/s
 
 Required flow: request -> appraisal -> customer agreement -> bilateral contract confirmation -> asset handover -> disbursement -> active contract -> redemption/extension or overdue contractual resolution.
 
+- Web quote (owner rule of 2026-10-26, [three-prices specification](source/vi/three-prices-specification.md) §16): C50 = ROUND(S × 50%) of the real selling price S of a catalogue model the shop sells new (`estimatePawn`); anything else is valued by staff. The 0.3%/day compound interest is shown only as a simulation until legal review; contracts keep the approved interest policy below. Staff's quote is pre-filled with appraisal = S and principal = C50.
 - Principal must be 50–80% of appraised asset value. Snapshot asset condition/photos, appraisal, selected ratio, principal, dates and contract terms.
 - Customer sees interest rate, expected interest, due date, redemption/extension and disposal conditions before confirming.
 - S5 specifies simple interest at **0.03% per day**, with the worked example 1,400,000 principal -> 420/day -> 12,600 over 30 days. S4 prose agrees, but its formula says **0.3%**. Decision D1 remains open until the owner confirms.

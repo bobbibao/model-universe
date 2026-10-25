@@ -97,7 +97,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
               salePrice={product.salePrice}
               discountPercent={product.discountPercent}
               showDiscountBadge={false}
-              showMemberPrice={shopOwned && !onSale && product.listPriceVerified !== false}
+              showMemberPrice={shopOwned}
             />
           )}
           {(sold > 0 || scarce) && (

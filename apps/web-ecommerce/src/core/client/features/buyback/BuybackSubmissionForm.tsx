@@ -8,8 +8,10 @@ import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import {
   BUYBACK_ISSUE_TYPES,
+  B17_RULE_VERSION,
   BUYBACK_RATE_PERCENT,
   BUYBACK_RULE_VERSION,
+  buybackRateBps,
   MAX_ISSUE_QUANTITY,
   type BuybackEstimate,
   type BuybackIssue,
@@ -21,10 +23,20 @@ const CONFIRMATIONS = ['honest', 'issues', 'media', 'estimate', 'inspection', 'd
 const MAX_FILES = 12;
 
 // "Sell to Model Universe": choose the catalog model, declare its condition issue by issue, see the expected price
-// (B17 = 17% of the shop's approved target price S, only for a matched model declared without issues; anything else is
-// priced by an admin), optionally choose a shop item to trade for, upload photos and a video, confirm the terms, send.
+// (30% / 20% / 17% of the shop's real selling price S, at least 100,000 VND, only for a matched model the shop sells new
+// declared without issues; anything else is priced by an admin), optionally choose a shop item to trade for, upload
+// photos and a video, confirm the terms, send.
 // The server recomputes the estimate and checks the media.
-export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: number) => Promise<void> }) {
+// `initialReference` / `initialTradeItem`: the catalogue model and the shop item chosen in QuickValuation.
+export default function BuybackSubmissionForm({
+  onCreated,
+  initialReference = null,
+  initialTradeItem = null,
+}: {
+  onCreated: (id: number) => Promise<void>;
+  initialReference?: ProductSummary | null;
+  initialTradeItem?: ProductSummary | null;
+}) {
   const t = useTranslations('buyback'),
     v2 = useTranslations('buybackV2'),
     catalog = useTranslations('catalog'),
@@ -33,10 +45,10 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
   const money = (amount: number) => formatVND(amount, locale);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProductSummary[]>([]);
-  const [reference, setReference] = useState<ProductSummary | null>(null);
+  const [reference, setReference] = useState<ProductSummary | null>(initialReference);
   const [tradeQuery, setTradeQuery] = useState('');
   const [tradeResults, setTradeResults] = useState<ProductSummary[]>([]);
-  const [tradeItem, setTradeItem] = useState<ProductSummary | null>(null);
+  const [tradeItem, setTradeItem] = useState<ProductSummary | null>(initialTradeItem);
   const [issues, setIssues] = useState<BuybackIssue[]>([]);
   const [seriousDamage, setSeriousDamage] = useState(false);
   const [estimate, setEstimate] = useState<BuybackEstimate>();
@@ -320,12 +332,19 @@ export default function BuybackSubmissionForm({ onCreated }: { onCreated: (id: n
   );
 }
 
-// B17 requests show S and 17% of it; a request quoted under the former tier rule keeps its deduction lines.
+// A request shows S and the rate of S it is bought at (30% / 20% / 17%, or 17% for one quoted under B17); a request
+// quoted under the former tier table keeps its deduction lines.
 export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
   const v2 = useTranslations('buybackV2'),
     locale = useLocale();
   const money = (amount: number) => formatVND(amount, locale);
-  const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION;
+  const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION && estimate.ruleVersion !== B17_RULE_VERSION;
+  const ratePercent =
+    estimate.ruleVersion === B17_RULE_VERSION
+      ? BUYBACK_RATE_PERCENT
+      : estimate.referencePriceVnd
+        ? buybackRateBps(estimate.referencePriceVnd) / 100
+        : null;
   return (
     <dl className="grid gap-1 rounded-md bg-gray-2 p-4 text-sm dark:bg-store-panel sm:grid-cols-2">
       <dt>{v2(legacy ? 'estimate.legacyReference' : 'estimate.reference')}</dt>
@@ -340,7 +359,7 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
       ) : (
         <>
           <dt>{v2('estimate.rate')}</dt>
-          <dd>{BUYBACK_RATE_PERCENT}% × S</dd>
+          <dd>{ratePercent !== null ? `${ratePercent}% × S` : '—'}</dd>
         </>
       )}
       <dt className="font-bold">{v2('estimate.total')}</dt>

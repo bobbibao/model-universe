@@ -32,7 +32,8 @@ export interface OwnerCatalogRow {
   lengthCm: number;
   widthCm: number;
   heightCm: number;
-  // B (what the shop pays) and S (the member price, "Giá bán ra"); the list price R follows S by the catalogue formula.
+  // H, the recorded buy-in ("Giá nhập/thu ghi nhận H", to reconcile with receipts), and S, the real selling price the
+  // owner enters ("Giá bán thực S"); R, B and C50 follow S (sale-pricing.ts) and are never read from the sheet.
   buyInVnd: number | null;
   memberPriceVnd: number | null;
   stock: number;
@@ -110,9 +111,10 @@ export const parseOwnerCatalogCsv = (csv: string, known: OwnerCatalogRow[] = loa
     skip_empty_lines: true,
     trim: true,
   });
-  const column = (record: Record<string, string>, prefix: string) => {
-    const key = Object.keys(record).find((name) => name.startsWith(prefix));
-    if (!key) throw new Error(`The CSV has no column "${prefix}"`);
+  // A column by the start of its header; several starts cover the sheet's earlier and current headers.
+  const column = (record: Record<string, string>, ...prefixes: string[]) => {
+    const key = Object.keys(record).find((name) => prefixes.some((prefix) => name.startsWith(prefix)));
+    if (!key) throw new Error(`The CSV has no column "${prefixes[0]}"`);
     return record[key] ?? '';
   };
   return records
@@ -137,8 +139,8 @@ export const parseOwnerCatalogCsv = (csv: string, known: OwnerCatalogRow[] = loa
         lengthCm: Number(column(record, 'Dài')),
         widthCm: Number(column(record, 'Rộng')),
         heightCm: Number(column(record, 'Cao')),
-        buyInVnd: money(column(record, 'Giá thu vào')),
-        memberPriceVnd: money(column(record, 'Giá bán ra')),
+        buyInVnd: money(column(record, 'Giá nhập/thu ghi nhận H', 'Giá thu vào')),
+        memberPriceVnd: money(column(record, 'Giá bán thực S', 'Giá bán ra')),
         stock: money(column(record, 'Số lượng')) ?? 0,
         condition,
         receivedOn: year
@@ -167,8 +169,8 @@ const describe = (row: OwnerCatalogRow) => {
 };
 
 // The product columns the workbook decides. Images, SKU, featured flag, holds and sales channel stay as staff set them;
-// the category is left empty (categories are not shown to customers). The workbook's selling price is the target S
-// awaiting approval ("CHỜ DUYỆT"); its column R is empty, so the shop sells at S (owner rule of 2026-10-25).
+// the category is left empty (categories are not shown to customers). The owner enters S; the web price R = S ÷ 0.9,
+// the buyback price B and the pawn amount follow it (owner rule of 2026-10-26). S counts as approved as entered.
 export const ownerProductValues = (row: OwnerCatalogRow) => {
   const pricing = catalogPricing(row.memberPriceVnd as number);
   const { en, vi } = describe(row);
@@ -193,8 +195,9 @@ export const ownerProductValues = (row: OwnerCatalogRow) => {
     packaging,
     weight: `${row.weightGram / 1000} kg`,
     dimensions: `${row.lengthCm} × ${row.widthCm} × ${row.heightCm} cm`,
-    price: pricing.referenceMemberVnd,
-    listPriceVerified: false,
+    price: pricing.listPriceVnd,
+    listPriceVerified: true,
+    targetPriceApprovedAt: receivedAt(row),
     importPrice: row.buyInVnd ?? 0,
     pricingReferenceMemberVnd: pricing.referenceMemberVnd,
     pricingIssueCount: 0,
@@ -280,13 +283,14 @@ export const syncOwnerCatalog = async (
     if (existing && kept.has(existing.id)) throw new Error(`Two catalogue rows match product #${existing.id}`);
     if (existing) {
       const before = pricingOf(existing);
-      // An approved real list price R stays; a changed S waits for a new approval.
-      const { price, listPriceVerified, ...rest } = values;
+      // The recorded cost H of an existing product is never recalculated from the sheet (it is reconciled with
+      // receipts); an unchanged, approved S keeps its approval date.
+      const { importPrice, targetPriceApprovedAt, ...rest } = values;
       existing.set({
         ...rest,
-        ...(existing.listPriceVerified ? {} : { price, listPriceVerified }),
-        ...(existing.pricingReferenceMemberVnd !== values.pricingReferenceMemberVnd
-          ? { targetPriceApprovedAt: null, targetPriceApprovedByUserId: null }
+        ...(existing.importPrice ? {} : { importPrice }),
+        ...(existing.pricingReferenceMemberVnd !== values.pricingReferenceMemberVnd || !existing.targetPriceApprovedAt
+          ? { targetPriceApprovedAt, targetPriceApprovedByUserId: null }
           : {}),
       });
       if (existing.changed()) {

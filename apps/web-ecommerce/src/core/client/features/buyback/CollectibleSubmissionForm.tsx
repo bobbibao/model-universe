@@ -18,12 +18,15 @@ export const COLLECTIBLE_ASSET_FIELDS = [
 ] as const;
 
 // Buyback and pawn both start with the same private, actual-item condition evidence.
+// `reference`: the catalogue model the customer valued (QuickValuation); the server quotes it again from its S.
 export default function CollectibleSubmissionForm({
   purpose,
   onCreated,
+  reference = null,
 }: {
   purpose: 'buyback' | 'pawn';
   onCreated: (id: number) => Promise<void>;
+  reference?: { id: number; name: string; modelCode?: string | null } | null;
 }) {
   const t = useTranslations('buyback'),
     common = useTranslations('common'),
@@ -83,6 +86,7 @@ export default function CollectibleSubmissionForm({
       data = {
         asset: Object.fromEntries(COLLECTIBLE_ASSET_FIELDS.map((key) => [key, form.get(key)])),
         evidenceIds: evidence.map((file) => file.id),
+        ...(reference ? { referenceProductId: reference.id } : {}),
       };
     const digest = JSON.stringify(data);
     if (pending.current?.digest !== digest) pending.current = { digest, key: crypto.randomUUID() };
@@ -110,7 +114,14 @@ export default function CollectibleSubmissionForm({
       ) : ['accessories', 'defects', 'repairHistory'].includes(key) ? (
         <textarea name={key} maxLength={1500} required />
       ) : (
-        <input name={key} maxLength={key === 'name' ? 255 : 1500} required />
+        <input
+          name={key}
+          maxLength={key === 'name' ? 255 : 1500}
+          required
+          defaultValue={
+            key === 'name' ? reference?.name : key === 'modelCode' ? (reference?.modelCode ?? undefined) : undefined
+          }
+        />
       )}
     </label>
   );

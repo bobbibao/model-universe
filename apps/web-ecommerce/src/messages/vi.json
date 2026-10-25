@@ -254,8 +254,8 @@
     "openService": "Khám phá dịch vụ",
     "descriptions": {
       "reservations": "Giữ mô hình đã chọn theo thỏa thuận đặt cọc và nhận hàng. Theo dõi khoản thanh toán đã xác nhận và bàn giao trong khu vực giữ hàng.",
-      "buyback": "Gửi thông tin và ảnh thật của mô hình. Xem đề nghị sau kiểm tra trước khi đồng ý bán hoặc thỏa thuận nhận lại mô hình.",
-      "pawn": "Xem đầy đủ thỏa thuận khoản vay và lưu giữ tài sản. Theo dõi hồ sơ đã ký, thanh toán đã xác nhận và bàn giao lại mô hình.",
+      "buyback": "Chọn mẫu shop đang bán để xem giá thu và đổi hàng ngay trên web; hàng khác tình trạng mới gửi ảnh để shop báo giá.",
+      "pawn": "Xem giá cầm dự kiến (50% giá bán thực) cho mẫu shop đang bán; theo dõi thỏa thuận, lưu giữ và chuộc lại mô hình.",
       "loyalty": "Theo dõi điểm từ giao dịch đã xác nhận và hạng thành viên. Xem voucher, quà có tồn kho thật và yêu cầu ghi nhận giao dịch cũ.",
       "partner": "Đăng ký với danh tính người bán và tài khoản ngân hàng tương ứng. Theo dõi xác minh, yêu cầu bổ sung và hạn mức bán đã xét duyệt."
     }
@@ -1088,7 +1088,7 @@
   "buyback": {
     "title": "Để mô hình tiếp tục một hành trình mới.",
     "adminTitle": "Thẩm định và tiếp nhận thu mua",
-    "intro": "Gửi đúng thông tin và tình trạng mô hình. Nhân viên xem ảnh, kiểm tra hiện vật và đề nghị bạn chấp nhận báo giá cuối trước khi chi trả.",
+    "intro": "Chọn đúng mẫu shop đang bán để xem ngay giá thu, giá cầm và chênh lệch đổi hàng cho hàng mới, không lỗi. Hàng đã qua sử dụng, thiếu phụ kiện, có lỗi hoặc mẫu khác: gửi ảnh thật để shop báo giá. Giá chỉ chốt sau khi shop kiểm tra hiện vật và bạn đồng ý.",
     "process": "Quy trình thu mua",
     "steps": {
       "submit": "Gửi mô hình",
@@ -1185,12 +1185,13 @@
     },
     "historyDetails": "Xem báo giá và quyết định đã lưu",
     "paidByCustomer": "Đã nhận khoản chênh lệch",
-    "tradeSettlementNote": "Ghi nhận khoản chênh lệch D đúng số đã chấp nhận (0 nếu ngang giá) và bàn giao món đổi; món đổi được trừ khỏi kho."
+    "tradeSettlementNote": "Ghi nhận khoản chênh lệch D đúng số đã chấp nhận (0 nếu ngang giá) và bàn giao món đổi; món đổi được trừ khỏi kho.",
+    "backToValuation": "Quay lại định giá nhanh"
   },
   "pawn": {
     "title": "Giữ bộ sưu tập. Mở giá trị mô hình.",
     "adminTitle": "Hợp đồng cầm cố và lưu giữ tài sản",
-    "intro": "Yêu cầu thẩm định mô hình thực tế. Xem khoản cầm, lãi và điều kiện hợp đồng trước khi ký. Nhân viên xác nhận lưu giữ hiện vật và giải ngân thực tế riêng biệt.",
+    "intro": "Chọn đúng mẫu shop đang bán để xem giá cầm dự kiến (50% giá bán thực). Lãi kép 0,3%/ngày hiện chỉ là mô phỏng, chưa áp dụng cho tới khi hoàn tất thẩm định pháp lý. Hàng khác tình trạng mới hoặc mẫu không có trong cửa hàng: gửi ảnh thật để shop định giá.",
     "custodyNote": "Mô hình cầm cố được lưu giữ riêng và không thuộc tồn kho có thể bán.",
     "capNote": "Lãi đơn không vượt quá tiền gốc. Chạm trần lãi không tự chuyển quyền sở hữu hoặc cho phép xử lý tài sản; cần đúng hợp đồng đã chấp nhận và quyết định có thẩm quyền được xác minh.",
     "signIn": "Đăng nhập để yêu cầu hoặc theo dõi cầm cố",
@@ -1200,7 +1201,7 @@
     "handoverVerified": "Tôi đã xác minh việc bàn giao hiện vật thực tế.",
     "terms": "Thẩm định và điều khoản hợp đồng hiện tại",
     "appraisal": "Giá trị tài sản thẩm định (VND)",
-    "principal": "Tiền gốc (VND, 50–80% giá thẩm định)",
+    "principal": "Tiền gốc (VND, mặc định 50% giá bán thực S)",
     "dailyRate": "Lãi suất mỗi ngày",
     "termDays": "Thời hạn thỏa thuận (ngày)",
     "forecast": "Lãi dự kiến trong thời hạn thỏa thuận",
@@ -1288,7 +1289,10 @@
     "dueReminder": "Hợp đồng #{id}: nhắc trước {days} ngày, hạn {date}.",
     "overdueReminder": "Hợp đồng #{id} đã quá hạn {date}. Xem khoản chuộc hoặc gửi yêu cầu gia hạn.",
     "historyDetails": "Xem thỏa thuận và quyết định đã lưu",
-    "disposalAccountingNote": "Xử lý tài sản không tự tất toán khoản vay. Nhân viên phải đối soát nợ, tiền bán và số dư của khách theo thỏa thuận đã được duyệt."
+    "disposalAccountingNote": "Xử lý tài sản không tự tất toán khoản vay. Nhân viên phải đối soát nợ, tiền bán và số dư của khách theo thỏa thuận đã được duyệt.",
+    "webQuote": "Giá cầm dự kiến trên web (C50 = 50% giá bán thực)",
+    "webQuoteManual": "Mẫu này cần shop định giá trực tiếp.",
+    "webQuoteNote": "Shop xác nhận khoản cầm sau khi kiểm tra hiện vật. Lãi chỉ mô phỏng, chưa thu cho tới khi thẩm định pháp lý."
   },
   "partner": {
     "title": "Gian hàng của bạn, trong vũ trụ mô hình",
@@ -2260,8 +2264,8 @@
     },
     "serviceSummary": {
       "reserve": "Chọn mô hình. Theo dõi tiền đã xác nhận. Hẹn giao hoặc nhận hàng.",
-      "sell": "Một hành trình mới cho mô hình, với báo giá để bạn xem và quyết định.",
-      "pawn": "Gửi mô hình để định giá, theo dõi thỏa thuận cầm và lưu giữ.",
+      "sell": "Chọn mẫu, xem ngay giá thu và chênh lệch đổi hàng cho hàng mới.",
+      "pawn": "Chọn mẫu, xem giá cầm dự kiến bằng 50% giá bán thực.",
       "loyalty": "Bộ sưu tập, điểm thưởng của bạn. Khám phá những phần quà đủ điều kiện.",
       "partner": "Đưa mô hình của bạn lên marketplace. Bắt đầu với hồ sơ được xác minh."
     },
@@ -2839,9 +2843,9 @@
     "cost": "Giá vốn C gồm chi phí (VND)",
     "basket": "Giỏ từ hai sản phẩm (v6.2 dùng cùng ngưỡng cho mọi giỏ)",
     "calculate": "Tính",
-    "candidates": "Giá bán mục tiêu S cho giá thu này (B17 = 17% × S)",
+    "candidates": "Giá bán thực S cho giá thu này (3 mức 30% / 20% / 17%)",
     "candidate": "S = {price}",
-    "noCandidate": "Không có S nào cho đúng giá thu này theo B17; ghi nhận là định giá riêng.",
+    "noCandidate": "Không có S nào cho đúng giá thu này; ghi nhận là định giá riêng.",
     "listFromMember": "Tham khảo: S {member} ứng với R {list} khi mã 10% áp lên R thật (kiểm tra: {check}). Không dùng để tạo R: R phải là giá công bố thật được duyệt.",
     "baseline": "Lợi nhuận chuẩn 10%: {amount}",
     "minimumProfit": "Lợi nhuận tối thiểu phải giữ: {amount}",
@@ -2891,7 +2895,7 @@
     "step4": "4. Xác nhận gửi yêu cầu",
     "catalogSearch": "Tìm mô hình trong danh mục (hãng, tên, mã kit, SKU)",
     "catalogPlaceholder": "Ví dụ: RX-78-2, HG Aerial…",
-    "catalogChosen": "Mô hình tham chiếu: {name} – giá bán {price}",
+    "catalogChosen": "Mẫu tham chiếu: {name} – giá web {price}",
     "catalogClear": "Bỏ chọn",
     "catalogHint": "Không tìm thấy mô hình? Vẫn có thể gửi để Admin định giá.",
     "issuesNote": "Khai đúng mọi lỗi và phụ kiện thiếu. Có lỗi thì không áp giá tự động: Admin xem và báo giá riêng, không trừ cố định theo lỗi.",
@@ -2914,7 +2918,7 @@
       "decision": "Tôi đồng ý nhận kết quả kiểm tra và quyết định về giá thu cuối cùng; đã đọc quy định vận chuyển, hủy và hoàn trả."
     },
     "estimate": {
-      "reference": "Giá bán mục tiêu S của shop",
+      "reference": "Giá bán thực S của shop",
       "base": "Mức trừ cơ bản theo bậc",
       "issues": "Trừ lỗi: {count} × {each}",
       "total": "GIÁ THU DỰ KIẾN",
@@ -2925,11 +2929,12 @@
         "zero_estimate": "Khoản trừ lớn hơn giá thu cơ bản: shop xem xét riêng.",
         "serious_damage": "Hư hỏng nghiêm trọng: Admin kiểm tra và báo giá riêng.",
         "reference_not_approved": "Giá bán mục tiêu S của mô hình chưa được Admin duyệt: Admin định giá.",
-        "issues_declared": "Có lỗi hoặc thiếu phụ kiện: Admin xem và báo giá riêng, không trừ tự động."
+        "issues_declared": "Có lỗi hoặc thiếu phụ kiện: Admin xem và báo giá riêng, không trừ tự động.",
+        "price_too_low": "Giá bán thực từ 100.000đ trở xuống hoặc giá thu tối thiểu không thấp hơn giá bán: Admin định giá."
       },
-      "note": "Giá dự kiến CHƯA CHỐT: B17 là 17% của S, không phải giảm 17%. Giá chính thức chỉ có sau khi shop kiểm tra hàng thực tế.",
+      "note": "Giá dự kiến CHƯA CHỐT theo 3 mức (30% đến 500.000đ, 20% đến 1.150.000đ, 17% trên đó, tối thiểu 100.000đ). Giá chính thức chỉ có sau khi shop kiểm tra hàng thực tế.",
       "legacyReference": "Giá bán thực tham chiếu (giá thành viên)",
-      "rate": "Giá thu B17"
+      "rate": "Tỷ lệ thu"
     },
     "issueTypes": {
       "missing_box": "Thiếu hộp gốc",
@@ -2946,7 +2951,7 @@
       "other": "Lỗi khác (mỗi lỗi)"
     },
     "noIssues": "Không có lỗi được ghi nhận.",
-    "referenceProduct": "Mô hình tham chiếu: {name} ({sku}) – giá bán mục tiêu S {price}",
+    "referenceProduct": "Mẫu tham chiếu: {name} ({sku}) – giá bán thực S {price}",
     "declaredIssues": "Lỗi khách khai báo",
     "evidenceRequested": "Shop cần bổ sung",
     "addEvidence": "Tải thêm ảnh/video",
@@ -2965,7 +2970,7 @@
     "requestReview": "Yêu cầu kiểm tra lại (ghi rõ lỗi bạn không đồng ý)",
     "requestReviewButton": "Gửi yêu cầu kiểm tra lại",
     "manualAmount": "Giá thủ công (để trống để dùng công thức)",
-    "formulaNote": "Để trống: dùng giá thu B17 = 17% × S (chỉ khi S đã duyệt và hàng không lỗi). Nhập số tiền khác là báo giá thủ công, phải ghi lý do.",
+    "formulaNote": "Để trống: dùng giá thu theo 3 mức (30% / 20% / 17% giá bán thực S, tối thiểu 100.000đ), chỉ khi S đã duyệt và hàng mới không lỗi. Nhập số tiền khác là báo giá thủ công, phải ghi lý do.",
     "inspectionUpload": "Video mở kiện và ảnh kiểm hàng",
     "inspectionUploaded": "Đã có {count} tệp kiểm hàng (bắt buộc trước giá chính thức).",
     "trade": {
@@ -3595,11 +3600,11 @@
   },
   "pricingApprovals": {
     "title": "Duyệt giá và giá vốn",
-    "intro": "Giá bán mục tiêu S cần một quản trị viên duyệt trước khi giá thu B17 (17% × S) được báo cho khách. Giá niêm yết thật R được nhập kèm bằng chứng và cần quản trị viên thứ hai duyệt; tới lúc đó shop bán đúng giá S, không áp giá thành viên hay mã giảm giá.",
+    "intro": "Chủ shop chỉ nhập giá bán thực S; giá web R = S ÷ 0,9 (mã MEMBER10 giảm 10% R về S), giá thu B và giá cầm C50 tự tính. Trang này kiểm tra giá web có theo đúng S và quản lý hồ sơ giá vốn dùng để kiểm tra voucher.",
     "search": "Tên hoặc SKU",
     "empty": "Không có sản phẩm.",
-    "summary": "Đang bán {price} · S {target} · B17 {buyback} · giá nhập {receipt} · giá vốn kiểm tra voucher {cost}",
-    "mismatch": "Giá khác giá niêm yết đã duyệt: voucher bị chặn đến khi giá mới được duyệt.",
+    "summary": "Giá web {price} · S {target} · giá thu {buyback} · giá nhập {receipt} · giá vốn kiểm tra voucher {cost}",
+    "mismatch": "Giá web khác R = S ÷ 0,9: lưu lại sản phẩm để tính lại giá.",
     "prices": "Giá niêm yết thật R",
     "costs": "Hồ sơ giá vốn",
     "none": "Chưa có.",
@@ -3627,29 +3632,30 @@
     "filterLabel": "Lọc sản phẩm",
     "filters": {
       "all": "Tất cả sản phẩm",
-      "pending": "Chờ quản trị viên thứ hai",
-      "mismatch": "Đổi giá sau khi duyệt",
+      "pending": "Hồ sơ giá vốn chờ duyệt",
+      "mismatch": "Giá web lệch S",
       "unapproved": "Đang bán theo S",
       "approved": "Đã có giá duyệt",
       "target": "S chờ duyệt"
     },
     "columns": {
       "product": "Sản phẩm",
-      "price": "Giá đang bán",
+      "price": "Giá web R",
       "cost": "Giá vốn kiểm tra",
-      "listPrice": "Giá niêm yết R",
+      "listPrice": "R = S ÷ 0,9",
       "costProfile": "Hồ sơ giá vốn",
-      "target": "Giá mục tiêu S"
+      "target": "Giá bán thực S"
     },
     "chips": {
-      "mismatch": "Lệch giá đã duyệt",
+      "mismatch": "Lệch R = S ÷ 0,9",
       "approved": "Đã duyệt v{version}",
       "none": "Chưa duyệt",
       "receipt": "Theo giá nhập",
       "pending": "{count} chờ duyệt",
       "targetApproved": "S đã duyệt",
       "targetPending": "CHỜ DUYỆT",
-      "soldAtTarget": "Bán theo S"
+      "soldAtTarget": "Bán theo S",
+      "followsS": "R theo S"
     },
     "manage": "Xem & duyệt",
     "receipt": "giá nhập {amount}",

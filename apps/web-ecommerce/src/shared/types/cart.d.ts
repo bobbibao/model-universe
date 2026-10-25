@@ -65,5 +65,6 @@ export type WishlistItem = {
     price: number;
     imageUrl: string;
     stock: number;
+    partnerId?: number | null;
   } & ProductPricing;
 };

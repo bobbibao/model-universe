@@ -254,8 +254,8 @@
     "openService": "Explore this service",
     "descriptions": {
       "reservations": "Keep your chosen model with agreed deposit and collection terms. Follow confirmed payments and handover in your reservation workspace.",
-      "buyback": "Submit your model and actual-item photographs. Review the inspected offer before accepting a sale or agreeing how your model returns to you.",
-      "pawn": "Review the full loan and custody agreement. Track signed records, verified payments and the actual return of your pledged model.",
+      "buyback": "Choose a model the shop sells to see the buyback and trade prices on the web; send photos of other units for a quote.",
+      "pawn": "See the expected pawn amount (50% of the real selling price) of a model the shop sells; follow the agreement, custody and redemption.",
       "loyalty": "Follow your verified purchase points and membership progress. Review available vouchers, real-stock gifts and historical purchase claims.",
       "partner": "Apply with your seller identity and matching bank account. Follow verification, requested changes and your reviewed selling limits."
     }
@@ -1088,7 +1088,7 @@
   "buyback": {
     "title": "Give your next model a new home.",
     "adminTitle": "Buyback appraisal and custody",
-    "intro": "Submit the exact model and its condition. Our staff review your photos, inspect the item, and ask you to accept a final quote before any payout.",
+    "intro": "Choose the same model the shop sells to see the buyback price, the pawn amount and a trade difference for a new unit without defects. Used, incomplete or faulty units, and other models: send real photos and the shop will quote them. The price is final only after the shop inspects the unit and you accept.",
     "process": "Buyback process",
     "steps": {
       "submit": "Share your model",
@@ -1185,12 +1185,13 @@
     },
     "historyDetails": "View the recorded quote and decision",
     "paidByCustomer": "Difference received",
-    "tradeSettlementNote": "Record the accepted difference D exactly (0 when even) and the handover of the traded item; the item leaves stock."
+    "tradeSettlementNote": "Record the accepted difference D exactly (0 when even) and the handover of the traded item; the item leaves stock.",
+    "backToValuation": "Back to the quick valuation"
   },
   "pawn": {
     "title": "Keep your collection. Unlock its value.",
     "adminTitle": "Pawn contracts and asset custody",
-    "intro": "Request an appraisal for your actual model. Review the loan, interest and contract conditions before signing. Staff confirm physical custody and actual disbursement separately.",
+    "intro": "Choose the same model the shop sells to see the expected pawn amount (50% of the real selling price). The 0.3% a day compound interest is only simulated and not charged until legal review. Units in another condition, or models the shop does not sell: send real photos for the shop to value.",
     "custodyNote": "Pledged models stay in private custody and are excluded from sellable stock.",
     "capNote": "Simple interest is capped at principal. Reaching the cap never transfers ownership or authorizes disposal; only the accepted contract and a verified authorized decision can do that.",
     "signIn": "Sign in to request or track a pawn contract",
@@ -1200,7 +1201,7 @@
     "handoverVerified": "I verified the actual physical asset handover.",
     "terms": "Current appraisal and contract terms",
     "appraisal": "Appraised asset value (VND)",
-    "principal": "Principal (VND, 50–80% of appraisal)",
+    "principal": "Principal (VND, by default 50% of the real selling price S)",
     "dailyRate": "Daily interest rate",
     "termDays": "Agreed term (days)",
     "forecast": "Estimated interest for the agreed term",
@@ -1288,7 +1289,10 @@
     "dueReminder": "Contract #{id}: {days}-day reminder for {date}.",
     "overdueReminder": "Contract #{id} passed its due date {date}. Review repayment or request an extension.",
     "historyDetails": "View the recorded agreement and decision",
-    "disposalAccountingNote": "Disposal does not settle the loan automatically. Staff must reconcile debt, sale proceeds and any customer balance under an approved agreement."
+    "disposalAccountingNote": "Disposal does not settle the loan automatically. Staff must reconcile debt, sale proceeds and any customer balance under an approved agreement.",
+    "webQuote": "Web pawn quote (C50 = 50% of the real selling price)",
+    "webQuoteManual": "This model needs the shop to value it.",
+    "webQuoteNote": "The shop confirms the amount after inspecting the unit. Interest is simulated only and not charged until legal review."
   },
   "partner": {
     "title": "Your shop, in our universe",
@@ -2260,8 +2264,8 @@
     },
     "serviceSummary": {
       "reserve": "Pick your model. Follow confirmed payments. Arrange your handover.",
-      "sell": "A new chapter for your model, with an offer you can review.",
-      "pawn": "Submit your model for appraisal and follow the agreed custody terms.",
+      "sell": "Choose your model and see the buyback price and a trade difference for a new unit.",
+      "pawn": "Choose your model and see the pawn amount: 50% of the real selling price.",
       "loyalty": "Your collection, your points. See eligible rewards in one place.",
       "partner": "Bring your models to our marketplace. Start with a verified profile."
     },
@@ -2839,9 +2843,9 @@
     "cost": "Cost C including costs (VND)",
     "basket": "Basket of two or more products (v6.2 uses the same limits for every basket)",
     "calculate": "Calculate",
-    "candidates": "Target price S for this buy-back price (B17 = 17% × S)",
+    "candidates": "Real selling price S for this buyback price (three rates 30% / 20% / 17%)",
     "candidate": "S = {price}",
-    "noCandidate": "No S gives exactly this buy-back price under B17; record it as an individual price.",
+    "noCandidate": "No S gives exactly this buyback price; record it as an individual price.",
     "listFromMember": "Reference: S {member} matches R {list} when the 10% code applies to a real R (check: {check}). Never use it to create R: R must be a real, approved published price.",
     "baseline": "Standard 10% profit: {amount}",
     "minimumProfit": "Minimum profit to keep: {amount}",
@@ -2891,7 +2895,7 @@
     "step4": "4. Confirm and send",
     "catalogSearch": "Find the model in the catalog (brand, name, kit code, SKU)",
     "catalogPlaceholder": "e.g. RX-78-2, HG Aerial…",
-    "catalogChosen": "Reference model: {name} – price {price}",
+    "catalogChosen": "Reference model: {name} – web price {price}",
     "catalogClear": "Clear",
     "catalogHint": "Not in the catalog? You can still send it for an admin to price.",
     "issuesNote": "Declare every issue and missing accessory. With an issue no automatic price applies: an admin reviews and quotes it, with no fixed deduction per issue.",
@@ -2914,7 +2918,7 @@
       "decision": "I agree to receive the inspection result and decide on the final price; I read the shipping, cancellation and return terms."
     },
     "estimate": {
-      "reference": "The shop's target selling price S",
+      "reference": "The shop's real selling price S",
       "base": "Tier base deduction",
       "issues": "Issue deduction: {count} × {each}",
       "total": "EXPECTED BUYBACK PRICE",
@@ -2925,11 +2929,12 @@
         "zero_estimate": "Deductions exceed the base price: reviewed individually.",
         "serious_damage": "Serious damage: inspected and priced by an admin.",
         "reference_not_approved": "The model's target price S is not approved yet: priced by an admin.",
-        "issues_declared": "Issues or missing accessories: an admin reviews and quotes it, with no automatic deduction."
+        "issues_declared": "Issues or missing accessories: an admin reviews and quotes it, with no automatic deduction.",
+        "price_too_low": "A selling price of 100,000 VND or less, or a minimum buyback price not below the selling price: priced by an admin."
       },
-      "note": "A NOT-FINAL estimate: B17 is 17% of S, not a 17% discount. The official price comes only after the shop inspects the actual model.",
+      "note": "A NOT-FINAL estimate by three rates (30% up to 500,000, 20% up to 1,150,000, 17% above, at least 100,000). The official price comes only after the shop inspects the actual model.",
       "legacyReference": "Reference selling price (member price)",
-      "rate": "Buy-back price B17"
+      "rate": "Buyback rate"
     },
     "issueTypes": {
       "missing_box": "Missing original box",
@@ -2946,7 +2951,7 @@
       "other": "Other issue (each)"
     },
     "noIssues": "No issues recorded.",
-    "referenceProduct": "Reference model: {name} ({sku}) – target price S {price}",
+    "referenceProduct": "Reference model: {name} ({sku}) – real selling price S {price}",
     "declaredIssues": "Issues the customer declared",
     "evidenceRequested": "The shop needs",
     "addEvidence": "Upload more photos/videos",
@@ -2965,7 +2970,7 @@
     "requestReview": "Ask for a re-inspection (which issues you dispute)",
     "requestReviewButton": "Send the re-inspection request",
     "manualAmount": "Manual price (empty: use the formula)",
-    "formulaNote": "Empty: the B17 price = 17% × S is used (only with an approved S and no issues). Any other amount is a manual price and needs its reason.",
+    "formulaNote": "Empty: the three-rate buyback price is used (30% / 20% / 17% of the real selling price S, at least 100,000 VND), only with an approved S and a new unit without defects. Any other amount is a manual price and needs its reason.",
     "inspectionUpload": "Unboxing video and inspection photos",
     "inspectionUploaded": "{count} inspection files (required before the official price).",
     "trade": {
@@ -3595,11 +3600,11 @@
   },
   "pricingApprovals": {
     "title": "Approved prices and costs",
-    "intro": "A target selling price S needs one admin to approve it before its buy-back price B17 (17% × S) is quoted to customers. A real list price R is entered with its proof and needs a second admin; until then the shop sells at S, with no member price or voucher on top.",
+    "intro": "The owner enters only the real selling price S; the web price R = S ÷ 0.9 (MEMBER10 takes 10% off R back to S), the buyback price B and the pawn amount C50 follow it. This page checks every web price follows S and keeps the cost profiles vouchers are checked with.",
     "search": "Name or SKU",
     "empty": "No products found.",
-    "summary": "Selling at {price} · S {target} · B17 {buyback} · receipt cost {receipt} · cost used by voucher checks {cost}",
-    "mismatch": "The price differs from the approved list price: vouchers are blocked until the new price is approved.",
+    "summary": "Web price {price} · S {target} · buyback {buyback} · receipt cost {receipt} · cost used by voucher checks {cost}",
+    "mismatch": "The web price is not R = S ÷ 0.9: save the product again to recompute it.",
     "prices": "Real list prices R",
     "costs": "Cost profiles",
     "none": "None yet.",
@@ -3627,29 +3632,30 @@
     "filterLabel": "Filter products",
     "filters": {
       "all": "All products",
-      "pending": "Awaiting a second admin",
-      "mismatch": "Price changed after approval",
+      "pending": "Cost profiles awaiting approval",
+      "mismatch": "Web price off S",
       "unapproved": "Sold at S",
       "approved": "With an approved price",
       "target": "S awaiting approval"
     },
     "columns": {
       "product": "Product",
-      "price": "Selling at",
+      "price": "Web price R",
       "cost": "Cost checked",
-      "listPrice": "List price R",
+      "listPrice": "R = S ÷ 0.9",
       "costProfile": "Cost profile",
-      "target": "Target price S"
+      "target": "Real selling price S"
     },
     "chips": {
-      "mismatch": "Differs from approved",
+      "mismatch": "Not R = S ÷ 0.9",
       "approved": "Approved v{version}",
       "none": "Not approved",
       "receipt": "Receipt price",
       "pending": "{count} awaiting",
       "targetApproved": "S approved",
       "targetPending": "AWAITING APPROVAL",
-      "soldAtTarget": "Sold at S"
+      "soldAtTarget": "Sold at S",
+      "followsS": "R follows S"
     },
     "manage": "Review",
     "receipt": "receipt {amount}",

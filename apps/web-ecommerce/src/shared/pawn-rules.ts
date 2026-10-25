@@ -25,3 +25,47 @@ export function pawnInterest(principalVnd: number, policy: PawnInterestPolicy, d
   const capped = rounded >= BigInt(principalVnd);
   return { days, interestVnd: capped ? principalVnd : Number(rounded), capped };
 }
+
+// The expected pawn amount of one unit (owner rule of 2026-10-26): C50 = ROUND(S × 50%) of the approved real selling
+// price S of the same SKU, half up (S 500,001 gives 250,001). B and R never enter it; no minimum.
+export const pawnC50 = (sellingPriceVnd: number): number => Math.floor((sellingPriceVnd + 1) / 2);
+
+// Compound interest of 0.3% a day, for display only: it is simulated (LEGAL_REVIEW_REQUIRED) and never charged until
+// the pawn terms pass legal review. The amount owed after `days`, half up to whole VND.
+export const PAWN_SIMULATED_DAILY_BPS = 30;
+// Exact integer arithmetic: P × (10,030 / 10,000)^days, rounded half up once at the end.
+export const simulatePawnOwed = (principalVnd: number, days: number): number => {
+  const factor = BigInt(10_000 + PAWN_SIMULATED_DAILY_BPS),
+    scale = BigInt(10_000),
+    count = BigInt(Math.max(0, Math.floor(days)));
+  const denominator = scale ** count;
+  return Number((BigInt(principalVnd) * factor ** count * BigInt(2) + denominator) / (denominator * BigInt(2)));
+};
+
+// The web pawn quote of one unit (owner rule of 2026-10-26, three-prices specification §16): C50 for a catalogue model
+// the shop sells new, with an approved S; anything else (no catalogue model, a used or faulty unit, S missing or not
+// approved) goes to an admin. It is a quote for the shop to confirm, not a disbursement: interest stays simulated until
+// legal review.
+export const PAWN_RULE_VERSION = 'pawn-c50-2026-10-26';
+export type PawnManualReview = 'no_reference_price' | 'reference_not_approved' | 'issues_declared';
+export interface PawnEstimate {
+  ruleVersion: string;
+  referencePriceVnd: number | null;
+  amountVnd: number | null;
+  manualReview: PawnManualReview | null;
+  legalReviewRequired: true;
+}
+export const estimatePawn = (
+  referencePriceVnd: number | null,
+  options: { approved?: boolean; issuesDeclared?: boolean } = {},
+): PawnEstimate => {
+  const common = {
+    ruleVersion: PAWN_RULE_VERSION,
+    referencePriceVnd: referencePriceVnd && referencePriceVnd > 0 ? referencePriceVnd : null,
+    legalReviewRequired: true as const,
+  };
+  if (!common.referencePriceVnd) return { ...common, amountVnd: null, manualReview: 'no_reference_price' };
+  if (!options.approved) return { ...common, amountVnd: null, manualReview: 'reference_not_approved' };
+  if (options.issuesDeclared) return { ...common, amountVnd: null, manualReview: 'issues_declared' };
+  return { ...common, amountVnd: pawnC50(common.referencePriceVnd), manualReview: null };
+};

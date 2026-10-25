@@ -8,6 +8,9 @@ import Api from '@/core/client/api/Api';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { COLLECTIBLE_ASSET_FIELDS as ASSET_FIELDS } from './CollectibleSubmissionForm';
 import BuybackSubmissionForm from './BuybackSubmissionForm';
+import QuickValuation, { type ValuationRequest } from './QuickValuation';
+import { useRouter } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import BuybackPricingSections from './BuybackPricingSections';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { BuybackRequest } from '@/shared/types/buyback';
@@ -23,8 +26,10 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
     [selected, setSelected] = useState<BuybackRequest | null>(null);
   const [busy, setBusy] = useState(false),
     [failed, setFailed] = useState(false),
-    [showForm, setShowForm] = useState(false);
+    [request, setRequest] = useState<ValuationRequest | null>(null);
   const root = admin ? '/admin/buyback' : '/buyback';
+  const router = useRouter();
+  const chosenModel = Number(useSearchParams().get('mau')) || null;
   const load = useCallback(async () => {
     if (!user) return;
     try {
@@ -126,20 +131,32 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
               {common('retry')}
             </button>
           )}
-          {!admin && (
-            <button className="mu-button mb-6" aria-expanded={showForm} onClick={() => setShowForm(!showForm)}>
-              {t('newRequest')}
-            </button>
-          )}
-          {!admin && showForm && (
-            <BuybackSubmissionForm
-              key={user.id}
-              onCreated={async (id) => {
-                await open(id);
-                setShowForm(false);
-                await load();
+          {!admin && !request && (
+            <QuickValuation
+              focus="sell"
+              initialProductId={chosenModel}
+              onRequest={(next) => {
+                if (next.kind === 'pawn') router.push(`/services/pawn?mau=${next.product.id}`);
+                else setRequest(next);
               }}
             />
+          )}
+          {!admin && request && (
+            <>
+              <button className="mb-4 text-sm underline" onClick={() => setRequest(null)}>
+                ← {t('backToValuation')}
+              </button>
+              <BuybackSubmissionForm
+                key={`${user.id}:${request.kind}`}
+                initialReference={request.kind === 'manual' ? null : request.product}
+                initialTradeItem={request.kind === 'trade' ? request.tradeItem : null}
+                onCreated={async (id) => {
+                  await open(id);
+                  setRequest(null);
+                  await load();
+                }}
+              />
+            </>
           )}
           {!failed && !rows.length && <ServiceEmpty>{t('empty')}</ServiceEmpty>}
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">

@@ -44,9 +44,10 @@ export function useCountdown(endsAt?: string | Date | null) {
   return { days, clock, left };
 }
 
-// The price the customer pays first and largest (red only during a sale, with the struck list price and the saving),
-// then, for shop products off sale, the member price spelled out in full: what a member pays with the free monthly 10%
-// member code.
+// The price the customer pays first and largest. During a sale: the sale price in red with the struck web price and
+// the saving. Otherwise, for a shop product (`showMemberPrice`): the member price S (the web price R less the 10% member
+// code, owner rule of 2026-10-26) large, labelled as the member price, above the struck web price R; a partner's
+// listing shows its own price only.
 const PriceTag = ({
   price,
   salePrice,
@@ -59,29 +60,33 @@ const PriceTag = ({
   const locale = useLocale();
   const en = locale === 'en';
   const discounted = discountPercent > 0 && salePrice !== undefined && salePrice < price;
-  const pay = split(formatVND(discounted ? (salePrice as number) : price, locale));
-  const member = split(formatVND(memberPrice(price), locale));
+  const member = showMemberPrice && !discounted;
+  const pay = split(formatVND(discounted ? (salePrice as number) : member ? memberPrice(price) : price, locale));
   return (
-    <span className={`price-tag is-${size}${discounted ? ' is-sale' : ''} ${className}`}>
+    <span className={`price-tag is-${size}${discounted ? ' is-sale' : ''}${member ? ' is-member' : ''} ${className}`}>
       <span className="price-tag-row">
         <span className="price-tag-now">
           {pay.amount}
           <small>{pay.currency}</small>
         </span>
         {discounted && showDiscountBadge && <span className="price-tag-off">-{Math.round(discountPercent)}%</span>}
+        {member && (
+          <span
+            className="price-tag-member-badge"
+            title={
+              en
+                ? 'With the 10% member code (MEMBER10), free for signed-in members'
+                : 'Khi dùng mã thành viên MEMBER10 (giảm 10%), miễn phí cho thành viên đã đăng nhập'
+            }
+          >
+            {size === 'detail' ? (en ? 'Member price' : 'Giá thành viên') : en ? 'Member' : 'Thành viên'}
+          </span>
+        )}
       </span>
-      {discounted && <s className="price-tag-was">{formatVND(price, locale)}</s>}
-      {showMemberPrice && (
-        <span
-          className="price-tag-member"
-          title={en ? 'With the free monthly 10% member code' : 'Khi dùng mã thành viên 10% (nhận miễn phí mỗi tháng)'}
-        >
-          <span>{size === 'detail' ? (en ? 'Member price' : 'Giá thành viên') : en ? 'Member' : 'Thành viên'}</span>
-          <strong>
-            {member.amount}
-            <small>{member.currency}</small>
-          </strong>
-        </span>
+      {(discounted || member) && (
+        <s className="price-tag-was" aria-label={en ? 'Web price' : 'Giá niêm yết'}>
+          {formatVND(price, locale)}
+        </s>
       )}
     </span>
   );

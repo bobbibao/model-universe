@@ -1,4 +1,5 @@
 import { Op, QueryTypes, Transaction, type WhereOptions } from 'sequelize';
+import { webListPrice } from '../../../shared/pricing';
 import DatabaseProvider from '../database/Database.Provider';
 import ProductModel from '../database/client/models/Product.Model';
 import ProductCostProfileModel, {
@@ -26,7 +27,11 @@ export interface EffectivePricing {
 export type PricingRecordKind = 'price' | 'cost';
 // `listPriceVerified` may be left unloaded by a caller; then only the approved records decide.
 type PricedProduct = Pick<ProductModel, 'id' | 'price' | 'importPrice' | 'partnerId'> &
-  Partial<Pick<ProductModel, 'listPriceVerified'>>;
+  Partial<Pick<ProductModel, 'listPriceVerified' | 'pricingReferenceMemberVnd'>>;
+
+// Since 2026-10-26 the web price is a formula of S: R = ROUND(S / 0.9). A shop product priced exactly so has a valid R.
+const followsS = (product: PricedProduct) =>
+  !!product.pricingReferenceMemberVnd && product.price === webListPrice(product.pricingReferenceMemberVnd);
 
 const COST_FIELDS = [
   'buyInVnd',
@@ -95,7 +100,9 @@ export default class PricingApprovalService {
             costVnd: profile ? profileUnitCostVnd(profile, receipt) : receipt,
             priceApproved: product.partnerId
               ? true
-              : product.listPriceVerified === false
+              : followsS(product)
+                ? true
+                : product.listPriceVerified === false
                 ? false
                 : approved
                 ? approved.listPriceVnd === product.price
@@ -131,8 +138,9 @@ export default class PricingApprovalService {
     const [pendingIds, mismatchIds, approvedIds] = await Promise.all([
       ids(`SELECT DISTINCT "productId" AS id FROM product_price_approval WHERE status = 'DRAFT'
            UNION SELECT DISTINCT "productId" FROM product_cost_profile WHERE status = 'DRAFT'`),
-      ids(`SELECT a."productId" AS id FROM product_price_approval a JOIN product p ON p.id = a."productId"
-            WHERE a.status = 'APPROVED' AND a."listPriceVnd" <> p.price`),
+      // A shop product whose price is not R = ROUND(S / 0.9) of its S (vouchers check it against the formula).
+      ids(`SELECT p.id FROM product p WHERE p."partnerId" IS NULL AND p."pricingReferenceMemberVnd" > 0
+            AND p.price <> FLOOR((p."pricingReferenceMemberVnd"::bigint * 20 + 9) / 18)`),
       ids(`SELECT "productId" AS id FROM product_price_approval WHERE status = 'APPROVED'`),
     ]);
     const where: WhereOptions = {
@@ -189,7 +197,6 @@ export default class PricingApprovalService {
       count,
       rows: products.map((product) => {
         const priceRecords = prices.filter((row) => row.productId === product.id);
-        const approvedPrice = priceRecords.find((row) => row.status === 'APPROVED') ?? null;
         return {
           id: product.id,
           sku: product.sku,
@@ -203,7 +210,8 @@ export default class PricingApprovalService {
           listPriceVerified: product.listPriceVerified,
           unitCostVnd: effective.get(product.id)!.costVnd,
           // The product's current price differs from its approved R: codes are blocked until it is approved again.
-          priceMismatch: product.listPriceVerified && !!approvedPrice && approvedPrice.listPriceVnd !== product.price,
+          // The price differs from R = ROUND(S / 0.9): vouchers fall back to the approved records until it is resaved.
+          priceMismatch: !!product.pricingReferenceMemberVnd && product.price !== webListPrice(product.pricingReferenceMemberVnd),
           prices: priceRecords.slice(0, 5),
           costs: costs.filter((row) => row.productId === product.id).slice(0, 5),
         };
@@ -251,30 +259,11 @@ export default class PricingApprovalService {
     });
   }
 
-  // A DRAFT real list price R with the proof that it is really published (a listing, an invoice). R is entered, never
-  // derived from S; once a second admin approves it, it becomes the price charged.
-  async proposePrice(actorUserId: number, data: Record<string, unknown>) {
-    const proof = text(data.proof, 'Nơi công bố giá'),
-      reason = text(data.reason, 'Lý do');
-    return DatabaseProvider.getInstance().transaction(async (transaction) => {
-      await this.admin(actorUserId, transaction);
-      const product = await this.product(data.productId, transaction);
-      const listPriceVnd = wholeVnd(data.listPriceVnd, 'Giá niêm yết', 1);
-      const row = await ProductPriceApprovalModel.create(
-        {
-          productId: product.id,
-          version: await this.nextVersion(ProductPriceApprovalModel, product.id, transaction),
-          listPriceVnd,
-          referenceMemberVnd: product.pricingReferenceMemberVnd ?? null,
-          proof,
-          reason,
-          proposedByUserId: actorUserId,
-        },
-        { transaction },
-      );
-      await this.audit('price_approval', row.id, 'propose', actorUserId, null, row.get({ plain: true }), transaction);
-      return row;
-    });
+  // Owner rule of 2026-10-26: the web price R = ROUND(S / 0.9) is computed from S, never proposed or approved apart.
+  async proposePrice(actorUserId: number, data: Record<string, unknown>): Promise<never> {
+    void actorUserId;
+    void data;
+    throw HttpError.conflict('Giá web R được tính tự động từ giá bán thực S (R = S ÷ 0,9).', 'R_FOLLOWS_S');
   }
 
   // A DRAFT cost profile.

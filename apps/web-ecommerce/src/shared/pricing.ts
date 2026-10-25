@@ -25,6 +25,10 @@ const ceilDiv = (numerator: number, denominator: number) => Math.floor((numerato
 export const memberPrice = (listPriceVnd: number, percent = STANDARD_MEMBER_PERCENT): number =>
   listPriceVnd - roundDiv(listPriceVnd * percent, 100);
 
+// The web list price R = ROUND(S / 0.9) of a real selling price S (owner rule of 2026-10-26). Its member price is
+// exactly S for every whole S (memberPrice(webListPrice(S)) === S).
+export const webListPrice = (sellingPriceVnd: number): number => roundDiv(sellingPriceVnd * 10, 9);
+
 // The list price R whose member price is exactly S (R ≈ S / 0.9). The closest R with memberPrice(R) = S, or the
 // nearest R above when no exact value exists.
 export const listPriceForMemberPrice = (targetMemberVnd: number, percent = STANDARD_MEMBER_PERCENT): number => {

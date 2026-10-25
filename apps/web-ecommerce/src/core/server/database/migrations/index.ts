@@ -73,6 +73,7 @@ import { loadOwnerCatalog, ownerCatalogSeeded, syncOwnerCatalog } from '../clien
 import { CATEGORIES } from '../client/seeders/Category.Seeder';
 import { RETURN_REASONS } from '../../../../shared/return-rules';
 import { b17 } from '../../../../shared/buyback-pricing';
+import { catalogPricing } from '../../../../shared/sale-pricing';
 import Logger from '../../../../shared/server/utils/logger';
 import { purgeRows } from './purge';
 import { QueryTypes } from 'sequelize';
@@ -1227,6 +1228,88 @@ export const MIGRATIONS: Migration[] = [
       await context.sequelize.query(
         `CREATE INDEX IF NOT EXISTS product_condition ON product (condition)`,
       );
+    },
+  },
+  {
+    name: '2026-10-26-50-three-prices-from-s',
+    up: async ({ context }) => {
+      // Owner rule of 2026-10-26 (docs/business/source/vi/three-prices-specification.md): staff enter only the real
+      // selling price S; the web price R = ROUND(S / 0.9) is the product's price (MEMBER10 takes it back to S) and the
+      // buyback price B follows S by 30% / 20% / 17% with a 100,000 minimum. The owner's workbook of 26/10 changes S of
+      // 47 models (seeders/data/owner-catalog.json); its recorded costs H are not recalculated. Only the catalogue's
+      // own products are updated: nothing is created or retired here. Running it again changes nothing.
+      const { sequelize } = context;
+      await sequelize.transaction(async (transaction) => {
+        const keys = new Map(
+          (await ProductSourceModel.findAll({ attributes: ['catalogKey', 'productId'], transaction })).map((source) => [
+            source.catalogKey,
+            source.productId,
+          ]),
+        );
+        const sheet = new Map(loadOwnerCatalog().map((row) => [keys.get(row.key), row]));
+        const products = await ProductModel.findAll({
+          attributes: [
+            'id',
+            'price',
+            'scale',
+            'pricingReferenceMemberVnd',
+            'buybackPriceVnd',
+            'listPriceVerified',
+            'targetPriceApprovedAt',
+            'productionDate',
+          ],
+          where: { partnerId: null },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        for (const product of products) {
+          const row = sheet.get(product.id);
+          const target = row?.memberPriceVnd ?? product.pricingReferenceMemberVnd;
+          if (!target || target < 1) continue;
+          const pricing = catalogPricing(target);
+          const oldValue = {
+            referenceMemberVnd: product.pricingReferenceMemberVnd,
+            listPriceVnd: product.price,
+            buybackPriceVnd: product.buybackPriceVnd,
+          };
+          product.set({
+            ...(row ? { scale: row.scale } : {}),
+            pricingReferenceMemberVnd: target,
+            price: pricing.listPriceVnd,
+            buybackPriceVnd: pricing.buybackPriceVnd,
+            pricingIssueCount: 0,
+            listPriceVerified: true,
+            ...(product.targetPriceApprovedAt && oldValue.referenceMemberVnd === target
+              ? {}
+              : { targetPriceApprovedAt: new Date('2026-10-26T00:00:00+07:00') }),
+          });
+          if (!product.changed()) continue;
+          await product.save({ transaction });
+          await PromotionAuditModel.create(
+            {
+              actorUserId: null,
+              entityType: 'product_pricing',
+              entityId: product.id,
+              action: 'three_prices_rule',
+              oldValue,
+              newValue: {
+                referenceMemberVnd: target,
+                listPriceVnd: product.price,
+                buybackPriceVnd: product.buybackPriceVnd,
+              },
+            },
+            { transaction },
+          );
+        }
+      });
+    },
+  },
+  {
+    name: '2026-10-26-51-pawn-web-quote',
+    up: async ({ context }) => {
+      // A pawn request records the catalogue model the customer chose and its web quote C50 = ROUND(S × 50%)
+      // (pawn-rules.ts). Existing requests keep no quote: they are priced by staff as before.
+      await ensureColumns(context.sequelize.getQueryInterface(), PawnContractModel, ['referenceProductId', 'webQuote']);
     },
   },
 ];

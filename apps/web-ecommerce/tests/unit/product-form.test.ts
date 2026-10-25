@@ -94,13 +94,13 @@ describe('product form numeric and inherited data contracts', () => {
     );
   });
 
-  test('the payload sends S and its B17, never a typed price or an issue count', () => {
+  test('the payload sends S and its buyback price, never a typed price or an issue count', () => {
     const payload = buildProductPayload(
       { ...inventory, price: '999', pricingReferenceMemberVnd: '1100000' },
       '/uploads/model.webp',
       [],
     );
-    expect(payload).toMatchObject({ pricingReferenceMemberVnd: 1_100_000, buybackPriceVnd: 187_000 });
+    expect(payload).toMatchObject({ pricingReferenceMemberVnd: 1_100_000, buybackPriceVnd: 220_000 });
     expect(payload).not.toHaveProperty('price');
     expect(payload).not.toHaveProperty('pricingIssueCount');
   });

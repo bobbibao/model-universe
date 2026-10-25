@@ -1,9 +1,10 @@
 # Model Universe Buyback policy
 
-Canonical English operational interpretation of the owner's buy-back rules. **Since 2026-10-25 the rule is B17**, from
-the owner's specification "Đặc tả thu mua 17%, ba mức giá và kiểm duyệt trước đăng bán"
-([source](source/vi/buyback-17-percent-specification.md)), which replaces the tier table of the unified rules v5.0 of
-2026-10-20 ([source](source/vi/unified-business-rules-v5.md)) for every new request. Earlier evidence:
+Canonical English operational interpretation of the owner's buy-back, trade and pawn pricing. **Since 2026-10-26 the
+rule is the three prices from S**, from the owner's specification "Đặc tả ba giá, thu mua theo ngưỡng và QC trước đăng
+bán" ([source](source/vi/three-prices-specification.md)). It replaces B17 of 2026-10-25
+([source](source/vi/buyback-17-percent-specification.md)) and the tier table of the unified rules v5.0
+([source](source/vi/unified-business-rules-v5.md)) for every new request. Earlier evidence:
 [policy](source/vi/buyback-policy.md), [specification 2.0](source/vi/buyback-specification.md),
 [buyback-policy-v1](source/vi/buyback-policy-v1.md). Open questions stay in the
 [decision register](../model-universe/business-requirements.md#9-decision-register).
@@ -11,39 +12,44 @@ the owner's specification "Đặc tả thu mua 17%, ba mức giá và kiểm duy
 Principle: right item, right condition, right price. The price shown before inspection is a NOT-FINAL estimate; the
 shop records the unboxing, inspects, and the customer accepts, asks for a re-inspection, or declines.
 
-## Three prices
+## Prices: the owner enters only S
 
-- **S** – the shop's target selling price of the SKU and version (`product.pricingReferenceMemberVnd`). Staff set it;
-  one admin approves it (`targetPriceApprovedAt`, Admin > Pricing approvals). A changed S clears the approval.
-- **R** – a real published list price, entered with its proof and approved by a second admin
-  (`product_price_approval`). R is never derived from S (no `S ÷ 0.9`). Once approved it becomes the price charged and
-  `listPriceVerified` is true.
-- **Until R is approved the shop sells at S** (the owner's decision of 2026-10-25): the storefront shows S without a
-  member price, and no member or voucher code applies (the profit guard treats the product as having no approved R).
-  The owner's catalogue workbook has R empty for every row, so the whole catalogue sells at S after migration
-  `2026-10-25-47`.
-- **B17** – the buy-back reference: `B17 = ROUND(0.17 × S)` to whole VND, half up (`b17` in
-  `src/shared/buyback-pricing.ts`). It is 17% *of* S, not a 17% discount, with no steps at 5, 10 or 20 million.
-  Examples: S 1,000,000 → 170,000; 2,000,000 → 340,000; 5,000,000 → 850,000; 5,000,001 → 850,000;
-  10,000,000 → 1,700,000; 20,000,000 → 3,400,000.
+- **S** – the real selling price of the SKU and version (`product.pricingReferenceMemberVnd`): the only price staff
+  enter. Saving it records it as approved (`targetPriceApprovedAt`) by the admin who saves it.
+- **R** – the web price, `R = ROUND(S / 0.9)` (`webListPrice`, `src/shared/pricing.ts`): the product's `price`. The
+  member code MEMBER10 takes 10% off R and gives back exactly S (`memberPrice(R) = S` for every whole S, tested). Every
+  product shows R struck through and S highlighted as the member price; signed-in customers get this month's member code
+  claimed and applied in their cart.
+- **B** – the buyback price, `B = MAX(100,000, ROUND(S × r))` with r = 30% for S ≤ 500,000, 20% for
+  500,000 < S ≤ 1,150,000 and 17% above (`tierBuyback`, `src/shared/buyback-pricing.ts`). The steps at 500,001 and
+  1,150,001 (B drops although S rises) are the owner's choice. Examples: 500,000 → 150,000; 500,001 → 100,000;
+  1,150,000 → 230,000; 1,150,001 → 195,500; 2,000,000 → 340,000; 2,500,000 → 425,000; 5,000,000 → 850,000.
+- **C50** – the pawn amount, `C50 = ROUND(S × 50%)` (`pawnC50`, `src/shared/pawn-rules.ts`), no minimum
+  (500,001 → 250,001). The 0.3% a day compound interest is shown only as a simulation (`simulatePawnOwed`); nothing is
+  charged until legal review (LEGAL_REVIEW_REQUIRED).
+- **H** – the recorded buy-in, reconciled with receipts before it counts as cost. It is never recalculated from B or S
+  (the workbook of 26/10 shows H = S − B; those values were not imported).
 
-## Estimate
+Deviation from the specification, by the owner's instruction of 2026-10-26 ("the owner only enters S; everything else
+follows by formula"): S counts as approved when entered, so web prices and quotes are public without a separate
+approval step (the workbook marks every row "CHỜ DUYỆT").
 
-B17 is offered automatically only when **all** hold: the customer chose a catalog model (a matched SKU), its S is
-approved, no issue is declared and no serious damage is reported. Otherwise the estimate is empty and an admin prices
-the request (`manualReview`): `no_reference_price`, `reference_not_approved`, `issues_declared`, `serious_damage`.
-There is no tier table and no fixed deduction per issue any more. Any amount other than B17 is a manual price with its
-reason, which the customer must accept.
+## Quick valuation and estimates
 
-Requests quoted under the former rule (`ruleVersion` `buyback-5.0` or older) keep it to the end (no retroactive
-change): S minus the quoted tier deduction minus 50,000 VND per issue.
+The services pages (sell/trade and pawn) open with a quick valuation (`QuickValuation`, `GET /api/valuation/:id`,
+signed-in): the customer picks a model the shop sells and confirms the unit is new, the same model and version, with its
+box and accessories and without defects; they see B, C50 with the interest simulation, and for a trade the difference
+against any shop item. B is offered only for a catalogue model in the "new" condition with an approved S, no declared
+issue, S > 100,000 and B < S; otherwise `manualReview` (`no_reference_price`, `reference_not_approved`,
+`price_too_low`, `issues_declared`, `serious_damage`) and an admin prices it. Any other unit (used, incomplete, faulty,
+or a model the shop does not sell) is sent with photos and a video for the shop to quote. Any amount other than B is a
+manual price with its reason, which the customer must accept.
 
-`resaleCandidates(B)` (Admin > Pricing calculator) proposes the smallest S whose B17 is B; S is still approved on its
-own merits (cost, market, margin).
-
-Code: `src/shared/buyback-pricing.ts` (`BUYBACK_RULE_VERSION = buyback-17`), `src/shared/sale-pricing.ts`
-(`catalogPricing(S)` gives S and its B17), tests `tests/unit/buyback-pricing.test.ts`, `tests/unit/sale-pricing.test.ts`,
-`tests/db/buyback.test.ts`, `tests/db/pricing-guard.test.ts`.
+Requests quoted under an earlier rule keep it to the end (no retroactive change): B17 (`buyback-17`) or the v5.0 tier
+table. Code: `src/shared/buyback-pricing.ts` (`BUYBACK_RULE_VERSION = buyback-tiers-2026-10-26`),
+`src/shared/sale-pricing.ts` (`catalogPricing(S)`), `src/core/server/services/ValuationService.ts`; tests
+`tests/unit/buyback-pricing.test.ts`, `tests/unit/pawn-quote.test.ts`, `tests/unit/sale-pricing.test.ts`,
+`tests/db/valuation.test.ts`, `tests/db/buyback.test.ts`.
 
 ## Flow and statuses
 
@@ -56,18 +62,18 @@ After `completed`: pre-listing QC → stock intake as a DRAFT listing → public
    issue) and a video, and ticks the six confirmations.
 2. Media check: at least three distinct photos; a missing video or missing issue close-ups move the request to
    `need_more_evidence`. Staff can also ask for more; the customer adds files and the request returns to `submitted`.
-3. Staff send the preliminary quote (B17 by default when it applies, or a manual price with its reason).
+3. Staff send the preliminary quote (B by default when it applies, or a manual price with its reason).
 4. Remote customers ship only after the shop accepts the request; inbound COD stays unsupported (D9).
 5. On arrival staff record the unboxing and inspection (`buyback_inspection` evidence, visible to the customer) and
    list the inspected issues. A final offer cannot be sent without that recording. An issue found at inspection turns
-   B17 into an admin price.
+   B into an admin price.
 6. The customer accepts, asks for a re-inspection, or declines (return under accepted return terms). Payment happens
    only after acceptance, from a verified payout; ownership transfers with it.
 
 ## Trade
 
 A customer can trade the model for a shop item (`tradeProductId`). The request carries a quote revision
-(`tradeQuote`): the item's price charged (S or approved R), the approved buy-back price and
+(`tradeQuote`): the item's price after the member code (its member price S), the approved buy-back price and
 `D = item price − buy-back price` (`tradeDifference`).
 
 - Until the final buy-back price exists the quote is `incomplete` (D unknown). Each final offer is a new revision with
@@ -91,8 +97,7 @@ A bought-back unit is listed only after the sixteen checks QC01–QC16 of the sp
   in stock and at least three real photos; only then the listing is ACTIVE.
 - Editing the listing's photos, price, SKU or condition after a review voids it (a digest of those fields is stored
   with the review); the unit needs a new review.
-- Deviation from the specification, by the owner's decision of 2026-10-25: QC11 accepts a unit sold at S without an
-  approved R (the specification would block publication until R exists).
+- QC11 holds by construction: R = ROUND(S / 0.9) and MEMBER10 gives back S.
 
 ## Not implemented / open
 

@@ -7,7 +7,7 @@ import { toInteger } from '../../../shared/server/utils/ValidationUtils';
 const productInclude = {
   model: ProductModel,
   as: 'product',
-  attributes: ['id', 'name', 'brandName', 'price', 'imageUrl', 'stock', 'isArchived', 'inventoryStatus'],
+  attributes: ['id', 'name', 'brandName', 'price', 'imageUrl', 'stock', 'isArchived', 'inventoryStatus', 'partnerId'],
 };
 
 export default class WishlistService {

@@ -130,6 +130,7 @@ export default function Wishlist() {
                       price={item.product.price}
                       salePrice={item.product.salePrice}
                       discountPercent={item.product.discountPercent}
+                      showMemberPrice={!item.product.partnerId}
                     />
                   </div>
                   {item.available && soldOut ? (

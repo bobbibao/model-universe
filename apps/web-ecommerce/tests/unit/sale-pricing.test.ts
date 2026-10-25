@@ -29,10 +29,24 @@ describe('shop sale and catalog pricing', () => {
     expect(() => legacyCatalogFormula(900_000, -1)).toThrow();
   });
   // Owner rule of 2026-10-25: S is the target price, B17 = ROUND(0.17 × S) at every price, and no R is derived from S.
-  it('prices the catalogue from S with B17 and no derived list price', () => {
-    expect(catalogPricing(1_100_000)).toEqual({ referenceMemberVnd: 1_100_000, buybackPriceVnd: 187_000 });
-    expect(catalogPricing(40_000_000)).toEqual({ referenceMemberVnd: 40_000_000, buybackPriceVnd: 6_800_000 });
-    expect(catalogPricing(5_000_001).buybackPriceVnd).toBe(850_000);
+  // Owner rule of 2026-10-26: S is entered; R = ROUND(S / 0.9), B by three rates and C50 = 50% of S follow it.
+  it('derives the web price, the buyback price and the pawn amount from S', () => {
+    expect(catalogPricing(1_100_000)).toEqual({
+      referenceMemberVnd: 1_100_000,
+      listPriceVnd: 1_222_222,
+      buybackPriceVnd: 220_000,
+      pawnPriceVnd: 550_000,
+    });
+    expect(catalogPricing(2_500_000)).toEqual({
+      referenceMemberVnd: 2_500_000,
+      listPriceVnd: 2_777_778,
+      buybackPriceVnd: 425_000,
+      pawnPriceVnd: 1_250_000,
+    });
+    expect(catalogPricing(500_001).pawnPriceVnd).toBe(250_001);
+    // MEMBER10 takes R back to exactly S.
+    for (const s of [1, 99, 500_001, 1_150_001, 2_700_000, 40_000_000])
+      expect(memberPrice(catalogPricing(s).listPriceVnd)).toBe(s);
     expect(() => catalogPricing(1_000_000_001)).toThrow();
     expect(() => catalogPricing(0)).toThrow();
     expect(() => catalogPricing(1.5)).toThrow();

@@ -24,7 +24,7 @@ export default function OfferPanel({ product }: { product: ProductDetail }) {
   const freeship = shopOwned ? [...FREESHIP_TIERS].reverse().find((tier) => pays >= tier.minOrderVnd) : undefined;
   const nextFreeship = shopOwned ? FREESHIP_TIERS.find((tier) => pays < tier.minOrderVnd) : undefined;
   // Member and voucher codes apply to an approved real list price only; a product sold at its target price S has none.
-  const memberOffer = shopOwned && !onSale && product.listPriceVerified !== false;
+  const memberOffer = shopOwned && !onSale;
   const points = shopOwned ? earnedPoints(memberOffer ? memberPrice(pays) : pays) : 0;
   const offers: { icon: PromoIconName; title: string; text: string }[] = shopOwned
     ? [
@@ -36,8 +36,8 @@ export default function OfferPanel({ product }: { product: ProductDetail }) {
                   ? `Member price ${money(memberPrice(product.price))}`
                   : `Giá thành viên ${money(memberPrice(product.price))}`,
                 text: en
-                  ? 'With the 10% member code, free every month for signed-in members.'
-                  : 'Dùng mã thành viên 10%, nhận miễn phí mỗi tháng khi đăng nhập.',
+                  ? 'Sign in: the 10% member code MEMBER10 is applied in your cart.'
+                  : 'Đăng nhập: mã thành viên MEMBER10 (giảm 10%) tự áp dụng trong giỏ hàng.',
               },
             ]
           : []),
@@ -101,6 +101,7 @@ export default function OfferPanel({ product }: { product: ProductDetail }) {
           salePrice={product.salePrice}
           discountPercent={product.discountPercent}
           size="detail"
+          showMemberPrice={shopOwned}
         />
         {(product.sold > 0 || (product.stock > 0 && product.stock <= 3)) && (
           <p className="offer-proof">

@@ -1,6 +1,7 @@
 'use client';
 
 import { catalogPricing } from '@/shared/sale-pricing';
+import { buybackRateBps } from '@/shared/buyback-pricing';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { ASSEMBLY_STATES } from '@/shared/gunpla';
@@ -202,83 +203,80 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
     try {
       result = catalogPricing(Number(values.pricingReferenceMemberVnd));
     } catch (error) {
-      formulaError = en ? 'The target price must be a whole VND amount above 0.' : (error as Error).message;
+      formulaError = en ? 'The real selling price must be a whole VND amount above 0.' : (error as Error).message;
     }
   }
-  // The price charged: the approved real list price R, else S (owner rule of 2026-10-25; R is never derived from S).
-  const charged = values.listPriceVerified ? Number(values.price) : result?.referenceMemberVnd;
+  const target = result?.referenceMemberVnd;
+  const rate = target ? buybackRateBps(target) / 100 : null;
+  // Owner rule of 2026-10-26: staff enter only S; R, B and C50 follow it and cannot be typed.
+  const outputs: { label: string; value: number | undefined; note: string }[] = [
+    {
+      label: en ? 'Web price R = S ÷ 0.9' : 'Giá web R = S ÷ 0,9',
+      value: result?.listPriceVnd,
+      note: en ? 'Shown struck through; members pay S with MEMBER10' : 'Hiện gạch ngang; thành viên trả S với MEMBER10',
+    },
+    {
+      label: en ? `Buyback price B${rate ? ` = ${rate}% × S` : ''}` : `Giá thu B${rate ? ` = ${rate}% × S` : ''}`,
+      value: result?.buybackPriceVnd,
+      note: en
+        ? '30% to 500k, 20% to 1.15M, 17% above; at least 100k'
+        : '30% đến 500k, 20% đến 1,15tr, 17% trên đó; tối thiểu 100k',
+    },
+    {
+      label: en ? 'Pawn amount C50 = 50% × S' : 'Giá cầm C50 = 50% × S',
+      value: result?.pawnPriceVnd,
+      note: en ? 'Interest simulated until legal review' : 'Lãi chỉ mô phỏng, chờ thẩm định pháp lý',
+    },
+  ];
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       <TextField
-        label={en ? 'Target selling price S (VND)' : 'Giá bán mục tiêu S (đ)'}
+        label={en ? 'Real selling price S (VND)' : 'Giá bán thực S (đ)'}
         name="pricingReferenceMemberVnd"
         required
         type="number"
         min={1}
         step={1}
         inputMode="numeric"
-        hint={t('fieldGuide.money')}
+        hint={
+          en
+            ? 'The only price you enter: the member price customers pay.'
+            : 'Giá duy nhất cần nhập: giá thành viên khách trả.'
+        }
         error={errors.price ? t(`validation.${errors.price}`) : undefined}
         value={values.pricingReferenceMemberVnd}
         placeholder="1100000"
         onChange={(e) => onChange('pricingReferenceMemberVnd', e.target.value)}
       />
-      <div className="flex items-end text-sm">
-        <span
-          className={`rounded-full px-3 py-1 font-semibold ${values.targetPriceApproved ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}
-        >
-          {values.targetPriceApproved ? (en ? 'S approved' : 'S đã duyệt') : en ? 'S awaiting approval' : 'S chờ duyệt'}
-        </span>
-      </div>
-      <div className="md:col-span-2">
-        <TextField
-          label={
-            en ? 'Actual cost C · from the purchase / intake record' : 'Giá vốn thực tế C · theo chứng từ nhập/thu'
-          }
-          name="importPrice"
-          type="number"
-          min={0}
-          step={1}
-          inputMode="numeric"
-          value={values.importPrice}
-          onChange={(e) => onChange('importPrice', e.target.value)}
-          error={errors.importPrice ? t(`validation.${errors.importPrice}`) : undefined}
-        />
-        <p className="mt-2 text-xs leading-6 text-body">
-          {en
-            ? 'Actual cost is kept separately from the calculated buyback offer. It determines whether sale and voucher combinations are safe.'
-            : 'Giá vốn đã chi giữ riêng với giá thu dự kiến. Hệ thống dùng giá vốn để kiểm tra sale và voucher có thể cộng dồn.'}
-        </p>
-      </div>
+      <TextField
+        label={en ? 'Actual cost H · from the purchase / intake record' : 'Giá vốn thực tế H · theo chứng từ nhập/thu'}
+        name="importPrice"
+        type="number"
+        min={0}
+        step={1}
+        inputMode="numeric"
+        hint={
+          en
+            ? 'Kept apart from the buyback price; it decides whether sales and vouchers keep their profit.'
+            : 'Giữ riêng với giá thu; dùng để kiểm tra sale và voucher còn giữ lợi nhuận.'
+        }
+        value={values.importPrice}
+        onChange={(e) => onChange('importPrice', e.target.value)}
+        error={errors.importPrice ? t(`validation.${errors.importPrice}`) : undefined}
+      />
       <div className="rounded-xl border border-stroke bg-gray p-4 dark:border-store-card dark:bg-store-panel md:col-span-2">
         <p className="text-sm font-semibold">
-          {en ? 'Calculated prices · outputs cannot be edited' : 'Giá theo công thức · không nhập đè kết quả'}
+          {en ? 'Calculated from S · cannot be edited' : 'Tự tính từ S · không nhập đè'}
         </p>
-        <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs text-body">
-              {en ? 'Buyback reference B17 = 17% × S' : 'Giá thu tham chiếu B17 = 17% × S'}
-            </dt>
-            <dd className="mt-1 font-bold">{result ? formatVND(result.buybackPriceVnd, locale) : '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-body">
-              {values.listPriceVerified
-                ? en
-                  ? 'Price charged · approved real list price R'
-                  : 'Giá bán · giá niêm yết thật R đã duyệt'
-                : en
-                  ? 'Price charged · S until a real R is approved'
-                  : 'Giá bán · bằng S cho đến khi R thật được duyệt'}
-            </dt>
-            <dd className="mt-1 font-bold">{charged ? formatVND(charged, locale) : '—'}</dd>
-          </div>
+        <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {outputs.map((output) => (
+            <div key={output.label}>
+              <dt className="text-xs text-body">{output.label}</dt>
+              <dd className="mt-1 font-bold">{output.value !== undefined ? formatVND(output.value, locale) : '—'}</dd>
+              <dd className="text-xs text-body">{output.note}</dd>
+            </div>
+          ))}
         </dl>
-        <p className="mt-3 text-xs leading-6 text-body">
-          {en
-            ? 'B17 is 17% of S, rounded to whole VND, and is offered only for a matching SKU with an approved S and no declared issue; anything else is priced by an admin. R is never derived from S: it is entered with its proof on the pricing approvals page and approved by two admins. Until then member and voucher discounts do not apply.'
-            : 'B17 bằng 17% của S, làm tròn đến đồng, chỉ áp cho đúng SKU có S đã duyệt và không khai lỗi; trường hợp khác do admin định giá. R không suy ra từ S: nhập kèm bằng chứng ở trang duyệt giá và cần hai admin duyệt. Trước đó không áp giá thành viên hay mã giảm giá.'}
-        </p>
         {formulaError && (
           <p role="alert" className="mt-2 text-sm text-danger">
             {formulaError}

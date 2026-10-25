@@ -195,8 +195,11 @@ DatabaseProvider.initialize()
       trim: true,
     }).filter((record: Record<string, string>) => (record['Tên sản phẩm (mã + tên + phiên bản màu)'] ?? '').trim());
     if (records.length !== rows.length) throw new Error('The CSV rows do not match the parsed catalogue rows.');
-    const imageColumn = Object.keys(records[0] ?? {}).find((name) => name.startsWith('Hình ảnh'));
-    if (!imageColumn) throw new Error('The CSV has no column "Hình ảnh".');
+    // "Hình ảnh" in exports before 26/10/2026, "Ảnh / liên kết ảnh" since.
+    const imageColumn = Object.keys(records[0] ?? {}).find(
+      (name) => name.startsWith('Hình ảnh') || name.startsWith('Ảnh'),
+    );
+    if (!imageColumn) throw new Error('The CSV has no image column ("Ảnh / liên kết ảnh").');
     const sources = await ProductSourceModel.findAll({ attributes: ['catalogKey', 'productId'] });
     const productIdOf = new Map(
       sources.map((source: { catalogKey: string; productId: number }) => [source.catalogKey, source.productId]),

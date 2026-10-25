@@ -95,8 +95,8 @@ describe("owner's catalogue and condition options", () => {
       unitsInStock: 15,
       brands: 6,
       costValue: 18_550_000,
-      memberValue: 23_900_000,
-      marginValue: 5_350_000,
+      memberValue: 23_550_000,
+      marginValue: 5_000_000,
     });
     expect(brands.find((row) => row.brand === 'Motor Nuclear')).toMatchObject({
       listings: 39,

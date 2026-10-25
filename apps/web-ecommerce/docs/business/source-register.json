@@ -138,6 +138,14 @@
     "sha256": "aff470953134b87658819c806e8ae2db7a54de631a2f23a68ab218e5494eaac9",
     "canonicalPath": "business/buyback-policy.md",
     "receivedAt": "2026-10-25",
-    "note": "Buy-back at 17% of the approved target price S (B17), no tier or per-issue deductions; three prices H/S/R with R a verified real list price; QC gate before publication; trade and pawn references. Also records the 2026-10-25 header on every Drive document and the workbook columns H/I/O/P/Q."
+    "note": "Buy-back at 17% of the approved target price S (B17), no tier or per-issue deductions; three prices H/S/R with R a verified real list price; QC gate before publication; trade and pawn references. Also records the 2026-10-25 header on every Drive document and the workbook columns H/I/O/P/Q. Superseded on 2026-10-26 by three-prices-specification.md (kept for requests quoted under B17)."
+  },
+  {
+    "originalPath": "Đặc tả ba giá, thu mua theo ngưỡng và QC trước đăng bán – MODEL UNIVERSE (docs.google.com/document/d/15KBaG53zQKpIuejytfHZivk4Ee5i1RQrUI3yTSpH610, the same document after the owner's change of 26/10/2026), referenced by the header \"QUY TẮC GIÁ HIỆN HÀNH 26/10/2026\" on every business document of drive.google.com/drive/folders/1YAEt9Fzo3XTo9UTAWO0MD0JYiy-UNl6g",
+    "archivePath": "business/source/vi/three-prices-specification.md",
+    "sha256": "f91c73b7d89e9ae2d86658c7ec9d65da5b429ea9bf1efb976618b75456eef871",
+    "canonicalPath": "business/buyback-policy.md",
+    "receivedAt": "2026-10-26",
+    "note": "Admin enters only S; R = ROUND(S/0.9) web price with MEMBER10 back to S; buyback B = MAX(100,000, ROUND(S x 30%/20%/17%)) by thresholds 500,000 / 1,150,000, admin review for S <= 100,000, B >= S or issues; pawn C50 = ROUND(S x 50%) with simulated 0.3%/day compound interest (LEGAL_REVIEW_REQUIRED); trade D at the item price after the valid voucher; voucher 80%/75% profit keep. Also records the workbook columns H-R of 26/10/2026."
   }
 ]

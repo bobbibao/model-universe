@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import Api from '@/core/client/api/Api';
@@ -54,20 +55,29 @@ export default function VoucherSection({
   // Automatic mode per slot until the customer picks; codes the combined check refused are not picked again.
   const auto = useRef({ discount: true, freeship: true });
   const refused = useRef(new Set<string>());
+  const claimedMonthly = useRef(false);
+  const { user } = useCurrentUser();
   const signature = JSON.stringify({ items, shippingFeeVnd });
 
   const load = useCallback(async () => {
     if (!loggedIn || !items.length) return;
     try {
       const request = JSON.parse(signature) as { items: Props['items']; shippingFeeVnd: number };
-      const [evaluation, wallet] = await Promise.all([Api.post('/vouchers/evaluate', request), Api.get('/vouchers')]);
+      let [evaluation, wallet] = await Promise.all([Api.post('/vouchers/evaluate', request), Api.get('/vouchers')]);
+      // Every member gets the member price: this month's member code (MEMBER10) is claimed for them once, then the
+      // best code is applied as usual.
+      if (user?.role === 'USER' && wallet.data.monthly?.available && !claimedMonthly.current) {
+        claimedMonthly.current = true;
+        await Api.post('/vouchers/monthly').catch(() => undefined);
+        [evaluation, wallet] = await Promise.all([Api.post('/vouchers/evaluate', request), Api.get('/vouchers')]);
+      }
       setOptions(evaluation.data.options);
       setBest({ discount: evaluation.data.best?.code ?? null, freeship: evaluation.data.bestFreeship?.code ?? null });
       setMonthly(wallet.data.monthly ?? null);
     } catch {
       /* Optional help: the cart quote and checkout validate any code again. */
     }
-  }, [loggedIn, signature, items.length]);
+  }, [loggedIn, signature, items.length, user?.role]);
   useEffect(() => {
     void load();
   }, [load]);

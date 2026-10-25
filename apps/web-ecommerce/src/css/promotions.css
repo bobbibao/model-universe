@@ -286,6 +286,27 @@
   font-size: 16px;
 }
 
+/* The member price (S): the price the eye lands on, with a member pill; the struck web price (R) sits below it. */
+.price-tag.is-member .price-tag-now {
+  color: var(--p-price-deep);
+}
+.price-tag-member-badge {
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  background: var(--p-accent);
+}
+.price-tag.is-detail .price-tag-member-badge {
+  padding: 5px 11px;
+  font-size: 13px;
+}
+.price-tag.is-member .price-tag-was {
+  text-decoration-thickness: 1px;
+}
+
 /* --- Product tile -------------------------------------------------------------------------------------------- */
 .product-tile {
   position: relative;

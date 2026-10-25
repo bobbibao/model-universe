@@ -1,0 +1,191 @@
+/* Quick valuation of the services: search, the chosen model, three price cards and the manual route. */
+.qv {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 28px;
+  padding: 24px;
+}
+.qv-head h2 {
+  margin: 6px 0 4px;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 800;
+  line-height: 1.15;
+}
+.qv-search {
+  position: relative;
+}
+.qv-results {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid #dfe6ee;
+  border-radius: 10px;
+  padding: 6px;
+  background: #fff;
+}
+.qv-results button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-align: left;
+}
+.qv-results button:hover,
+.qv-results button:focus-visible {
+  background: #eef6f7;
+}
+.qv-results strong,
+.qv-chosen strong {
+  display: block;
+  font-size: 14px;
+  color: #142238;
+}
+.qv-results small,
+.qv-chosen small {
+  color: #5b6b7d;
+  font-size: 12px;
+}
+.qv-thumb {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e4e9ef;
+}
+.qv-thumb.is-large {
+  width: 96px;
+  height: 96px;
+}
+.qv-chosen {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.qv-chosen > div {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+.qv-chosen button {
+  font-size: 12px;
+}
+.qv-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f2f8f9;
+  font-size: 14px;
+  font-weight: 600;
+  color: #142238;
+}
+.qv-confirm input {
+  margin-top: 3px;
+}
+.qv-prices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  transition: opacity 0.2s;
+}
+.qv-prices.is-muted {
+  opacity: 0.6;
+}
+.qv-prices article {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #dfe6ee;
+  border-radius: 14px;
+  background: #fff;
+}
+.qv-prices article.is-focus {
+  border-color: #168796;
+  box-shadow: 0 0 0 1px #168796 inset;
+}
+.qv-prices h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #5b6b7d;
+}
+.qv-prices strong {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #c2410c;
+}
+.qv-prices small {
+  font-size: 12px;
+  color: #5b6b7d;
+}
+.qv-prices .mu-button {
+  justify-self: start;
+  margin-top: 4px;
+}
+.qv-simulation {
+  width: 100%;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+.qv-simulation caption {
+  padding-bottom: 4px;
+  text-align: left;
+  font-size: 12px;
+  color: #8a5a00;
+}
+.qv-simulation th,
+.qv-simulation td {
+  padding: 3px 0;
+  border-top: 1px dashed #e4e9ef;
+}
+.qv-simulation th {
+  text-align: left;
+  font-weight: 600;
+  color: #5b6b7d;
+}
+.qv-simulation td {
+  text-align: right;
+  color: #142238;
+}
+.qv-trade {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  font-size: 14px;
+}
+.qv-trade strong {
+  font-size: 20px;
+}
+.qv-manual {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px dashed #c8d4df;
+  border-radius: 12px;
+}
+.qv-manual strong {
+  color: #142238;
+}
+.qv-manual-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+@media (max-width: 640px) {
+  .qv {
+    padding: 16px;
+  }
+}

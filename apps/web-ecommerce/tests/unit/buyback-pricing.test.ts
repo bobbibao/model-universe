@@ -1,43 +1,52 @@
 import {
   b17,
+  buybackRateBps,
   compareInspection,
   countIssues,
   estimateBuyback,
   resaleCandidates,
+  tierBuyback,
   type BuybackIssue,
 } from '../../src/shared/buyback-pricing';
 
-// Buy-back at 17% of the approved target price S: the owner's specification of 2026-10-25, section V (§18) and the
-// examples of §5 (docs/business/source/vi/buyback-17-percent-specification.md).
+// Buyback by three rates of the real selling price S: the owner's specification of 2026-10-26, §3–§5 and the QA cases
+// of §24 (docs/business/source/vi/three-prices-specification.md).
 const issue = (type: BuybackIssue['type'], quantity: number) => ({ type, quantity });
 
-describe('buyback pricing B17 = ROUND(0.17 × S)', () => {
+describe('buyback pricing B = MAX(100,000, ROUND(S × r)), r = 30% / 20% / 17%', () => {
   it.each([
-    [1_000_000, 170_000],
+    [200_000, 100_000],
+    [333_333, 100_000],
+    [500_000, 150_000],
+    [500_001, 100_000],
+    [1_000_000, 200_000],
+    [1_150_000, 230_000],
+    [1_150_001, 195_500],
     [2_000_000, 340_000],
-    [2_250_000, 382_500],
+    [2_750_000, 467_500],
     [5_000_000, 850_000],
-    [5_000_001, 850_000],
-    [10_000_000, 1_700_000],
-    [20_000_000, 3_400_000],
-  ])('S = %i gives B17 = %i, without steps at 5, 10 or 20 million', (s, expected) => {
-    expect(b17(s)).toBe(expected);
+    [2_500_000, 425_000],
+  ])('S = %i gives B = %i', (s, expected) => {
+    expect(tierBuyback(s)).toBe(expected);
     expect(estimateBuyback(s, [], { approved: true })).toMatchObject({
       estimateVnd: expected,
       manualReview: null,
-      ruleVersion: 'buyback-17',
+      ruleVersion: 'buyback-tiers-2026-10-26',
       baseDeductionVnd: null,
       issueDeductionVnd: 0,
     });
   });
 
-  it('rounds half up on whole VND (0.5 goes up)', () => {
-    expect(b17(50)).toBe(9); // 8.5
-    expect(b17(1)).toBe(0); // 0.17
-    expect(b17(3)).toBe(1); // 0.51
+  it('keeps the owner steps at 500,001 and 1,150,001 (B drops although S rises)', () => {
+    expect(buybackRateBps(500_000)).toBe(3000);
+    expect(buybackRateBps(500_001)).toBe(2000);
+    expect(buybackRateBps(1_150_001)).toBe(1700);
+    expect(tierBuyback(500_001)).toBeLessThan(tierBuyback(500_000));
   });
 
-  it('never deducts per issue: an issue, serious damage, or a missing or unapproved S goes to an admin', () => {
+  it('sends S ≤ 100,000 or B ≥ S, an issue, serious damage and a missing or unapproved S to an admin', () => {
+    expect(estimateBuyback(90_000, [], { approved: true }).manualReview).toBe('price_too_low');
+    expect(estimateBuyback(100_000, [], { approved: true }).manualReview).toBe('price_too_low');
     expect(estimateBuyback(2_000_000, [issue('missing_box', 1)], { approved: true })).toMatchObject({
       estimateVnd: null,
       manualReview: 'issues_declared',
@@ -56,20 +65,29 @@ describe('buyback pricing B17 = ROUND(0.17 × S)', () => {
     });
   });
 
-  it('a request quoted under a former tier rule keeps its terms (no retroactive change)', () => {
-    const quoted = { baseDeductionVnd: 250_000, ruleVersion: 'buyback-5.0' };
-    expect(estimateBuyback(1_500_000, [issue('broken_part', 1)], { quoted })).toMatchObject({
-      estimateVnd: 1_200_000,
-      ruleVersion: 'buyback-5.0',
+  it('keeps the rule a request was quoted with (no retroactive change)', () => {
+    // Quoted under B17 (2026-10-25): 17% of S.
+    expect(
+      estimateBuyback(2_000_000, [], { approved: true, quoted: { baseDeductionVnd: null, ruleVersion: 'buyback-17' } }),
+    ).toMatchObject({
+      estimateVnd: 340_000,
+      ruleVersion: 'buyback-17',
     });
-    expect(estimateBuyback(1_500_000, [], { quoted: { baseDeductionVnd: 200_000, ruleVersion: 'buyback-2.0' } })).toMatchObject(
-      { estimateVnd: 1_300_000, ruleVersion: 'buyback-2.0' },
-    );
+    expect(b17(5_000_001)).toBe(850_000);
+    // Quoted under the former tier table (v5.0): S minus the quoted deduction minus 50,000 per issue.
+    expect(
+      estimateBuyback(1_500_000, [issue('broken_part', 1)], {
+        quoted: { baseDeductionVnd: 250_000, ruleVersion: 'buyback-5.0' },
+      }),
+    ).toMatchObject({ estimateVnd: 1_200_000, ruleVersion: 'buyback-5.0' });
   });
 
-  it('works a known B17 back to the smallest S that gives it', () => {
-    expect(resaleCandidates(340_000)).toEqual([{ sellingPriceVnd: 1_999_998, baseDeductionVnd: 1_659_998 }]);
-    expect(b17(1_999_998)).toBe(340_000);
-    expect(b17(1_999_997)).toBe(339_999);
+  it('works a known B back to the smallest S of each rate band that gives it', () => {
+    expect(resaleCandidates(150_000)).toEqual([
+      { sellingPriceVnd: 499_999, baseDeductionVnd: 349_999 },
+      { sellingPriceVnd: 749_998, baseDeductionVnd: 599_998 },
+    ]);
+    for (const candidate of resaleCandidates(340_000)) expect(tierBuyback(candidate.sellingPriceVnd)).toBe(340_000);
+    expect(resaleCandidates(100_000)).toEqual([]);
   });
 });

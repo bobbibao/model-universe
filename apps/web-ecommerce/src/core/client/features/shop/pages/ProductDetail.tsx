@@ -1,6 +1,7 @@
 'use client';
 
 import { rememberViewed } from '@/shared/client/recentlyViewed';
+import { memberPrice } from '@/shared/pricing';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { productPath } from '@/shared/slug';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -272,7 +273,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               <span>{t('noReviews')}</span>
             )}
           </div>
-          <ConditionPicker units={units} selected={unit} onSelect={chooseUnit} />
+          <ConditionPicker shopOwned={!product.partnerId} units={units} selected={unit} onSelect={chooseUnit} />
           <OfferPanel product={offer} />
           {product.partnerId && (
             <Link className="text-sm underline" href={`/sellers/${product.partnerId}`}>
@@ -475,7 +476,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
           <div>
             <strong>{product.name}</strong>
             <span>
-              {conditionTypes.label(unit.condition)} · {formatVND(unit.salePrice, locale)}
+              {conditionTypes.label(unit.condition)} · {formatVND(unitPays(unit, !product.partnerId), locale)}
             </span>
           </div>
           <button
@@ -502,14 +503,21 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
 
 // The conditions a model is sold in, as cards to choose from (native radios: arrow keys move between them), each with
 // its price and stock; below, what the chosen condition means and what is missing or wrong with it.
+// What a unit costs the customer: its sale price during a sale, else for a shop unit the member price (the web price R
+// less the 10% member code), else its price.
+const unitPays = (unit: ProductConditionOption, shopOwned: boolean) =>
+  unit.salePrice < unit.price ? unit.salePrice : shopOwned ? memberPrice(unit.price) : unit.price;
+
 const ConditionPicker = ({
   units,
   selected,
   onSelect,
+  shopOwned,
 }: {
   units: ProductConditionOption[];
   selected: ProductConditionOption;
   onSelect: (id: number) => void;
+  shopOwned: boolean;
 }) => {
   const t = useTranslations('catalog');
   const conditionTypes = useProductConditions();
@@ -548,8 +556,8 @@ const ConditionPicker = ({
                   </span>
                 </span>
                 <span className="condition-option-price">
-                  <strong>{formatVND(unit.salePrice, locale)}</strong>
-                  {unit.salePrice < unit.price && <s>{formatVND(unit.price, locale)}</s>}
+                  <strong>{formatVND(unitPays(unit, shopOwned), locale)}</strong>
+                  {unitPays(unit, shopOwned) < unit.price && <s>{formatVND(unit.price, locale)}</s>}
                   <small className={unit.stock > 0 ? 'is-available' : ''}>
                     {unit.stock > 0 ? t('conditionStock', { count: unit.stock }) : t('conditionSoldOut')}
                   </small>

@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { memberPrice } from '../../../shared/pricing';
 import { Transaction } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
 import BuybackRequestModel from '../database/client/models/BuybackRequest.Model';
@@ -53,12 +54,15 @@ export const parseIssues = (raw: unknown, field = 'issues'): BuybackIssue[] => {
   });
 };
 
-// The reference is the shop's target selling price S of the same catalog SKU (owner rule of 2026-10-25), never the list
-// price R; B17 is offered only once an admin approved that S.
+// The reference is the real selling price S of the same catalogue SKU (owner rule of 2026-10-26), never the web price R.
+// The web quotes only models the shop sells new: a catalogue unit in another condition is priced by an admin.
 const referenceFor = (product: ProductModel | null) => ({
-  reference: product?.pricingReferenceMemberVnd ?? null,
+  reference: product && product.condition === 'new' ? product.pricingReferenceMemberVnd : null,
   approved: !!product?.targetPriceApprovedAt,
 });
+
+// The price of a shop item in a trade: what a member pays for it, R with MEMBER10 (D is computed on it, §15).
+const tradeItemPrice = (item: ProductModel) => memberPrice(item.price);
 
 // A shop item a customer can take in a trade: the shop's own, listed and in stock.
 const tradeItem = async (productId: unknown, transaction: Transaction) => {
@@ -271,9 +275,9 @@ export default class BuybackService {
         ? {
             revision: 1,
             productId: item.id,
-            itemPriceVnd: item.price,
+            itemPriceVnd: tradeItemPrice(item),
             buybackVnd: null,
-            ...tradeDifference(item.price, null),
+            ...tradeDifference(tradeItemPrice(item), null),
             refundApprovedByUserId: null,
           }
         : null;
@@ -484,7 +488,7 @@ export default class BuybackService {
           let tradeQuote = row.tradeQuote;
           if (row.tradeProductId && tradeQuote) {
             const item = await ProductModel.findByPk(row.tradeProductId, { transaction });
-            const itemPriceVnd = item?.price ?? tradeQuote.itemPriceVnd;
+            const itemPriceVnd = item ? tradeItemPrice(item) : tradeQuote.itemPriceVnd;
             tradeQuote = {
               ...tradeQuote,
               revision: tradeQuote.revision + 1,

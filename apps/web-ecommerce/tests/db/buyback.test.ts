@@ -471,9 +471,9 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       }),
     ).rejects.toMatchObject({ statusCode: 409 });
   });
-  it('offers B17 = 17% of an approved target price S only for a matched model declared without issues', async () => {
+  it('offers B by three rates of an approved S only for a model the shop sells new, declared without issues', async () => {
     const product = (await ProductModel.findOne({
-      where: { partnerId: null, isArchived: false },
+      where: { partnerId: null, isArchived: false, condition: 'new' },
       order: [['id', 'ASC']],
     }))!;
     await product.update({ pricingReferenceMemberVnd: 2_000_000, targetPriceApprovedAt: null });
@@ -486,7 +486,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
     expect(row.estimate).toMatchObject({
       estimateVnd: null,
       manualReview: 'reference_not_approved',
-      ruleVersion: 'buyback-17',
+      ruleVersion: 'buyback-tiers-2026-10-26',
     });
     await product.update({ targetPriceApprovedAt: new Date() });
     // Declared issues: no automatic deduction, an admin prices it.
@@ -505,7 +505,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
         true,
       ),
     ).rejects.toMatchObject({ code: 'MANUAL_PRICE_REQUIRED' });
-    // No issue: B17 = 340,000 for S = 2,000,000, offered as the formula price.
+    // No issue: B = 17% of S = 340,000 for S = 2,000,000 (above 1,150,000), offered as the formula price.
     ({ row } = await create({ referenceProductId: product.id }));
     expect(row.estimate).toMatchObject({ estimateVnd: 340_000, manualReview: null, baseDeductionVnd: null });
     row = await service.act(
@@ -573,7 +573,8 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       where: { partnerId: null, isArchived: false, condition: 'new' },
       order: [['id', 'DESC']],
     }))!;
-    await item.update({ price: 1_000_000, stock: 2, inventoryStatus: 'available' });
+    // The item is quoted at its member price: R 1,111,111 with MEMBER10 is 1,000,000.
+    await item.update({ price: 1_111_111, stock: 2, inventoryStatus: 'available' });
     const points = await LoyaltyLedgerModel.count({ where: { userId } });
     // D = 1,000,000 − 850,000 = 150,000: the customer pays the difference.
     let row = await readyForDecision({ tradeProductId: item.id });
@@ -599,7 +600,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
     expect(row.payout).toMatchObject({ amountVnd: 150_000, direction: 'customer_pays' });
     expect((await item.reload()).stock).toBe(1);
     // D < 0: the shop pays back 150,000 only after an admin approves it.
-    await item.update({ price: 700_000 });
+    await item.update({ price: 777_778 }); // member price 700,000
     row = await readyForDecision({ tradeProductId: item.id });
     expect(row.tradeQuote).toMatchObject({ differenceVnd: -150_000, refundApprovedByUserId: null });
     await expect(service.act(row.id, userId, { expectedVersion: row.version, action: 'accept' })).rejects.toMatchObject(
