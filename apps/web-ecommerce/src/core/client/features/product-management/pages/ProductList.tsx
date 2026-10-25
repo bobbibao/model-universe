@@ -120,11 +120,17 @@ const ProductList = () => {
         <div className="catalog-condition-summary">
           {(product.conditions ?? []).map((summary) => (
             <div key={summary.condition}>
-              <span className={`condition-chip is-${summary.condition}`}>
+              <span
+                className={`condition-chip is-${summary.condition}`}
+                title={conditionTypes.label(summary.condition)}
+              >
                 {conditionTypes.label(summary.condition)}
               </span>
-              <span className={summary.stock === 0 ? 'is-empty' : ''} aria-label={`${t('stock')}: ${summary.stock}`}>
-                {summary.stock}
+              <span
+                className={`catalog-condition-stock${summary.stock === 0 ? ' is-empty' : ''}`}
+                aria-label={`${t('stock')}: ${summary.stock}`}
+              >
+                × {summary.stock}
               </span>
               <small>
                 {summary.stock > 0
@@ -139,6 +145,7 @@ const ProductList = () => {
     {
       key: 'price',
       header: t('price'),
+      className: 'catalog-price-cell',
       sortable: true,
       render: (product) => (
         <div className="catalog-price-summary">
@@ -155,6 +162,7 @@ const ProductList = () => {
     {
       key: 'stock',
       header: t('stock'),
+      className: 'catalog-stock-cell',
       sortable: true,
       render: (product) => (
         <div>
@@ -167,9 +175,10 @@ const ProductList = () => {
         </div>
       ),
     },
-    { key: 'sold', header: t('sold'), sortable: true },
+    { key: 'sold', header: t('sold'), sortable: true, className: 'catalog-number-cell' },
     {
       key: 'productionDate',
+      className: 'catalog-date-cell',
       header: t('receivedDate'),
       sortable: true,
       render: (product) =>
@@ -180,8 +189,9 @@ const ProductList = () => {
     {
       key: 'isArchived',
       header: t('status'),
+      className: 'catalog-status-cell',
       render: (product) => (
-        <div className="flex flex-wrap gap-1">
+        <div className="catalog-status-badges">
           <span
             className={`rounded-full px-3 py-1 text-xs font-medium ${
               product.isArchived ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'
