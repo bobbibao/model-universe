@@ -2,13 +2,13 @@
    body, outside .admin-workspace, so they carry the same tokens. */
 .admin-workspace,
 .admin-modal-overlay {
-  --admin-bg: #f3f6fb;
+  --admin-bg: #f6f6f2;
   --admin-surface: #fff;
-  --admin-soft: #f6f8fc;
-  --admin-line: #e1e7f0;
-  --admin-ink: #1c2c45;
-  --admin-muted: #64748b;
-  --admin-accent: #08788b;
+  --admin-soft: #f6f4fa;
+  --admin-line: #e6e3ed;
+  --admin-ink: #272336;
+  --admin-muted: #71697e;
+  --admin-accent: #6541b7;
   --admin-warning: #a45b05;
   --admin-success: #087b56;
   --admin-danger: #bb3552;
@@ -25,13 +25,13 @@
 }
 .dark .admin-workspace,
 .dark .admin-modal-overlay {
-  --admin-bg: #0c1424;
-  --admin-surface: #131f33;
-  --admin-soft: #19273e;
-  --admin-line: #28374f;
-  --admin-ink: #e4ecf7;
-  --admin-muted: #a0b0c6;
-  --admin-accent: #67e8f9;
+  --admin-bg: #131020;
+  --admin-surface: #201a30;
+  --admin-soft: #282038;
+  --admin-line: #392e49;
+  --admin-ink: #ede7f7;
+  --admin-muted: #b2a5c4;
+  --admin-accent: #c9b8fb;
   --admin-warning: #ffd166;
   --admin-success: #6ee7b7;
   --admin-danger: #fda4af;

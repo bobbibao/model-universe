@@ -1910,7 +1910,7 @@
     "receivedDateHint": "Staff only. Empty: the day the product is added.",
     "conditionSection": "Condition of this unit",
     "conditions": "Conditions & stock",
-    "conditionsHint": "One model can be sold in several conditions (new, pre-owned, missing accessories, defective). Each condition has its own SKU, price, cost, photos and stock; customers choose it on the product page.",
+    "conditionsHint": "Each listing has its own SKU, price, photos and stock.",
     "addCondition": "Add a condition",
     "mainListing": "Main listing",
     "conditionOption": "Condition option",
@@ -1959,7 +1959,12 @@
       "stockUnits": "Units",
       "value": "Stock at cost",
       "condition": "Condition"
-    }
+    },
+    "conditionListings": "Listings by condition",
+    "editingUnit": "Editing this listing",
+    "editingCondition": "Edit condition · {sku}",
+    "conditionInventory": "Stock by condition",
+    "conditionInventoryHint": "All non-archived listings. Inventory status is shown separately on each listing."
   },
   "adminCoupons": {
     "page": "Promotions",
