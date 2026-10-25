@@ -1,7 +1,6 @@
 'use client';
 import { useLocale, useTranslations } from 'next-intl';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
-import AdminIcon from '@/components/Admin/AdminIcon';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -34,10 +33,9 @@ interface Props {
   scales: string[];
   priceLimit: number;
   onChange: (values: ProductFilterValues) => void;
-  onReset: () => void;
 }
 // Categories are not offered to customers for now (the catalogue is uncategorized); a category link still filters.
-export default function ProductFilters({ values: draft, brands, scales, priceLimit, onChange, onReset }: Props) {
+export default function ProductFilters({ values: draft, brands, scales, priceLimit, onChange }: Props) {
   const values = { ...draft, maxPrice: draft.maxPrice ?? priceLimit };
   const t = useTranslations('catalog');
   const conditionTypes = useProductConditions();
@@ -49,14 +47,6 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
   useEffect(() => {
     setPriceInputs({ minPrice: String(values.minPrice), maxPrice: String(values.maxPrice) });
   }, [values.minPrice, values.maxPrice]);
-  const [expanded, setExpanded] = useState(true);
-  useEffect(() => {
-    const appliedParams = new URLSearchParams(window.location.search);
-    setExpanded(
-      window.matchMedia('(min-width: 1024px)').matches ||
-        ['scale', 'assemblyState', 'brand', 'minPrice', 'maxPrice'].some((key) => appliedParams.has(key)),
-    );
-  }, []);
   const update = <K extends keyof ProductFilterValues>(key: K, value: ProductFilterValues[K]) =>
     onChange({ ...draft, [key]: value });
   const price = (field: 'minPrice' | 'maxPrice', value: number) => {
@@ -81,13 +71,10 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
     const next = price(field, Number(priceInputs[field]));
     setPriceInputs((current) => ({ ...current, [field]: String(next) }));
   };
-  const extraCount = [
-    values.scale,
-    values.assemblyState,
-    values.brand,
-    values.minPrice > 0 || values.maxPrice < priceLimit,
-  ].filter(Boolean).length;
-  const select = (field: 'scale' | 'brand' | 'assemblyState', options: { value: string; label: string }[]) => (
+  const select = (
+    field: 'condition' | 'scale' | 'brand' | 'assemblyState',
+    options: { value: string; label: string }[],
+  ) => (
     <div key={field}>
       <label className="mu-field" htmlFor={`filter-${field}`}>
         {t(field === 'assemblyState' ? 'assembly' : field)}
@@ -111,27 +98,6 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
     <div className="mu-filter catalog-filters" role="group" aria-label={t('filters')}>
       <div className="catalog-sidebar-heading">
         <h2>{t('filters')}</h2>
-        <AdminIcon name="chart" size={18} />
-      </div>
-      <div className="catalog-quick-row">
-        {/* A model is found through any condition it is offered in (new, pre-owned, missing accessories, defective). */}
-        <fieldset className="catalog-grade-pills catalog-condition-pills">
-          <legend>{t('condition')}</legend>
-          {['', ...conditionTypes.active.map((type) => type.key)].map((condition) => (
-            <label key={condition || 'all'}>
-              <input
-                type="radio"
-                name="condition"
-                value={condition}
-                checked={values.condition === condition}
-                onChange={() => update('condition', condition)}
-              />
-              <span className={condition ? `condition-dot is-${condition}` : undefined}>
-                {condition ? conditionTypes.label(condition) : t('allConditions')}
-              </span>
-            </label>
-          ))}
-        </fieldset>
         <label className="catalog-stock-toggle">
           <input
             type="checkbox"
@@ -141,111 +107,94 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
           <span>{t('inStock')}</span>
         </label>
       </div>
-      <details
-        className="studio-filter-more catalog-filter-more"
-        open={expanded}
-        onToggle={(event) => setExpanded(event.currentTarget.open)}
-      >
-        <summary>
-          <AdminIcon name="chart" size={17} />
-          <span>{t('refine')}</span>
-          {extraCount > 0 && <span className="catalog-filter-count">{extraCount}</span>}
-          <span className="catalog-filter-hint">{t('refineHint')}</span>
-        </summary>
-        <div className="catalog-filter-grid">
-          {select(
-            'brand',
-            brands.map((value) => ({ value, label: value })),
-          )}
-          {select(
-            'scale',
-            scales.map((value) => ({ value, label: value })),
-          )}
-          {select(
-            'assemblyState',
-            ASSEMBLY_STATES.map((value) => ({ value, label: t(value) })),
-          )}
-          <fieldset className="catalog-price-range">
-            <legend>{t('priceRange')}</legend>
-            <output>
-              {formatVND(values.minPrice, locale)} <span>—</span> {formatVND(values.maxPrice, locale)}
-            </output>
-            <div
-              className="catalog-range-track"
-              style={
-                {
-                  '--range-start': `${priceLimit ? (values.minPrice / priceLimit) * 100 : 0}%`,
-                  '--range-end': `${priceLimit ? (values.maxPrice / priceLimit) * 100 : 100}%`,
-                } as CSSProperties
-              }
-            >
+      <div className="catalog-filter-grid">
+        {select(
+          'condition',
+          conditionTypes.active.map((type) => ({ value: type.key, label: conditionTypes.label(type.key) })),
+        )}
+        {select(
+          'brand',
+          brands.map((value) => ({ value, label: value })),
+        )}
+        {select(
+          'scale',
+          scales.map((value) => ({ value, label: value })),
+        )}
+        {select(
+          'assemblyState',
+          ASSEMBLY_STATES.map((value) => ({ value, label: t(value) })),
+        )}
+        <fieldset className="catalog-price-range">
+          <legend>{t('priceRange')}</legend>
+          <div
+            className="catalog-range-track"
+            style={
+              {
+                '--range-start': `${priceLimit ? (values.minPrice / priceLimit) * 100 : 0}%`,
+                '--range-end': `${priceLimit ? (values.maxPrice / priceLimit) * 100 : 100}%`,
+              } as CSSProperties
+            }
+          >
+            <input
+              aria-label={t('minPrice')}
+              id="filter-min-price"
+              type="range"
+              min="0"
+              max={priceLimit}
+              step="1"
+              value={values.minPrice}
+              disabled={!priceLimit}
+              onChange={(event) => price('minPrice', Number(event.target.value))}
+              aria-valuetext={formatVND(values.minPrice, locale)}
+              aria-valuemax={values.maxPrice}
+              style={{ zIndex: values.minPrice > priceLimit / 2 ? 3 : 2 }}
+            />
+            <input
+              aria-label={t('maxPrice')}
+              id="filter-price"
+              type="range"
+              min="0"
+              max={priceLimit}
+              step="1"
+              value={values.maxPrice}
+              disabled={!priceLimit}
+              onChange={(event) => price('maxPrice', Number(event.target.value))}
+              aria-valuetext={formatVND(values.maxPrice, locale)}
+              aria-valuemin={values.minPrice}
+            />
+          </div>
+          <div className="catalog-price-inputs">
+            <label htmlFor="filter-min-price-input">
+              {t('minPrice')}
               <input
-                aria-label={t('minPrice')}
-                id="filter-min-price"
-                type="range"
+                id="filter-min-price-input"
+                type="number"
                 min="0"
+                max={values.maxPrice}
+                step="1"
+                disabled={!priceLimit}
+                value={priceInputs.minPrice}
+                onChange={(event) => typePrice('minPrice', event.target.value)}
+                onBlur={() => finishPrice('minPrice')}
+              />
+            </label>
+            <span aria-hidden="true">→</span>
+            <label htmlFor="filter-max-price-input">
+              {t('maxPrice')}
+              <input
+                id="filter-max-price-input"
+                type="number"
+                min={values.minPrice}
                 max={priceLimit}
                 step="1"
-                value={values.minPrice}
                 disabled={!priceLimit}
-                onChange={(event) => price('minPrice', Number(event.target.value))}
-                aria-valuetext={formatVND(values.minPrice, locale)}
-                aria-valuemax={values.maxPrice}
-                style={{ zIndex: values.minPrice > priceLimit / 2 ? 3 : 2 }}
+                value={priceInputs.maxPrice}
+                onChange={(event) => typePrice('maxPrice', event.target.value)}
+                onBlur={() => finishPrice('maxPrice')}
               />
-              <input
-                aria-label={t('maxPrice')}
-                id="filter-price"
-                type="range"
-                min="0"
-                max={priceLimit}
-                step="1"
-                value={values.maxPrice}
-                disabled={!priceLimit}
-                onChange={(event) => price('maxPrice', Number(event.target.value))}
-                aria-valuetext={formatVND(values.maxPrice, locale)}
-                aria-valuemin={values.minPrice}
-              />
-            </div>
-            <div className="catalog-price-inputs">
-              <label htmlFor="filter-min-price-input">
-                {t('minPrice')}
-                <input
-                  id="filter-min-price-input"
-                  type="number"
-                  min="0"
-                  max={values.maxPrice}
-                  step="1"
-                  disabled={!priceLimit}
-                  value={priceInputs.minPrice}
-                  onChange={(event) => typePrice('minPrice', event.target.value)}
-                  onBlur={() => finishPrice('minPrice')}
-                />
-              </label>
-              <span aria-hidden="true">→</span>
-              <label htmlFor="filter-max-price-input">
-                {t('maxPrice')}
-                <input
-                  id="filter-max-price-input"
-                  type="number"
-                  min={values.minPrice}
-                  max={priceLimit}
-                  step="1"
-                  disabled={!priceLimit}
-                  value={priceInputs.maxPrice}
-                  onChange={(event) => typePrice('maxPrice', event.target.value)}
-                  onBlur={() => finishPrice('maxPrice')}
-                />
-              </label>
-            </div>
-          </fieldset>
-        </div>
-      </details>
-      <div className="catalog-filter-footer">
-        <p>{t('instantFilterHint')}</p>
-        <button type="button" onClick={onReset}>
-          {t('reset')} <AdminIcon name="close" size={14} />
-        </button>
+            </label>
+          </div>
+        </fieldset>
       </div>
     </div>
   );

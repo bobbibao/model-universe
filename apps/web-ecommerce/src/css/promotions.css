@@ -308,21 +308,31 @@
 }
 
 /* --- Product tile -------------------------------------------------------------------------------------------- */
-.product-tile {
+.mu-shell .mu-product.product-tile {
   position: relative;
+  border: 1px solid #e5e1ea;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
-.product-tile:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--p-shadow-hover);
+.mu-shell .mu-product.product-tile:hover {
+  border-color: #c6b5e4;
+  box-shadow: 0 8px 24px #3927480c;
+}
+.mu-shell .product-tile .mu-product-photo {
+  border-radius: 15px 15px 0 0;
+}
+.mu-shell .product-tile .product-tile-body {
+  padding: 14px;
 }
 .product-tile .product-stage-photo {
   transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .product-tile:hover .product-stage-photo {
-  transform: scale(1.04);
+  transform: scale(1.025);
 }
 .tile-ribbon {
   position: absolute;

@@ -111,16 +111,12 @@
   position: sticky;
   top: 100px;
   min-width: 0;
-  max-height: calc(100dvh - 120px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scroll-padding-block: 16px;
 }
 .catalog-mobile-filters > summary {
   display: none;
 }
 .mu-shell .catalog-sidebar .catalog-filters {
-  padding: 18px;
+  padding: 16px;
   border-radius: 16px;
 }
 .catalog-sidebar-heading {
@@ -128,7 +124,7 @@
   justify-content: space-between;
   align-items: center;
   color: #42394f;
-  padding-bottom: 14px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #ece8f0;
 }
 .catalog-sidebar-heading h2 {
@@ -170,10 +166,7 @@
 .catalog-sidebar .catalog-filter-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  padding: 0 0 16px;
-}
-.catalog-sidebar .catalog-filter-grid > div:nth-child(n + 3) {
-  grid-column: 1 / -1;
+  padding: 14px 0 0;
 }
 .catalog-sidebar .catalog-filter-grid .mu-input {
   min-height: 40px;
@@ -182,8 +175,9 @@
 }
 .catalog-sidebar .catalog-price-range {
   grid-column: 1 / -1;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
 }
 .catalog-sidebar .catalog-price-range output {
   font-size: 12px;
@@ -191,23 +185,17 @@
 .catalog-sidebar .catalog-price-inputs {
   gap: 6px;
 }
+.catalog-sidebar .catalog-price-inputs > span {
+  margin: 16px 0 0;
+  padding: 0;
+}
+.catalog-sidebar .catalog-stock-toggle {
+  font-size: 11px;
+  gap: 6px;
+}
 .catalog-sidebar .catalog-price-inputs input {
   padding: 8px 5px;
   font-size: 11px;
-}
-.catalog-sidebar .catalog-filter-footer {
-  align-items: flex-start;
-  gap: 10px;
-  padding-top: 12px;
-}
-.catalog-sidebar .catalog-filter-footer p {
-  font-size: 10px;
-  line-height: 1.5;
-}
-.catalog-sidebar .catalog-filter-footer button {
-  font-size: 11px;
-  flex-shrink: 0;
-  min-height: 32px;
 }
 .partner-inventory .partner-inventory-intro {
   margin-top: 0;
@@ -432,13 +420,15 @@
     box-shadow: none;
   }
   .catalog-sidebar-heading {
+    justify-content: flex-end;
+    border: 0;
+    padding: 0;
+  }
+  .catalog-sidebar-heading h2 {
     display: none;
   }
   .catalog-sidebar .catalog-filter-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .catalog-sidebar .catalog-filter-grid > div:nth-child(n + 3) {
-    grid-column: auto;
   }
   .partner-inventory-layout {
     grid-template-columns: minmax(0, 1fr);

@@ -1,6 +1,18 @@
 # Commerce UI/UX — storefront and model admin
 
-Updated 25 October 2026. The latest revision develops the condition comparison and model-management workspace from the supplied commerce references, retaining the Collector Studio brand and compact admin shell.
+## Storefront fixes · 26 October 2026
+
+The Admin product table also keeps each condition's stock beside its badge as `× quantity`, rather than floating against the next column. Sold-out captions and status badges remain on one line; badges may wrap as whole units. Price/stock/sold columns use aligned tabular numbers, with stable minimum widths for stock and status. The existing table scrolls horizontally on smaller screens so data stays readable in normal and compact row modes. Verification: production build/type checking, scoped ESLint and six browser checks (VI/EN at 1440, 1024 and 390px), including stock sorting and compact rows, passed.
+
+Product information tabs show counts as quiet inline text. On mobile, all three tabs fit the row with wrapping labels; active state uses text weight and colour rather than a second underline. Keyboard navigation and visible keyboard focus remain available.
+
+Catalog filters use four compact selects (including the owner-configured conditions), stock availability and one price control. The repeated hint/reset footer and nested refine section are removed; clear/remove actions remain beside applied filters. The sidebar scrolls with the page rather than creating its own scroll area. Product cards share the same surface and hover on home, catalog and sale-event pages; hovering changes the border/shadow without lifting the card.
+
+The profile sidebar no longer repeats the wishlist destination. The address book prioritizes saved recipient cards and opens an editor on add/edit, with a folded optional map. Existing address validation, create retry identity, optimistic versions and the 20-address limit remain. Saving locks editable controls; uncertain responses retain the draft, and deletion requires confirmation. Browser verification intercepts every write, so no shop addresses are modified during UI testing.
+
+Verification: production Next build with `--no-lint`, TypeScript and scoped ESLint pass. Eight new VI/EN laptop/mobile browser cases cover the requested fixes; storefront regression checks cover condition selection, filters, cart/gallery navigation and public catalog rendering. The full suite is not green: existing Admin fixtures omit the now-required target price S and still expect the retired issue-count pricing input. These fixtures and pricing behavior are left unchanged in this UI work. Two storefront navigation checks passed when rerun after transient retained-DOM/navigation failures.
+
+Updated 26 October 2026. The latest revision refines storefront tabs, shared product cards, compact catalog filters and the profile address book, retaining the Collector Studio brand and compact admin shell.
 
 ## Product detail
 

@@ -486,26 +486,33 @@
 .catalog-condition-summary {
   display: grid;
   gap: 7px;
-  min-width: 200px;
+  min-width: 160px;
 }
 .catalog-condition-summary > div {
   display: grid;
-  grid-template-columns: 1fr 28px;
+  grid-template-columns: max-content max-content;
+  justify-content: start;
   align-items: center;
   gap: 2px 10px;
 }
 .catalog-condition-summary .condition-chip {
   justify-self: start;
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
-.catalog-condition-summary > div > span:nth-child(2) {
-  text-align: right;
-  font-weight: 750;
+.catalog-condition-stock {
+  white-space: nowrap;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  color: var(--admin-muted);
 }
 .catalog-condition-summary small {
   color: var(--admin-muted);
   font-size: 11px;
   grid-column: 1/-1;
+  white-space: nowrap;
 }
 .catalog-condition-summary .is-empty {
   color: var(--condition-defective);
@@ -516,6 +523,36 @@
 }
 .catalog-price-summary > p:first-child {
   font-weight: 750;
+}
+.admin-table :is(.catalog-price-cell, .catalog-stock-cell, .catalog-number-cell) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.admin-table .catalog-price-cell {
+  min-width: 132px;
+}
+.admin-table .catalog-stock-cell {
+  min-width: 140px;
+}
+.admin-table .catalog-date-cell {
+  white-space: nowrap;
+}
+.admin-table .catalog-status-cell {
+  min-width: 126px;
+}
+.catalog-status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.catalog-status-badges > span {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.5;
 }
 @media (max-width: 1279px) {
   .condition-management {
