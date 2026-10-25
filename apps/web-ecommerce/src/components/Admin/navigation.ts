@@ -24,6 +24,7 @@ export const adminNavigation = [
         icon: 'box',
         children: [
           { label: 'catalog', route: '/admin/products' },
+          { label: 'productConditions', route: '/admin/products/conditions' },
           { label: 'categories', route: '/admin/categories' },
           { label: 'stock', route: '/admin/stock' },
           { label: 'coupons', route: '/admin/coupons' },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 
@@ -26,6 +27,7 @@ const ProductCreate = () => {
   const t = useTranslations('adminProducts'),
     locale = useLocale();
   const ux = useTranslations('commerceUX');
+  const conditions = useProductConditions();
   const bodyRef = useRef<HTMLFieldSetElement>(null);
   const steps = ['basics', 'images', 'pricing', 'inventory', 'supplier'].map((key) => t(key));
   const { categories, suppliers } = useProductFormOptions();
@@ -49,10 +51,10 @@ const ProductCreate = () => {
     setValues((current) => ({ ...current, [key]: value }));
 
   const validateStep = (index: number): ProductFormErrors => {
-    if (index === 0) return validateBasics(values);
+    if (index === 0) return validateBasics(values, conditions.all);
     if (index === 1) return mainImage ? {} : { mainImage: 'mainImageRequired' };
     if (index === 2) return validatePricing(values);
-    if (index === 3) return validateInventory(values);
+    if (index === 3) return validateInventory(values, conditions.all);
     return {};
   };
 

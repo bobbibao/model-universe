@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useEffect, useState } from 'react';
 import ProductApi from '@/core/client/api/Product';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -20,6 +21,7 @@ const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
   const t = useTranslations('adminProducts.stats'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
+  const conditionTypes = useProductConditions();
   const [stats, setStats] = useState<Stats>();
   useEffect(() => {
     ProductApi.getInventoryStats().then(setStats);
@@ -105,7 +107,7 @@ const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
             {stats.conditions.map((row) => (
               <tr key={row.condition}>
                 <th scope="row">
-                  <span className={`condition-chip is-${row.condition}`}>{catalog(row.condition)}</span>
+                  <span className={`condition-chip is-${row.condition}`}>{conditionTypes.label(row.condition)}</span>
                 </th>
                 <td>{count(row.units)}</td>
                 <td>{count(row.unitsInStock)}</td>

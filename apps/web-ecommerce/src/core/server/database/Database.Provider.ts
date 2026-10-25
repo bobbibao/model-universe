@@ -15,6 +15,7 @@ import SaleCampaignModel from './client/models/SaleCampaign.Model';
 import ProductCostProfileModel from './client/models/ProductCostProfile.Model';
 import ProductPriceApprovalModel from './client/models/ProductPriceApproval.Model';
 import PromotionReconciliationModel from './client/models/PromotionReconciliation.Model';
+import ProductConditionTypeModel from './client/models/ProductConditionType.Model';
 import ProductModel from './client/models/Product.Model';
 import ProductImageModel from './client/models/ProductImage.Model';
 import ProductSourceModel from './client/models/ProductSource.Model';
@@ -108,6 +109,7 @@ export default class DatabaseProvider {
     ConfigModel,
     CategoryModel,
     SupplierModel,
+    ProductConditionTypeModel,
     ProductModel,
     ProductImageModel,
     ProductSourceModel,
@@ -199,7 +201,12 @@ export default class DatabaseProvider {
     LoyaltyRedemptionModel,
   ];
 
-  private static modelsToSeedInProduction: any = [UserModel, CategoryModel, ShippingCartonModel];
+  private static modelsToSeedInProduction: any = [
+    UserModel,
+    CategoryModel,
+    ShippingCartonModel,
+    ProductConditionTypeModel,
+  ];
 
   private static instance: Sequelize;
 

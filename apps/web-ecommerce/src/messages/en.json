@@ -1028,7 +1028,8 @@
     "shippingSettings": "Delivery settings",
     "pricingTools": "Calculator and simulation",
     "pricingApprovals": "Approved prices and costs",
-    "promotionReconciliation": "Promotion reconciliation"
+    "promotionReconciliation": "Promotion reconciliation",
+    "productConditions": "Product conditions"
   },
   "productPicker": {
     "search": "Search model name or SKU",

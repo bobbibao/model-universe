@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useLocale, useTranslations } from 'next-intl';
 import Link, { useRouter } from '@/i18n/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
@@ -19,6 +20,7 @@ export default function DirectSale() {
   const t = useTranslations('directSales'),
     condition = useTranslations('catalog'),
     locale = useLocale();
+  const conditionTypes = useProductConditions();
   const router = useRouter();
   const [query, setQuery] = useState(''),
     [products, setProducts] = useState<DirectSaleProduct[]>([]);
@@ -219,7 +221,7 @@ export default function DirectSale() {
                           <p className="font-semibold text-sm">{product.name}</p>
                           <p className="mu-note break-all">{product.sku}</p>
                           <span className={`condition-chip is-${product.condition}`}>
-                            {condition(product.condition)}
+                            {conditionTypes.label(product.condition)}
                           </span>
                           {product.conditionNote && <p className="mu-note line-clamp-2">{product.conditionNote}</p>}
                         </div>
@@ -254,7 +256,7 @@ export default function DirectSale() {
                     <div className="min-w-0">
                       <p className="font-semibold text-sm">{line.name}</p>
                       <p className="mu-note break-all">
-                        {line.sku} · {condition(line.condition)}
+                        {line.sku} · {conditionTypes.label(line.condition)}
                       </p>
                       <p className="mu-note">{money(line.salePrice)}</p>
                       {line.quantity > line.stock && (

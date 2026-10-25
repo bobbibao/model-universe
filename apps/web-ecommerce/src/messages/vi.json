@@ -1028,7 +1028,8 @@
     "shippingSettings": "Cài đặt giao hàng",
     "pricingTools": "Tính giá và mô phỏng",
     "pricingApprovals": "Duyệt giá và giá vốn",
-    "promotionReconciliation": "Đối soát khuyến mãi"
+    "promotionReconciliation": "Đối soát khuyến mãi",
+    "productConditions": "Tình trạng sản phẩm"
   },
   "productPicker": {
     "search": "Tìm tên mô hình hoặc SKU",

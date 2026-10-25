@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useEffect, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
@@ -28,6 +29,7 @@ const ProductList = () => {
   const t = useTranslations('adminProducts'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
+  const conditionTypes = useProductConditions();
   const [products, setProducts] = useState<AdminProductListItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -118,7 +120,9 @@ const ProductList = () => {
         <div className="catalog-condition-summary">
           {(product.conditions ?? []).map((summary) => (
             <div key={summary.condition}>
-              <span className={`condition-chip is-${summary.condition}`}>{catalog(summary.condition)}</span>
+              <span className={`condition-chip is-${summary.condition}`}>
+                {conditionTypes.label(summary.condition)}
+              </span>
               <span className={summary.stock === 0 ? 'is-empty' : ''} aria-label={`${t('stock')}: ${summary.stock}`}>
                 {summary.stock}
               </span>

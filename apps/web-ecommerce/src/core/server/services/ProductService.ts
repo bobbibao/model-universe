@@ -21,7 +21,9 @@ import FileStorageService, { PUBLIC_UPLOAD_PREFIX } from './FileStorageService';
 import { productHasHistory } from './catalog/ProductHistory';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { asTrimmedString, isHttpUrl, toInteger } from '../../../shared/server/utils/ValidationUtils';
-import { ASSEMBLY_STATES, CONDITIONS, ModelCondition, isModelCondition } from '../../../shared/gunpla';
+import { ASSEMBLY_STATES } from '../../../shared/gunpla';
+import type { ProductConditionType } from '../../../shared/product-conditions';
+import ProductConditionService from './ProductConditionService';
 import { parseProductPackaging } from '../../../shared/packing/rules';
 import mediaManifest from '../../../../docs/model-universe/media-manifest.json';
 
@@ -91,9 +93,17 @@ const IDENTITY_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'description
 const identityOf = (listing: ProductModel) =>
   Object.fromEntries(IDENTITY_FIELDS.map((field) => [field, listing.get(field)])) as Partial<Record<(typeof IDENTITY_FIELDS)[number], unknown>>;
 
-// The SKU suffix of each condition option (a listing's SKU plus e.g. "-2H1").
-const OPTION_SKU_SUFFIX: Record<ModelCondition, string> = { new: 'N', preowned: '2H', incomplete: 'TPK', defective: 'LOI' };
-const conditionRank = (condition: ModelCondition) => CONDITIONS.indexOf(condition);
+// Units are shown in the order of their conditions (Admin > Products > Conditions); an unknown one last.
+const rankOf = (types: readonly ProductConditionType[]) => (condition: string) => {
+  const index = types.findIndex((type) => type.key === condition);
+  return index < 0 ? types.length : index;
+};
+// A unit in a one-of-a-kind condition (e.g. second hand): one piece, at least three distinct uploaded photos.
+const uniquePhotosMissing = (stock: number, imageUrl: string, images: string[]) =>
+  stock > 1 ||
+  !imageUrl.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`) ||
+  new Set([imageUrl, ...images]).size < 3 ||
+  images.some((url) => !url.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`));
 
 const categoryInclude = { model: CategoryModel, as: 'category', attributes: ['id', 'name', 'slug'] };
 const imagesInclude = { model: ProductImageModel, as: 'images', attributes: ['id', 'url', 'sortOrder'] };
@@ -113,6 +123,7 @@ type Row = Record<string, string | number | null>;
 export default class ProductService implements BaseServiceInterface<ProductModel> {
   private reviewService = new ReviewService();
   private discountService = new ProductDiscountService();
+  private conditions = new ProductConditionService();
   private fileStorageService = new FileStorageService();
 
   findByPk(id: string | number): Promise<ProductModel | null> {
@@ -176,6 +187,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   // Each listing with the conditions it is offered in: units, stock and the lowest price the customer pays.
   private async withConditions<T extends { id: number }>(listings: T[], where: WhereOptions = STOREFRONT_VISIBLE) {
     if (listings.length === 0) return [];
+    const types = await this.conditions.all();
     const ids = listings.map((listing) => listing.id);
     const units = await this.discountService.withPricing(
       await ProductModel.findAll({
@@ -185,7 +197,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     );
     return listings.map((listing) => {
       const group = units.filter((unit) => (unit.parentProductId ?? unit.id) === listing.id);
-      const conditions = CONDITIONS.map((condition) => {
+      const conditions = types.map(({ key: condition }) => {
         const same = group.filter((unit) => unit.condition === condition);
         const available = same.filter((unit) => unit.stock > 0);
         return {
@@ -288,6 +300,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       listPriceVerified: row.listPriceVerified,
       ...toPricing(row.price, discounts.get(row.id)),
     });
+    const conditionRank = rankOf(await this.conditions.all());
     const optionUnits = options
       .map((option) => unit(option, false))
       .sort((a, b) => conditionRank(a.condition) - conditionRank(b.condition) || a.salePrice - b.salePrice || a.id - b.id);
@@ -350,6 +363,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       attributes: ['id', 'sku', 'name', 'condition', 'conditionNote', 'missingAccessories', 'defects', 'price', 'pricingReferenceMemberVnd', 'importPrice', 'stock', 'sold', 'imageUrl', 'isArchived', 'inventoryStatus', 'parentProductId'],
       where: { [Op.or]: [{ id: listingId }, { parentProductId: listingId }] },
     });
+    const conditionRank = rankOf(await this.conditions.all());
     const ordered = units.sort(
       (a, b) =>
         Number(a.parentProductId !== null) - Number(b.parentProductId !== null) ||
@@ -407,7 +421,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       if (data[field] !== undefined) gunpla[field] = asTrimmedString(data[field]) || null;
     }
     if (data.condition !== undefined) {
-      if (!isModelCondition(data.condition)) errors.push('Invalid model condition.');
+      if (!(await this.conditions.usable(data.condition, current?.condition)))
+        errors.push('Tình trạng sản phẩm không hợp lệ hoặc đã ngừng dùng.');
       gunpla.condition = data.condition;
     }
     if (data.assemblyState !== undefined) {
@@ -422,11 +437,12 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       }
     }
     // What makes a unit incomplete or defective is shown to the customer: it must be written down.
-    const condition = (gunpla.condition ?? current?.condition) as ModelCondition | undefined;
-    if (condition === 'incomplete' && !((gunpla.missingAccessories ?? current?.missingAccessories) as string[] | undefined)?.length)
-      errors.push('Liệt kê phụ kiện còn thiếu của sản phẩm thiếu phụ kiện.');
-    if (condition === 'defective' && !((gunpla.defects ?? current?.defects) as string[] | undefined)?.length)
-      errors.push('Mô tả lỗi của sản phẩm lỗi.');
+    // The rules come from the condition (Admin > Products > Conditions), not its name.
+    const conditionType = await this.conditions.get(gunpla.condition ?? current?.condition ?? 'new');
+    if (conditionType?.requiresMissingAccessories && !((gunpla.missingAccessories ?? current?.missingAccessories) as string[] | undefined)?.length)
+      errors.push(`Liệt kê phụ kiện còn thiếu của sản phẩm "${conditionType.nameVi}".`);
+    if (conditionType?.requiresDefects && !((gunpla.defects ?? current?.defects) as string[] | undefined)?.length)
+      errors.push(`Mô tả lỗi của sản phẩm "${conditionType.nameVi}".`);
     const images = Array.isArray(data.images) ? data.images.map((url) => asTrimmedString(url)).filter(Boolean) : [];
     // The received date ("Ngày nhập"): the day the product is added unless staff give another one.
     const productionDate = asTrimmedString(data.productionDate)
@@ -444,8 +460,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     if (!imageUrl || !isImageUrl(imageUrl)) errors.push('Vui lòng chọn ảnh chính cho sản phẩm.');
     if (images.length > MAX_GALLERY_IMAGES) errors.push(`Tối đa ${MAX_GALLERY_IMAGES} ảnh phụ.`);
     if (images.some((url) => !isImageUrl(url))) errors.push('Đường dẫn ảnh phụ không hợp lệ.');
-    if (data.condition === 'preowned' && (stock > 1 || !imageUrl.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`) || new Set([imageUrl, ...images]).size < 3 || images.some(url => !url.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`)))) {
-      errors.push('Each preowned collectible requires unique inventory and at least three uploaded actual-item photos.');
+    if (data.condition !== undefined && conditionType?.uniqueUnit && uniquePhotosMissing(stock, imageUrl, images)) {
+      errors.push('Each one-of-a-kind collectible requires unique inventory and at least three uploaded actual-item photos.');
     }
     if (isNaN(productionDate.getTime())) errors.push('Ngày nhập không hợp lệ.');
     if (inventoryStatus !== undefined && !INVENTORY_STATUSES.includes(inventoryStatus)) {
@@ -525,9 +541,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   }
 
   // A free SKU for a new condition option: the listing's SKU, the condition's suffix and a number.
-  private async optionSku(listing: ProductModel, condition: ModelCondition) {
+  private async optionSku(listing: ProductModel, condition: string) {
+    const suffix = (await this.conditions.get(condition))?.skuSuffix ?? condition.toUpperCase().slice(0, 4);
     for (let number = 1; ; number++) {
-      const sku = `${listing.sku}-${OPTION_SKU_SUFFIX[condition]}${number}`;
+      const sku = `${listing.sku}-${suffix}${number}`;
       if (!(await ProductModel.count({ where: { sku } }))) return sku;
     }
   }
@@ -540,7 +557,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     if (!listing) throw HttpError.notFound('Model not found.');
     if (listing.partnerId) throw HttpError.conflict('Review partner merchandise through its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
     if (listing.parentProductId) throw HttpError.badRequest('Thêm tình trạng vào sản phẩm chính, không vào một tình trạng khác.');
-    const condition = isModelCondition(data.condition) ? data.condition : 'new';
+    const condition = typeof data.condition === 'string' && data.condition ? data.condition : 'new';
     const ownImage = asTrimmedString(data.imageUrl);
     const { values, images } = await this.validateCatalogInput({
       ...data,
@@ -581,11 +598,12 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         if (!product) throw HttpError.notFound('Model not found.');
         if (product.partnerId) throw HttpError.conflict('Review partner merchandise through its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
         // Omitting condition must not bypass the existing unique-item identity or photo requirements.
-        if (product.condition === 'preowned' && (data.condition !== undefined && data.condition !== 'preowned' || values.stock > product.stock))
+        const was = await this.conditions.get(product.condition, transaction);
+        const next = await this.conditions.get(data.condition || product.condition, transaction);
+        if (was?.uniqueUnit && (data.condition !== undefined && data.condition !== product.condition || values.stock > product.stock))
           throw HttpError.conflict('Retain this unique collectible identity; use its inspected intake or verified return workflow for stock.', 'UNIQUE_ITEM_INTAKE_REQUIRED');
-        if ((data.condition || product.condition) === 'preowned' &&
-          (values.stock > 1 || !values.imageUrl.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`) || new Set([values.imageUrl, ...images]).size < 3 || images.some(url => !url.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`))))
-          throw HttpError.badRequest('Each preowned collectible requires unique inventory and at least three distinct uploaded actual-item photos.');
+        if (next?.uniqueUnit && uniquePhotosMissing(values.stock, values.imageUrl, images))
+          throw HttpError.badRequest('Each one-of-a-kind collectible requires unique inventory and at least three distinct uploaded actual-item photos.');
         if (values.stock !== product.stock && data.expectedStock !== product.stock) throw HttpError.conflict('Available stock changed. Reload before recording an inventory correction.','STOCK_CHANGED');
         const oldPricing = { listPriceVnd: product.price, actualCostVnd: product.importPrice, referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd, issues: product.pricingIssueCount };
         if (values.price !== product.price && data.expectedPrice !== product.price)
@@ -640,6 +658,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   async inventoryStats() {
     const query = <T extends Row>(sql: string) => DatabaseProvider.getInstance().query<T>(sql, { type: QueryTypes.SELECT });
     const scope = `FROM product p WHERE p."partnerId" IS NULL AND NOT p."isArchived"`;
+    const rank = rankOf(await this.conditions.all());
     const [totals] = await query(`
       SELECT COUNT(*) FILTER (WHERE p."parentProductId" IS NULL) AS listings,
              COUNT(*) FILTER (WHERE p."parentProductId" IS NOT NULL) AS options,
@@ -676,7 +695,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       brands: brands.map(numbers),
       conditions: conditions
         .map(numbers)
-        .sort((a, b) => conditionRank(a.condition as ModelCondition) - conditionRank(b.condition as ModelCondition)),
+        .sort((a, b) => rank(a.condition as string) - rank(b.condition as string)),
     };
   }
 }

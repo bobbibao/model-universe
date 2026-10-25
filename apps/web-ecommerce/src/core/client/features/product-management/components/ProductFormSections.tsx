@@ -3,14 +3,15 @@
 import { catalogPricing } from '@/shared/sale-pricing';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { ASSEMBLY_STATES, CONDITIONS } from '@/shared/gunpla';
+import { ASSEMBLY_STATES } from '@/shared/gunpla';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import TextField from '@/components/FormElements/TextField';
 import TextAreaField from '@/components/FormElements/TextAreaField';
 import SelectField from '@/components/FormElements/SelectField';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Category } from '@/shared/types/product';
 import type { SupplierOption } from '@/core/client/api/Supplier';
-import { INVENTORY_STATUS_VALUES, ProductFormErrors, ProductFormValues } from './productForm';
+import { conditionRules, INVENTORY_STATUS_VALUES, ProductFormErrors, ProductFormValues } from './productForm';
 import type { InventoryStatus } from '@/shared/types/product';
 
 interface SectionProps {
@@ -130,6 +131,10 @@ export const ConditionFields = ({
 }: SectionProps & { lockedCondition?: boolean }) => {
   const catalog = useTranslations('catalog'),
     t = useTranslations('adminProducts');
+  const conditions = useProductConditions();
+  const rules = conditionRules(conditions.all, values.condition);
+  // The active conditions, plus the unit's own if it was retired since.
+  const choices = conditions.all.filter((type) => type.isActive || type.key === values.condition);
   const listField = (field: 'includedAccessories' | 'missingAccessories' | 'defects', label: string) => (
     <TextAreaField
       key={field}
@@ -139,8 +144,8 @@ export const ConditionFields = ({
       hint={t('fieldGuide.listLines')}
       value={values[field]}
       required={
-        (field === 'missingAccessories' && values.condition === 'incomplete') ||
-        (field === 'defects' && values.condition === 'defective')
+        (field === 'missingAccessories' && !!rules?.requiresMissingAccessories) ||
+        (field === 'defects' && !!rules?.requiresDefects)
       }
       error={errors[field] ? t(`validation.${errors[field]}`) : undefined}
       onChange={(event) => onChange(field, event.target.value)}
@@ -153,10 +158,8 @@ export const ConditionFields = ({
           label={catalog('condition')}
           name="condition"
           disabled={lockedCondition}
-          hint={
-            lockedCondition ? t('fieldGuide.conditionLocked') : catalog(`conditionDescriptions.${values.condition}`)
-          }
-          options={CONDITIONS.map((value) => ({ value, label: catalog(value) }))}
+          hint={lockedCondition ? t('fieldGuide.conditionLocked') : conditions.description(values.condition)}
+          options={choices.map((type) => ({ value: type.key, label: conditions.label(type.key) }))}
           value={values.condition}
           onChange={(event) => onChange('condition', event.target.value as ProductFormValues['condition'])}
         />
@@ -181,8 +184,9 @@ export const ConditionFields = ({
         value={values.conditionNote}
         onChange={(event) => onChange('conditionNote', event.target.value)}
       />
-      {values.condition === 'incomplete' && listField('missingAccessories', t('missingAccessories'))}
-      {(values.condition === 'defective' || values.defects.trim() !== '') && listField('defects', t('defectsList'))}
+      {(rules?.requiresMissingAccessories || values.missingAccessories.trim() !== '') &&
+        listField('missingAccessories', t('missingAccessories'))}
+      {(rules?.requiresDefects || values.defects.trim() !== '') && listField('defects', t('defectsList'))}
       {listField('includedAccessories', t('includedAccessories'))}
     </>
   );
@@ -293,6 +297,7 @@ export const InventoryFields = ({
   maxStock,
 }: SectionProps & { readOnly?: boolean; maxStock?: number }) => {
   const t = useTranslations('adminProducts');
+  const conditions = useProductConditions();
   const hasPackaging = [values.packLengthCm, values.packWidthCm, values.packHeightCm, values.packWeightGram].some(
     (value) => value.trim(),
   );
@@ -314,7 +319,7 @@ export const InventoryFields = ({
             name="stock"
             type="number"
             min={0}
-            max={maxStock ?? (values.condition === 'preowned' ? 1 : undefined)}
+            max={maxStock ?? (conditionRules(conditions.all, values.condition)?.uniqueUnit ? 1 : undefined)}
             step={1}
             required
             inputMode="numeric"

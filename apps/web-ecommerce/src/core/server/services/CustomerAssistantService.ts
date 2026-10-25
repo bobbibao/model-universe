@@ -14,7 +14,7 @@ import { signAgentActorToken } from '../../../shared/server/utils/JwtUtils';
 import HttpError from '../../../shared/server/utils/HttpError';
 import Logger from '../../../shared/server/utils/logger';
 import { customerPath, parseCustomerAction } from '../../../shared/customer-assistant-policy';
-import { isModelCondition } from '../../../shared/gunpla';
+import { CONDITION_KEY_PATTERN } from '../../../shared/product-conditions';
 import { MIN_DEPOSIT_PERCENT } from '../../../shared/payment';
 import type { AuthUser } from '../../../shared/server/types/express';
 import type {
@@ -469,7 +469,10 @@ export default class CustomerAssistantService {
         const result = await this.products.listPublic({
           q: text(read.q, 160),
           scale: text(read.scale, 30),
-          condition: isModelCondition(read.condition) ? read.condition : undefined,
+          condition:
+            typeof read.condition === 'string' && CONDITION_KEY_PATTERN.test(read.condition)
+              ? read.condition
+              : undefined,
           brand: text(read.brand, 100),
           category: text(read.category, 100),
           inStock: read.inStock === true,

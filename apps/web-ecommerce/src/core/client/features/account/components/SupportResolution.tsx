@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useLocale, useTranslations } from 'next-intl';
 import Api from '@/core/client/api/Api';
 import ProductPicker, { type PickedProduct } from '@/core/client/features/inventory/components/ProductPicker';
 import { SUPPORT_OUTCOMES, type SupportOutcome } from '@/shared/return-rules';
 import type { SupportCase } from '@/shared/types/support';
-import { isModelCondition } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import ProductImage from '@/components/ProductImage';
 
@@ -16,6 +16,7 @@ export default function SupportResolution({ id, admin = false }: { id: number; a
     common = useTranslations('common'),
     returns = useTranslations('returns'),
     locale = useLocale();
+  const conditionTypes = useProductConditions();
   const [value, setValue] = useState<SupportCase>(),
     [busy, setBusy] = useState(false),
     [failed, setFailed] = useState(false),
@@ -100,8 +101,7 @@ export default function SupportResolution({ id, admin = false }: { id: number; a
               <div>
                 <p className="mu-note">
                   {terms.replacement.name} · {terms.replacement.sku} · {terms.replacement.quantity} ·{' '}
-                  {terms.replacement.scale} ·{' '}
-                  {catalog(isModelCondition(terms.replacement.condition) ? terms.replacement.condition : 'new')}
+                  {terms.replacement.scale} · {conditionTypes.label(terms.replacement.condition || 'new')}
                 </p>
                 <p className="mu-note">
                   {catalog('assembly')}: {catalog(terms.replacement.assemblyState)}

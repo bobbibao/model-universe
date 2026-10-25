@@ -1,12 +1,12 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { orderBenefits } from './orderBenefits';
 import Link from '@/i18n/navigation';
 import ProductImage from '@/components/ProductImage';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Order } from '@/shared/types/order';
-import { isModelCondition } from '@/shared/gunpla';
 import TransferInstructions from './TransferInstructions';
 import OrderFulfillment from './OrderFulfillment';
 import OrderPaymentQr from './OrderPaymentQr';
@@ -36,6 +36,7 @@ export default function OrderDetails({
     tierNames = useTranslations('tiers'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
+  const conditionTypes = useProductConditions();
   const money = (amount: number) => formatVND(amount, locale);
   const benefits = orderBenefits(order);
   return (
@@ -55,9 +56,7 @@ export default function OrderDetails({
               </Link>
               <p className="mu-note">
                 {typeof item.modelSnapshot?.scale === 'string' ? item.modelSnapshot.scale : ''}{' '}
-                {item.modelSnapshot?.condition
-                  ? catalog(isModelCondition(item.modelSnapshot.condition) ? item.modelSnapshot.condition : 'new')
-                  : ''}
+                {item.modelSnapshot?.condition ? conditionTypes.label(String(item.modelSnapshot.condition)) : ''}
               </p>
               <p className="mu-note">
                 {item.quantity} × {money(item.unitPrice)}

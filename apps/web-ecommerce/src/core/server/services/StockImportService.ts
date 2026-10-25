@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+import ProductConditionService from './ProductConditionService';
 import StockImportModel from '../database/client/models/StockImport.Model';
 import StockImportItemModel from '../database/client/models/StockImportItem.Model';
 import ProductModel from '../database/client/models/Product.Model';
@@ -97,7 +98,8 @@ export default class StockImportService implements BaseServiceInterface<StockImp
       });
       if (products.length !== productIds.length) throw HttpError.badRequest('Có sản phẩm không tồn tại.');
       if (products.some(product => product.partnerId)) throw HttpError.conflict('Partner inventory belongs to its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
-      if (products.some(product => product.condition === 'preowned')) throw HttpError.conflict('Receive each unique preowned collectible through its inspected intake record.', 'UNIQUE_ITEM_INTAKE_REQUIRED');
+      const conditions = await new ProductConditionService().all(transaction);
+      if (products.some(product => conditions.find((type) => type.key === product.condition)?.uniqueUnit)) throw HttpError.conflict('Receive each unique one-of-a-kind collectible through its inspected intake record.', 'UNIQUE_ITEM_INTAKE_REQUIRED');
       const productById = new Map(products.map((product) => [product.id, product]));
 
       const stockImport = await StockImportModel.create(

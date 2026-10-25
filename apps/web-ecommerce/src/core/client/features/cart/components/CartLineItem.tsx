@@ -1,6 +1,7 @@
 'use client';
 
 import Link from '@/i18n/navigation';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useLocale, useTranslations } from 'next-intl';
 import ProductImage from '@/components/ProductImage';
 import AdminIcon from '@/components/Admin/AdminIcon';
@@ -11,6 +12,7 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
   const t = useTranslations('checkout'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
+  const conditionTypes = useProductConditions();
   const { updateQuantity, removeItem } = useCart();
   const { item, line } = entry;
   const product = line?.product;
@@ -35,7 +37,9 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
           {product?.condition && product.condition !== 'new' && (
             <>
               {' '}
-              <span className={`condition-chip is-${product.condition}`}>{catalog(product.condition)}</span>
+              <span className={`condition-chip is-${product.condition}`}>
+                {conditionTypes.label(product.condition)}
+              </span>
             </>
           )}
         </p>

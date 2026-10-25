@@ -1,8 +1,9 @@
 'use client';
 import { useLocale, useTranslations } from 'next-intl';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { useEffect, useState, type CSSProperties } from 'react';
-import { ASSEMBLY_STATES, CONDITIONS } from '@/shared/gunpla';
+import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Category, ProductSort } from '@/shared/types/product';
 export interface ProductFilterValues {
@@ -39,6 +40,7 @@ interface Props {
 export default function ProductFilters({ values: draft, brands, scales, priceLimit, onChange, onReset }: Props) {
   const values = { ...draft, maxPrice: draft.maxPrice ?? priceLimit };
   const t = useTranslations('catalog');
+  const conditionTypes = useProductConditions();
   const locale = useLocale();
   const [priceInputs, setPriceInputs] = useState({
     minPrice: String(values.minPrice),
@@ -115,7 +117,7 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
         {/* A model is found through any condition it is offered in (new, pre-owned, missing accessories, defective). */}
         <fieldset className="catalog-grade-pills catalog-condition-pills">
           <legend>{t('condition')}</legend>
-          {['', ...CONDITIONS].map((condition) => (
+          {['', ...conditionTypes.active.map((type) => type.key)].map((condition) => (
             <label key={condition || 'all'}>
               <input
                 type="radio"
@@ -125,7 +127,7 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
                 onChange={() => update('condition', condition)}
               />
               <span className={condition ? `condition-dot is-${condition}` : undefined}>
-                {condition ? t(condition) : t('allConditions')}
+                {condition ? conditionTypes.label(condition) : t('allConditions')}
               </span>
             </label>
           ))}

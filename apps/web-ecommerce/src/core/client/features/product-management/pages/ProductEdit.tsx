@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
@@ -45,6 +46,7 @@ const ProductEdit = () => {
   const router = useRouter();
   const t = useTranslations('adminProducts');
   const ux = useTranslations('commerceUX');
+  const conditions = useProductConditions();
   const [activeTab, setActiveTab] = useState('basics');
   const params = useParams<{ id: string }>();
   const productId = Number(params.id);
@@ -86,13 +88,14 @@ const ProductEdit = () => {
     return current && !suppliers.some((supplier) => supplier.id === current.id) ? [current, ...suppliers] : suppliers;
   }, [product, suppliers]);
 
+  // A one-of-a-kind unit (e.g. second hand) keeps its condition and gets stock only through its intake.
+  const uniqueUnit = !!product && !!conditions.all.find((type) => type.key === product.condition)?.uniqueUnit;
   const onChange = <K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) =>
     setValues((current) => ({ ...current, [key]: value }));
 
   const save = async () => {
-    const formErrors: ProductFormErrors = validateProductForm(values);
-    if (product?.condition === 'preowned' && Number(values.stock) > product.stock)
-      formErrors.stock = 'stockChangeRestricted';
+    const formErrors: ProductFormErrors = validateProductForm(values, conditions.all);
+    if (uniqueUnit && Number(values.stock) > (product?.stock ?? 0)) formErrors.stock = 'stockChangeRestricted';
     if (!mainImage) formErrors.mainImage = 'mainImageRequired';
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0 || !mainImage) {
@@ -214,7 +217,7 @@ const ProductEdit = () => {
                             values={values}
                             errors={errors}
                             onChange={onChange}
-                            lockedCondition={product.condition === 'preowned'}
+                            lockedCondition={uniqueUnit}
                           />
                         </div>
                       </section>
@@ -251,7 +254,7 @@ const ProductEdit = () => {
                       errors={errors}
                       onChange={onChange}
                       readOnly={option}
-                      maxStock={product.condition === 'preowned' ? product.stock : undefined}
+                      maxStock={uniqueUnit ? product.stock : undefined}
                     />
                   ),
                 },

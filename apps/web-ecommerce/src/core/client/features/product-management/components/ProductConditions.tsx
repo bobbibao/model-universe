@@ -10,7 +10,7 @@ import TextField from '@/components/FormElements/TextField';
 import ProductApi from '@/core/client/api/Product';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { AdminProduct } from '@/shared/types/product';
-import { CONDITIONS } from '@/shared/gunpla';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import ProductImagesField, { ImageItem, uploadPendingImages } from './ProductImagesField';
 import { ConditionFields, PricingFields } from './ProductFormSections';
 import {
@@ -19,6 +19,7 @@ import {
   conditionPayload,
   emptyProductForm,
   pricingPayload,
+  conditionRules,
   validateCondition,
   validatePricing,
   validateReceivedDate,
@@ -38,6 +39,7 @@ const ProductConditions = ({
   const t = useTranslations('adminProducts'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
+  const conditions = useProductConditions();
   const listingId = product.listing?.id ?? product.id;
   const units = product.units ?? [];
   const activeUnits = units.filter((unit) => !unit.isArchived);
@@ -69,13 +71,14 @@ const ProductConditions = ({
 
   const create = async () => {
     const formErrors: ProductFormErrors = {
-      ...validateCondition(values),
+      ...validateCondition(values, conditions.all),
       ...validatePricing(values),
       ...validateReceivedDate(values),
     };
     if (!values.pricingReferenceMemberVnd) formErrors.price = 'priceInvalid';
     if (!/^\d+$/.test(values.stock.trim())) formErrors.stock = 'stockInvalid';
-    else if (values.condition === 'preowned' && Number(values.stock) > 1) formErrors.stock = 'preownedStockInvalid';
+    else if (conditionRules(conditions.all, values.condition)?.uniqueUnit && Number(values.stock) > 1)
+      formErrors.stock = 'preownedStockInvalid';
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0) return;
     setSaving(true);
@@ -143,7 +146,7 @@ const ProductConditions = ({
                     </div>
                   </td>
                   <td className="py-3 pr-3">
-                    <span className={`condition-chip is-${unit.condition}`}>{catalog(unit.condition)}</span>
+                    <span className={`condition-chip is-${unit.condition}`}>{conditions.label(unit.condition)}</span>
                     {(unit.conditionNote || unit.missingAccessories.length > 0 || unit.defects.length > 0) && (
                       <p className="mt-1 max-w-[260px] text-xs text-body">
                         {[unit.conditionNote, ...unit.missingAccessories, ...unit.defects].filter(Boolean).join(' · ')}
@@ -208,11 +211,13 @@ const ProductConditions = ({
           <strong>{totalStock}</strong>
         </div>
         <dl>
-          {CONDITIONS.filter((condition) => activeUnits.some((unit) => unit.condition === condition)).map(
-            (condition) => (
+          {conditions.all
+            .map((type) => type.key)
+            .filter((condition) => activeUnits.some((unit) => unit.condition === condition))
+            .map((condition) => (
               <div key={condition}>
                 <dt>
-                  <span className={`condition-dot is-${condition}`}>{catalog(condition)}</span>
+                  <span className={`condition-dot is-${condition}`}>{conditions.label(condition)}</span>
                 </dt>
                 <dd>
                   {activeUnits
@@ -220,8 +225,7 @@ const ProductConditions = ({
                     .reduce((total, unit) => total + unit.stock, 0)}
                 </dd>
               </div>
-            ),
-          )}
+            ))}
         </dl>
         <p>{t('conditionInventoryHint')}</p>
       </aside>
@@ -265,7 +269,7 @@ const ProductConditions = ({
               name="optionStock"
               type="number"
               min={0}
-              max={values.condition === 'preowned' ? 1 : undefined}
+              max={conditionRules(conditions.all, values.condition)?.uniqueUnit ? 1 : undefined}
               step={1}
               required
               inputMode="numeric"

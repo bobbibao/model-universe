@@ -1,6 +1,7 @@
 import { catalogPricing } from '@/shared/sale-pricing';
 import { parseDateValue } from '@/components/DateTimeInput/date-values';
 import type { ModelCondition, AssemblyState } from '@/shared/gunpla';
+import { BUILT_IN_CONDITIONS, type ProductConditionType } from '@/shared/product-conditions';
 import type { AdminProduct, InventoryStatus, ProductPayload } from '@/shared/types/product';
 
 // Form state: numeric fields are kept as strings while editing; lists are one item per line.
@@ -134,20 +135,31 @@ export const lines = (value: string) =>
     .map((line) => line.trim())
     .filter(Boolean);
 
+// The rules of a condition (Admin > Products > Conditions): what a unit in it must disclose and whether it is unique.
+export const conditionRules = (types: readonly ProductConditionType[], key: string) =>
+  types.find((type) => type.key === key) ?? BUILT_IN_CONDITIONS.find((type) => type.key === key);
+
 // What makes a unit incomplete or defective is shown to customers, so it must be written down.
-export const validateCondition = (values: ProductFormValues): ProductFormErrors => {
+export const validateCondition = (
+  values: ProductFormValues,
+  types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
+): ProductFormErrors => {
   const errors: ProductFormErrors = {};
-  if (values.condition === 'incomplete' && lines(values.missingAccessories).length === 0)
+  const rules = conditionRules(types, values.condition);
+  if (rules?.requiresMissingAccessories && lines(values.missingAccessories).length === 0)
     errors.missingAccessories = 'missingAccessoriesRequired';
-  if (values.condition === 'defective' && lines(values.defects).length === 0) errors.defects = 'defectsRequired';
+  if (rules?.requiresDefects && lines(values.defects).length === 0) errors.defects = 'defectsRequired';
   return errors;
 };
 
-export const validateBasics = (values: ProductFormValues): ProductFormErrors => {
+export const validateBasics = (
+  values: ProductFormValues,
+  types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
+): ProductFormErrors => {
   const errors: ProductFormErrors = {};
   if (!values.name.trim()) errors.name = 'nameRequired';
   if (!values.brandName.trim()) errors.brandName = 'brandRequired';
-  return { ...errors, ...validateCondition(values) };
+  return { ...errors, ...validateCondition(values, types) };
 };
 
 export const validatePricing = (values: ProductFormValues): ProductFormErrors => {
@@ -169,11 +181,15 @@ export const validateReceivedDate = (values: ProductFormValues): ProductFormErro
     ? { productionDate: 'receivedDateInvalid' }
     : {};
 
-export const validateInventory = (values: ProductFormValues): ProductFormErrors => {
+export const validateInventory = (
+  values: ProductFormValues,
+  types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
+): ProductFormErrors => {
   const errors: ProductFormErrors = {};
   if (!values.sku.trim()) errors.sku = 'skuRequired';
   if (!isWholeNumber(values.stock, 0)) errors.stock = 'stockInvalid';
-  else if (values.condition === 'preowned' && Number(values.stock) > 1) errors.stock = 'preownedStockInvalid';
+  else if (conditionRules(types, values.condition)?.uniqueUnit && Number(values.stock) > 1)
+    errors.stock = 'preownedStockInvalid';
   Object.assign(errors, validateReceivedDate(values));
   const pack = [values.packLengthCm, values.packWidthCm, values.packHeightCm, values.packWeightGram];
   if (pack.some((value) => value.trim())) {
@@ -186,10 +202,13 @@ export const validateInventory = (values: ProductFormValues): ProductFormErrors 
   return errors;
 };
 
-export const validateProductForm = (values: ProductFormValues): ProductFormErrors => ({
-  ...validateBasics(values),
+export const validateProductForm = (
+  values: ProductFormValues,
+  types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
+): ProductFormErrors => ({
+  ...validateBasics(values, types),
   ...validatePricing(values),
-  ...validateInventory(values),
+  ...validateInventory(values, types),
 });
 
 // The price fields of a payload: the target price S and its B17 (the server recomputes it). The price charged is not

@@ -1,6 +1,7 @@
 'use client';
 
 import { rememberViewed } from '@/shared/client/recentlyViewed';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { productPath } from '@/shared/slug';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -80,6 +81,7 @@ const initialUnitId = (product: ProductDetailType, requested: number | null) => 
 
 const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType } = {}) => {
   const t = useTranslations('catalog');
+  const conditionTypes = useProductConditions();
   const ux = useTranslations('commerceUX');
   const restockText = useTranslations('customerTools');
   const seller = useTranslations('sellerStore');
@@ -232,7 +234,10 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
 
       <div className="product-detail-layout">
         <div className="product-detail-media">
-          <ProductGallery images={[unit.imageUrl, ...unit.images]} alt={`${product.name} · ${t(unit.condition)}`} />
+          <ProductGallery
+            images={[unit.imageUrl, ...unit.images]}
+            alt={`${product.name} · ${conditionTypes.label(unit.condition)}`}
+          />
           {!!product.imageAttributions?.length && (
             <details className="mt-4 text-xs text-body">
               <summary className="cursor-pointer">{t('imageCredits')}</summary>
@@ -431,7 +436,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                   <InfoItem label={t('brand')} value={product.brandName} />
                   <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
                   <InfoItem label={t('scale')} value={product.scale || '—'} />
-                  <InfoItem label={t('condition')} value={t(unit.condition)} />
+                  <InfoItem label={t('condition')} value={conditionTypes.label(unit.condition)} />
                   <InfoItem label={t('assembly')} value={unit.assemblyState ? t(unit.assemblyState) : '—'} />
                   <InfoItem label={t('box')} value={unit.boxCondition || '—'} />
                   <InfoItem
@@ -470,7 +475,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
           <div>
             <strong>{product.name}</strong>
             <span>
-              {t(unit.condition)} · {formatVND(unit.salePrice, locale)}
+              {conditionTypes.label(unit.condition)} · {formatVND(unit.salePrice, locale)}
             </span>
           </div>
           <button
@@ -507,6 +512,7 @@ const ConditionPicker = ({
   onSelect: (id: number) => void;
 }) => {
   const t = useTranslations('catalog');
+  const conditionTypes = useProductConditions();
   const locale = useLocale();
   const facts = [
     selected.conditionNote,
@@ -536,9 +542,9 @@ const ConditionPicker = ({
                   <ProductImage src={unit.imageUrl} alt="" sizes="48px" className="object-contain" />
                 </span>
                 <span className="condition-option-description">
-                  <span className={`condition-chip is-${unit.condition}`}>{t(unit.condition)}</span>
+                  <span className={`condition-chip is-${unit.condition}`}>{conditionTypes.label(unit.condition)}</span>
                   <span className="condition-option-note">
-                    {unit.conditionNote || t(`conditionDescriptions.${unit.condition}`)}
+                    {unit.conditionNote || conditionTypes.description(unit.condition)}
                   </span>
                 </span>
                 <span className="condition-option-price">
@@ -555,9 +561,9 @@ const ConditionPicker = ({
       )}
       <div className={`condition-details is-${selected.condition}`} aria-live="polite">
         {units.length === 1 && (
-          <span className={`condition-chip is-${selected.condition}`}>{t(selected.condition)}</span>
+          <span className={`condition-chip is-${selected.condition}`}>{conditionTypes.label(selected.condition)}</span>
         )}
-        <p>{t(`conditionDescriptions.${selected.condition}`)}</p>
+        <p>{conditionTypes.description(selected.condition)}</p>
         {facts.length > 0 && (
           <ul>
             {facts.map((fact) => (

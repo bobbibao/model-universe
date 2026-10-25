@@ -1,6 +1,7 @@
 'use client';
 
 import '@/core/client/features/sales/sales.css';
+import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import Link from '@/i18n/navigation';
 import ProductStage from '@/components/ProductStage';
 import PriceTag, { compactCount, useCountdown } from '@/components/PriceTag';
@@ -18,6 +19,7 @@ import { formatVND } from '@/shared/server/utils/utils';
 // ends within three days. A model sold out new but in stock in another condition shows that condition's lowest price.
 const ProductCard = ({ product }: { product: ProductSummary }) => {
   const t = useTranslations('catalog');
+  const conditionTypes = useProductConditions();
   const ux = useTranslations('commerceUX');
   const locale = useLocale();
   const en = locale === 'en';
@@ -68,7 +70,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
           {product.scale && <span>{product.scale}</span>}
           {shown.map((summary) => (
             <span key={summary.condition} className={`condition-chip is-${summary.condition}`}>
-              {t(summary.condition)}
+              {conditionTypes.label(summary.condition)}
             </span>
           ))}
         </div>

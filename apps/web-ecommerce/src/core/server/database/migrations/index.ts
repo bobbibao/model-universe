@@ -13,6 +13,7 @@ import BuybackRequestModel from '../client/models/BuybackRequest.Model';
 import BuybackEventModel from '../client/models/BuybackEvent.Model';
 import BuybackPayoutModel from '../client/models/BuybackPayout.Model';
 import ListingQcReviewModel from '../client/models/ListingQcReview.Model';
+import ProductConditionTypeModel from '../client/models/ProductConditionType.Model';
 import PawnContractModel from '../client/models/PawnContract.Model';
 import PawnEventModel from '../client/models/PawnEvent.Model';
 import PawnPaymentModel from '../client/models/PawnPayment.Model';
@@ -1213,6 +1214,18 @@ export const MIGRATIONS: Migration[] = [
       await sequelize.query('ALTER TABLE "order" ALTER COLUMN "userId" DROP NOT NULL');
       await sequelize.query(
         'CREATE UNIQUE INDEX IF NOT EXISTS order_direct_sale_key ON "order" ("directSaleKey") WHERE "directSaleKey" IS NOT NULL',
+      );
+    },
+  },
+  {
+    name: '2026-10-25-49-product-condition-types',
+    up: async ({ context }) => {
+      // Conditions become a list the owner extends in Admin (src/shared/product-conditions.ts): the four built-in ones
+      // are recorded with the rules the code used to apply by name. `product.condition` already holds their keys.
+      await ensureTables(ProductConditionTypeModel);
+      await ProductConditionTypeModel.seedData();
+      await context.sequelize.query(
+        `CREATE INDEX IF NOT EXISTS product_condition ON product (condition)`,
       );
     },
   },

@@ -78,7 +78,8 @@ export default async function Page({ params }: Props) {
       priceCurrency: 'VND',
       price: option.salePrice ?? option.price,
       availability: option.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: ITEM_CONDITIONS[option.condition ?? 'new'] ?? ITEM_CONDITIONS.new,
+      // A condition the owner added later is not new: it is listed as used.
+      itemCondition: ITEM_CONDITIONS[option.condition ?? 'new'] ?? ITEM_CONDITIONS.preowned,
     })),
   };
   return (
