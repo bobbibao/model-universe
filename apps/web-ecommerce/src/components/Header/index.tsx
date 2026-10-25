@@ -8,6 +8,7 @@ import DropdownUser from './DropdownUser';
 import AgentInboxBadge from '@/core/client/features/agent-console/components/AgentInboxBadge';
 import AdminCommandMenu from '@/components/Admin/AdminCommandMenu';
 import AdminIcon from '@/components/Admin/AdminIcon';
+import AdminAssistant from '@/components/Admin/AdminAssistant';
 import { adminDestination } from '@/components/Admin/navigation';
 
 export default function Header({
@@ -44,6 +45,7 @@ export default function Header({
       </div>
       <div className="admin-header-actions">
         <AdminCommandMenu />
+        {(pathname === '/admin/products' || pathname.startsWith('/admin/products/')) && <AdminAssistant inline />}
         <ul className="admin-header-tools">
           <li>
             <a

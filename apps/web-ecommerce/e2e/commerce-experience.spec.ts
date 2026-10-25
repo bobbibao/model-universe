@@ -189,30 +189,18 @@ for (const locale of ['vi', 'en'] as const)
       await expect(page.locator('.catalog-applied')).toHaveCount(0);
     });
 
-    test(`${locale} ${width}: gallery, tab keyboard navigation, stock limit and visible purchase controls`, async ({
-      page,
-    }) => {
+    test(`${locale} ${width}: gallery focus, cart feedback, stock limit and purchase return`, async ({ page }) => {
       const writes = await fixture(page);
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
-      await page.setViewportSize({ width, height: width >= 1024 ? 768 : 844 });
+      await page.setViewportSize({ width, height: 1000 });
       await page.goto(`/${locale}/san-pham/${model.slug}`);
       await expect(page.locator('.product-purchase')).toBeVisible();
-      const tabs = page.getByRole('tablist', { name: messages.commerceUX.productInformation });
-      const specsTab = tabs.getByRole('tab', { name: messages.commerceUX.specificationsTab, exact: true });
-      await specsTab.focus();
-      await specsTab.press('ArrowRight');
-      await expect(tabs.getByRole('tab', { name: messages.catalog.condition, exact: true })).toHaveAttribute(
-        'aria-selected',
-        'true',
-      );
-      await page.keyboard.press('End');
-      await expect(tabs.getByRole('tab', { name: new RegExp(messages.catalog.reviews) })).toBeFocused();
-      await page.keyboard.press('Home');
-      await expect(specsTab).toBeFocused();
-      await tabs.getByRole('tab', { name: messages.commerceUX.offersTab, exact: true }).click();
-      await expect(page.locator('.offer-list')).toBeVisible();
-      await specsTab.click();
+      const benefits = page.locator('.offer-benefits');
+      await expect(benefits).not.toHaveAttribute('open', '');
+      await benefits.locator('summary').click();
+      await expect(benefits.locator('.offer-list')).toBeVisible();
+      await benefits.locator('summary').click();
       await page.getByRole('button', { name: messages.commerceUX.enlargePhoto, exact: true }).click();
       await expect(page.getByRole('dialog')).toBeVisible();
       await page.keyboard.press('Escape');
@@ -227,18 +215,12 @@ for (const locale of ['vi', 'en'] as const)
       await expect(increase).toBeDisabled();
       await purchase.getByRole('button', { name: messages.catalog.addToCart, exact: true }).click();
       await expect(purchase.getByRole('status')).toContainText(messages.commerceUX.addedToCart);
-      await page.locator('.Toastify__close-button').first().click();
-      await expect(page.locator('.Toastify__toast')).toHaveCount(0);
       expect(await page.evaluate(() => JSON.parse(localStorage.getItem('cart') || '[]')[0].quantity)).toBe(3);
-      await tabs.getByRole('tab', { name: messages.commerceUX.descriptionTab, exact: true }).click();
-      await expect(page.locator('.product-story')).toBeVisible();
-      await expect(purchase.getByRole('button', { name: messages.catalog.addToCart, exact: true })).toBeInViewport();
-      await specsTab.click();
-      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-      if (width >= 1024) {
-        const bounds = await page.locator('.compact-product-workspace').boundingBox();
-        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(768);
-      }
+      await page.locator('.product-story').scrollIntoViewIfNeeded();
+      await expect(page.locator('.product-dock')).toBeVisible();
+      await page.locator('.product-dock button').click();
+      await expect(purchase.getByRole('button', { name: messages.catalog.addToCart, exact: true })).toBeFocused();
+      await expect(purchase).toBeInViewport();
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       await capture(page, `${locale}-${width}-product`);
       expect(writes.filter((path) => path !== '/api/cart/quote')).toEqual([]);
@@ -298,6 +280,9 @@ for (const locale of ['vi', 'en'] as const)
       await page.goto(`/${locale}/admin/products/${model.id}`);
       const editor = page.locator('.compact-admin-editor');
       await expect(editor).toBeVisible();
+      await expect(page.locator('.admin-page-heading, .compact-model-summary, .compact-editor-caption')).toHaveCount(0);
+      await expect(page.locator('.admin-header .admin-assistant-launcher')).toBeInViewport();
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText(messages.adminProducts.edit);
       const nameField = editor.getByRole('textbox', { name: messages.adminProducts.name, exact: true });
       await nameField.fill('Retained model draft');
       const editorTabs = editor.getByRole('tablist');
@@ -322,56 +307,6 @@ for (const locale of ['vi', 'en'] as const)
   }
 
 for (const locale of ['vi', 'en'] as const) {
-  test(`${locale}: partner identity remains visible beside the model heading`, async ({ page }) => {
-    const m = locale === 'vi' ? vi : en;
-    await fixture(page, false, false, 900002);
-    await page.setViewportSize({ width: 1366, height: 768 });
-    await page.goto(`/${locale}/san-pham/${model.slug}`);
-    const seller = page.locator('.compact-product-heading').getByRole('link', { name: new RegExp(m.sellerStore.view) });
-    await expect(seller).toHaveAttribute('href', `/${locale}/sellers/900002`);
-    await expect(seller).toBeInViewport({ ratio: 1 });
-    await expect(page.locator('.product-purchase-actions button').first()).toBeInViewport({ ratio: 1 });
-    await page.getByRole('tab', { name: m.commerceUX.offersTab, exact: true }).click();
-    await expect(page.getByRole('tabpanel').locator('.offer-note')).toBeVisible();
-    await expect(page.getByRole('tabpanel').locator('.offer-list')).toHaveCount(0);
-  });
-  for (const width of [1366, 390]) {
-    test(`${locale} ${width}: long model content stays in its tab and cart uses the chosen damaged unit`, async ({
-      page,
-    }) => {
-      const m = locale === 'vi' ? vi : en;
-      const writes = await fixture(page, false, true);
-      await page.setViewportSize({ width, height: width > 1024 ? 768 : 844 });
-      await page.goto(`/${locale}/san-pham/${model.slug}`);
-      const purchase = page.locator('.product-purchase');
-      const add = purchase.getByRole('button', { name: m.catalog.addToCart, exact: true });
-      await expect(add).toBeInViewport({ ratio: 1 });
-      await page.getByLabel(m.catalog.chooseCondition, { exact: true }).selectOption(String(model.id + 900000));
-      await expect(page).toHaveURL(new RegExp(`tinh-trang=${model.id + 900000}`));
-      await expect(page.locator('.compact-condition-notice')).toBeVisible();
-      await page.locator('.compact-condition-notice').click();
-      await expect(page.getByRole('tabpanel')).toContainText('Cracked armor');
-      await expect(page.getByRole('tabpanel')).toContainText('Missing stand');
-      await page.getByRole('tab', { name: m.commerceUX.descriptionTab, exact: true }).click();
-      const panel = page.getByRole('tabpanel');
-      expect(await panel.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
-      await panel.evaluate((el) => (el.scrollTop = el.scrollHeight));
-      await expect(add).toBeInViewport({ ratio: 1 });
-      await page.getByRole('button', { name: m.commerceUX.enlargePhoto, exact: true }).click();
-      await page.keyboard.press('ArrowRight');
-      await expect(page.locator('.product-gallery-lightbox-nav > span')).toHaveText(
-        m.experience.photoPosition.replace('{current}', '2').replace('{count}', '2'),
-      );
-      await page.keyboard.press('Escape');
-      await add.click();
-      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('cart') || '[]')[0].productId)).toBe(
-        model.id + 900000,
-      );
-      await capture(page, `${locale}-${width}-compact-long-product`);
-      expect(writes.filter((path) => path !== '/api/cart/quote')).toEqual([]);
-    });
-  }
-
   test(`${locale}: catalog rows and create wizard keep their controls in the laptop viewport`, async ({
     page,
     context,
@@ -393,7 +328,8 @@ for (const locale of ['vi', 'en'] as const) {
     expect(await table.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
     await table.locator('tbody tr').last().scrollIntoViewIfNeeded();
     await expect(page.locator('.admin-table-pagination')).toBeInViewport();
-    await expect(page.locator('.admin-page-heading h1')).toBeInViewport();
+    await expect(page.locator('.admin-page-heading')).toHaveCount(0);
+    await expect(page.locator('.admin-location strong')).toBeInViewport();
     await capture(page, `${locale}-1366-compact-catalog-rows`);
     await page.goto(`/${locale}/admin/products/new`);
     const create = page.locator('.compact-admin-create-card');

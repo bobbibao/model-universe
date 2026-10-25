@@ -210,20 +210,6 @@
   flex-shrink: 0;
   min-height: 32px;
 }
-.admin-workspace .admin-page-heading {
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-.admin-workspace .admin-page-heading h1 {
-  font-size: 24px;
-  line-height: 1.25;
-  letter-spacing: -0.035em;
-}
-.admin-workspace .admin-breadcrumb {
-  padding-top: 0;
-  font-size: 11px;
-}
 .partner-inventory .partner-inventory-intro {
   margin-top: 0;
   max-width: 850px;
@@ -485,15 +471,6 @@
   }
   .mu-shell .catalog-main .mu-product a.font-semibold {
     font-size: 12px;
-  }
-  .admin-workspace .admin-page-heading {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 6px 16px;
-    margin-bottom: 14px;
-  }
-  .admin-workspace .admin-page-heading h1 {
-    font-size: 21px;
   }
   .partner-inventory-detail > .mu-panel {
     padding: 16px;

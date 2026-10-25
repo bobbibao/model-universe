@@ -7,7 +7,6 @@ import { useRouter } from '@/i18n/navigation';
 
 import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
-import AdminAssistant from '@/components/Admin/AdminAssistant';
 import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
 import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
@@ -198,7 +197,7 @@ const ProductList = () => {
 
   return (
     <div className="compact-admin-catalog-page">
-      <Breadcrumb pageName={t('title')} actions={<AdminAssistant inline />} />
+      <Breadcrumb pageName={t('title')} />
       <WorkspaceTabs
         className="compact-catalog-tabs"
         label={ux('catalogWorkspace')}
