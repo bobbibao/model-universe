@@ -503,40 +503,11 @@
 .admin-page .apexcharts-legend-text {
   color: var(--admin-muted) !important;
 }
-
-.admin-page-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 28px;
-}
-.admin-page-heading h1 {
-  margin: 0;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 750;
-}
 .admin-page-description {
   max-width: 660px;
   color: var(--admin-muted);
   font-size: 13px;
   margin-top: 9px;
-}
-.admin-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding-top: 6px;
-  color: var(--admin-muted);
-  font-size: 11px;
-}
-.admin-breadcrumb a:hover {
-  color: var(--admin-accent);
-}
-.admin-breadcrumb li:last-child {
-  color: var(--admin-ink);
 }
 .admin-table {
   border-radius: 16px;
@@ -1038,17 +1009,8 @@
   .admin-page {
     padding: 24px 16px 100px;
   }
-  .admin-page-heading {
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 22px;
-  }
-  .admin-page-heading h1,
   .admin-page .mu-heading {
     font-size: 25px;
-  }
-  .admin-breadcrumb {
-    padding: 0;
   }
   .admin-table-toolbar {
     padding: 18px 16px;

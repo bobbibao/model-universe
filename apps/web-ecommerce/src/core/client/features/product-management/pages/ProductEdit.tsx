@@ -1,15 +1,12 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
-import AdminAssistant from '@/components/Admin/AdminAssistant';
 import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
-import ProductImage from '@/components/ProductImage';
-import { formatVND } from '@/shared/server/utils/utils';
 import ConfirmModal from '@/components/Modal/ConfirmModal';
 import ProductApi from '@/core/client/api/Product';
 import type { AdminProduct } from '@/shared/types/product';
@@ -48,7 +45,6 @@ const ProductEdit = () => {
   const router = useRouter();
   const t = useTranslations('adminProducts');
   const ux = useTranslations('commerceUX');
-  const locale = useLocale();
   const [activeTab, setActiveTab] = useState('basics');
   const params = useParams<{ id: string }>();
   const productId = Number(params.id);
@@ -143,16 +139,14 @@ const ProductEdit = () => {
     );
   }
 
-  const total = product.sold + product.stock;
   // A condition option: its model (name, brand, code, descriptions, box) is edited on the main listing.
   const option = Boolean(product.parentProductId);
 
   return (
     <div className="compact-admin-product-page">
-      <Breadcrumb pageName={t('edit')} actions={<AdminAssistant inline />} />
-      <p className="compact-editor-caption">{t('summary', { id: product.id, sold: product.sold, total })}</p>
+      <Breadcrumb pageName={t('edit')} />
       {option && product.listing && (
-        <p className="-mt-3 mb-6 flex flex-wrap items-center gap-2 rounded-md border border-brand-hover/30 bg-brand/10 px-4 py-3 text-sm">
+        <p className="compact-condition-parent">
           <span>{t('conditionOf', { name: product.listing.name })}</span>
           <Link
             href={`/admin/products/${product.listing.id}`}
@@ -163,27 +157,6 @@ const ProductEdit = () => {
         </p>
       )}
       <div className="compact-admin-editor">
-        <aside className="compact-model-summary">
-          <div className="compact-model-photo">
-            <ProductImage src={mainImage?.preview || product.imageUrl} alt={values.name} sizes="220px" />
-          </div>
-          <div>
-            <p className="mu-eyebrow">{values.brandName}</p>
-            <h2>{values.name}</h2>
-            <p className="compact-model-sku">{values.sku}</p>
-          </div>
-          <dl>
-            <div>
-              <dt>{ux('savedPrice')}</dt>
-              <dd>{formatVND(product.price, locale)}</dd>
-            </div>
-            <div>
-              <dt>{t('stock')}</dt>
-              <dd>{values.stock}</dd>
-            </div>
-          </dl>
-          <Link href="/admin/products">← {t('backToList')}</Link>
-        </aside>
         <div className="compact-admin-editor-main">
           {Object.keys(errors).length > 0 && (
             <p className="admin-load-error" role="alert">

@@ -1092,10 +1092,6 @@
 .admin-workspace .admin-table thead tr {
   background: var(--admin-soft);
 }
-.admin-workspace .admin-page-heading h1 {
-  font-size: 32px;
-  letter-spacing: -0.045em;
-}
 .admin-workspace .admin-search-trigger {
   border-radius: 100px;
   background: var(--admin-soft);

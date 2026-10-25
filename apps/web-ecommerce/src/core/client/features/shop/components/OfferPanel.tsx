@@ -12,13 +12,7 @@ import type { ProductDetail } from '@/shared/types/product';
 // The price block of a product page: a sale bar with its countdown, the price the customer pays, and a short list of
 // the offers that apply to this product (member price, free shipping, points), each one line with an icon so the
 // customer can scan it, plus a link to collect more vouchers.
-export default function OfferPanel({
-  product,
-  section = 'all',
-}: {
-  product: ProductDetail;
-  section?: 'all' | 'price' | 'benefits';
-}) {
+export default function OfferPanel({ product }: { product: ProductDetail }) {
   const locale = useLocale();
   const ux = useTranslations('commerceUX');
   const en = locale === 'en';
@@ -77,7 +71,7 @@ export default function OfferPanel({
     : [];
   return (
     <section className="offer-panel" aria-label={en ? 'Price and offers' : 'Giá và ưu đãi'}>
-      {section !== 'benefits' && onSale && (
+      {onSale && (
         <div className="offer-flash">
           <span className="offer-flash-title">
             <PromoIcon name="bolt" size={16} />
@@ -99,70 +93,67 @@ export default function OfferPanel({
           )}
         </div>
       )}
-      {section !== 'benefits' && (
-        <div className="offer-body">
-          <PriceTag
-            price={product.price}
-            salePrice={product.salePrice}
-            discountPercent={product.discountPercent}
-            size="detail"
-          />
-          {(product.sold > 0 || (product.stock > 0 && product.stock <= 3)) && (
-            <p className="offer-proof">
-              {product.sold > 0 && (
-                <span>
-                  <PromoIcon name="bag" size={15} />
-                  {en ? `${compactCount(product.sold, 'en')} sold` : `Đã bán ${compactCount(product.sold, 'vi')}`}
-                </span>
-              )}
-              {product.stock > 0 && product.stock <= 3 && (
-                <span className="is-scarce">
-                  <i aria-hidden="true" />
-                  {en ? `Only ${product.stock} left in stock` : `Chỉ còn ${product.stock} sản phẩm`}
-                </span>
-              )}
-            </p>
-          )}
-          {onSale && (
-            <p className="offer-saving">
-              {en ? 'You save' : 'Tiết kiệm'} <strong>{money(product.price - product.salePrice)}</strong>
-            </p>
-          )}
-        </div>
-      )}
-      {section !== 'price' &&
-        (shopOwned ? (
-          <details className="offer-benefits" open={section === 'benefits'}>
-            <summary>
-              {ux('availableOffers')}
+      <div className="offer-body">
+        <PriceTag
+          price={product.price}
+          salePrice={product.salePrice}
+          discountPercent={product.discountPercent}
+          size="detail"
+        />
+        {(product.sold > 0 || (product.stock > 0 && product.stock <= 3)) && (
+          <p className="offer-proof">
+            {product.sold > 0 && (
               <span>
-                {offers.length} <span aria-hidden="true">＋</span>
+                <PromoIcon name="bag" size={15} />
+                {en ? `${compactCount(product.sold, 'en')} sold` : `Đã bán ${compactCount(product.sold, 'vi')}`}
               </span>
-            </summary>
-            <ul className="offer-list">
-              {offers.map((offer) => (
-                <li key={offer.icon}>
-                  <span className="offer-list-icon">
-                    <PromoIcon name={offer.icon} size={18} />
-                  </span>
-                  <span>
-                    <strong>{offer.title}</strong>
-                    <small>{offer.text}</small>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/uu-dai" className="offer-more">
-              <PromoIcon name="ticket" size={16} />
-              {en ? 'Collect more vouchers' : 'Lấy thêm mã giảm giá'}
-              <PromoIcon name="arrow" size={16} />
-            </Link>
-          </details>
-        ) : (
-          <p className="offer-note">
-            {en ? 'Partner listing: shop vouchers do not apply.' : 'Sản phẩm của đối tác: không áp dụng mã của shop.'}
+            )}
+            {product.stock > 0 && product.stock <= 3 && (
+              <span className="is-scarce">
+                <i aria-hidden="true" />
+                {en ? `Only ${product.stock} left in stock` : `Chỉ còn ${product.stock} sản phẩm`}
+              </span>
+            )}
           </p>
-        ))}
+        )}
+        {onSale && (
+          <p className="offer-saving">
+            {en ? 'You save' : 'Tiết kiệm'} <strong>{money(product.price - product.salePrice)}</strong>
+          </p>
+        )}
+      </div>
+      {shopOwned ? (
+        <details className="offer-benefits">
+          <summary>
+            {ux('availableOffers')}
+            <span>
+              {offers.length} <span aria-hidden="true">＋</span>
+            </span>
+          </summary>
+          <ul className="offer-list">
+            {offers.map((offer) => (
+              <li key={offer.icon}>
+                <span className="offer-list-icon">
+                  <PromoIcon name={offer.icon} size={18} />
+                </span>
+                <span>
+                  <strong>{offer.title}</strong>
+                  <small>{offer.text}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Link href="/uu-dai" className="offer-more">
+            <PromoIcon name="ticket" size={16} />
+            {en ? 'Collect more vouchers' : 'Lấy thêm mã giảm giá'}
+            <PromoIcon name="arrow" size={16} />
+          </Link>
+        </details>
+      ) : (
+        <p className="offer-note">
+          {en ? 'Partner listing: shop vouchers do not apply.' : 'Sản phẩm của đối tác: không áp dụng mã của shop.'}
+        </p>
+      )}
     </section>
   );
 }

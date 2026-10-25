@@ -24,7 +24,6 @@ import RatingStars from '../components/RatingStars';
 import RestockAlert from '../components/RestockAlert';
 import { trackAddToCart, trackViewContent } from '@/shared/client/utils/tracking';
 import AdminIcon from '@/components/Admin/AdminIcon';
-import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
 
 // The URL parameter that keeps the chosen condition (a condition option's product id) when the page is shared.
 const CONDITION_PARAM = 'tinh-trang';
@@ -94,10 +93,9 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [reserveBusy, setReserveBusy] = useState(false);
-  const reservationRequest = useRef<{ key: string; quantity: number; productId: number } | undefined>(undefined);
-  const pageRef = useRef<HTMLDivElement>(null);
-  const checkoutRef = useRef<HTMLDivElement>(null);
-  const [detailTab, setDetailTab] = useState('specs');
+  const reservationRequest = useRef<{ key: string; quantity: number } | undefined>(undefined);
+  const purchaseRef = useRef<HTMLDivElement>(null);
+  const [purchaseVisible, setPurchaseVisible] = useState(true);
   const [addedUnit, setAddedUnit] = useState<number | null>(null);
   const router = useRouter();
   const { addItem } = useCart();
@@ -142,20 +140,14 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   }, [loadProduct, user]);
   useCustomerActionRefresh('wishlist_add,wishlist_remove,review', refreshAssistantChanges);
 
-  useEffect(() => setAddedUnit(null), [unitId, quantity, size]);
   useEffect(() => {
-    const nav = document.querySelector<HTMLElement>('.mu-mobile-nav');
-    const checkout = checkoutRef.current;
-    const measure = () => {
-      pageRef.current?.style.setProperty('--compact-nav-h', `${nav?.offsetHeight || 80}px`);
-      pageRef.current?.style.setProperty('--compact-checkout-h', `${checkout?.offsetHeight || 150}px`);
-    };
-    const observer = new ResizeObserver(measure);
-    if (nav) observer.observe(nav);
-    if (checkout) observer.observe(checkout);
-    measure();
+    const element = purchaseRef.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => setPurchaseVisible(entry.isIntersecting), { threshold: 0 });
+    observer.observe(element);
     return () => observer.disconnect();
   }, [product?.id]);
+  useEffect(() => setAddedUnit(null), [unitId, quantity, size]);
 
   const units = useMemo(() => (product ? unitsOf(product) : []), [product]);
   // The chosen unit: what is priced, pictured, put in the cart, saved or reserved.
@@ -168,8 +160,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     setUnitId(id);
     setQuantity(1);
     const chosen = units.find((item) => item.id === id);
-    if (chosen && (chosen.condition !== 'new' || chosen.defects.length || chosen.missingAccessories.length))
-      setDetailTab('condition');
     const url = new URL(window.location.href);
     if (chosen && !chosen.isMain) url.searchParams.set(CONDITION_PARAM, String(id));
     else url.searchParams.delete(CONDITION_PARAM);
@@ -228,308 +218,268 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   };
 
   return (
-    <div className="studio-product-detail compact-product-page" ref={pageRef}>
-      <nav aria-label={ux('breadcrumb')} className="product-breadcrumb">
-        <Link href="/cua-hang">{t('title')}</Link>
+    <div className="studio-product-detail mx-auto max-w-7xl px-4 py-10">
+      <nav aria-label={ux('breadcrumb')} className="product-breadcrumb mb-6 text-sm text-body dark:text-store-muted">
+        <Link href="/cua-hang" className="hover:text-brand-hover">
+          {t('title')}
+        </Link>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{product.name}</span>
       </nav>
-      <div className="product-detail-layout compact-product-workspace">
+
+      <div className="product-detail-layout">
         <div className="product-detail-media">
           <ProductGallery images={[unit.imageUrl, ...unit.images]} alt={`${product.name} · ${t(unit.condition)}`} />
+          {!!product.imageAttributions?.length && (
+            <details className="mt-4 text-xs text-body">
+              <summary className="cursor-pointer">{t('imageCredits')}</summary>
+              {product.imageAttributions.map((credit) => (
+                <p className="mt-2" key={credit.imageUrl}>
+                  <a href={credit.source} target="_blank" rel="noreferrer" className="underline">
+                    {credit.creator}
+                  </a>{' '}
+                  ·{' '}
+                  <a href={credit.licenseUrl} target="_blank" rel="noreferrer" className="underline">
+                    {credit.license}
+                  </a>{' '}
+                  · WebP
+                </p>
+              ))}
+            </details>
+          )}
         </div>
-        <div className="product-detail-offer compact-product-console">
-          <header className="compact-product-heading">
-            <div className="compact-product-identity">
-              <p className="product-detail-brand">
-                {product.brandName} <span> / {product.scale || product.modelCode || 'MODEL UNIVERSE'}</span>
-              </p>
-              {product.partnerId && (
-                <Link className="compact-seller-link" href={`/sellers/${product.partnerId}`}>
-                  {seller('view')} ↗
-                </Link>
-              )}
+
+        <div className="product-detail-offer flex flex-col gap-5">
+          <p className="product-detail-brand">
+            {product.brandName} <span> / {product.scale || product.modelCode || 'MODEL UNIVERSE'}</span>
+          </p>
+          <h1 className="text-3xl font-bold">{product.name}</h1>
+          <div className="flex items-center gap-2 text-body dark:text-store-muted">
+            {product.reviewCount > 0 ? (
+              <>
+                <RatingStars rating={product.rating} />
+                <span>{t('reviewCount', { count: product.reviewCount })}</span>
+              </>
+            ) : (
+              <span>{t('noReviews')}</span>
+            )}
+          </div>
+          <ConditionPicker units={units} selected={unit} onSelect={chooseUnit} />
+          <OfferPanel product={offer} />
+          {product.partnerId && (
+            <Link className="text-sm underline" href={`/sellers/${product.partnerId}`}>
+              {seller('view')}
+            </Link>
+          )}
+
+          {product.availableSizes.length > 0 && (
+            <div>
+              <label htmlFor="product-size" className="mb-2 block font-medium">
+                {t('legacySize')}
+              </label>
+              <select
+                id="product-size"
+                value={size}
+                onChange={(event) => setSize(event.target.value)}
+                className="w-40 rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 outline-none focus:border-brand-hover dark:border-store-card dark:bg-store-panel"
+              >
+                {product.availableSizes.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
-            <h1 title={product.name}>{product.name}</h1>
-            <button type="button" className="compact-review-link" onClick={() => setDetailTab('reviews')}>
-              {product.reviewCount > 0 ? (
+          )}
+
+          <div
+            className="product-purchase"
+            id="product-purchase"
+            ref={purchaseRef}
+            role="group"
+            aria-label={ux('purchaseActions')}
+            tabIndex={-1}
+          >
+            <div className="product-purchase-quantity">
+              <span className="mb-2 block font-medium">{t('quantity')}</span>
+              <div className="flex w-40 items-center rounded border-[1.5px] border-stroke dark:border-store-card">
+                <button
+                  className="px-4 py-2 text-lg disabled:opacity-40"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  aria-label={t('decrease')}
+                >
+                  −
+                </button>
+                <span className="flex-1 text-center font-semibold">{quantity}</span>
+                <button
+                  className="px-4 py-2 text-lg disabled:opacity-40"
+                  onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
+                  disabled={quantity >= unit.stock}
+                  aria-label={t('increase')}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="product-purchase-actions flex flex-wrap gap-3">
+              <button
+                disabled={!inStock}
+                onClick={addToCart}
+                className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {inStock ? t('addToCart') : t('soldOut')}
+              </button>
+              <button
+                onClick={toggleWishlist}
+                disabled={wishlistBusy}
+                className="rounded-md bg-gray px-6 py-3 font-semibold text-black hover:opacity-90 disabled:opacity-60 dark:bg-store-card dark:text-store-text"
+              >
+                {wishlistItem ? t('unsave') : t('save')}
+              </button>
+            </div>
+            <div className="product-purchase-feedback" role="status" aria-live="polite">
+              {addedUnit === unit.id ? (
                 <>
-                  <RatingStars rating={product.rating} />
-                  <span>{t('reviewCount', { count: product.reviewCount })}</span>
+                  <AdminIcon name="check" size={18} />
+                  <span>{ux('addedToCart')}</span>
+                  <Link href="/cart">{ux('viewCart')} →</Link>
                 </>
               ) : (
-                t('noReviews')
+                <span>{ux('checkoutHint')}</span>
               )}
-            </button>
-          </header>
-          <div className="compact-product-selection">
-            <OfferPanel product={offer} section="price" />
-            <ConditionPicker units={units} selected={unit} onSelect={chooseUnit} />
-            {(unit.condition !== 'new' || unit.defects.length > 0 || unit.missingAccessories.length > 0) && (
-              <button type="button" className="compact-condition-notice" onClick={() => setDetailTab('condition')}>
-                <AdminIcon name="shield" size={16} />
-                <span>
-                  {t(unit.condition)} · {t('defects')}: {unit.defects.length} · {t('missingAccessories')}:{' '}
-                  {unit.missingAccessories.length}
-                </span>
-                <span aria-hidden="true">↗</span>
-              </button>
-            )}
+            </div>
           </div>
-          <WorkspaceTabs
-            className="product-information-tabs"
-            label={ux('productInformation')}
-            value={detailTab}
-            onChange={setDetailTab}
-            tabs={[
-              {
-                id: 'specs',
-                label: ux('specificationsTab'),
-                content: (
-                  <>
-                    {' '}
-                    <dl className="product-specifications grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      <InfoItem label={t('brand')} value={product.brandName} />
-                      <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
-                      <InfoItem label={t('scale')} value={product.scale || '—'} />
-                      <InfoItem label={t('condition')} value={t(unit.condition)} />
-                      <InfoItem label={t('assembly')} value={unit.assemblyState ? t(unit.assemblyState) : '—'} />
-                      <InfoItem label={t('box')} value={unit.boxCondition || '—'} />
-                      <InfoItem
-                        label={t('availability')}
-                        value={
-                          inStock ? (
-                            <span className="text-success">{t('availableCount', { count: unit.stock })}</span>
-                          ) : (
-                            <span className="text-danger">{t('soldOut')}</span>
-                          )
-                        }
-                      />
-                      <InfoItem label="SKU" value={unit.sku} />
-                    </dl>
-                  </>
-                ),
-              },
-              {
-                id: 'condition',
-                label: t('condition'),
-                content: (
-                  <>
-                    <p className="compact-condition-description">{t(`conditionDescriptions.${unit.condition}`)}</p>
-                    {unit.conditionNote && <p className="compact-condition-note">{unit.conditionNote}</p>}{' '}
-                    <div className="rounded-lg border border-stroke p-5">
-                      <h2 className="font-bold">{t('details')}</h2>
-                      <p className="mu-note">
-                        {t('accessories')}: {listOrInspect(unit.includedAccessories)}
-                      </p>
-                      {unit.missingAccessories.length > 0 && (
-                        <p className="mu-note">
-                          {t('missingAccessories')}: {unit.missingAccessories.join(', ')}
-                        </p>
-                      )}
-                      <p className="mu-note">
-                        {t('defects')}: {listOrInspect(unit.defects)}
-                      </p>
-                      <p className="mu-note">{t('unboxing')}</p>
-                    </div>
-                  </>
-                ),
-              },
-              {
-                id: 'description',
-                label: ux('descriptionTab'),
-                content: (
-                  <>
-                    <section className="product-story">
-                      <h2>{ux('aboutProduct')}</h2>
-                      <p className="whitespace-pre-line">
-                        {(locale === 'vi' ? product.descriptionVi : product.descriptionEn) ||
-                          product.description ||
-                          ux('descriptionPending')}
-                      </p>
-                    </section>{' '}
-                    {!!product.imageAttributions?.length && (
-                      <details className="mt-4 text-xs text-body">
-                        <summary className="cursor-pointer">{t('imageCredits')}</summary>
-                        {product.imageAttributions.map((credit) => (
-                          <p className="mt-2" key={credit.imageUrl}>
-                            <a href={credit.source} target="_blank" rel="noreferrer" className="underline">
-                              {credit.creator}
-                            </a>{' '}
-                            ·{' '}
-                            <a href={credit.licenseUrl} target="_blank" rel="noreferrer" className="underline">
-                              {credit.license}
-                            </a>{' '}
-                            · WebP
-                          </p>
-                        ))}
-                      </details>
-                    )}
-                  </>
-                ),
-              },
-              {
-                id: 'offers',
-                label: ux('offersTab'),
-                content: (
-                  <>
-                    <OfferPanel product={offer} section="benefits" />
-                    {product.partnerId && <Link href={`/sellers/${product.partnerId}`}>{seller('view')} →</Link>}
-                  </>
-                ),
-              },
-              {
-                id: 'reviews',
-                label: t('reviews'),
-                count: product.reviewCount,
-                content: (
-                  <>
-                    {' '}
-                    <ProductReviews
-                      productId={product.id}
-                      rating={product.rating}
-                      reviewCount={product.reviewCount}
-                      distribution={product.ratingDistribution}
-                      onReviewSubmitted={() => loadProduct(false)}
-                    />
-                  </>
-                ),
-              },
-            ]}
-          />
-          <div className="compact-product-checkout" ref={checkoutRef}>
-            {product.availableSizes.length > 0 && (
-              <div>
-                <label htmlFor="product-size" className="mb-2 block font-medium">
-                  {t('legacySize')}
-                </label>
-                <select
-                  id="product-size"
-                  value={size}
-                  onChange={(event) => setSize(event.target.value)}
-                  className="w-40 rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 outline-none focus:border-brand-hover dark:border-store-card dark:bg-store-panel"
-                >
-                  {product.availableSizes.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div
-              className="product-purchase"
-              id="product-purchase"
-              role="group"
-              aria-label={ux('purchaseActions')}
-              tabIndex={-1}
-            >
-              <div className="product-purchase-quantity">
-                <span className="mb-2 block font-medium">{t('quantity')}</span>
-                <div className="flex w-40 items-center rounded border-[1.5px] border-stroke dark:border-store-card">
-                  <button
-                    className="px-4 py-2 text-lg disabled:opacity-40"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    aria-label={t('decrease')}
-                  >
-                    −
-                  </button>
-                  <span className="flex-1 text-center font-semibold">{quantity}</span>
-                  <button
-                    className="px-4 py-2 text-lg disabled:opacity-40"
-                    onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
-                    disabled={quantity >= unit.stock}
-                    aria-label={t('increase')}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
 
-              <div className="product-purchase-actions flex flex-wrap gap-3">
-                <button
-                  disabled={!inStock}
-                  onClick={addToCart}
-                  className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {inStock ? t('addToCart') : t('soldOut')}
-                </button>
-                <button
-                  onClick={toggleWishlist}
-                  disabled={wishlistBusy}
-                  className="rounded-md bg-gray px-6 py-3 font-semibold text-black hover:opacity-90 disabled:opacity-60 dark:bg-store-card dark:text-store-text"
-                >
-                  {wishlistItem ? t('unsave') : t('save')}
-                </button>
-              </div>
-              <div className="product-purchase-feedback" role="status" aria-live="polite">
-                {addedUnit === unit.id ? (
-                  <>
-                    <AdminIcon name="check" size={18} />
-                    <span>{ux('addedToCart')}</span>
-                    <Link href="/cart">{ux('viewCart')} →</Link>
-                  </>
-                ) : (
-                  <span>{ux('checkoutHint')}</span>
-                )}
-              </div>
-            </div>
-            {!inStock && <RestockAlert key={unit.id} productId={unit.id} />}
-            <div className="compact-secondary-actions">
-              {' '}
-              <button
-                onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
-                className="flex items-center justify-between gap-3 rounded-xl border border-brand-hover/25 bg-brand/10 px-4 py-4 text-left hover:bg-brand/20"
-              >
-                <span>
-                  <strong className="block text-sm">✦ {t('askAssistant')}</strong>
-                  <span className="mt-1 block text-xs text-body dark:text-store-muted">{t('assistantNote')}</span>
-                </span>
-                <span aria-hidden="true">↗</span>
-              </button>{' '}
-              {product.modelCode && !product.partnerId && (
-                <button
-                  disabled={!inStock || reserveBusy}
-                  className="mu-button mu-button-secondary w-full disabled:opacity-50"
-                  onClick={async () => {
-                    if (!user) {
-                      router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
-                      return;
-                    }
-                    if (
-                      reservationRequest.current?.quantity !== quantity ||
-                      reservationRequest.current?.productId !== unit.id
-                    )
-                      reservationRequest.current = { key: crypto.randomUUID(), quantity, productId: unit.id };
-                    setReserveBusy(true);
-                    try {
-                      await Api.post('/reservations', {
-                        productId: unit.id,
-                        quantity,
-                        expectedTotal: unit.salePrice * quantity,
-                        requestKey: reservationRequest.current.key,
-                      });
-                      router.push('/reservations');
-                    } catch {
-                      /* The shared API reports policy gates and stale quotes. */
-                    } finally {
-                      setReserveBusy(false);
-                    }
-                  }}
-                >
-                  {t('reserve')}
-                </button>
-              )}
-            </div>
+          <button
+            onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
+            className="flex items-center justify-between gap-3 rounded-xl border border-brand-hover/25 bg-brand/10 px-4 py-4 text-left hover:bg-brand/20"
+          >
+            <span>
+              <strong className="block text-sm">✦ {t('askAssistant')}</strong>
+              <span className="mt-1 block text-xs text-body dark:text-store-muted">{t('assistantNote')}</span>
+            </span>
+            <span aria-hidden="true">↗</span>
+          </button>
+
+          {product.modelCode && !product.partnerId && (
+            <button
+              disabled={!inStock || reserveBusy}
+              className="mu-button mu-button-secondary w-full disabled:opacity-50"
+              onClick={async () => {
+                if (!user) {
+                  router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
+                  return;
+                }
+                if (reservationRequest.current?.quantity !== quantity)
+                  reservationRequest.current = { key: crypto.randomUUID(), quantity };
+                setReserveBusy(true);
+                try {
+                  await Api.post('/reservations', {
+                    productId: unit.id,
+                    quantity,
+                    expectedTotal: unit.salePrice * quantity,
+                    requestKey: reservationRequest.current.key,
+                  });
+                  router.push('/reservations');
+                } catch {
+                  /* The shared API reports policy gates and stale quotes. */
+                } finally {
+                  setReserveBusy(false);
+                }
+              }}
+            >
+              {t('reserve')}
+            </button>
+          )}
+          <div className="rounded-lg border border-stroke p-5">
+            <h2 className="font-bold">{t('details')}</h2>
+            <p className="mu-note">
+              {t('accessories')}: {listOrInspect(unit.includedAccessories)}
+            </p>
+            {unit.missingAccessories.length > 0 && (
+              <p className="mu-note">
+                {t('missingAccessories')}: {unit.missingAccessories.join(', ')}
+              </p>
+            )}
+            <p className="mu-note">
+              {t('defects')}: {listOrInspect(unit.defects)}
+            </p>
+            <p className="mu-note">{t('unboxing')}</p>
           </div>
+          {!inStock && <RestockAlert key={unit.id} productId={unit.id} />}
+          <dl className="product-specifications grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <InfoItem label={t('brand')} value={product.brandName} />
+            <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
+            <InfoItem label={t('scale')} value={product.scale || '—'} />
+            <InfoItem label={t('condition')} value={t(unit.condition)} />
+            <InfoItem label={t('assembly')} value={unit.assemblyState ? t(unit.assemblyState) : '—'} />
+            <InfoItem label={t('box')} value={unit.boxCondition || '—'} />
+            <InfoItem
+              label={t('availability')}
+              value={
+                inStock ? (
+                  <span className="text-success">{t('availableCount', { count: unit.stock })}</span>
+                ) : (
+                  <span className="text-danger">{t('soldOut')}</span>
+                )
+              }
+            />
+            <InfoItem label="SKU" value={unit.sku} />
+          </dl>
         </div>
       </div>
+
+      <section className="product-story" aria-labelledby="product-story-title">
+        <div>
+          <p className="mu-eyebrow">MODEL UNIVERSE / COLLECTOR NOTES</p>
+          <h2 id="product-story-title">{ux('aboutProduct')}</h2>
+        </div>
+        <p className="whitespace-pre-line leading-relaxed">
+          {(locale === 'vi' ? product.descriptionVi : product.descriptionEn) ||
+            product.description ||
+            ux('descriptionPending')}
+        </p>
+      </section>
+
+      <ProductReviews
+        productId={product.id}
+        rating={product.rating}
+        reviewCount={product.reviewCount}
+        distribution={product.ratingDistribution}
+        onReviewSubmitted={() => loadProduct(false)}
+      />
+      {!purchaseVisible && (
+        <div className="product-dock" aria-label={ux('purchaseActions')}>
+          <div>
+            <strong>{product.name}</strong>
+            <span>
+              {t(unit.condition)} · {formatVND(unit.salePrice, locale)}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="mu-button"
+            onClick={() => {
+              document.getElementById('product-purchase')?.scrollIntoView({
+                behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+                block: 'center',
+              });
+              const target = purchaseRef.current?.querySelector<HTMLButtonElement>('.product-purchase-actions button');
+              (target && !target.disabled ? target : purchaseRef.current)?.focus({ preventScroll: true });
+            }}
+          >
+            {inStock ? ux('chooseAndBuy') : t('soldOut')} <span aria-hidden="true">↑</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
-// A native picker keeps every unit's condition, price, stock and SKU reachable without a tall option grid.
+// The conditions a model is sold in, as cards to choose from (native radios: arrow keys move between them), each with
+// its price and stock; below, what the chosen condition means and what is missing or wrong with it.
 const ConditionPicker = ({
   units,
   selected,
@@ -541,27 +491,53 @@ const ConditionPicker = ({
 }) => {
   const t = useTranslations('catalog');
   const locale = useLocale();
+  const facts = [
+    selected.conditionNote,
+    selected.missingAccessories.length > 0 && `${t('missingAccessories')}: ${selected.missingAccessories.join(', ')}`,
+    selected.condition !== 'new' && selected.defects.length > 0 && `${t('defects')}: ${selected.defects.join(', ')}`,
+  ].filter(Boolean) as string[];
   return (
-    <div className="compact-condition-picker">
-      {units.length > 1 ? (
-        <>
-          <label htmlFor="product-condition">{t('chooseCondition')}</label>
-          <select id="product-condition" value={selected.id} onChange={(event) => onSelect(Number(event.target.value))}>
-            {units.map((unit) => (
-              <option key={unit.id} value={unit.id}>
-                {t(unit.condition)} · {formatVND(unit.salePrice, locale)} ·{' '}
-                {unit.stock > 0 ? t('conditionStock', { count: unit.stock }) : t('conditionSoldOut')} · {unit.sku}
-              </option>
-            ))}
-          </select>
-        </>
-      ) : (
-        <>
-          <span className={`condition-chip is-${selected.condition}`}>{t(selected.condition)}</span>
-          <span>{selected.stock > 0 ? t('availableCount', { count: selected.stock }) : t('soldOut')}</span>
-        </>
+    <section className="condition-picker" aria-labelledby="condition-picker-title">
+      <div className="condition-picker-head">
+        <h2 id="condition-picker-title">{units.length > 1 ? t('chooseCondition') : t('condition')}</h2>
+        {units.length > 1 && <p>{t('conditionHint')}</p>}
+      </div>
+      {units.length > 1 && (
+        <div className="condition-options" role="radiogroup" aria-labelledby="condition-picker-title">
+          {units.map((unit) => (
+            <label key={unit.id} className={`condition-option${unit.stock <= 0 ? ' is-soldout' : ''}`}>
+              <input
+                type="radio"
+                name="condition-option"
+                value={unit.id}
+                checked={unit.id === selected.id}
+                onChange={() => onSelect(unit.id)}
+              />
+              <span className="condition-option-card">
+                <span className={`condition-chip is-${unit.condition}`}>{t(unit.condition)}</span>
+                <strong>{formatVND(unit.salePrice, locale)}</strong>
+                {unit.salePrice < unit.price && <s>{formatVND(unit.price, locale)}</s>}
+                <small>{unit.stock > 0 ? t('conditionStock', { count: unit.stock }) : t('conditionSoldOut')}</small>
+                {unit.conditionNote && <em>{unit.conditionNote}</em>}
+              </span>
+            </label>
+          ))}
+        </div>
       )}
-    </div>
+      <div className={`condition-details is-${selected.condition}`} aria-live="polite">
+        {units.length === 1 && (
+          <span className={`condition-chip is-${selected.condition}`}>{t(selected.condition)}</span>
+        )}
+        <p>{t(`conditionDescriptions.${selected.condition}`)}</p>
+        {facts.length > 0 && (
+          <ul>
+            {facts.map((fact) => (
+              <li key={fact}>{fact}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 };
 

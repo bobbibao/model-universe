@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
-import AdminAssistant from '@/components/Admin/AdminAssistant';
 import Stepper from '@/components/Stepper/Stepper';
 import ProductApi from '@/core/client/api/Product';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -95,7 +94,7 @@ const ProductCreate = () => {
 
   return (
     <div className="compact-admin-create-page">
-      <Breadcrumb pageName={t('create')} actions={<AdminAssistant inline />} />
+      <Breadcrumb pageName={t('create')} />
       <div className="compact-admin-create-card rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="compact-create-stepper">
           <Stepper steps={steps} currentStep={step} />

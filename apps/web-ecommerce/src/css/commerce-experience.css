@@ -492,10 +492,6 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
 .admin-page {
   padding-top: 26px;
 }
-.admin-page-heading {
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--admin-line);
-}
 .admin-workspace .admin-table {
   border-radius: var(--admin-radius);
   overflow: visible;

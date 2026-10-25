@@ -1,29 +1,4 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
-import Link from '@/i18n/navigation';
-import type { ReactNode } from 'react';
-
-export default function Breadcrumb({ pageName, actions }: { pageName: string; actions?: ReactNode }) {
-  const t = useTranslations('adminWorkspace'),
-    navigation = useTranslations('adminNavigation');
-  return (
-    <div className="admin-page-heading">
-      <div>
-        <h1>{pageName}</h1>
-      </div>
-      <div className="admin-heading-tools">
-        {actions}
-        <nav aria-label={t('breadcrumb')}>
-          <ol className="admin-breadcrumb">
-            <li>
-              <Link href="/admin/dashboard">{navigation('dashboard')}</Link>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li aria-current="page">{pageName}</li>
-          </ol>
-        </nav>
-      </div>
-    </div>
-  );
+export default function Breadcrumb({ pageName }: { pageName: string }) {
+  // The global admin header supplies the visible location; keep the page title accessible.
+  return <h1 className="sr-only">{pageName}</h1>;
 }
