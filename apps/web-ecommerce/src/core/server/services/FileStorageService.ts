@@ -7,6 +7,7 @@ import HttpError from '../../../shared/server/utils/HttpError';
 import Logger from '../../../shared/server/utils/logger';
 import PartnerMediaModel from '../database/client/models/PartnerMedia.Model';
 import DatabaseProvider from '../database/Database.Provider';
+import { watermarkStoredPhoto } from './media/ProductWatermark';
 
 export const PUBLIC_UPLOAD_PREFIX = '/uploads';
 const PRODUCT_FOLDER = 'products';
@@ -69,6 +70,32 @@ export default class FileStorageService {
     const files = (req.files as Express.Multer.File[] | undefined) || [];
     if (files.length === 0) throw HttpError.badRequest('Vui lòng chọn ít nhất một ảnh.');
     return files.map((file) => `${PUBLIC_UPLOAD_PREFIX}/${PRODUCT_FOLDER}/${file.filename}`);
+  }
+
+  // The shop's own product photos (admin uploads): stored like any product image, then stamped with the shop's mark,
+  // the clean original kept privately (ProductWatermark.ts). A GIF becomes a WebP photo. Partner photos stay unmarked.
+  async saveShopProductImages(req: Request, res: Response): Promise<string[]> {
+    const urls = await this.saveProductImages(req, res);
+    const root = FileStorageService.getUploadRoot();
+    try {
+      return await Promise.all(
+        urls.map(async (url) => {
+          const file = path.join(root, url.slice(PUBLIC_UPLOAD_PREFIX.length + 1));
+          if (path.extname(file).toLowerCase() !== '.gif') {
+            await watermarkStoredPhoto(file);
+            return url;
+          }
+          const webp = file.replace(/\.gif$/i, '.webp');
+          fs.writeFileSync(webp, fs.readFileSync(file));
+          fs.unlinkSync(file);
+          await watermarkStoredPhoto(webp);
+          return url.replace(/\.gif$/i, '.webp');
+        }),
+      );
+    } catch {
+      await this.removeFiles(urls);
+      throw HttpError.badRequest('Không đọc được ảnh. Hãy dùng ảnh JPG, PNG hoặc WebP.');
+    }
   }
 
   async savePartnerImages(req: Request, res: Response, ownerUserId: number) {

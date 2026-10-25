@@ -19,6 +19,7 @@
     "db:migrate": "ts-node scripts/migrate.ts",
     "catalog:import": "ts-node scripts/import-catalog.ts",
     "images:import": "ts-node scripts/import-product-images.ts",
+    "images:watermark": "ts-node scripts/watermark-product-images.ts",
     "partners:seed": "ts-node scripts/seed-partners.ts",
     "payos:test-webhook": "ts-node scripts/payos-test-webhook.ts"
   },

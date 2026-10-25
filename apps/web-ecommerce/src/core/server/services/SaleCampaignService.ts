@@ -83,9 +83,8 @@ export default class SaleCampaignService {
         ageDays: ages.get(p.id)!,
         currentDiscount: active.get(p.id)?.percent || 0,
         maximumSafePercent:
-          Array.from({ length: 25 }, (_, i) => 25 - i).find((percent) =>
-            safeSalePercent(p.price, cost(p), percent),
-          ) || 0,
+          Array.from({ length: 25 }, (_, i) => 25 - i).find((percent) => safeSalePercent(p.price, cost(p), percent)) ||
+          0,
       }))
       .sort((a, b) => b.ageDays - a.ageDays || a.id - b.id);
   }
@@ -342,53 +341,96 @@ export default class SaleCampaignService {
     });
     const result = [];
     for (const event of events) {
-      const rows = await ProductDiscountModel.findAll({
-        where: { campaignRef: ref(event.id), revokedAt: null, startsAt: { [Op.lte]: now }, endsAt: { [Op.gt]: now } },
-      });
-      const products = await ProductModel.findAll({
-        attributes: [
-          'id',
-          'uuid',
-          'slug',
-          'name',
-          'sku',
-          'brandName',
-          'price',
-          'imageUrl',
-          'stock',
-          'scale',
-          'condition',
-          'salesChannel',
-          'rating',
-          'reviewCount',
-          'isFeatured',
-        ],
-        where: {
-          ...STOREFRONT_VISIBLE,
-          partnerId: null,
-          stock: { [Op.gt]: 0 },
-          id: { [Op.in]: rows.map((r) => r.productId) },
-        },
-      });
-      const active = await new ProductDiscountService().getActive(
-        products.map((p) => p.id),
-        { now },
-      );
-      const priced = products
-        .map((p) => ({ ...p.get({ plain: true }), ...toPricing(p.price, active.get(p.id)) }))
-        .filter((p) => p.discountPercent > 0 && p.saleEventId === event.id);
-      if (priced.length)
-        result.push({
-          id: event.id,
-          title: event.title,
-          description: event.description,
-          kind: event.kind,
-          startsAt: event.startsAt,
-          endsAt: event.endsAt,
-          maximumPercent: Math.max(...priced.map((p) => p.discountPercent)),
-          products: priced.sort((a, b) => b.discountPercent - a.discountPercent),
-        });
+      const products = await this.eventProducts(event, now);
+      if (products.length) result.push(eventView(event, 'running', products));
     }
     return { events: result };
   }
+
+  // One event for its own page (/su-kien/<id>): running with its sale prices, upcoming with the planned discounts, or
+  // ended. A weekly rule is not an event a customer can open.
+  async storefrontEvent(id: number, now = new Date()) {
+    const event = Number.isSafeInteger(id) && id > 0 ? await SaleCampaignModel.findByPk(id) : null;
+    if (!event || event.kind === 'weekly_rule') throw HttpError.notFound('Không tìm thấy sự kiện.');
+    const status =
+      event.revokedAt || (event.endsAt && event.endsAt <= now)
+        ? 'ended'
+        : event.startsAt > now
+          ? 'upcoming'
+          : 'running';
+    if (status === 'ended') return eventView(event, status, []);
+    if (status === 'running') return eventView(event, status, await this.eventProducts(event, now));
+    const planned = await ProductDiscountModel.findAll({ where: { campaignRef: ref(event.id), revokedAt: null } });
+    const percentOf = new Map(planned.map((row) => [row.productId, row.percent]));
+    const products = await ProductModel.findAll({
+      attributes: STOREFRONT_EVENT_ATTRIBUTES,
+      where: { ...STOREFRONT_VISIBLE, partnerId: null, id: { [Op.in]: [...percentOf.keys()] } },
+    });
+    return eventView(
+      event,
+      status,
+      products
+        .map((p) => ({ ...p.get({ plain: true }), ...toPricing(p.price), plannedPercent: percentOf.get(p.id) ?? 0 }))
+        .sort((a, b) => b.plannedPercent - a.plannedPercent),
+    );
+  }
+
+  // The in-stock products of a running event at their sale price, deepest discount first.
+  private async eventProducts(event: SaleCampaignModel, now: Date) {
+    const rows = await ProductDiscountModel.findAll({
+      where: { campaignRef: ref(event.id), revokedAt: null, startsAt: { [Op.lte]: now }, endsAt: { [Op.gt]: now } },
+    });
+    const products = await ProductModel.findAll({
+      attributes: STOREFRONT_EVENT_ATTRIBUTES,
+      where: {
+        ...STOREFRONT_VISIBLE,
+        partnerId: null,
+        stock: { [Op.gt]: 0 },
+        id: { [Op.in]: rows.map((r) => r.productId) },
+      },
+    });
+    const active = await new ProductDiscountService().getActive(
+      products.map((p) => p.id),
+      { now },
+    );
+    return products
+      .map((p) => ({ ...p.get({ plain: true }), ...toPricing(p.price, active.get(p.id)) }))
+      .filter((p) => p.discountPercent > 0 && p.saleEventId === event.id)
+      .sort((a, b) => b.discountPercent - a.discountPercent);
+  }
 }
+
+const STOREFRONT_EVENT_ATTRIBUTES = [
+  'id',
+  'uuid',
+  'slug',
+  'name',
+  'sku',
+  'brandName',
+  'price',
+  'imageUrl',
+  'stock',
+  'scale',
+  'condition',
+  'salesChannel',
+  'rating',
+  'reviewCount',
+  'isFeatured',
+  'listPriceVerified',
+];
+
+const eventView = <P extends { discountPercent: number; plannedPercent?: number }>(
+  event: SaleCampaignModel,
+  status: 'running' | 'upcoming' | 'ended',
+  products: P[],
+) => ({
+  id: event.id,
+  title: event.title,
+  description: event.description,
+  kind: event.kind,
+  status,
+  startsAt: event.startsAt,
+  endsAt: event.endsAt,
+  maximumPercent: Math.max(0, ...products.map((p) => p.plannedPercent ?? p.discountPercent)),
+  products,
+});

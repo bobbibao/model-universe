@@ -14,4 +14,12 @@ export default class SalesController extends ApiBaseController {
       return this.handleError(res, error, 'Store sale events');
     }
   }
+  @Get('/:id') async event(req: Request, res: Response) {
+    try {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.json(await new SaleCampaignService().storefrontEvent(Number(req.params.id)));
+    } catch (error) {
+      return this.handleError(res, error, 'Store sale event');
+    }
+  }
 }

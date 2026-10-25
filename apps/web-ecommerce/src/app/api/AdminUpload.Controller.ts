@@ -13,7 +13,7 @@ export default class AdminUploadController extends ApiBaseController {
   async uploadImages(req: Request, res: Response) {
     try {
       const service = await this.requireService<FileStorageService>();
-      const urls = await service.saveProductImages(req, res);
+      const urls = await service.saveShopProductImages(req, res);
       return this.sendSuccess(res, { urls }, undefined, 201);
     } catch (error) {
       return this.handleError(res, error, "AdminUploadController's uploadImages");

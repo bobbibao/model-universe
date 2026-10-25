@@ -199,7 +199,7 @@ export default function SalesWorkspace() {
       .join('\n');
     try {
       await navigator.clipboard.writeText(
-        `${campaign.title}\n${campaign.description || ''}\n${new Date(campaign.startsAt).toLocaleString(locale)} → ${new Date(campaign.endsAt).toLocaleString(locale)}\n${lines}\n${window.location.origin}/${locale}/uu-dai?event=${campaign.id}\n${en ? 'Member codes are subject to eligibility. Stock is limited to available inventory.' : 'Mã thành viên áp dụng theo điều kiện. Số lượng theo tồn kho thực tế.'}`,
+        `${campaign.title}\n${campaign.description || ''}\n${new Date(campaign.startsAt).toLocaleString(locale)} → ${new Date(campaign.endsAt).toLocaleString(locale)}\n${lines}\n${window.location.origin}/${locale}/su-kien/${campaign.id}\n${en ? 'Member codes are subject to eligibility. Stock is limited to available inventory.' : 'Mã thành viên áp dụng theo điều kiện. Số lượng theo tồn kho thực tế.'}`,
       );
       setNotice(en ? 'Marketing brief copied.' : 'Đã sao chép brief để tạo bài marketing.');
     } catch {
@@ -318,8 +318,12 @@ export default function SalesWorkspace() {
                       <b>{formatVND(p.price - Math.round((p.price * percent) / 100), locale)}</b>
                     </small>
                   </span>
-                  {p.currentDiscount > 0 && <small className="sa-existing-offer">{en ? 'Live offer' : 'Đang sale'} {p.currentDiscount}%</small>}
-                <span className="sa-safe">
+                  {p.currentDiscount > 0 && (
+                    <small className="sa-existing-offer">
+                      {en ? 'Live offer' : 'Đang sale'} {p.currentDiscount}%
+                    </small>
+                  )}
+                  <span className="sa-safe">
                     <b>
                       {en ? 'Up to' : 'Tối đa'} {p.maximumSafePercent}%
                     </b>
@@ -555,7 +559,9 @@ export default function SalesWorkspace() {
                   <button type="button" onClick={() => brief(c)}>
                     {en ? 'Copy marketing brief' : 'Sao chép brief marketing'}
                   </button>
-                  <Link href={`/uu-dai?event=${c.id}`}>{en ? 'View event' : 'Xem sự kiện'} ↗</Link>
+                  <Link href={`/su-kien/${c.id}`} target="_blank">
+                    {en ? 'View event' : 'Xem sự kiện'} ↗
+                  </Link>
                   {!stopped &&
                     !ended &&
                     (stoppingId === c.id ? (

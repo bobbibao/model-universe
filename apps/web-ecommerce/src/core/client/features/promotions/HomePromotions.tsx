@@ -13,22 +13,45 @@ import { useCountdown } from '@/components/PriceTag';
 import { FREESHIP_TIERS, TIER_ORDER } from '@/shared/promotions';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { ProductSummary } from '@/shared/types/product';
+import { productPath } from '@/shared/slug';
 import VoucherTicket from './VoucherTicket';
 
-// Up to three product photos arranged as a still life on the right of a banner.
+// Up to three product photos arranged as a still life on the right of a banner; each opens its product.
 function Collage({ products }: { products: ProductSummary[] }) {
   return (
-    <div className="banner-collage" aria-hidden="true">
+    <div className="banner-collage">
       {products.slice(0, 3).map((product, index) => (
-        <span key={product.id} className={`banner-photo is-${index}`}>
+        <Link key={product.id} href={productPath(product)} className={`banner-photo is-${index}`} title={product.name}>
           <ProductImage
             src={product.imageUrl}
-            alt=""
+            alt={product.name}
             sizes="(min-width: 1024px) 22vw, 40vw"
             className="object-contain"
           />
-        </span>
+        </Link>
       ))}
+    </div>
+  );
+}
+
+// A banner slide: its copy and call to action lead to `href`; its product photos lead to their products.
+function Slide({
+  href,
+  tone,
+  copy,
+  products,
+}: {
+  href: string;
+  tone: string;
+  copy: React.ReactNode;
+  products: ProductSummary[];
+}) {
+  return (
+    <div className={`home-banner ${tone}`}>
+      <Link href={href} className="banner-copy">
+        {copy}
+      </Link>
+      <Collage products={products} />
     </div>
   );
 }
@@ -95,86 +118,102 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
     { icon: 'truck', label: t('doorFreeship'), href: '/uu-dai#vouchers' },
     { icon: 'calendar', label: hub?.checkin.doneToday ? t('doorCheckedIn') : t('doorCheckin'), href: '/uu-dai#daily' },
     { icon: 'wheel', label: t('doorWheel'), href: '/uu-dai#daily' },
-    { icon: 'bolt', label: t('doorFlash'), href: '/uu-dai#sale' },
-    { icon: 'crown', label: t('doorMember'), href: '/uu-dai#tiers' },
+    { icon: 'bolt', label: t('doorFlash'), href: event ? `/su-kien/${event.id}` : '/uu-dai#sale' },
+    { icon: 'crown', label: t('doorMember'), href: '/services/loyalty' },
   ];
 
   return (
     <section className="home-promos mu-wrap">
       <Carousel label={t('bannerLabel')} className="home-banner-carousel" autoplayMs={6000} loop>
         {event ? (
-          <Link href="/uu-dai" className="home-banner is-sale">
-            <div className="banner-copy">
-              <span className="banner-kicker">
-                <PromoIcon name="bolt" size={16} />
-                Flash Sale
-              </span>
-              <h2>{event.title}</h2>
-              <p>{t('flashUpTo', { percent: event.maximumPercent })}</p>
-              <Clock endsAt={event.endsAt} label={t('endsIn')} />
-              <span className="banner-cta">
-                {t('shopNow')} <PromoIcon name="arrow" size={16} />
-              </span>
-            </div>
-            <Collage products={event.products.length ? event.products : pick(0)} />
-          </Link>
+          <Slide
+            href={`/su-kien/${event.id}`}
+            tone="is-sale"
+            products={event.products.length ? event.products : pick(0)}
+            copy={
+              <>
+                <span className="banner-kicker">
+                  <PromoIcon name="bolt" size={16} />
+                  Flash Sale
+                </span>
+                <h2>{event.title}</h2>
+                <p>{t('flashUpTo', { percent: event.maximumPercent })}</p>
+                <Clock endsAt={event.endsAt} label={t('endsIn')} />
+                <span className="banner-cta">
+                  {t('shopNow')} <PromoIcon name="arrow" size={16} />
+                </span>
+              </>
+            }
+          />
         ) : null}
-        <Link href="/uu-dai#vouchers" className="home-banner is-vouchers">
-          <div className="banner-copy">
-            <span className="banner-kicker">
-              <PromoIcon name="ticket" size={16} />
-              {t('vouchersKicker')}
-            </span>
-            <h2>{t('vouchersTitle')}</h2>
-            <p>{t('vouchersText')}</p>
-            <span className="banner-cta">
-              {t('collect')} <PromoIcon name="arrow" size={16} />
-            </span>
-          </div>
-          <Collage products={pick(3)} />
-        </Link>
-        <Link href="/uu-dai#vouchers" className="home-banner is-ship">
-          <div className="banner-copy">
-            <span className="banner-kicker">
-              <PromoIcon name="truck" size={16} />
-              {t('freeshipKicker')}
-            </span>
-            <h2>{t('freeshipTitle', { amount: money(FREESHIP_TIERS[FREESHIP_TIERS.length - 1].maxShippingVnd) })}</h2>
-            <ul className="banner-steps">
-              {FREESHIP_TIERS.map((tier) => (
-                <li key={tier.code}>
-                  <span>{t('fromOrder', { amount: money(tier.minOrderVnd) })}</span>
-                  <b>−{money(tier.maxShippingVnd)}</b>
-                </li>
-              ))}
-            </ul>
-            <span className="banner-cta">
-              {t('seeCodes')} <PromoIcon name="arrow" size={16} />
-            </span>
-          </div>
-          <Collage products={pick(6)} />
-        </Link>
-        <Link href="/uu-dai#tiers" className="home-banner is-member">
-          <div className="banner-copy">
-            <span className="banner-kicker">
-              <PromoIcon name="crown" size={16} />
-              {t('memberKicker')}
-            </span>
-            <h2>{t('memberTitle')}</h2>
-            <p>{t('memberText')}</p>
-            <ol className="banner-tiers">
-              {TIER_ORDER.map((tier) => (
-                <li key={tier} className={`tier-${tier.toLowerCase()}`}>
-                  {tiers(tier)}
-                </li>
-              ))}
-            </ol>
-            <span className="banner-cta">
-              {t('memberCta')} <PromoIcon name="arrow" size={16} />
-            </span>
-          </div>
-          <Collage products={pick(9)} />
-        </Link>
+        <Slide
+          href="/uu-dai#vouchers"
+          tone="is-vouchers"
+          products={pick(3)}
+          copy={
+            <>
+              <span className="banner-kicker">
+                <PromoIcon name="ticket" size={16} />
+                {t('vouchersKicker')}
+              </span>
+              <h2>{t('vouchersTitle')}</h2>
+              <p>{t('vouchersText')}</p>
+              <span className="banner-cta">
+                {t('collect')} <PromoIcon name="arrow" size={16} />
+              </span>
+            </>
+          }
+        />
+        <Slide
+          href="/uu-dai#vouchers"
+          tone="is-ship"
+          products={pick(6)}
+          copy={
+            <>
+              <span className="banner-kicker">
+                <PromoIcon name="truck" size={16} />
+                {t('freeshipKicker')}
+              </span>
+              <h2>{t('freeshipTitle', { amount: money(FREESHIP_TIERS[FREESHIP_TIERS.length - 1].maxShippingVnd) })}</h2>
+              <ul className="banner-steps">
+                {FREESHIP_TIERS.map((tier) => (
+                  <li key={tier.code}>
+                    <span>{t('fromOrder', { amount: money(tier.minOrderVnd) })}</span>
+                    <b>−{money(tier.maxShippingVnd)}</b>
+                  </li>
+                ))}
+              </ul>
+              <span className="banner-cta">
+                {t('seeCodes')} <PromoIcon name="arrow" size={16} />
+              </span>
+            </>
+          }
+        />
+        <Slide
+          href="/services/loyalty"
+          tone="is-member"
+          products={pick(9)}
+          copy={
+            <>
+              <span className="banner-kicker">
+                <PromoIcon name="crown" size={16} />
+                {t('memberKicker')}
+              </span>
+              <h2>{t('memberTitle')}</h2>
+              <p>{t('memberText')}</p>
+              <ol className="banner-tiers">
+                {TIER_ORDER.map((tier) => (
+                  <li key={tier} className={`tier-${tier.toLowerCase()}`}>
+                    {tiers(tier)}
+                  </li>
+                ))}
+              </ol>
+              <span className="banner-cta">
+                {t('memberCta')} <PromoIcon name="arrow" size={16} />
+              </span>
+            </>
+          }
+        />
       </Carousel>
 
       <nav className="home-doors" aria-label={t('doors')}>

@@ -5,7 +5,8 @@
  * and its og:image, JSON-LD Product.image and main gallery are taken (logos, icons and images under 400 px dropped);
  * a Google Drive file link becomes its download link; Facebook and other social links are left for a person
  * ("manual"). Each download must be an image; duplicates are dropped by the hash of the downloaded bytes; photos are
- * resized to at most 1600 px and stored as WebP under the upload root (`/uploads/products/<hash>.webp`).
+ * resized to at most 1600 px, stamped with the shop's mark (ProductWatermark.ts; the clean original kept privately) and
+ * stored as WebP under the upload root (`/uploads/products/<hash>.webp`).
  *
  * Running it again changes nothing: a file is named by its source hash and a product photo is added only once. The
  * first imported photo replaces a main photo that is not an upload of the shop (a placeholder or a hotlinked image);
@@ -29,6 +30,7 @@ const ProductModel = require('../src/core/server/database/client/models/Product.
 const ProductImageModel = require('../src/core/server/database/client/models/ProductImage.Model').default;
 const ProductSourceModel = require('../src/core/server/database/client/models/ProductSource.Model').default;
 const FileStorageService = require('../src/core/server/services/FileStorageService').default;
+const { originalPath, watermarkStoredPhoto } = require('../src/core/server/services/media/ProductWatermark');
 const { parseOwnerCatalogCsv } = require('../src/core/server/database/client/seeders/OwnerCatalog');
 const {
   classifyLink,
@@ -167,6 +169,8 @@ const photosOf = async (link: string): Promise<{ photos: Photo[]; status: Report
 
 // A photo this import stored (`<source hash>.webp`), and the shot of a stored file (null when it cannot be read).
 const IMPORTED = /^\/uploads\/products\/[0-9a-f]{32}\.webp$/;
+// The clean original of a stored photo when it carries the shop's mark (the shot is compared without the mark).
+const cleanFile = (file: string) => (fs.existsSync(originalPath(file)) ? originalPath(file) : file);
 const shotOfFile = async (file: string): Promise<string | null> => {
   try {
     return differenceHash(await sharp(file).greyscale().resize(9, 8, { fit: 'fill' }).raw().toBuffer());
@@ -248,7 +252,9 @@ DatabaseProvider.initialize()
       let mainGone = false;
       const kept: typeof gallery = [];
       for (const url of [product.imageUrl, ...gallery.map((image) => image.url)]) {
-        const shot = IMPORTED.test(url ?? '') ? await shotOfFile(path.join(folder, path.basename(url))) : null;
+        const shot = IMPORTED.test(url ?? '')
+          ? await shotOfFile(cleanFile(path.join(folder, path.basename(url))))
+          : null;
         const image = gallery.find((row) => row.url === url);
         const stale = !!shot && complete && !chosen.some((photo) => sameShot(photo.shot, shot));
         const copy = !!shot && shots.some((known) => sameShot(known, shot));
@@ -277,7 +283,10 @@ DatabaseProvider.initialize()
         const url = `/uploads/products/${photo.hash.slice(0, 32)}.webp`;
         if (known.has(url) || shots.some((shot) => sameShot(shot, photo.shot))) continue;
         const file = path.join(folder, path.basename(url));
-        if (!fs.existsSync(file)) fs.writeFileSync(file, photo.webp);
+        if (!fs.existsSync(file)) {
+          fs.writeFileSync(file, photo.webp);
+          await watermarkStoredPhoto(file);
+        }
         shots.push(photo.shot);
         urls.push(url);
       }

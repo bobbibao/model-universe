@@ -95,7 +95,9 @@ export default function SaleShelf({ full = false }: { full?: boolean }) {
           )}
           <div className="sale-hero-links">
             <Link href="/cua-hang">{en ? 'Explore all models' : 'Khám phá tất cả mô hình'} ↗</Link>
-            {!full && <Link href={`/uu-dai?event=${event?.id || ''}`}>{en ? 'All offers' : 'Xem ưu đãi'} →</Link>}
+            <Link href={`/su-kien/${event.id}`}>
+              {en ? `All ${event.products.length} models` : `Xem tất cả ${event.products.length} mẫu`} →
+            </Link>
           </div>
         </div>
         <div className="sale-hero-mark" aria-label={en ? 'Maximum discount' : 'Mức ưu đãi cao nhất'}>
