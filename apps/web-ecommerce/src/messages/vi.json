@@ -3681,6 +3681,12 @@
     "filteredRecords": "Đang lọc danh sách",
     "editorSections": "Các phần chỉnh sửa sản phẩm",
     "formErrors": "Có {count} mục cần kiểm tra. Vui lòng sửa các trường được đánh dấu.",
-    "availableOffers": "Ưu đãi thành viên & vận chuyển"
+    "availableOffers": "Ưu đãi thành viên & vận chuyển",
+    "productInformation": "Thông tin mô hình",
+    "specificationsTab": "Thông số",
+    "descriptionTab": "Mô tả",
+    "offersTab": "Ưu đãi",
+    "catalogWorkspace": "Không gian danh mục mô hình",
+    "savedPrice": "Giá đang lưu"
   }
 }

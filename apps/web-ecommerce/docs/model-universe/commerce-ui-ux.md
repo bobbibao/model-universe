@@ -1,32 +1,38 @@
-# Commerce UI/UX — 25 October 2026
+# Commerce UI/UX — compact model workspaces
 
-This change improves the existing Collector Studio identity (purple, lime, warm paper, product photography) and the operations workspace. It adds shopping and staff interactions rather than replacing the brand with a new theme.
+Updated 25 October 2026. This revision replaces the long product-detail and admin model forms with screen-sized workspaces while retaining the existing Collector Studio brand.
 
-## Shopper experience
+## Layout decisions
 
-- Applied filter chips reflect the canonical URL. Removing a chip preserves other filters and resets pagination; clearing filters recovers an empty search. Search drafts remain separate from applied values.
-- Product cards have a consistent detail/option action, meaningful responsive image sizes and a photo stage pinned to its aspect-ratio container. This fixes the zero-height photo area observed in browser screenshots and affects catalog, home and sale rails using the shared card.
-- Product detail separates the gallery, purchase decision, model description and specifications. Long descriptions no longer interrupt the purchase controls. Member and delivery offer details expand on demand; price and stock remain visible.
-- The purchase panel groups quantity, cart and wishlist actions. Successful cart additions have an inline live message and cart link. A floating return control takes users back to the selected condition and quantity; it does not silently add a default option.
-- The gallery deduplicates photo URLs, provides scrollable thumbnails and opens a large image dialog. The existing dialog provides focus trapping, Escape and focus restoration; left/right arrows navigate photos while open.
-- Existing pricing, condition selection, stock validation, reservations, wishlist, checkout quotes and policy rules remain authoritative. No invented reviews, stock, discounts or shipping promises were added.
+The desktop target is a laptop viewport (1366 × 768 and 1440 × 768), not only a tall external display. Photography occupies the left column; the right column groups identity, price, unit selection, information tabs and the purchase footer. Long information scrolls inside the selected panel. The document and site footer remain accessible; the page does not globally disable scrolling.
 
-## Operations experience
+Mobile uses a shorter gallery and a purchase bar above the bottom navigation. A ResizeObserver measures that navigation and the purchase bar, including content changes, so the final information remains reachable. Phones still need a short page scroll to inspect the model information; the design does not shrink the entire desktop into unreadable text.
 
-All admin routes inherit the sidebar search and shared workspace styling. Every consumer of `DataTable` inherits column selection, row density, record count, a keyboard-focusable scroll region, sticky column headings and pagination that cannot advance while loading.
+## Product detail
 
-Column preferences are keyed by route and column schema; row density is shared across admin tables. These are presentation preferences in local storage. The first column remains available for opening records; a column can additionally declare `essential: true` (the product name does so). Selection stays inside a native disclosure with checkboxes, Escape and outside-click dismissal.
+- The information tabs contain specifications, unit condition, description and image credits, offers, and reviews. Default specifications use compact label/value rows.
+- Price, selected unit, quantity, cart feedback, wishlist and reservation stay outside the information panels. A partner listing keeps its seller-store link visible beside the model heading. Long titles remain readable in their own bounded area and through the title tooltip.
+- A native unit picker includes condition, price, availability and SKU. Defect/missing-part counts remain explicit beside it; selecting an affected unit opens its condition details. The full condition note, disclosed issues, accessories and unboxing guidance remain available.
+- Description length and review pagination do not move the purchase controls out of the desktop workspace. Review drafts and panel scroll position survive tab changes.
+- The existing image dialog preserves Escape, focus restoration and arrow-key image navigation. Duplicate image URLs are removed.
+- An inline assistant action remains available; the duplicate floating launcher is hidden on this page so it cannot cover reservation or purchase controls.
+- Reservation request identity also includes the selected unit, preventing a previous unit's request key being reused when quantity is unchanged.
 
-The product list now distinguishes load failures from an empty result, provides retry and clear-filter actions, and ignores stale requests after filters change. Inventory statistics initially show the main totals; detailed breakdowns expand when needed so the list is reachable sooner.
+## Admin model catalog
 
-Product create/edit keep their action bar in reach. The edit page adds native section links, labelled sections, a validation summary and focus on invalid fields. The assistant launcher moves above the action bar. Mobile sidebar focus trapping includes the search field, and Escape clears a search without closing the drawer. Toasts leave the header reachable.
+The catalog and inventory statistics are peer tabs. Search, filters, table density, column selection and pagination stay in one workspace. Rows scroll inside the table; the pagination footer stays visible. Switching to statistics preserves catalog filters and table preferences.
 
-## Implementation boundaries
+The editor has a model summary beside retained form tabs: basic identity, condition/options, images, pricing, inventory/packaging, descriptions, and supplier/display settings. Save, discard and delete remain in the workspace footer. Validation opens the tab containing the first invalid field, marks affected tabs with counts and focuses its invalid control (or the panel for grouped validation). Unsaved values and pending image objects survive tab changes.
 
-- `src/css/commerce-experience.css` is the final commerce layout layer and reuses the existing storefront and admin tokens. Feature-specific business state styles remain in their existing files.
-- New interface text is in the `commerceUX` namespace in both Vietnamese and English.
-- Native links, buttons, details, radios, checkboxes, definition lists and the existing modal handle semantics. Reduced-motion preferences are respected by purchase-return scrolling.
-- No dependencies, API contracts, database schema, secrets or Drive files change.
+The create wizard retains its step validation, with an independently scrollable form body, visible navigation actions and focus on invalid fields. Copilot is inline beside the title on list/create/edit pages, keeping the footer unobstructed.
+
+## Shared implementation
+
+`WorkspaceTabs` provides labelled tablists, matching tab/panel IDs, selected state and roving tabindex. Arrow keys wrap between tabs; Home/End select the first/last. Panels remain mounted, allowing instant activation and retaining form state. This follows the [W3C WAI-ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/).
+
+`compact-workspaces.css` scopes the screen geometry to these workspaces and reuses existing tokens. New text is present in Vietnamese and English. Price, promotion, stock, checkout and backend policy calculations retain their existing sources; tabs do not introduce independent business rules.
+
+No dependency, database schema, secret, or Google Drive file is changed.
 
 ## Verification
 
@@ -38,12 +44,12 @@ yarn e2e e2e/commerce-experience.spec.ts --reporter=list
 yarn build
 ```
 
-The 16 browser tests cover Vietnamese and English, desktop and mobile shopping interactions, gallery focus restoration, duplicate image handling, stock-limited quantity, cart feedback, purchase return, admin density and column persistence, essential columns, sidebar search, editor navigation, and retry after a failed list request. Additional public-data cases inspect catalog and product layouts at 1440, 768 and 390 pixels, including loaded image dimensions and page overflow.
+The browser suite includes 24 cases covering both languages, laptop/mobile viewports, keyboard tabs, gallery navigation and focus, quantity limits, selected-unit cart identity, long descriptions, explicit defect disclosure, partner identity, retained admin drafts, validation in an inactive tab, dense catalog rows, table preferences, create-wizard state and real public catalog/product data at 1440, 768 and 390 pixels.
 
-Admin and mutation fixtures intercept browser API calls; they do not create products, orders or other shop records. A public model is read from the local catalog for the server-rendered route. Screenshots are generated under `.artifacts/model-universe/commerce-experience/` (not committed).
+Validation completed: the full 22-case suite passed before the final seller addition; six focused tab/seller regression cases then passed, and both seller cases were rerun with the no-shop-vouchers assertion. All 24 distinct browser cases have passing coverage. ESLint on the changed UI components, the optimized Next.js production build and the compiled Express server TypeScript build passed. Existing lint warnings outside the changed components remain.
 
-Validation for this change includes passing frontend/server TypeScript checks, 16 passing browser tests and a successful optimized Next.js production build. The build reports existing lint warnings in unrelated files (including address-combobox ARIA and pricing-tab ARIA); it does not report warnings in the changed UI files. The Webpack custom-server preview returned a `next-intl` configuration error; the existing Turbopack development command with an isolated build directory served the tested pages successfully.
+The production frontend also passed 43 HTTP render checks across admin destinations, model create/edit, an English admin page and the public catalog. Evidence is in `.artifacts/model-universe/commerce-experience/production-smoke.json`. This checks the built frontend render path, not deployment of the complete Express/API stack.
 
-The built production frontend was also started locally with `next start --hostname 127.0.0.1 --port 6052`. All 43 HTTP render checks passed: admin navigation destinations, product create/edit, an English admin page and the public catalog. These use a synthetic middleware session and do not execute business writes. The route/status evidence is in `.artifacts/model-universe/commerce-experience/production-smoke.json`. This verifies the production frontend render path, not the complete custom Express runtime or backend integrations.
+Browser fixtures intercept mutations and use a synthetic middleware session. They do not create orders or modify catalog records. Only public data is read from the local catalog. Screenshots are under `.artifacts/model-universe/commerce-experience/` and are not committed.
 
-The admin tests exercise the shared shell, product list and product editor with fixtures. They do not certify every admin business workflow or real payment, delivery and agent integrations. Conversion improvement has not been measured by an experiment. Deployment and production release approval remain separate from this UI change.
+Passing viewport checks apply to the tested sizes; unusually short screens, large text and long content retain scrolling rather than clipping controls. This UI verification does not certify every admin workflow or real payment, delivery and agent integrations. Conversion improvement has not been measured by an experiment. Deployment remains separate from the local commit and merge.

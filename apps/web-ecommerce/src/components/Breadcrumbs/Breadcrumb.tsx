@@ -2,8 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
+import type { ReactNode } from 'react';
 
-export default function Breadcrumb({ pageName }: { pageName: string }) {
+export default function Breadcrumb({ pageName, actions }: { pageName: string; actions?: ReactNode }) {
   const t = useTranslations('adminWorkspace'),
     navigation = useTranslations('adminNavigation');
   return (
@@ -11,15 +12,18 @@ export default function Breadcrumb({ pageName }: { pageName: string }) {
       <div>
         <h1>{pageName}</h1>
       </div>
-      <nav aria-label={t('breadcrumb')}>
-        <ol className="admin-breadcrumb">
-          <li>
-            <Link href="/admin/dashboard">{navigation('dashboard')}</Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page">{pageName}</li>
-        </ol>
-      </nav>
+      <div className="admin-heading-tools">
+        {actions}
+        <nav aria-label={t('breadcrumb')}>
+          <ol className="admin-breadcrumb">
+            <li>
+              <Link href="/admin/dashboard">{navigation('dashboard')}</Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page">{pageName}</li>
+          </ol>
+        </nav>
+      </div>
     </div>
   );
 }

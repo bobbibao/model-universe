@@ -11,7 +11,7 @@ import { adminDestination } from './navigation';
 
 const Copilot = dynamic(() => import('@/core/client/features/agent-console/pages/Copilot'));
 
-export default function AdminAssistant() {
+export default function AdminAssistant({ inline = false }: { inline?: boolean } = {}) {
   const t = useTranslations('adminWorkspace'),
     navigation = useTranslations('adminNavigation');
   const pathname = usePathname(),
@@ -21,6 +21,8 @@ export default function AdminAssistant() {
   const [open, setOpen] = useState(false),
     [loaded, setLoaded] = useState(false);
   if (user?.role !== 'ADMIN' || pathname === '/admin/agent/copilot') return null;
+  // The product workspaces provide an inline launcher beside the title; their save bar stays unobstructed.
+  if (!inline && (pathname === '/admin/products' || pathname.startsWith('/admin/products/'))) return null;
   const pageLabel = destination ? navigation(destination.label) : t('workspace');
   const recordId = pathname.match(/^\/admin\/(?:products|orders)\/(\d+)$/)?.[1];
   const context = recordId ? `${pageLabel} #${recordId}` : pageLabel;
@@ -29,7 +31,7 @@ export default function AdminAssistant() {
       <button
         ref={launcher}
         type="button"
-        className="admin-assistant-launcher"
+        className={`admin-assistant-launcher${inline ? ' is-inline' : ''}`}
         onClick={() => {
           setLoaded(true);
           setOpen(true);
