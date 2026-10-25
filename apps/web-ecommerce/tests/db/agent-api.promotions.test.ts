@@ -104,11 +104,19 @@ describe('Agent API: promotions', () => {
     expect(repeat.status).toBe(422);
     expect(repeat.body.reason).toBe('frequency');
 
-    // Seeded products cost 60% of their price: 30% off leaves a 14.3% margin, under the 15% floor.
+    // Seeded products cost 60% of their price: 30% off leaves a 14.3% margin, under the 15% floor. The product must
+    // not be dead stock (last received over 180 days ago), where an approved grant may go below the floor.
+    const [{ sku: received }] = await select<{ sku: string }>(
+      sequelize,
+      `SELECT p.sku FROM product p WHERE p.sku IN (:skus) AND p.sku NOT IN (:used) AND EXISTS (
+         SELECT 1 FROM stock_import_item sii JOIN stock_import si ON si.id = sii."stockImportId"
+          WHERE sii."productId" = p.id AND si."createdAt" > NOW() - INTERVAL '150 days') ORDER BY p.id LIMIT 1`,
+      { skus, used: skus.slice(0, 2) },
+    );
     const margin = await callApproved(app, {
       path: 'pricing/discounts',
       key: 'p:margin',
-      body: { skus: [skus[2]], percent: 30, duration_days: 3 },
+      body: { skus: [received], percent: 30, duration_days: 3 },
     });
     expect(margin.status).toBe(422);
     expect(margin.body.reason).toBe('margin_floor');
@@ -116,7 +124,7 @@ describe('Agent API: promotions', () => {
     const legal = await callApproved(app, {
       path: 'pricing/discounts',
       key: 'p:legal',
-      body: { skus: [skus[2]], percent: 45, duration_days: 3 },
+      body: { skus: [received], percent: 45, duration_days: 3 },
     });
     expect(legal.status).toBe(422);
     expect(legal.body.reason).toBe('legal_max');
