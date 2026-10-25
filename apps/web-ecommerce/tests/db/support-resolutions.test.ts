@@ -38,7 +38,7 @@ describe('agreed model support on disposable PostgreSQL', () => {
   };
   const purchase = async (collect = true) => {
     const order = await orders.placeOrder(userId, {
-      items: [{ productId: product.id, quantity: 1, size: '' }],
+      items: [{ productId: product.id, quantity: 1 }],
       shipping,
       requestKey: `support-purchase-${++key}`,
       ...DEPOSIT,

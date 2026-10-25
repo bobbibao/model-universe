@@ -38,7 +38,7 @@ export default function Wishlist() {
     if (busyIds.includes(item.id)) return;
     setBusyIds((current) => [...current, item.id]);
     try {
-      if (move && !addItem(item.product, item.size, 1)) return;
+      if (move && !addItem(item.product, 1)) return;
       if (await WishlistApi.removeItem(item.id)) setItems((current) => current?.filter(({ id }) => id !== item.id));
     } finally {
       setBusyIds((current) => current.filter((id) => id !== item.id));
@@ -125,11 +125,6 @@ export default function Wishlist() {
                 <div className="wishlist-card-body">
                   <p className="wishlist-brand">{item.product.brandName}</p>
                   <h2>{item.available ? <Link href={href}>{item.product.name}</Link> : item.product.name}</h2>
-                  {item.size && (
-                    <p className="wishlist-size">
-                      {t('size')}: {item.size}
-                    </p>
-                  )}
                   <div className="wishlist-price">
                     <PriceTag
                       price={item.product.price}

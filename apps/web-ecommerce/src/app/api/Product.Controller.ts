@@ -38,7 +38,6 @@ export default class ProductController extends ApiBaseController {
         assemblyState: req.query.assemblyState as string | undefined,
         q: req.query.q as string | undefined,
         category: req.query.category as string | undefined,
-        gender: req.query.gender as string | undefined,
         brand: req.query.brand as string | undefined,
         minPrice: toInteger(req.query.minPrice),
         maxPrice: toInteger(req.query.maxPrice),

@@ -18,7 +18,7 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
   // The server quote's effective price (after any running discount); the stored snapshot until it arrives.
   const price = product?.salePrice ?? item.price;
   const status = line?.status;
-  const unavailable = status === 'UNAVAILABLE' || status === 'OUT_OF_STOCK' || status === 'INVALID_SIZE';
+  const unavailable = status === 'UNAVAILABLE' || status === 'OUT_OF_STOCK';
   const maxQuantity = line && line.availableStock > 0 ? line.availableStock : item.quantity;
 
   return (
@@ -40,17 +40,12 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
           )}
         </p>
         {!!product?.partnerId && <p className="text-sm text-brand">{t('partnerItem')}</p>}
-        {item.size && (
-          <p className="cart-line-meta">
-            {t('size')}: {item.size}
-          </p>
-        )}
         {line && status !== 'OK' && <p className="text-sm font-medium text-danger">{t(`lineStatus.${status}`)}</p>}
         <div className="cart-line-controls">
           <div className="cart-quantity">
             <button
               className="cart-quantity-button"
-              onClick={() => updateQuantity(item.productId, item.size, item.quantity - 1)}
+              onClick={() => updateQuantity(item.productId, item.quantity - 1)}
               disabled={item.quantity <= 1 || unavailable}
               aria-label={t('decrease')}
             >
@@ -59,7 +54,7 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
             <output aria-label={t('quantity')}>{item.quantity}</output>
             <button
               className="cart-quantity-button"
-              onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
+              onClick={() => updateQuantity(item.productId, item.quantity + 1)}
               disabled={item.quantity >= maxQuantity || unavailable}
               aria-label={t('increase')}
             >
@@ -69,12 +64,12 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
           {status === 'INSUFFICIENT_STOCK' && line && line.availableStock > 0 && (
             <button
               className="text-sm font-medium text-brand-hover hover:underline"
-              onClick={() => updateQuantity(item.productId, item.size, Math.min(item.quantity, line.availableStock))}
+              onClick={() => updateQuantity(item.productId, Math.min(item.quantity, line.availableStock))}
             >
               {t('reduce', { count: Math.min(item.quantity, line.availableStock) })}
             </button>
           )}
-          <button className="cart-line-remove" onClick={() => removeItem(item.productId, item.size)}>
+          <button className="cart-line-remove" onClick={() => removeItem(item.productId)}>
             <AdminIcon name="close" size={14} />
             {t('remove')}
           </button>

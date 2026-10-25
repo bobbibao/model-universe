@@ -41,7 +41,7 @@ describe('package plans on disposable PostgreSQL', () => {
   const orders = new OrderService(),
     packing = new PackingService();
   const quote = async (items: { productId: number; quantity: number }[]) => {
-    const { lines, products } = await new CartService().resolveLines(items.map((item) => ({ ...item, size: '' })));
+    const { lines, products } = await new CartService().resolveLines(items.map((item) => item));
     return new ShippingService().quote({ items: planItems(lines, products), address });
   };
 
@@ -110,8 +110,8 @@ describe('package plans on disposable PostgreSQL', () => {
     expect(single.feeVnd).toBe(estimateFeeByWeightVnd(single.plan!.parcels[0].billableWeightGram));
     const order = await orders.placeOrder(userId, {
       items: [
-        { productId: kit.id, quantity: 2, size: '' },
-        { productId: heavy.id, quantity: 1, size: '' },
+        { productId: kit.id, quantity: 2 },
+        { productId: heavy.id, quantity: 1 },
       ],
       shipping,
       paymentPlan: 'deposit',
@@ -188,7 +188,7 @@ describe('package plans on disposable PostgreSQL', () => {
   it('ships every parcel on its own waybill, splits the COD, retries only what is missing and delivers when all arrive', async () => {
     const fulfillment = new FulfillmentService();
     const order = await orders.placeOrder(userId, {
-      items: [{ productId: heavy.id, quantity: 7, size: '' }],
+      items: [{ productId: heavy.id, quantity: 7 }],
       shipping,
       paymentPlan: 'deposit',
       fulfillmentMethod: 'COURIER_COD',
@@ -235,8 +235,8 @@ describe('package plans on disposable PostgreSQL', () => {
     const fulfillment = new FulfillmentService();
     const order = await orders.placeOrder(userId, {
       items: [
-        { productId: kit.id, quantity: 2, size: '' },
-        { productId: heavy.id, quantity: 1, size: '' },
+        { productId: kit.id, quantity: 2 },
+        { productId: heavy.id, quantity: 1 },
       ],
       shipping,
       paymentPlan: 'deposit',

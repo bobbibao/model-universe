@@ -78,7 +78,6 @@ export default function CheckoutAction({ action, onDone }: { action: CustomerAct
   const running = useRef(false);
   const items = cart.entries.map(({ item }) => ({
     productId: item.productId,
-    size: item.size,
     quantity: item.quantity,
   }));
   const signature = JSON.stringify({
@@ -190,9 +189,8 @@ export default function CheckoutAction({ action, onDone }: { action: CustomerAct
       {prepared && (
         <div className="agent-checkout-summary">
           {preview.quote.lines.map((line) => (
-            <p key={`${line.productId}-${line.size}`}>
-              {line.product?.name}
-              {line.size ? ` · ${line.size}` : ''} × {line.quantity}
+            <p key={line.productId}>
+              {line.product?.name} × {line.quantity}
               <strong>{money(line.lineTotal)}</strong>
             </p>
           ))}

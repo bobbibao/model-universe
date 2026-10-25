@@ -215,13 +215,11 @@ describe('private partner onboarding and staff verification', () => {
       partnerId: partner.id,
       listingStatus: 'draft',
       condition: 'new',
-      availableSizes: [],
-      gender: 'unisex',
     });
     const carts = new CartService(),
       items = [
-        { productId: own.id, quantity: 1, size: '' },
-        { productId: listing.id, quantity: 1, size: '' },
+        { productId: own.id, quantity: 1 },
+        { productId: listing.id, quantity: 1 },
       ];
     expect((await carts.quote(items)).lines[1].status).toBe('UNAVAILABLE');
     await listing.update({ listingStatus: 'published' });

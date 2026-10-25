@@ -191,8 +191,6 @@ export const toProductValues = (entry: CatalogEntry) => {
     assemblyState: info.assemblyState,
     includedAccessories: [],
     defects: [],
-    gender: 'unisex' as const,
-    availableSizes: [],
     ...(owner?.pricing ?? estimatedPricing(entry)),
     packaging: owner?.packaging ?? null,
     stock: catalogStock(entry),

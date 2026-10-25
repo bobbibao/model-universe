@@ -5,7 +5,6 @@ import { FindOptions, Op, Order, QueryTypes, Transaction, UniqueConstraintError,
 import ProductModel, {
   INVENTORY_STATUSES,
   InventoryStatus,
-  ProductGender,
   SALES_CHANNELS,
   STOREFRONT_VISIBLE,
   SalesChannel,
@@ -34,7 +33,6 @@ export interface ProductListQuery {
   q?: string;
   category?: string;
   categoryId?: number;
-  gender?: string;
   brand?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -47,9 +45,7 @@ export interface ProductListQuery {
   offset: number;
 }
 
-const GENDERS: ProductGender[] = ['male', 'female', 'unisex'];
 const MAX_GALLERY_IMAGES = 10;
-const MAX_SIZES = 30;
 const MAX_CONDITION_ITEMS = 30;
 
 const PUBLIC_SORTS: Record<string, Order> = {
@@ -75,7 +71,6 @@ const LIST_ATTRIBUTES = [
   'id',
   'name',
   'brandName',
-  'gender',
   'price',
   'stock',
   // Units sold (kept by orders, reservations and support): real social proof on cards.
@@ -91,7 +86,7 @@ const LIST_ATTRIBUTES = [
 const PRIVATE_ATTRIBUTES = ['importPrice', 'pricingReferenceMemberVnd', 'pricingIssueCount', 'buybackPriceVnd', 'supplierId', 'isArchived', 'inventoryStatus', 'listingRequestKey', 'listingRequestDigest', 'productionDate', 'parentProductId'];
 
 // What a condition option shares with its main listing: the model itself. Staff edit it on the main listing only.
-const IDENTITY_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'description', 'descriptionEn', 'descriptionVi', 'gender', 'categoryId', 'supplierId', 'weight', 'dimensions', 'packaging'] as const;
+const IDENTITY_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'description', 'descriptionEn', 'descriptionVi', 'categoryId', 'supplierId', 'weight', 'dimensions', 'packaging'] as const;
 const identityOf = (listing: ProductModel) =>
   Object.fromEntries(IDENTITY_FIELDS.map((field) => [field, listing.get(field)])) as Partial<Record<(typeof IDENTITY_FIELDS)[number], unknown>>;
 
@@ -146,7 +141,6 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         [Op.or]: ['name', 'brandName', 'sku', 'modelCode'].map((column) => ({ [column]: { [Op.iLike]: pattern } })),
       });
     }
-    if (query.gender && GENDERS.includes(query.gender as ProductGender)) conditions.push({ gender: query.gender });
     if (query.brand) conditions.push({ brandName: query.brand });
     for (const field of ['scale', 'condition'] as const) {
       if (query[field]) conditions.push({ [field]: query[field] });
@@ -401,7 +395,6 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const stock = toInteger(data.stock) ?? 0;
     const categoryId = toInteger(data.categoryId);
     const supplierId = toInteger(data.supplierId);
-    const gender = (data.gender || 'unisex') as ProductGender;
     const gunpla: Record<string, unknown> = {};
     for (const field of ['scale', 'modelCode', 'boxCondition', 'conditionNote', 'descriptionEn', 'descriptionVi'] as const) {
       if (data[field] !== undefined) gunpla[field] = asTrimmedString(data[field]) || null;
@@ -427,10 +420,6 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       errors.push('Liệt kê phụ kiện còn thiếu của sản phẩm thiếu phụ kiện.');
     if (condition === 'defective' && !((gunpla.defects ?? current?.defects) as string[] | undefined)?.length)
       errors.push('Mô tả lỗi của sản phẩm lỗi.');
-    const rawSizes = Array.isArray(data.availableSizes)
-      ? data.availableSizes
-      : asTrimmedString(data.availableSizes).split(',');
-    const availableSizes = Array.from(new Set(rawSizes.map((size) => asTrimmedString(String(size))).filter(Boolean)));
     const images = Array.isArray(data.images) ? data.images.map((url) => asTrimmedString(url)).filter(Boolean) : [];
     // The received date ("Ngày nhập"): the day the product is added unless staff give another one.
     const productionDate = asTrimmedString(data.productionDate)
@@ -442,11 +431,9 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     if (!name) errors.push('Tên sản phẩm không được để trống.');
     if (!brandName) errors.push('Thương hiệu không được để trống.');
     if (!sku) errors.push('SKU không được để trống.');
-    if (!GENDERS.includes(gender)) errors.push('Giới tính của sản phẩm không hợp lệ.');
     if (price === undefined || price <= 0) errors.push('Giá bán phải là số nguyên lớn hơn 0.');
     if (importPrice < 0) errors.push('Giá nhập không được âm.');
     if (stock < 0) errors.push('Số lượng tồn kho không được âm.');
-    if (availableSizes.length > MAX_SIZES) errors.push(`Tối đa ${MAX_SIZES} kích thước.`);
     if (!imageUrl || !isImageUrl(imageUrl)) errors.push('Vui lòng chọn ảnh chính cho sản phẩm.');
     if (images.length > MAX_GALLERY_IMAGES) errors.push(`Tối đa ${MAX_GALLERY_IMAGES} ảnh phụ.`);
     if (images.some((url) => !isImageUrl(url))) errors.push('Đường dẫn ảnh phụ không hợp lệ.');
@@ -475,8 +462,6 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         brandName,
         sku,
         description: asTrimmedString(data.description) || null,
-        gender,
-        availableSizes,
         price: price as number,
         importPrice,
         ...(formula ? { pricingReferenceMemberVnd: formula.referenceMemberVnd, pricingIssueCount: formula.ordinaryIssueCount, buybackPriceVnd: formula.buybackPriceVnd } : {}),

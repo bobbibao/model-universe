@@ -199,8 +199,6 @@ export default class PartnerListingService {
       {
         ...input,
         sku,
-        gender: 'unisex',
-        availableSizes: [],
         importPrice: 0,
         imageUrl: ordered[0].url,
         images: ordered.slice(1).map((photo) => photo.url),

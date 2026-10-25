@@ -144,7 +144,6 @@
     "assistantPrompt": "Explain model #{id} ({name}): verified specifications, condition, pros and cons, and store reviews. Respond in English.",
     "askAssistant": "Ask about this model",
     "assistantNote": "Understand the build. Compare your options.",
-    "legacySize": "Historical size option",
     "quantity": "Quantity",
     "decrease": "Decrease quantity",
     "increase": "Increase quantity",
@@ -201,8 +200,7 @@
     "moveToBag": "Move to bag",
     "removeNamed": "Remove {name} from saved models",
     "soldOut": "Sold out",
-    "unavailable": "No longer available",
-    "size": "Size"
+    "unavailable": "No longer available"
   },
   "common": {
     "pagePosition": "Page {page} of {total}",
@@ -584,7 +582,6 @@
     "note": "Order instructions",
     "optional": "Optional",
     "brand": "Manufacturer",
-    "size": "Historical size",
     "reduce": "Reduce to {count}",
     "remove": "Remove",
     "decrease": "Decrease quantity",
@@ -623,7 +620,6 @@
     "lineStatus": {
       "UNAVAILABLE": "This model is no longer available.",
       "OUT_OF_STOCK": "This model is out of stock.",
-      "INVALID_SIZE": "The historical option is no longer available.",
       "INSUFFICIENT_STOCK": "Reduce the quantity to the available stock."
     },
     "validationOrder": "Your order has not been verified yet. Check your order history before trying again.",
@@ -912,7 +908,6 @@
       "REJECTED": "Rejected"
     },
     "reasons": {
-      "wrong_size": "Historical size mismatch",
       "defective": "Defective model",
       "not_as_described": "Significant description mismatch",
       "changed_mind": "Changed mind",
@@ -2053,8 +2048,6 @@
     "order": "Order #{id}",
     "product": "Model #{id}",
     "clearNote": "Remove all {count} items from your current bag.",
-    "size": "Variant",
-    "chooseSize": "Choose a variant",
     "quantity": "Quantity",
     "coupon": "Promotion code",
     "name": "Full name",
@@ -2080,7 +2073,6 @@
     "apiFailed": "The action failed. Check the information and try again.",
     "invalid": "Invalid action.",
     "opened": "Opened the requested page.",
-    "invalidSize": "Choose an available variant.",
     "stockExceeded": "Quantity exceeds current stock ({stock}).",
     "missingLine": "This model variant is not in your bag.",
     "added": "Added {quantity} {name} to your bag.",

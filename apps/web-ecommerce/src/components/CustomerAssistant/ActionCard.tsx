@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { MODEL_RETURN_REASONS } from '@/shared/return-rules';
+import { RETURN_REASONS } from '@/shared/return-rules';
 import Link from '@/i18n/navigation';
 import { usePathname, useRouter } from '@/i18n/navigation';
 
@@ -166,27 +166,11 @@ export default function ActionCard({
       {action.kind === 'cart_remove' && (
         <p>
           {t('product', { id: action.productId! })}
-          {action.size ? ` · Size ${action.size}` : ''}
         </p>
       )}
       {action.kind === 'cart_clear' && <p>{t('clearNote', { count: cart.count })}</p>}
       {['cart_add', 'cart_update', 'wishlist_add'].includes(action.kind) && action.product && (
         <div className="agent-fields-row">
-          {!!action.product.availableSizes.length && (
-            <label className="agent-field">
-              <span>{t('size')}</span>
-              <select
-                required
-                value={action.size || ''}
-                onChange={(e) => setAction({ ...action, size: e.target.value })}
-              >
-                <option value="">{t('chooseSize')}</option>
-                {action.product.availableSizes.map((size) => (
-                  <option key={size}>{size}</option>
-                ))}
-              </select>
-            </label>
-          )}
           {action.kind !== 'wishlist_add' && (
             <label className="agent-field">
               <span>{t('quantity')}</span>
@@ -260,7 +244,6 @@ export default function ActionCard({
               <div key={item.orderItemId}>
                 <p>
                   {line?.name || t('orderLine', { id: item.orderItemId })}
-                  {line?.size ? ` · ${line.size}` : ''}
                 </p>
                 <div className="agent-fields-row">
                   <label className="agent-field">
@@ -280,10 +263,7 @@ export default function ActionCard({
                       value={item.reason}
                       onChange={(e) => change({ reason: e.target.value as typeof item.reason })}
                     >
-                      {(item.reason === 'wrong_size'
-                        ? ['wrong_size', ...MODEL_RETURN_REASONS]
-                        : MODEL_RETURN_REASONS
-                      ).map((reason) => (
+                      {RETURN_REASONS.map((reason) => (
                         <option key={reason} value={reason}>
                           {returns(`reasons.${reason}`)}
                         </option>

@@ -9,7 +9,6 @@ export interface ProductFilterValues {
   assemblyState?: string;
   q: string;
   category: string;
-  gender: string;
   scale: string;
   condition: string;
   brand: string;

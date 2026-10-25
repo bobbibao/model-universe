@@ -46,7 +46,6 @@ describe("owner's catalogue and condition options", () => {
       importPrice: 100_000,
       stock: 4,
       imageUrl: '/images/store/product-placeholder.svg',
-      availableSizes: [],
     };
     const orphan = await ProductModel.create({ ...base, sku: 'OWNER-SYNC-ORPHAN', name: 'Synthetic retired fixture' });
     const followed = await ProductModel.create({
@@ -163,7 +162,7 @@ describe("owner's catalogue and condition options", () => {
     expect('productionDate' in detail).toBe(false);
 
     // The cart prices the option by its own price and stock.
-    const { lines } = await new CartService().resolveLines([{ productId: incomplete.id, size: '', quantity: 3 }]);
+    const { lines } = await new CartService().resolveLines([{ productId: incomplete.id, quantity: 3 }]);
     expect(lines[0]).toMatchObject({ status: 'INSUFFICIENT_STOCK', availableStock: 2 });
     expect(lines[0].product).toMatchObject({ condition: 'incomplete', price: incomplete.price });
 

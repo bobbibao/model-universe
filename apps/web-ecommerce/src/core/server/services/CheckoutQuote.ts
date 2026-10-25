@@ -11,7 +11,7 @@ export const QUOTE_TTL_MS = 30 * 60_000;
 
 export interface QuoteContent {
   userId: number | null;
-  items: { productId: number; size: string; quantity: number; unitVnd: number }[];
+  items: { productId: number; quantity: number; unitVnd: number }[];
   couponCode: string | null;
   freeshipCode: string | null;
   voucherDiscountVnd: number;
@@ -30,7 +30,7 @@ const digest = (content: QuoteContent) =>
     .update(
       JSON.stringify({
         ...content,
-        items: [...content.items].sort((a, b) => a.productId - b.productId || a.size.localeCompare(b.size)),
+        items: [...content.items].sort((a, b) => a.productId - b.productId),
       }),
     )
     .digest('base64url');
@@ -58,7 +58,7 @@ export const quoteContent = (userId: number | null | undefined, lines: CartLine[
   userId: userId ?? null,
   items: lines
     .filter((line) => line.status === 'OK' && line.product)
-    .map((line) => ({ productId: line.productId, size: line.size, quantity: line.quantity, unitVnd: line.product!.salePrice })),
+    .map((line) => ({ productId: line.productId, quantity: line.quantity, unitVnd: line.product!.salePrice })),
   couponCode: resolved.voucher && !resolved.benefits.voucherRefusal ? resolved.voucher.code : null,
   freeshipCode: resolved.freeship && !resolved.benefits.freeshipRefusal ? resolved.freeship.code : null,
   voucherDiscountVnd: resolved.benefits.voucherDiscountVnd,

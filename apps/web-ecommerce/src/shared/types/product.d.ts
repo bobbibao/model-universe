@@ -1,6 +1,5 @@
 import type { GunplaAttributes, ModelCondition } from '../gunpla';
 import type { ProductPackaging } from '../packing/rules';
-export type ProductGender = 'male' | 'female' | 'unisex';
 
 export type SalesChannel = 'web' | 'outlet';
 
@@ -39,7 +38,6 @@ export type ProductSummary = ProductPricing & GunplaAttributes & {
   slug?: string;
   name: string;
   brandName: string;
-  gender: ProductGender;
   price: number;
   stock: number;
   imageUrl: string;
@@ -80,7 +78,6 @@ export type RatingDistribution = Record<'1' | '2' | '3' | '4' | '5', number>;
 export type ProductDetail = ProductSummary & {
   sku: string;
   description?: string | null;
-  availableSizes: string[];
   sold: number;
   weight?: string | null;
   dimensions?: string | null;
@@ -166,7 +163,6 @@ export type ProductQuery = {
   condition?: string;
   q?: string;
   category?: string;
-  gender?: string;
   brand?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -201,10 +197,8 @@ export type ProductPayload = GunplaAttributes & {
   brandName: string;
   sku: string;
   description: string;
-  gender: ProductGender;
   categoryId: number | null;
   supplierId: number | null;
-  availableSizes: string[];
   price: number;
   importPrice: number;
   stock: number;

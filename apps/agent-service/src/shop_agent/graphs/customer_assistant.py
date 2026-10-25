@@ -41,8 +41,6 @@ class StoreRead(BaseModel):
     page: int | None = None
     brand: str | None = None
     category: str | None = None
-    # Retained historical listings only; model kits use the attributes below.
-    gender: Literal["male", "female", "unisex"] | None = None
     scale: str | None = None
     condition: Literal["new", "preowned", "incomplete", "defective"] | None = None
     inStock: bool | None = None
@@ -69,7 +67,7 @@ class ReturnItemDraft(BaseModel):
 
     orderItemId: int = Field(description="lines[].orderItemId from return_options; never an order or product ID.")
     quantity: int = Field(ge=1)
-    # The web's RETURN_REASONS (wrong_size remains for historical apparel transactions).
+    # The web's RETURN_REASONS.
     reason: Literal[
         "wrong_item",
         "missing_accessories",
@@ -79,7 +77,6 @@ class ReturnItemDraft(BaseModel):
         "not_as_described",
         "changed_mind",
         "other",
-        "wrong_size",
     ]
 
 
@@ -102,7 +99,6 @@ class ActionProposal(BaseModel):
         "logout",
     ]
     productId: int | None = None
-    size: str | None = None
     quantity: int | None = None
     path: str | None = None
     code: str | None = None
@@ -258,16 +254,15 @@ replacing it with navigation. Never claim it happened: say it is prepared for re
 or cancelled). If a required field cannot be filled from observations, say what is missing. Leave unspecified editable
 fields null instead of inventing them. Do not attach unsolicited cart, contact, coupon, review or navigation drafts, and
 a refusal must not include a ready-to-submit action. An eligibility question is a read, not a request to submit.
-- cart_add/cart_update: productId and quantity. Kits have no clothing size: use an empty size unless an observed
-  historical listing has sizes and the customer chose one. cart_remove: the exact cart productId and size. Clear the
-  whole bag -> one cart_clear. wishlist_add follows cart_add; wishlist_remove uses an observed wishlistItemId.
-  apply_coupon uses the code the customer gave.
+- cart_add/cart_update: productId and quantity (the productId of the chosen condition). cart_remove: the exact cart
+  productId. Clear the whole bag -> one cart_clear. wishlist_add follows cart_add; wishlist_remove uses an observed
+  wishlistItemId. apply_coupon uses the code the customer gave.
 - checkout: shipping recipientName, phone, address (street only), ward, district, city, note, only from the
   customer's own information; they still review fresh prices and the payment plan before confirming.
 - cancel_order: an observed PROCESSING orderId. return_request: orderId and returnItems copied from return_options
   lines (orderItemId, quantity, one listed reason) with a customer note; read return_options first. Kit reasons:
   wrong_item, missing_accessories, undisclosed_defect, shipping_damage, defective, not_as_described, changed_mind,
-  other (wrong_size is only for historical apparel orders). Photos and an unboxing video help staff review a claim;
+  other. Photos and an unboxing video help staff review a claim;
   a missing video does not automatically disqualify it.
 - update_profile: only firstName, lastName, phone, address the customer gave. contact: name, email, phone, company,
   message.
@@ -277,8 +272,8 @@ a refusal must not include a ready-to-submit action. An eligibility question is 
 - navigate: /, /shop, /shop?..., /search?..., /shop/product/{id}, /cart, /cart#checkout, /wishlist, /order-history,
   /user-profile, /contact, /about, /assistant, /auth/signin, /auth/signup (the browser applies the locale). Use it for
   sign-in and sign-up; never ask for passwords, OTPs or card numbers. logout only when asked.
-Example: "add one of kit 501" (observed, no variants) -> actions [{"kind":"cart_add","productId":501,"size":"",
-"quantity":1}], reads []. IDs in examples are not real records."""
+Example: "add one of kit 501" (observed, one condition) -> actions [{"kind":"cart_add","productId":501,"quantity":1}],
+reads []. IDs in examples are not real records."""
 
 FULL_PROMPT = CORE_PROMPT + READS_PROMPT + ACTIONS_PROMPT
 INFO_PROMPT = CORE_PROMPT + READS_PROMPT

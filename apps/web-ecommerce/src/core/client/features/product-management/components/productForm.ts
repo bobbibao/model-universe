@@ -1,6 +1,6 @@
 import { catalogPricing } from '@/shared/sale-pricing';
 import type { ModelCondition, AssemblyState } from '@/shared/gunpla';
-import type { AdminProduct, InventoryStatus, ProductGender, ProductPayload } from '@/shared/types/product';
+import type { AdminProduct, InventoryStatus, ProductPayload } from '@/shared/types/product';
 
 // Form state: numeric fields are kept as strings while editing; lists are one item per line.
 export interface ProductFormValues {
@@ -19,8 +19,6 @@ export interface ProductFormValues {
   brandName: string;
   description: string;
   categoryId: string;
-  gender: ProductGender | '';
-  availableSizes: string;
   price: string;
   pricingReferenceMemberVnd: string;
   pricingIssueCount: string;
@@ -61,8 +59,6 @@ export const emptyProductForm: ProductFormValues = {
   brandName: '',
   description: '',
   categoryId: '',
-  gender: 'unisex',
-  availableSizes: '',
   price: '',
   pricingReferenceMemberVnd: '',
   pricingIssueCount: '0',
@@ -103,8 +99,6 @@ export const toFormValues = (product: AdminProduct): ProductFormValues => ({
   brandName: product.brandName,
   description: product.description || '',
   categoryId: product.categoryId ? String(product.categoryId) : '',
-  gender: product.gender,
-  availableSizes: product.availableSizes.join(', '),
   price: String(product.price),
   pricingReferenceMemberVnd: product.pricingReferenceMemberVnd ? String(product.pricingReferenceMemberVnd) : '',
   pricingIssueCount: String(product.pricingIssueCount || 0),
@@ -211,13 +205,8 @@ export const buildProductPayload = (values: ProductFormValues, imageUrl: string,
   brandName: values.brandName.trim(),
   sku: values.sku.trim(),
   description: values.description.trim(),
-  gender: values.gender as ProductGender,
   categoryId: values.categoryId ? Number(values.categoryId) : null,
   supplierId: values.supplierId ? Number(values.supplierId) : null,
-  availableSizes: values.availableSizes
-    .split(',')
-    .map((size) => size.trim())
-    .filter(Boolean),
   ...pricingPayload(values),
   importPrice: values.importPrice ? Number(values.importPrice) : 0,
   stock: Number(values.stock),

@@ -89,7 +89,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const [product, setProduct] = useState<ProductDetailType | null | undefined>(initialProduct);
   const [unitId, setUnitId] = useState(initialProduct ? initialUnitId(initialProduct, requestedUnit) : 0);
   const productId = product?.id ?? initialProduct?.id ?? 0;
-  const [size, setSize] = useState(initialProduct?.availableSizes[0] || '');
   const [quantity, setQuantity] = useState(1);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [wishlistBusy, setWishlistBusy] = useState(false);
@@ -116,7 +115,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         rememberViewed(result);
       }
       if (resetSelection) {
-        setSize(result?.availableSizes[0] || '');
         setQuantity(1);
         if (result)
           setUnitId(
@@ -148,7 +146,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     observer.observe(element);
     return () => observer.disconnect();
   }, [product?.id]);
-  useEffect(() => setAddedUnit(null), [unitId, quantity, size]);
+  useEffect(() => setAddedUnit(null), [unitId, quantity]);
 
   const units = useMemo(() => (product ? unitsOf(product) : []), [product]);
   // The chosen unit: what is priced, pictured, put in the cart, saved or reserved.
@@ -167,7 +165,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     window.history.replaceState(window.history.state, '', url);
   };
 
-  const wishlistItem = wishlist.find((item) => item.productId === unit?.id && item.size === size);
+  const wishlistItem = wishlist.find((item) => item.productId === unit?.id);
 
   const toggleWishlist = async () => {
     if (!unit) return;
@@ -181,7 +179,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         setWishlist(wishlist.filter((item) => item.id !== wishlistItem.id));
       }
     } else {
-      const added = await WishlistApi.addItem(unit.id, size);
+      const added = await WishlistApi.addItem(unit.id);
       if (added) setWishlist([...wishlist, { ...added } as WishlistItem]);
     }
     setWishlistBusy(false);
@@ -212,7 +210,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const listOrInspect = (items: string[]) => items.join(', ') || t('inspectionRequired');
   const addToCart = () => {
     if (!inStock) return;
-    if (addItem({ ...offer, name: product.name, brandName: product.brandName }, size, quantity)) {
+    if (addItem({ ...offer, name: product.name, brandName: product.brandName }, quantity)) {
       trackAddToCart({ id: String(unit.id), name: product.name, price: unit.salePrice, quantity });
       setAddedUnit(unit.id);
     }
@@ -271,26 +269,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             <Link className="text-sm underline" href={`/sellers/${product.partnerId}`}>
               {seller('view')}
             </Link>
-          )}
-
-          {product.availableSizes.length > 0 && (
-            <div>
-              <label htmlFor="product-size" className="mb-2 block font-medium">
-                {t('legacySize')}
-              </label>
-              <select
-                id="product-size"
-                value={size}
-                onChange={(event) => setSize(event.target.value)}
-                className="w-40 rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 outline-none focus:border-brand-hover dark:border-store-card dark:bg-store-panel"
-              >
-                {product.availableSizes.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
           )}
 
           <div

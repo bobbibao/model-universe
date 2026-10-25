@@ -33,10 +33,10 @@ describe('signed post-disposal accounting against actual source collection', () 
       contractReference: crypto.randomUUID(), custodyAt: new Date(Date.now() - 36 * PAWN_DAY_MS), custodyReference: crypto.randomUUID(),
       terms: { appraisalVnd: 2000000, principalVnd: 1400000, termDays: 30, disposalAfterGrace: true, contractText: 'Explicit synthetic previously signed contract fixture; separate amendment required.', policyVersion: 1,
         policy: { dailyRateBasisPoints: 3, dayCount: 'completed_days', rounding: 'ceil', graceDays: 2, interestStopEvent: 'asset_handback' } } });
-    const items = [{ productId: product.id, quantity: 1, size: '' }];
+    const items = [{ productId: product.id, quantity: 1 }];
     if (mixed) {
       const extra = await ProductModel.create({ ...original, id: undefined, uuid: undefined, slug: undefined, sku: crypto.randomUUID(), name: 'Other unrelated order model', price: 1000000, stock: 2, sold: 0, condition: 'new', partnerId: null, isArchived: false, inventoryStatus: 'available' });
-      items.push({ productId: extra.id, quantity: 1, size: '' });
+      items.push({ productId: extra.id, quantity: 1 });
     }
     const order = await orders.placeOrder(buyerId, { shipping, items, requestKey: crypto.randomUUID(), ...DEPOSIT, paymentPlan });
     await prepay(order, adminId);

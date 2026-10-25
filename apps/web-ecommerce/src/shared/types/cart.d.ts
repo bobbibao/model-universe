@@ -4,7 +4,6 @@ import type { ModelCondition } from '../gunpla';
 // Cart stored in the browser (localStorage); prices are always taken from the server quote.
 export type CartItem = {
   productId: number;
-  size: string;
   quantity: number;
   // Display snapshot, used until the first quote arrives.
   name: string;
@@ -13,11 +12,10 @@ export type CartItem = {
   brandName: string;
 };
 
-export type CartLineStatus = 'OK' | 'UNAVAILABLE' | 'OUT_OF_STOCK' | 'INSUFFICIENT_STOCK' | 'INVALID_SIZE';
+export type CartLineStatus = 'OK' | 'UNAVAILABLE' | 'OUT_OF_STOCK' | 'INSUFFICIENT_STOCK';
 
 export type CartLine = {
   productId: number;
-  size: string;
   quantity: number;
   status: CartLineStatus;
   message?: string;
@@ -58,7 +56,6 @@ export type CartQuote = {
 export type WishlistItem = {
   id: number;
   productId: number;
-  size: string;
   createdAt: string;
   available: boolean;
   product: {

@@ -110,15 +110,15 @@ describe('conversion events', () => {
       sequelize,
       `SELECT id FROM "user" WHERE role = 'USER' LIMIT 1`,
     );
-    const [product] = await select<{ id: number; sizes: string[] }>(
+    const [product] = await select<{ id: number }>(
       sequelize,
-      `SELECT id, "availableSizes" AS sizes FROM product WHERE stock > 5 AND NOT "isArchived"
+      `SELECT id FROM product WHERE stock > 5 AND NOT "isArchived"
        AND "inventoryStatus" = 'available' ORDER BY id LIMIT 1`,
     );
     const order = await new OrderService().placeOrder(
       userId,
       {
-        items: [{ productId: product.id, size: product.sizes[0] ?? '', quantity: 1 }],
+        items: [{ productId: product.id, quantity: 1 }],
         shipping: { recipientName: 'Khách Test', phone: '0912345678', address: '12 Đường B', city: 'Hà Nội' },
         paymentPlan: 'full',
       },

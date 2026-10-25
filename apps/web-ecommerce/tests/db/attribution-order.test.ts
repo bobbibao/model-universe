@@ -9,19 +9,17 @@ describe('order attribution', () => {
   let sequelize: Sequelize;
   let userId: number;
   let productId: number;
-  let size: string;
   beforeAll(async () => {
     sequelize = await seedTestDatabase();
     [{ id: userId }] = await sequelize.query<{ id: number }>("SELECT id FROM \"user\" WHERE role = 'USER' LIMIT 1", {
       type: QueryTypes.SELECT,
     });
-    const [product] = await sequelize.query<{ id: number; sizes: string[] }>(
-      `SELECT id, "availableSizes" AS sizes FROM product WHERE stock > 5 AND NOT "isArchived"
+    const [product] = await sequelize.query<{ id: number }>(
+      `SELECT id FROM product WHERE stock > 5 AND NOT "isArchived"
        AND "inventoryStatus" = 'available' ORDER BY id LIMIT 1`,
       { type: QueryTypes.SELECT },
     );
     productId = product.id;
-    size = product.sizes[0] ?? '';
   }, 600_000);
   afterAll(() => sequelize.close());
 
@@ -29,7 +27,7 @@ describe('order attribution', () => {
     new OrderService().placeOrder(
       userId,
       {
-        items: [{ productId, size, quantity: 1 }],
+        items: [{ productId, quantity: 1 }],
         shipping: { recipientName: 'Khách Test', phone: '0912345678', address: '12 Đường B', city: 'Hà Nội' },
         paymentPlan: 'deposit',
       },

@@ -25,13 +25,12 @@ export type CustomerAction = {
   kind: CustomerActionKind;
   productId?: number;
   product?: ProductDetail;
-  size?: string;
   quantity?: number;
   path?: string;
   code?: string;
   orderId?: number;
   orderTotal?: number;
-  returnLines?: { orderItemId: number; name: string; size: string; maxQuantity: number }[];
+  returnLines?: { orderItemId: number; name: string; maxQuantity: number }[];
   wishlistItemId?: number;
   name?: string;
   email?: string;
@@ -73,5 +72,5 @@ export type AssistantRequest = {
   history: { role: 'user' | 'assistant'; text: string }[];
   research: boolean;
   path: string;
-  cart: { productId: number; size: string; quantity: number }[];
+  cart: { productId: number; quantity: number }[];
 };

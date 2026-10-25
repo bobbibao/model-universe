@@ -29,10 +29,10 @@ import vi from '../../src/messages/vi.json';
 import en from '../../src/messages/en.json';
 import { executeCustomerAction } from '../../src/core/client/features/assistant/executeCustomerAction';
 
-const product = { id: 3, name: 'Synthetic MG Gundam', stock: 5, availableSizes: ['M', 'L'], price: 700000, salePrice: 600000 };
+const product = { id: 3, name: 'Synthetic MG Gundam', stock: 5, price: 700000, salePrice: 600000 };
 const setup = () => ({
   cart: {
-    entries: [] as { item: { productId: number; size: string; quantity: number } }[],
+    entries: [] as { item: { productId: number; quantity: number } }[],
     addItem: jest.fn().mockReturnValue(true),
     updateQuantity: jest.fn(),
     removeItem: jest.fn(),
@@ -56,27 +56,24 @@ describe('customer action execution', () => {
   afterAll(() => {
     delete (global as { window?: unknown }).window;
   });
-  it('uses a fresh product lookup and requires an actual available size', async () => {
+  it('uses a fresh product lookup', async () => {
     const context = setup();
-    await expect(
-      executeCustomerAction({ kind: 'cart_add', productId: 3, quantity: 1, size: 'XL' }, context as never),
-    ).rejects.toThrow('kích thước');
-    expect(context.cart.addItem).not.toHaveBeenCalled();
     await executeCustomerAction(
-      { kind: 'cart_add', productId: 3, quantity: 1, size: 'M', product: { ...product, stock: 999 } as never },
+      { kind: 'cart_add', productId: 3, quantity: 1, product: { ...product, stock: 999 } as never },
       context as never,
     );
-    expect(context.cart.addItem).toHaveBeenCalledWith(product, 'M', 1);
+    expect(ProductApi.getProduct).toHaveBeenCalledWith(3);
+    expect(context.cart.addItem).toHaveBeenCalledWith(product, 1);
   });
-  it('checks aggregate stock across sizes before cart mutations', async () => {
+  it('checks the stock already in the bag before cart mutations', async () => {
     const context = setup();
-    context.cart.entries = [{ item: { productId: 3, size: 'M', quantity: 3 } }];
+    context.cart.entries = [{ item: { productId: 3, quantity: 3 } }];
     await expect(
-      executeCustomerAction({ kind: 'cart_add', productId: 3, size: 'L', quantity: 3 }, context as never),
+      executeCustomerAction({ kind: 'cart_add', productId: 3, quantity: 3 }, context as never),
     ).rejects.toThrow('tồn kho');
     expect(context.cart.addItem).not.toHaveBeenCalled();
-    await executeCustomerAction({ kind: 'cart_update', productId: 3, size: 'M', quantity: 4 }, context as never);
-    expect(context.cart.updateQuantity).toHaveBeenCalledWith(3, 'M', 4);
+    await executeCustomerAction({ kind: 'cart_update', productId: 3, quantity: 4 }, context as never);
+    expect(context.cart.updateQuantity).toHaveBeenCalledWith(3, 4);
   });
   it('checks review eligibility and does not invent a rating', async () => {
     const context = setup();
@@ -116,38 +113,38 @@ describe('customer action execution', () => {
     );
     expect(context.push).not.toHaveBeenCalled();
   });
-  it('adds a size-free Gunpla kit and updates only an existing cart line', async () => {
+  it('adds a kit and updates only an existing cart line', async () => {
     const context = setup();
-    jest.mocked(ProductApi.getProduct).mockResolvedValue({ ...product, availableSizes: [] } as never);
-    await executeCustomerAction({ kind: 'cart_add', productId: 3, size: '', quantity: 2 }, context as never);
-    expect(context.cart.addItem).toHaveBeenCalledWith(expect.objectContaining({ availableSizes: [] }), '', 2);
-    await expect(executeCustomerAction({ kind: 'cart_update', productId: 3, size: '', quantity: 1 }, context as never))
+    jest.mocked(ProductApi.getProduct).mockResolvedValue(product as never);
+    await executeCustomerAction({ kind: 'cart_add', productId: 3, quantity: 2 }, context as never);
+    expect(context.cart.addItem).toHaveBeenCalledWith(expect.objectContaining({ id: 3 }), 2);
+    await expect(executeCustomerAction({ kind: 'cart_update', productId: 3, quantity: 1 }, context as never))
       .rejects.toThrow('chưa có trong giỏ');
     expect(context.cart.updateQuantity).not.toHaveBeenCalled();
   });
   it('removes only a present line and clears both cart and coupon', async () => {
     const context = setup();
-    context.cart.entries = [{ item: { productId: 3, size: '', quantity: 1 } }];
-    await executeCustomerAction({ kind: 'cart_remove', productId: 3, size: '' }, context as never);
-    expect(context.cart.removeItem).toHaveBeenCalledWith(3, '');
+    context.cart.entries = [{ item: { productId: 3, quantity: 1 } }];
+    await executeCustomerAction({ kind: 'cart_remove', productId: 3 }, context as never);
+    expect(context.cart.removeItem).toHaveBeenCalledWith(3);
     await executeCustomerAction({ kind: 'cart_clear' }, context as never);
     expect(context.cart.clearCart).toHaveBeenCalledTimes(1);
     expect(context.setCoupon).toHaveBeenCalledWith(null);
   });
   it('adds a verified kit to the wishlist and removes an owned wishlist record', async () => {
     const context = setup();
-    jest.mocked(ProductApi.getProduct).mockResolvedValue({ ...product, availableSizes: [] } as never);
+    jest.mocked(ProductApi.getProduct).mockResolvedValue(product as never);
     jest.mocked(WishlistApi.addItem).mockResolvedValue(true as never);
     jest.mocked(WishlistApi.getWishlist).mockResolvedValue([{ id: 601, productId: 3 }] as never);
     jest.mocked(WishlistApi.removeItem).mockResolvedValue(true as never);
-    await executeCustomerAction({ kind: 'wishlist_add', productId: 3, size: '' }, context as never);
+    await executeCustomerAction({ kind: 'wishlist_add', productId: 3 }, context as never);
     await executeCustomerAction({ kind: 'wishlist_remove', wishlistItemId: 601 }, context as never);
-    expect(WishlistApi.addItem).toHaveBeenCalledWith(3, '');
+    expect(WishlistApi.addItem).toHaveBeenCalledWith(3);
     expect(WishlistApi.removeItem).toHaveBeenCalledWith(601);
   });
   it('uses a fresh quote for coupons and rejects an invalid cart', async () => {
     const context = setup();
-    context.cart.entries = [{ item: { productId: 3, size: '', quantity: 2 } }];
+    context.cart.entries = [{ item: { productId: 3, quantity: 2 } }];
     jest.mocked(CartApi.getQuote).mockResolvedValue({ itemCount: 2, hasIssues: false, subtotal: 1200000 } as never);
     jest.mocked(CouponApi.validateCoupon).mockResolvedValue({ code: 'KIT10' } as never);
     await executeCustomerAction({ kind: 'apply_coupon', code: 'KIT10' }, context as never);
@@ -194,7 +191,7 @@ describe('customer action execution', () => {
       return message.replace(/\{(\w+)\}/g, (_, name: string) => String(values[name]));
     };
     expect(await executeCustomerAction({ kind: 'navigate', path: '/shop' }, context as never)).toBe('Opened the requested page.');
-    await expect(executeCustomerAction({ kind: 'cart_add', productId: 3, size: 'M', quantity: 6 }, context as never))
+    await expect(executeCustomerAction({ kind: 'cart_add', productId: 3, quantity: 6 }, context as never))
       .rejects.toThrow('Quantity exceeds current stock (5).');
     expect(context.cart.addItem).not.toHaveBeenCalled();
   });

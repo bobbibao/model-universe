@@ -89,7 +89,7 @@ def to_stock_item(row: dict[str, Any], now: datetime) -> StockItem:
         days_in_stock=max(0, (now - stocked_at).days),
         channel=str(row["sales_channel"]),
         condition="new",  # the shop records no per-unit condition for stock
-        expiry_date=None,  # clothing has no expiry
+        expiry_date=None,  # model kits have no expiry
     )
 
 

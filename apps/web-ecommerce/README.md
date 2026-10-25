@@ -1,4 +1,4 @@
-# Clothing Shop (web-ecommerce)
+# Model Universe shop (web-ecommerce)
 
 E-commerce application: a customer storefront and an admin panel in a single Next.js 14 + Express application,
 backed by PostgreSQL. See [`PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md) for the business rules, architecture
@@ -7,8 +7,8 @@ patterns and feature-to-code map.
 ## Features
 
 **Storefront** (`/`)
-- Home with featured products. Shop with search, category, gender, brand, price and stock filters, sorting and pagination.
-- Product detail with gallery, sizes, stock, and real rating distribution. Customers who received a product can review it.
+- Home with featured products. Shop with search, condition, brand, scale, price and stock filters, sorting and pagination.
+- Product detail with gallery, a condition picker (new, 2hand, missing accessories, defective), stock, and real rating distribution. Customers who received a product can review it.
 - Cart kept in the browser and re-priced by the server. Carts containing sold-out, archived or deleted products are
   flagged and cannot be ordered.
 - Coupons, cash-on-delivery checkout with shipping details, order history, and cancelling orders that are still being processed.
@@ -119,6 +119,6 @@ See [`.env.example`](./.env.example). The main groups are:
 - **Uploads:** uploaded product images are stored in `UPLOAD_DIR` (default `./uploads`, git-ignored). In Docker, mount
   it as a volume so images survive container restarts. Images removed from a product are deleted from disk; files
   uploaded for a form that was then abandoned are not cleaned up automatically.
-- **Seed images:** product images are hot-linked from `images.asos-media.com`. If an image cannot be loaded, a
+- **Seed images:** catalogue images are hot-linked from retailer sites (or a placeholder). If an image cannot be loaded, a
   placeholder is shown.
 - **Development port:** `yarn dev` and `yarn start` stop with an error if the port is already in use.

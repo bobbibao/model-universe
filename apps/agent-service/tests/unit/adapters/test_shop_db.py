@@ -36,7 +36,7 @@ def _stock(sku: str, quantity: int = 40, cost: int = 500_000, days: int = 120) -
 
 def _return(sku: str, quantity: int, refund: int, condition: str = "open_box") -> dict[str, Any]:
     return {
-        "order_id": 7, "sku": sku, "reason": "wrong_size", "condition": condition, "quantity": quantity,
+        "order_id": 7, "sku": sku, "reason": "missing_accessories", "condition": condition, "quantity": quantity,
         "refund_vnd": refund, "returned_at": NOW - timedelta(days=5),
     }  # fmt: skip
 

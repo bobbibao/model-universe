@@ -192,7 +192,7 @@ def benchmark_tokens_per_second(base_url: str, model: str = BENCHMARK_MODEL) -> 
             f"{base_url.rstrip('/')}/api/generate",
             json={
                 "model": model,
-                "prompt": "Viết ba câu giới thiệu một cửa hàng thời trang.",
+                "prompt": "Viết ba câu giới thiệu một cửa hàng mô hình lắp ráp.",
                 "stream": False,
                 "options": {"num_predict": 128},
             },

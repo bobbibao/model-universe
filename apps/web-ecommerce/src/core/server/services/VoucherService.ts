@@ -355,7 +355,7 @@ export default class VoucherService {
       })
     ).filter(isSellable);
     const pricing = await this.cart.resolveLines(
-      candidates.map((product) => ({ productId: product.id, size: product.availableSizes?.[0] ?? '', quantity: 1 })),
+      candidates.map((product) => ({ productId: product.id, quantity: 1 })),
     );
     const candidatePricing = (await this.pricing.context(candidates)).pricing;
     const regularNow = shopLines.reduce((sum, item) => sum + item.salePrice * item.quantity, 0);
@@ -519,7 +519,7 @@ export default class VoucherService {
       })
     ).filter(isSellable);
     const { lines } = await this.cart.resolveLines(
-      products.map((product) => ({ productId: product.id, size: product.availableSizes?.[0] ?? '', quantity: 1 })),
+      products.map((product) => ({ productId: product.id, quantity: 1 })),
     );
     const byId = new Map(products.map((product) => [product.id, product]));
     const { policy, pricing } = await this.pricing.context(products);

@@ -14,12 +14,9 @@ export default class WishlistApi {
     }
   }
 
-  static async addItem(
-    productId: number,
-    size: string,
-  ): Promise<Pick<WishlistItem, 'id' | 'productId' | 'size'> | undefined> {
+  static async addItem(productId: number): Promise<Pick<WishlistItem, 'id' | 'productId'> | undefined> {
     try {
-      const response = await Api.post(WISHLIST_API.ADD_ITEM, { productId, size });
+      const response = await Api.post(WISHLIST_API.ADD_ITEM, { productId });
       return response.data;
     } catch (error) {
       return undefined;

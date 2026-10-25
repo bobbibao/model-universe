@@ -154,7 +154,6 @@ export const seedOrderData = async (): Promise<void> => {
           productId: product.id,
           productName: product.name,
           imageUrl: product.imageUrl,
-          size: product.availableSizes.length > 0 ? faker.helpers.arrayElement(product.availableSizes) : '',
           quantity: faker.helpers.weightedArrayElement([
             { weight: 85, value: 1 },
             { weight: 15, value: 2 },

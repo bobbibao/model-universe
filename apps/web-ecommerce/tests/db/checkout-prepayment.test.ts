@@ -23,7 +23,7 @@ describe('checkout deposit or full payment on disposable PostgreSQL', () => {
   };
   const place = (extra: Record<string, unknown>) =>
     orders.placeOrder(userId, {
-      items: [{ productId: product.id, quantity: 1, size: '' }],
+      items: [{ productId: product.id, quantity: 1 }],
       shipping,
       requestKey: `prepayment-${++key}-${Date.now()}`,
       ...extra,

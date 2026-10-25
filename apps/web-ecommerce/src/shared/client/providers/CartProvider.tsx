@@ -30,9 +30,9 @@ interface CartContextValue {
   subtotal: number;
   hasIssues: boolean;
   quoting: boolean;
-  addItem: (product: CartProduct, size: string, quantity: number) => boolean;
-  updateQuantity: (productId: number, size: string, quantity: number) => void;
-  removeItem: (productId: number, size: string) => void;
+  addItem: (product: CartProduct, quantity: number) => boolean;
+  updateQuantity: (productId: number, quantity: number) => void;
+  removeItem: (productId: number) => void;
   removeUnavailable: () => void;
   clearCart: () => void;
   refreshQuote: () => Promise<CartQuote | undefined>;
@@ -40,12 +40,25 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-const lineKey = (productId: number, size: string) => `${productId}::${size}`;
-
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const t = useTranslations('checkout');
   const [storedItems, setStoredItems] = useLocalStorage<CartItem[]>(CART_STORAGE_KEY, []);
-  const items = useMemo(() => (Array.isArray(storedItems) ? storedItems : []), [storedItems]);
+  // One line per product (a cart saved before sizes were dropped may hold several lines of a product: they merge).
+  const items = useMemo(() => {
+    const merged = new Map<number, CartItem>();
+    for (const item of Array.isArray(storedItems) ? storedItems : []) {
+      const existing = merged.get(item.productId);
+      merged.set(item.productId, {
+        productId: item.productId,
+        quantity: (existing?.quantity ?? 0) + item.quantity,
+        name: item.name,
+        imageUrl: item.imageUrl,
+        price: item.price,
+        brandName: item.brandName,
+      });
+    }
+    return [...merged.values()];
+  }, [storedItems]);
   // Multiple assistant action cards can resolve their product lookups in the same render.
   // Keep each mutation based on the latest cart instead of an older render's snapshot.
   const latestItems = useRef(items);
@@ -66,7 +79,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setQuoting(true);
     const result = await CartApi.getQuote(
-      items.map(({ productId, size, quantity }) => ({ productId, size, quantity })),
+      items.map(({ productId, quantity }) => ({ productId, quantity })),
     );
     // Ignore answers to outdated requests.
     if (current !== requestId.current) return result;
@@ -81,15 +94,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [refreshQuote]);
 
   const entries = useMemo(() => {
-    const lines = new Map((quote?.lines || []).map((line) => [lineKey(line.productId, line.size), line]));
-    return items.map((item) => ({ item, line: lines.get(lineKey(item.productId, item.size)) }));
+    const lines = new Map((quote?.lines || []).map((line) => [line.productId, line]));
+    return items.map((item) => ({ item, line: lines.get(item.productId) }));
   }, [items, quote]);
 
-  const addItem = (product: CartProduct, size: string, quantity: number) => {
+  const addItem = (product: CartProduct, quantity: number) => {
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) return false;
     const items = latestItems.current;
-    // Stock is per product, so all sizes already in the cart count.
-    const inCart = items.filter((item) => item.productId === product.id).reduce((sum, item) => sum + item.quantity, 0);
+    const inCart = items.find((item) => item.productId === product.id)?.quantity ?? 0;
     if (inCart + quantity > product.stock) {
       toast.error(
         product.stock > inCart
@@ -98,7 +110,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       );
       return false;
     }
-    const existing = items.find((item) => item.productId === product.id && item.size === size);
+    const existing = items.find((item) => item.productId === product.id);
     const snapshot = {
       name: product.name,
       imageUrl: product.imageUrl,
@@ -108,32 +120,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     saveItems(
       existing
         ? items.map((item) => (item === existing ? { ...item, ...snapshot, quantity: item.quantity + quantity } : item))
-        : [...items, { productId: product.id, size, quantity, ...snapshot }],
+        : [...items, { productId: product.id, quantity, ...snapshot }],
     );
     toast.success(t('addedToBag'));
     return true;
   };
 
-  const updateQuantity = (productId: number, size: string, quantity: number) => {
+  const updateQuantity = (productId: number, quantity: number) => {
     if (!Number.isInteger(quantity) || quantity < 1) return;
-    saveItems(
-      latestItems.current.map((item) =>
-        item.productId === productId && item.size === size ? { ...item, quantity } : item,
-      ),
-    );
+    saveItems(latestItems.current.map((item) => (item.productId === productId ? { ...item, quantity } : item)));
   };
 
-  const removeItem = (productId: number, size: string) =>
-    saveItems(latestItems.current.filter((item) => !(item.productId === productId && item.size === size)));
+  const removeItem = (productId: number) =>
+    saveItems(latestItems.current.filter((item) => item.productId !== productId));
 
-  // Drops lines whose product was deleted, archived, sold out or whose size no longer exists.
+  // Drops lines whose product was deleted, archived or sold out.
   const removeUnavailable = () => {
     const unavailable = new Set(
       entries
-        .filter(({ line }) => line && ['UNAVAILABLE', 'OUT_OF_STOCK', 'INVALID_SIZE'].includes(line.status))
-        .map(({ item }) => lineKey(item.productId, item.size)),
+        .filter(({ line }) => line && ['UNAVAILABLE', 'OUT_OF_STOCK'].includes(line.status))
+        .map(({ item }) => item.productId),
     );
-    saveItems(latestItems.current.filter((item) => !unavailable.has(lineKey(item.productId, item.size))));
+    saveItems(latestItems.current.filter((item) => !unavailable.has(item.productId)));
   };
 
   const clearCart = () => saveItems([]);

@@ -129,7 +129,6 @@ const ReturnIntakeModal = ({ returnId, onClose, onChanged }: ReturnIntakeModalPr
             <div key={item.id} className="rounded border border-stroke p-3 dark:border-strokedark">
               <p className="font-medium">
                 {item.orderItem.productName} × {item.quantity}
-                {item.orderItem.size && <span className="text-body"> · Size {item.orderItem.size}</span>}
               </p>
               <p className="text-body">
                 {t('reason')}: {t(`reasons.${item.reason}`)} · {money(item.orderItem.unitPrice)}

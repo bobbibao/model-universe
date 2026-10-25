@@ -394,7 +394,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       }))!;
     const order = await orders.placeOrder(userId, {
       requestKey: crypto.randomUUID(),
-      items: [{ productId: product.id, quantity: 1, size: '' }],
+      items: [{ productId: product.id, quantity: 1 }],
       shipping: {
         recipientName: 'Fixture Collector',
         phone: '0901234567',

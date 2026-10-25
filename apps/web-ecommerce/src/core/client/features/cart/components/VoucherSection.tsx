@@ -13,7 +13,7 @@ import VoucherPicker, { type VoucherOption, type MonthlyOffer } from './VoucherP
 
 interface Props {
   loggedIn: boolean;
-  items: { productId: number; size: string; quantity: number }[];
+  items: { productId: number; quantity: number }[];
   subtotal: number;
   shippingFeeVnd: number;
   coupon: CouponPreview | null;

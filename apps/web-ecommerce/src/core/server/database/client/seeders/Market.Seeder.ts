@@ -89,8 +89,8 @@ export const seedMarketCompetitorData = async (): Promise<void> => {
     await MarketCompetitorCampaignModel.bulkCreate([
       {
         competitorId: competitors[1].id,
-        title: 'Giảm 30% toàn bộ giày',
-        category: 'shoes',
+        title: 'Giảm 30% toàn bộ figure hợp kim',
+        category: 'alloy-figures',
         discountPct: 30,
         startsAt: daysAgo(3),
         endsAt: daysFromNow(5),

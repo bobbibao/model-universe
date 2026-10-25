@@ -59,11 +59,6 @@ export default function OrderDetails({
                   ? catalog(isModelCondition(item.modelSnapshot.condition) ? item.modelSnapshot.condition : 'new')
                   : ''}
               </p>
-              {item.size && (
-                <p className="mu-note">
-                  {t('size')}: {item.size}
-                </p>
-              )}
               <p className="mu-note">
                 {item.quantity} × {money(item.unitPrice)}
               </p>

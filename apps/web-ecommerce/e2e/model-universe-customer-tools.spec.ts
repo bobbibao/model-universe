@@ -23,7 +23,7 @@ for (const locale of ['vi', 'en'] as const) for (const viewport of [
     const detail = await (await staff.request.get(`/api/admin/products/${source.id}`)).json();
     const sku = `TOOLS-BROWSER-${crypto.randomUUID()}`;
     const created = await staff.request.post('/api/admin/products', { data: { name: `Synthetic discovery ${locale} ${viewport.width} ${sku.slice(-8)}`, sku, brandName: 'Synthetic Fixture Manufacturer', categoryId: detail.categoryId,
-      price: 200000, importPrice: 0, stock: 0, imageUrl: detail.imageUrl, grade: 'HG', condition: 'new', assemblyState: 'unassembled', availableSizes: [], descriptionEn: 'Disposable fixture. Reference image is not actual merchandise evidence.', descriptionVi: 'Dữ liệu kiểm thử riêng. Ảnh tham khảo không phải bằng chứng hàng thực tế.' } });
+      price: 200000, importPrice: 0, stock: 0, imageUrl: detail.imageUrl, grade: 'HG', condition: 'new', assemblyState: 'unassembled', descriptionEn: 'Disposable fixture. Reference image is not actual merchandise evidence.', descriptionVi: 'Dữ liệu kiểm thử riêng. Ảnh tham khảo không phải bằng chứng hàng thực tế.' } });
     expect(created.ok()).toBeTruthy(); const product = (await created.json()).data;
     await page.goto(`/${locale}/account/addresses`);
     const form = page.getByRole('form', { name: m.customerTools.addressForm }); await expect(form).toBeVisible();

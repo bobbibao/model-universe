@@ -35,7 +35,6 @@ export function customerPath(raw: unknown): string | undefined {
           'category',
           'scale',
           'condition',
-          'gender',
           'brand',
           'minPrice',
           'maxPrice',
@@ -63,7 +62,6 @@ export function parseCustomerAction(raw: unknown): CustomerAction | undefined {
     }
   }
   const limits = {
-    size: 30,
     code: 80,
     name: 120,
     email: 254,
@@ -94,7 +92,6 @@ export function parseCustomerAction(raw: unknown): CustomerAction | undefined {
   if (['cart_add', 'cart_update', 'cart_remove', 'wishlist_add', 'review'].includes(action.kind) && !action.productId)
     return;
   if (['cart_add', 'cart_update'].includes(action.kind) && !action.quantity) return;
-  if (action.kind === 'cart_remove' && action.size === undefined) return;
   if (action.kind === 'wishlist_remove' && !action.wishlistItemId) return;
   if (['cancel_order', 'return_request'].includes(action.kind) && !action.orderId) return;
   if (action.kind === 'apply_coupon' && !action.code) return;

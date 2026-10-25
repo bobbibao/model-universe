@@ -76,7 +76,7 @@ const VIEWS: Record<string, string> = {
   catalog: `
     SELECT p.sku, p.name, p."brandName" AS brand, p.description, COALESCE(c.slug, 'uncategorized') AS category,
            COALESCE(c.name, 'Uncategorized') AS category_name,
-           p.gender::text AS gender, p.price AS price_vnd, p."importPrice" AS unit_cost_vnd,
+           p.price AS price_vnd, p."importPrice" AS unit_cost_vnd,
            COALESCE(ROUND(p.price * (100 - d.percent)::numeric / 100)::int, p.price) AS sale_price_vnd,
            COALESCE(d.percent, 0) AS discount_pct, p.stock AS quantity, p."inventoryStatus"::text AS inventory_status,
            p."salesChannel"::text AS sales_channel, p."isArchived" AS is_archived, p."createdAt" AS created_at,

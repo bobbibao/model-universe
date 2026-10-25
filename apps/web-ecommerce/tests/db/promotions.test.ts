@@ -45,7 +45,7 @@ describe('promotions: one voucher plus the rank benefit, drops, check-in, wheel 
     });
   const place = (extra: Record<string, unknown>) =>
     orders.placeOrder(userId, {
-      items: [{ productId: product.id, quantity: 1, size: '' }],
+      items: [{ productId: product.id, quantity: 1 }],
       shipping,
       paymentPlan: 'full',
       requestKey: `promo-${crypto.randomUUID()}`,
@@ -93,7 +93,7 @@ describe('promotions: one voucher plus the rank benefit, drops, check-in, wheel 
   it('refuses a money-off code that would sell below the profit floor (no more unguarded admin codes)', async () => {
     await coupon('LOSS50', { discountPercent: 50 });
     await expect(place({ couponCode: 'LOSS50' })).rejects.toMatchObject({ code: 'VOUCHER_NOT_ELIGIBLE' });
-    const quote = await new CartService().quote([{ productId: product.id, quantity: 1, size: '' }], {
+    const quote = await new CartService().quote([{ productId: product.id, quantity: 1 }], {
       couponCode: 'LOSS50',
       userId,
     });
@@ -125,7 +125,7 @@ describe('promotions: one voucher plus the rank benefit, drops, check-in, wheel 
     });
     // Points buy point vouchers; they are not money at checkout.
     await expect(place({ couponCode: 'MEMBER10X', redeemPoints: 20 })).rejects.toMatchObject({ code: 'POINTS_NOT_CASH' });
-    const quote = await new CartService().quote([{ productId: product.id, quantity: 1, size: '' }], {
+    const quote = await new CartService().quote([{ productId: product.id, quantity: 1 }], {
       couponCode: 'MEMBER10X',
       userId,
     });
@@ -163,7 +163,7 @@ describe('promotions: one voucher plus the rank benefit, drops, check-in, wheel 
     // R 1,666,667 and cost 1,250,000 (TC08): 12% passes alone (84.55%), plus Diamond only 69.11%.
     await product.update({ price: 1_666_667, importPrice: 1_250_000 });
     try {
-      const quote = await new CartService().quote([{ productId: product.id, quantity: 1, size: '' }], {
+      const quote = await new CartService().quote([{ productId: product.id, quantity: 1 }], {
         couponCode: 'KIT12X',
         userId,
       });

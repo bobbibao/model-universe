@@ -17,7 +17,6 @@ from shop_agent.graphs.customer_assistant import graph
 PRODUCT = {
     "id": 501,
     "name": "Synthetic MG Gundam inspection fixture",
-    "grade": "MG",
     "scale": "1/100",
     "salePrice": 1450000,
     "stock": 6,
@@ -29,7 +28,7 @@ BASE = {
     "readsAllowed": False,
     "message": "",
     "catalog": [PRODUCT],
-    "cart": [{"productId": 501, "size": "", "quantity": 1}],
+    "cart": [{"productId": 501, "quantity": 1}],
     "observations": [
         {"tool": {"kind": "my_order", "orderId": 701}, "data": {"id": 701, "status": "PROCESSING", "total": 1450000}},
         {

@@ -18,7 +18,6 @@ export type ReturnItem = {
     productId: number;
     productName: string;
     imageUrl: string;
-    size: string;
     quantity: number;
     unitPrice: number;
   };

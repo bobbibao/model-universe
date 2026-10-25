@@ -83,7 +83,6 @@ const productFacts = (p: ProductSummary, locale: 'vi' | 'en') => {
     stock: p.stock,
     rating: p.rating,
     reviewCount: p.reviewCount,
-    sizes: detail.availableSizes,
     description:
       (locale === 'en' ? p.descriptionEn : p.descriptionVi)?.slice(0, 400) || detail.description?.slice(0, 400),
     weight: detail.weight,
@@ -399,7 +398,7 @@ export default class CustomerAssistantService {
             action.returnLines = info.lines.flatMap((line) => {
               const item = ordered.find((i) => i.id === line.orderItemId);
               return item && line.returnable > 0
-                ? [{ orderItemId: item.id, name: item.productName, size: item.size, maxQuantity: line.returnable }]
+                ? [{ orderItemId: item.id, name: item.productName, maxQuantity: line.returnable }]
                 : [];
             });
             if (
@@ -473,7 +472,6 @@ export default class CustomerAssistantService {
           condition: isModelCondition(read.condition) ? read.condition : undefined,
           brand: text(read.brand, 100),
           category: text(read.category, 100),
-          gender: ['male', 'female', 'unisex'].includes(String(read.gender)) ? String(read.gender) : undefined,
           inStock: read.inStock === true,
           channel: ['web', 'outlet'].includes(String(read.channel)) ? String(read.channel) : undefined,
           minPrice: typeof read.minPrice === 'number' && read.minPrice >= 0 ? read.minPrice : undefined,

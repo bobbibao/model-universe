@@ -7,7 +7,6 @@ import { seedProductData } from '../seeders/Product.Seeder';
 import type { ModelCondition, AssemblyState } from '../../../../../shared/gunpla';
 import type { ProductPackaging } from '../../../../../shared/packing/rules';
 
-export type ProductGender = 'male' | 'female' | 'unisex';
 // Set by the shop agent's inventory adjustments. Anything but `available` is hidden from the storefront.
 export type InventoryStatus = 'available' | 'quarantine' | 'donation_pending' | 'recycle';
 export type SalesChannel = 'web' | 'outlet';
@@ -105,12 +104,6 @@ export default class ProductModel extends Model {
 
   @Column(DataType.TEXT)
   descriptionVi?: string;
-
-  @Column({ type: DataType.ENUM('male', 'female', 'unisex'), allowNull: false, defaultValue: 'unisex' })
-  gender!: ProductGender;
-
-  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] })
-  availableSizes!: string[];
 
   // Prices are whole VND amounts.
   @Column({ type: DataType.INTEGER, allowNull: false })

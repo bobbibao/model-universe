@@ -9,7 +9,6 @@ export const RETURN_STATUS_LABELS: Record<ReturnStatus, string> = {
 };
 
 export const RETURN_REASON_LABELS: Record<ReturnReason, string> = {
-  wrong_size: 'Historical size mismatch',
   defective: 'Defective model',
   not_as_described: 'Description mismatch',
   changed_mind: 'Changed mind',
