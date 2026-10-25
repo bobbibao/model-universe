@@ -175,9 +175,10 @@ async function conditionFixture(page: Page, admin = false) {
     missingAccessories: condition === 'incomplete' ? ['Missing display stand'] : [],
     defects: condition === 'defective' ? ['Cracked shoulder armor'] : [],
     includedAccessories: ['Manual', 'Original box'],
-    stock: [8, 4, 0, 1][index],
+    stock: [8, 1, 0, 1][index],
     price: [1650000, 1100000, 750000, 600000][index],
     salePrice: [1650000, 1100000, 750000, 600000][index],
+    importPrice: 500000,
     discountPercent: 0,
     sku: `UI-${condition.toUpperCase()}`,
     imageUrl: model.imageUrl,
@@ -191,7 +192,7 @@ async function conditionFixture(page: Page, admin = false) {
     ...options[0],
     reviewCount: 0,
     rating: 0,
-    groupStock: 13,
+    groupStock: 10,
     conditionOptions: options,
     units,
     conditions: options.map((unit) => ({
@@ -225,8 +226,198 @@ async function conditionFixture(page: Page, admin = false) {
       });
     return route.fallback();
   });
-  return { writes, options };
+  return { writes, options, product };
 }
+
+for (const locale of ['vi', 'en'] as const) {
+  test(`${locale}: shared field IDs preserve password recovery focus without sending email`, async ({ page }) => {
+    await fixture(page);
+    await page.route('**/api/auth/forgot-password', (route) => route.fulfill({ json: {} }));
+    await page.goto(`/${locale}/auth/forgot-password`);
+    const email = page.getByRole('textbox', { name: 'Email', exact: true });
+    await email.fill('ui-preview@example.test');
+    await page.locator('form button[type="submit"]').click();
+    await page
+      .getByRole('button', { name: locale === 'vi' ? 'Dùng email khác' : 'Use another email', exact: true })
+      .click();
+    await expect(email).toBeFocused();
+    await expect(email).toHaveValue('ui-preview@example.test');
+  });
+}
+
+for (const locale of ['vi', 'en'] as const)
+  for (const width of [1440, 390]) {
+    const m = locale === 'vi' ? vi : en;
+    test(`${locale} ${width}: inventory inputs keep units, errors, save locks and independent metadata`, async ({
+      page,
+      context,
+    }) => {
+      const { product } = await conditionFixture(page, true);
+      await page.addInitScript(
+        (theme) => localStorage.setItem('color-theme', JSON.stringify(theme)),
+        width === 1440 ? 'light' : 'dark',
+      );
+      await context.addCookies([
+        { name: 'access_token', value: await signSessionToken(900001, 'ADMIN'), url: previewUrl, httpOnly: true },
+      ]);
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto(`/${locale}/admin/products/${model.id}`);
+      const editor = page.locator('.compact-admin-editor');
+      await editor.getByRole('tab', { name: m.adminProducts.inventory, exact: true }).click();
+      await expect(editor.locator('.product-form-section legend')).toHaveText([
+        m.adminProducts.fieldGuide.stockIdentity,
+        m.adminProducts.packaging.title,
+        m.adminProducts.fieldGuide.displayMetadata,
+      ]);
+      const stock = editor.locator('input[name="stock"]');
+      const length = editor.locator('input[name="packLengthCm"]');
+      await expect(stock).toHaveAttribute('type', 'number');
+      await expect(stock).toHaveCSS('background-color', width === 1440 ? 'rgb(255, 255, 255)' : 'rgb(32, 26, 48)');
+      const receivedDate = editor.locator('input[name="productionDate"]');
+      await receivedDate.fill('2026-02-30');
+      await editor.getByRole('button', { name: m.adminProducts.save, exact: true }).click();
+      await expect(receivedDate).toHaveAttribute('aria-invalid', 'true');
+      await expect(receivedDate).toBeFocused();
+      await receivedDate.fill('2024-02-29');
+      await stock.fill('-2');
+      await editor.getByRole('button', { name: m.adminProducts.save, exact: true }).click();
+      await expect(stock).toHaveValue('-2');
+      await expect(stock).toHaveAttribute('aria-invalid', 'true');
+      await expect(stock).toHaveCSS('border-color', width === 1440 ? 'rgb(187, 53, 82)' : 'rgb(253, 164, 175)');
+      await expect(stock).toBeFocused();
+      await stock.fill('2');
+      for (const name of ['packLengthCm', 'packWidthCm', 'packHeightCm', 'packWeightGram'])
+        await editor.locator(`input[name="${name}"]`).fill('');
+      await expect(editor.locator('.product-form-check input').first()).toBeDisabled();
+      await length.fill('30.5');
+      await expect(editor.locator('.product-form-check input').first()).toBeEnabled();
+      await editor.getByRole('button', { name: m.adminProducts.save, exact: true }).click();
+      await expect(length).toHaveValue('30.5');
+      await expect(length).toHaveAttribute('aria-invalid', 'true');
+      await expect(length).toBeFocused();
+      expect(
+        await length.evaluate((el) =>
+          el
+            .getAttribute('aria-describedby')
+            ?.split(' ')
+            .every((id) => !!document.getElementById(id)),
+        ),
+      ).toBe(true);
+      for (const [name, value] of Object.entries({
+        packLengthCm: '30',
+        packWidthCm: '15',
+        packHeightCm: '10',
+        packWeightGram: '3000',
+        weight: 'Approx. 3 kg',
+        dimensions: 'Display size: 28 cm',
+      }))
+        await editor.locator(`input[name="${name}"]`).fill(value);
+      let payload: Record<string, unknown> | undefined;
+      let release: () => void = () => {};
+      await page.route(`**/api/admin/products/${model.id}`, async (route) => {
+        if (route.request().method() === 'GET') return route.fallback();
+        payload = route.request().postDataJSON();
+        await new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        return route.fulfill({ json: { ...product, ...payload } });
+      });
+      await editor.getByRole('button', { name: m.adminProducts.save, exact: true }).click();
+      await expect.poll(() => !!payload).toBe(true);
+      await expect(stock).toBeDisabled();
+      await expect(editor.locator('input[name="name"]')).toBeDisabled();
+      await expect(editor.getByRole('button', { name: m.adminProducts.remove, exact: true })).toBeDisabled();
+      expect(payload).toMatchObject({
+        stock: 2,
+        weight: 'Approx. 3 kg',
+        dimensions: 'Display size: 28 cm',
+        packaging: { lengthCm: 30, widthCm: 15, heightCm: 10, weightGram: 3000 },
+      });
+      release();
+      await expect(editor.getByRole('button', { name: m.adminProducts.save, exact: true })).toBeEnabled();
+      await expect(stock).toBeEnabled();
+      await editor.getByRole('tab', { name: m.adminProducts.pricing, exact: true }).click();
+      const reference = editor.locator('input[name="pricingReferenceMemberVnd"]');
+      await reference.fill('');
+      await expect(editor.locator('input[name="pricingIssueCount"]')).toBeDisabled();
+      await reference.fill('1100000');
+      await expect(editor.locator('input[name="pricingIssueCount"]')).toBeEnabled();
+      await editor.getByRole('tab', { name: m.adminProducts.inventory, exact: true }).click();
+      await capture(page, `${locale}-${width}-inventory-field-order`);
+      await editor.getByRole('tab', { name: m.adminProducts.images, exact: true }).click();
+      const replacePhoto = editor.getByLabel(m.adminProducts.changeImage, { exact: true });
+      await replacePhoto.focus();
+      await expect(replacePhoto).toBeFocused();
+      await editor.getByRole('tab', { name: m.adminProducts.conditionSection, exact: true }).click();
+      await editor.getByRole('button', { name: m.adminProducts.addCondition, exact: true }).click();
+      const modal = page.getByRole('dialog');
+      await expect(modal.locator('input[type="file"]').first()).not.toHaveAttribute('required');
+      await expect(modal.getByLabel(m.catalog.condition, { exact: true })).toHaveValue('incomplete');
+      await expect(modal.getByLabel(m.catalog.condition, { exact: true })).toHaveCSS(
+        'background-color',
+        width === 1440 ? 'rgb(255, 255, 255)' : 'rgb(32, 26, 48)',
+      );
+      await expect(modal.locator('input[name="boxCondition"]')).toHaveCSS(
+        'background-color',
+        width === 1440 ? 'rgb(255, 255, 255)' : 'rgb(32, 26, 48)',
+      );
+      for (const name of ['condition', 'assemblyState', 'boxCondition', 'conditionNote', 'includedAccessories']) {
+        const ids = await page.locator(`[name="${name}"]`).evaluateAll((elements) => elements.map((el) => el.id));
+        expect(new Set(ids).size, `Unique label targets for ${name}`).toBe(ids.length);
+      }
+      await modal.getByLabel(m.adminProducts.includedAccessories, { exact: true }).fill('Modal accessory');
+      await page.keyboard.press('Escape');
+      await expect(editor.locator('textarea[name="includedAccessories"]')).not.toHaveValue('Modal accessory');
+    });
+
+    test(`${locale} ${width}: inherited model fields stay readable while unit-specific fields remain editable`, async ({
+      page,
+      context,
+    }) => {
+      const { options, writes } = await conditionFixture(page, true);
+      await page.addInitScript(
+        (theme) => localStorage.setItem('color-theme', JSON.stringify(theme)),
+        width === 1440 ? 'light' : 'dark',
+      );
+      await context.addCookies([
+        { name: 'access_token', value: await signSessionToken(900001, 'ADMIN'), url: previewUrl, httpOnly: true },
+      ]);
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto(`/${locale}/admin/products/${options[1].id}?section=conditions`);
+      const editor = page.locator('.compact-admin-editor');
+      await expect(editor.locator('#condition-fields select[name="condition"]')).toBeDisabled();
+      await expect(editor.locator('#condition-fields select[name="assemblyState"]')).toBeEnabled();
+      await editor.getByRole('tab', { name: m.adminProducts.basics, exact: true }).click();
+      await expect(editor.locator('input[name="name"]')).toHaveAttribute('readonly', '');
+      await expect(editor.locator('input[name="name"]')).toBeEnabled();
+      await expect(editor.locator('select[name="categoryId"]')).toBeDisabled();
+      await editor.getByRole('tab', { name: m.commerceUX.descriptionTab, exact: true }).click();
+      await expect(editor.locator('textarea[name="descriptionVi"]')).toHaveAttribute('readonly', '');
+      await editor.getByRole('tab', { name: m.adminProducts.inventory, exact: true }).click();
+      for (const name of ['packLengthCm', 'packWidthCm', 'packHeightCm', 'packWeightGram', 'weight', 'dimensions'])
+        await expect(editor.locator(`input[name="${name}"]`)).toHaveAttribute('readonly', '');
+      await expect(editor.locator('input[name="packLengthCm"]')).toHaveCSS('border-style', 'dashed');
+      await expect(editor.locator('input[type="checkbox"]').first()).toHaveCSS(
+        'accent-color',
+        width === 1440 ? 'rgb(101, 65, 183)' : 'rgb(201, 184, 251)',
+      );
+      await expect(editor.locator('input[type="checkbox"]').first()).toBeDisabled();
+      await expect(editor.locator('input[name="sku"]')).toBeEditable();
+      const stock = editor.locator('input[name="stock"]');
+      await expect(stock).toBeEditable();
+      await expect(stock).toHaveAttribute('max', '1');
+      await stock.fill('2');
+      await editor.getByRole('button', { name: m.adminProducts.save, exact: true }).click();
+      await expect(stock).toHaveAttribute('aria-invalid', 'true');
+      await expect(stock).toBeFocused();
+      await stock.fill('1');
+      await capture(page, `${locale}-${width}-inherited-field-states`);
+      await editor.getByRole('tab', { name: m.adminProducts.supplierStatus, exact: true }).click();
+      await expect(editor.locator('select[name="supplierId"]')).toBeDisabled();
+      await expect(editor.locator('select[name="inventoryStatus"]')).toBeEnabled();
+      expect(writes).toEqual([]);
+    });
+  }
 
 for (const locale of ['vi', 'en'] as const)
   for (const width of [1440, 768, 390]) {
@@ -248,6 +439,7 @@ for (const locale of ['vi', 'en'] as const)
       await expect(radios.nth(1)).toBeChecked();
       await expect(page).toHaveURL(new RegExp(`tinh-trang=${options[1].id}`));
       const purchase = page.locator('.product-purchase');
+      await radios.nth(0).check();
       await purchase.getByRole('button', { name: m.catalog.increase, exact: true }).click();
       await radios.nth(3).check();
       await expect(page.locator('.condition-details')).toContainText('Cracked shoulder armor');
@@ -298,17 +490,17 @@ for (const locale of ['vi', 'en'] as const)
       await page.goto(`/${locale}/admin/products/${model.id}?section=conditions`);
       const table = page.locator('.condition-listing-table');
       await expect(table.locator('tbody tr')).toHaveCount(5);
-      await expect(page.locator('.condition-inventory-total strong')).toHaveText('13');
+      await expect(page.locator('.condition-inventory-total strong')).toHaveText('10');
       expect(
         await page
           .locator('.admin-workspace')
           .evaluate((el) => getComputedStyle(el).getPropertyValue('--admin-accent').trim()),
       ).toBe(width === 390 ? '#c9b8fb' : '#6541b7');
-      await expect(page.locator('.condition-inventory dd')).toHaveText(['8', '4', '0', '1']);
+      await expect(page.locator('.condition-inventory dd')).toHaveText(['8', '1', '0', '1']);
       await expect(table.locator('.is-current')).toContainText(m.adminProducts.editingUnit);
       await page.getByRole('button', { name: m.adminProducts.openUnit + ' · ' + options[0].sku, exact: true }).click();
       await expect(page.locator('#condition-fields select[name="condition"]')).toBeFocused();
-      const note = page.locator('#condition-fields input[name="conditionNote"]');
+      const note = page.locator('#condition-fields textarea[name="conditionNote"]');
       await note.fill('Retained condition draft');
       await page.getByRole('tab', { name: m.adminProducts.images, exact: true }).click();
       await page.getByRole('tab', { name: m.adminProducts.conditionSection, exact: true }).click();
@@ -430,7 +622,8 @@ for (const locale of ['vi', 'en'] as const)
       ]);
       await page.setViewportSize({ width, height: width >= 1024 ? 768 : 844 });
       await page.goto(`/${locale}/admin/products`);
-      await expect(page.locator('.admin-table')).toHaveAttribute('aria-busy', 'false');
+      await expect(page.locator('.admin-table:visible')).toHaveCount(1);
+      await expect(page.locator('.admin-table:visible')).toHaveAttribute('aria-busy', 'false');
       await page.getByRole('button', { name: messages.commerceUX.compactRows, exact: true }).click();
       const picker = page.locator('.admin-column-picker');
       await picker.locator('summary').click();
@@ -443,16 +636,16 @@ for (const locale of ['vi', 'en'] as const)
         page.locator('thead').getByRole('columnheader', { name: messages.adminProducts.sold, exact: true }),
       ).toHaveCount(0);
       await page.reload();
-      await expect(page.locator('.admin-table')).toHaveCount(1);
-      await expect(page.locator('.admin-table')).toHaveAttribute('aria-busy', 'false');
-      await expect(page.locator('.admin-table')).toHaveClass(/is-compact/);
+      await expect(page.locator('.admin-table:visible')).toHaveCount(1);
+      await expect(page.locator('.admin-table:visible')).toHaveAttribute('aria-busy', 'false');
+      await expect(page.locator('.admin-table:visible')).toHaveClass(/is-compact/);
       await expect(
         page.locator('thead').getByRole('columnheader', { name: messages.adminProducts.sold, exact: true }),
       ).toHaveCount(0);
       await page.getByRole('tab', { name: messages.adminProducts.stats.title, exact: true }).click();
       await expect(page.locator('.inventory-kpis')).toBeVisible();
       await page.getByRole('tab', { name: messages.adminProducts.list, exact: true }).click();
-      await expect(page.locator('.admin-table')).toHaveClass(/is-compact/);
+      await expect(page.locator('.admin-table:visible')).toHaveClass(/is-compact/);
       await capture(page, `${locale}-${width}-admin-products`);
       if (width < 1024) await page.locator('.admin-menu-trigger').click();
       const search = page.getByRole('searchbox', { name: messages.commerceUX.findWorkspace });
@@ -523,6 +716,9 @@ for (const locale of ['vi', 'en'] as const) {
     await create.getByRole('textbox', { name: m.adminProducts.name, exact: true }).fill('Retained creation draft');
     await create.getByRole('textbox', { name: m.adminProducts.brand, exact: true }).fill('Fixture brand');
     await create.getByRole('button', { name: m.adminProducts.next, exact: true }).click();
+    await create.getByRole('button', { name: m.adminProducts.next, exact: true }).click();
+    await expect(create.getByLabel(m.adminProducts.chooseImage, { exact: true })).toBeFocused();
+    await expect(create.getByLabel(m.adminProducts.chooseImage, { exact: true })).toHaveAttribute('required');
     await create.getByRole('button', { name: m.adminProducts.back, exact: true }).click();
     await expect(create.getByRole('textbox', { name: m.adminProducts.name, exact: true })).toHaveValue(
       'Retained creation draft',

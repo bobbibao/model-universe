@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useId } from 'react';
 import ProductImage from '@/components/ProductImage';
 import UploadApi from '@/core/client/api/Upload';
 
@@ -34,6 +34,7 @@ interface ProductImagesFieldProps {
   onMainImageChange: (image: ImageItem | null) => void;
   onGalleryChange: (images: ImageItem[]) => void;
   error?: string;
+  required?: boolean;
 }
 
 const Thumbnail = ({ image, onRemove, label }: { image: ImageItem; onRemove: () => void; label: string }) => {
@@ -54,7 +55,7 @@ const Thumbnail = ({ image, onRemove, label }: { image: ImageItem; onRemove: () 
 };
 
 const pickerClassName =
-  'flex aspect-square w-32 cursor-pointer flex-col items-center justify-center gap-1 rounded border-2 border-dashed border-stroke text-sm text-body hover:border-brand-hover hover:text-brand-hover dark:border-strokedark focus-within:outline focus-within:outline-2 focus-within:outline-brand-hover';
+  'relative flex aspect-square w-32 cursor-pointer flex-col items-center justify-center gap-1 rounded border-2 border-dashed border-stroke text-sm text-body hover:border-brand-hover hover:text-brand-hover dark:border-strokedark focus-within:outline focus-within:outline-2 focus-within:outline-brand-hover';
 
 const ProductImagesField = ({
   mainImage,
@@ -62,8 +63,10 @@ const ProductImagesField = ({
   onMainImageChange,
   onGalleryChange,
   error,
+  required = true,
 }: ProductImagesFieldProps) => {
   const t = useTranslations('adminProducts');
+  const errorId = `product-image-error-${useId()}`;
   const handleMainImage = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) onMainImageChange(imageFromFile(file));
@@ -79,25 +82,54 @@ const ProductImagesField = ({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="mb-3 font-medium text-black dark:text-white">{t('mainImage')}</p>
+        <p className="mb-3 font-medium text-black dark:text-white">
+          {t('mainImage')}
+          {required && (
+            <span className="form-required" aria-hidden="true">
+              {' '}
+              *
+            </span>
+          )}
+        </p>
         <div className="flex flex-wrap items-center gap-4">
           {mainImage ? (
             <Thumbnail image={mainImage} label={t('mainImage')} onRemove={() => onMainImageChange(null)} />
           ) : (
             <label className={pickerClassName}>
-              <span aria-hidden="true" className="text-2xl">+</span>
+              <span aria-hidden="true" className="text-2xl">
+                +
+              </span>
               {t('chooseImage')}
-              <input type="file" accept={ACCEPT} aria-label={t(mainImage ? 'changeImage' : 'chooseImage')} className="sr-only" onChange={handleMainImage} />
+              <input
+                type="file"
+                accept={ACCEPT}
+                required={required}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? errorId : undefined}
+                aria-label={t('chooseImage')}
+                className="sr-only"
+                onChange={handleMainImage}
+              />
             </label>
           )}
           {mainImage && (
-            <label className="cursor-pointer font-medium text-brand-hover hover:underline">
+            <label className="relative cursor-pointer font-medium text-brand-hover hover:underline focus-within:outline focus-within:outline-2 focus-within:outline-brand-hover">
               {t('changeImage')}
-              <input type="file" accept={ACCEPT} className="hidden" onChange={handleMainImage} />
+              <input
+                type="file"
+                accept={ACCEPT}
+                aria-label={t('changeImage')}
+                className="sr-only"
+                onChange={handleMainImage}
+              />
             </label>
           )}
         </div>
-        {error && <p className="mt-2 text-sm text-danger">{error}</p>}
+        {error && (
+          <p id={errorId} className="mt-2 text-sm text-danger">
+            {error}
+          </p>
+        )}
       </div>
       <div>
         <p className="mb-3 font-medium text-black dark:text-white">
@@ -114,9 +146,18 @@ const ProductImagesField = ({
           ))}
           {gallery.length < MAX_GALLERY_IMAGES && (
             <label className={pickerClassName}>
-              <span aria-hidden="true" className="text-2xl">+</span>
+              <span aria-hidden="true" className="text-2xl">
+                +
+              </span>
               {t('addImage')}
-              <input type="file" accept={ACCEPT} multiple aria-label={t('addImage')} className="sr-only" onChange={handleGallery} />
+              <input
+                type="file"
+                accept={ACCEPT}
+                multiple
+                aria-label={t('addImage')}
+                className="sr-only"
+                onChange={handleGallery}
+              />
             </label>
           )}
         </div>

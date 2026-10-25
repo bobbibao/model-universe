@@ -21,6 +21,7 @@ import {
   pricingPayload,
   validateCondition,
   validatePricing,
+  validateReceivedDate,
 } from './productForm';
 
 // The model's units in Admin: the main listing and each condition option with its own SKU, price, stock and status,
@@ -67,9 +68,14 @@ const ProductConditions = ({
   };
 
   const create = async () => {
-    const formErrors: ProductFormErrors = { ...validateCondition(values), ...validatePricing(values) };
+    const formErrors: ProductFormErrors = {
+      ...validateCondition(values),
+      ...validatePricing(values),
+      ...validateReceivedDate(values),
+    };
     if (!values.pricingReferenceMemberVnd) formErrors.price = 'priceInvalid';
     if (!/^\d+$/.test(values.stock.trim())) formErrors.stock = 'stockInvalid';
+    else if (values.condition === 'preowned' && Number(values.stock) > 1) formErrors.stock = 'preownedStockInvalid';
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0) return;
     setSaving(true);
@@ -224,7 +230,9 @@ const ProductConditions = ({
         open={open}
         title={`${t('addCondition')} · ${product.listing?.name ?? product.name}`}
         size="lg"
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          if (!saving) setOpen(false);
+        }}
         footer={
           <>
             <button
@@ -246,7 +254,7 @@ const ProductConditions = ({
           </>
         }
       >
-        <div className="flex flex-col gap-6">
+        <fieldset disabled={saving} className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <ConditionFields values={values} errors={errors} onChange={onChange} />
           </div>
@@ -255,9 +263,14 @@ const ProductConditions = ({
             <TextField
               label={t('stock')}
               name="optionStock"
+              type="number"
+              min={0}
+              max={values.condition === 'preowned' ? 1 : undefined}
+              step={1}
+              required
               inputMode="numeric"
               value={values.stock}
-              onChange={(event) => onChange('stock', event.target.value.replace(/\D/g, ''))}
+              onChange={(event) => onChange('stock', event.target.value)}
               error={errors.stock ? t(`validation.${errors.stock}`) : undefined}
             />
             <TextField
@@ -270,6 +283,7 @@ const ProductConditions = ({
               label={t('receivedDate')}
               name="optionReceivedDate"
               type="date"
+              error={errors.productionDate ? t(`validation.${errors.productionDate}`) : undefined}
               value={values.productionDate}
               onChange={(event) => onChange('productionDate', event.target.value)}
             />
@@ -278,13 +292,14 @@ const ProductConditions = ({
             <p className="mb-1 font-medium text-black dark:text-white">{t('optionImages')}</p>
             <p className="mb-3 text-sm text-body">{t('optionImagesHint')}</p>
             <ProductImagesField
+              required={false}
               mainImage={mainImage}
               gallery={gallery}
               onMainImageChange={setMainImage}
               onGalleryChange={setGallery}
             />
           </div>
-        </div>
+        </fieldset>
       </Modal>
     </div>
   );

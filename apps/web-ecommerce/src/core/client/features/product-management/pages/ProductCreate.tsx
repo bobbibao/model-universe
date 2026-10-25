@@ -26,7 +26,7 @@ const ProductCreate = () => {
   const t = useTranslations('adminProducts'),
     locale = useLocale();
   const ux = useTranslations('commerceUX');
-  const bodyRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLFieldSetElement>(null);
   const steps = ['basics', 'images', 'pricing', 'inventory', 'supplier'].map((key) => t(key));
   const { categories, suppliers } = useProductFormOptions();
   const [step, setStep] = useState(0);
@@ -103,7 +103,14 @@ const ProductCreate = () => {
             {ux('formErrors', { count: Object.keys(errors).length })}
           </p>
         )}
-        <div className="compact-create-body" ref={bodyRef} tabIndex={-1} role="group" aria-label={steps[step]}>
+        <fieldset
+          disabled={saving}
+          className="compact-create-body"
+          ref={bodyRef}
+          tabIndex={-1}
+          role="group"
+          aria-label={steps[step]}
+        >
           {step === 0 && (
             <BasicInfoFields values={values} errors={errors} onChange={onChange} categories={categories} />
           )}
@@ -155,11 +162,12 @@ const ProductCreate = () => {
               </div>
             </div>
           )}
-        </div>
+        </fieldset>
         <div className="admin-editor-actions mt-8 flex flex-wrap justify-between gap-3">
           <button
             type="button"
             onClick={() => router.push('/admin/products')}
+            disabled={saving}
             className="rounded-md px-4 py-2 font-medium text-body hover:underline"
           >
             {t('exit')}
