@@ -16,7 +16,7 @@ const Kpi = ({ label, value, hint, tone }: { label: string; value: string; hint?
 
 // "Thống kê kho" above the product list: units on hand, products declared, stock at cost and at the suggested selling
 // price, and the same per brand and per condition.
-const InventoryStats = () => {
+const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
   const t = useTranslations('adminProducts.stats'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
@@ -28,7 +28,7 @@ const InventoryStats = () => {
   const count = (value: number) => value.toLocaleString(locale === 'en' ? 'en-US' : 'vi-VN');
   const { totals } = stats;
   return (
-    <details className="inventory-stats">
+    <details className="inventory-stats" open={expanded}>
       <summary>
         <span>{t('title')}</span>
         <small>{t('note')}</small>

@@ -1,11 +1,15 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useParams } from 'next/navigation';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
+import AdminAssistant from '@/components/Admin/AdminAssistant';
+import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
+import ProductImage from '@/components/ProductImage';
+import { formatVND } from '@/shared/server/utils/utils';
 import ConfirmModal from '@/components/Modal/ConfirmModal';
 import ProductApi from '@/core/client/api/Product';
 import type { AdminProduct } from '@/shared/types/product';
@@ -14,6 +18,8 @@ import ProductImagesField, { ImageItem, imageFromUrl, uploadPendingImages } from
 import ProductConditions from '../components/ProductConditions';
 import {
   BasicInfoFields,
+  DescriptionFields,
+  ConditionFields,
   InventoryFields,
   PricingFields,
   StatusFields,
@@ -28,23 +34,22 @@ import {
   validateProductForm,
 } from '../components/productForm';
 
-const Card = ({ title, id, children }: { title: string; id: string; children: React.ReactNode }) => (
-  <section
-    id={id}
-    aria-labelledby={`${id}-title`}
-    className="admin-editor-section rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark"
-  >
-    <h2 id={`${id}-title`} className="mb-5 text-lg font-semibold text-black dark:text-white">
-      {title}
-    </h2>
-    {children}
-  </section>
-);
+const tabForError = (key: string) => {
+  if (key === 'mainImage') return 'images';
+  if (['price', 'importPrice', 'pricingReferenceMemberVnd', 'pricingIssueCount'].includes(key)) return 'pricing';
+  if (['missingAccessories', 'defects', 'includedAccessories', 'condition', 'conditionNote'].includes(key))
+    return 'conditions';
+  if (['stock', 'sku', 'weight', 'dimensions', 'productionDate'].includes(key) || key.startsWith('pack'))
+    return 'inventory';
+  return 'basics';
+};
 
 const ProductEdit = () => {
   const router = useRouter();
   const t = useTranslations('adminProducts');
   const ux = useTranslations('commerceUX');
+  const locale = useLocale();
+  const [activeTab, setActiveTab] = useState('basics');
   const params = useParams<{ id: string }>();
   const productId = Number(params.id);
   const { categories, suppliers } = useProductFormOptions();
@@ -88,7 +93,11 @@ const ProductEdit = () => {
     if (!mainImage) formErrors.mainImage = 'mainImageRequired';
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0 || !mainImage) {
-      requestAnimationFrame(() => document.querySelector<HTMLElement>('.admin-page [aria-invalid="true"]')?.focus());
+      setActiveTab(tabForError(Object.keys(formErrors)[0]));
+      requestAnimationFrame(() => {
+        const panel = document.querySelector<HTMLElement>('.compact-admin-editor [role="tabpanel"]:not([hidden])');
+        (panel?.querySelector<HTMLElement>('[aria-invalid="true"]:not([disabled])') || panel)?.focus();
+      });
       return;
     }
 
@@ -139,9 +148,9 @@ const ProductEdit = () => {
   const option = Boolean(product.parentProductId);
 
   return (
-    <>
-      <Breadcrumb pageName={t('edit')} />
-      <p className="-mt-4 mb-6 text-body">{t('summary', { id: product.id, sold: product.sold, total })}</p>
+    <div className="compact-admin-product-page">
+      <Breadcrumb pageName={t('edit')} actions={<AdminAssistant inline />} />
+      <p className="compact-editor-caption">{t('summary', { id: product.id, sold: product.sold, total })}</p>
       {option && product.listing && (
         <p className="-mt-3 mb-6 flex flex-wrap items-center gap-2 rounded-md border border-brand-hover/30 bg-brand/10 px-4 py-3 text-sm">
           <span>{t('conditionOf', { name: product.listing.name })}</span>
@@ -153,80 +162,137 @@ const ProductEdit = () => {
           </Link>
         </p>
       )}
-      <nav className="admin-editor-nav" aria-label={ux('editorSections')}>
-        {['basics', 'conditions', 'images', 'pricing', 'supplierStatus', 'inventory'].map((key) => (
-          <a key={key} href={`#edit-${key}`}>
-            {t(key)}
-          </a>
-        ))}
-      </nav>
-      {Object.keys(errors).length > 0 && (
-        <p className="admin-load-error" role="alert">
-          {ux('formErrors', { count: Object.keys(errors).length })}
-        </p>
-      )}
-      <div className="admin-product-editor flex flex-col gap-6">
-        <Card id="edit-basics" title={t('basics')}>
-          <BasicInfoFields
-            values={values}
-            errors={errors}
-            onChange={onChange}
-            categories={categories}
-            readOnly={option}
-          />
-        </Card>
-        <Card id="edit-conditions" title={t('conditions')}>
-          <ProductConditions product={product} onCreated={load} />
-        </Card>
-        <Card id="edit-images" title={t('images')}>
-          <ProductImagesField
-            mainImage={mainImage}
-            gallery={gallery}
-            onMainImageChange={setMainImage}
-            onGalleryChange={setGallery}
-            error={errors.mainImage ? t(`validation.${errors.mainImage}`) : undefined}
-          />
-        </Card>
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <Card id="edit-pricing" title={t('pricing')}>
-            <PricingFields values={values} errors={errors} onChange={onChange} />
-          </Card>
-          <Card id="edit-supplierStatus" title={t('supplierStatus')}>
-            <div className="flex flex-col gap-6">
-              <SupplierField values={values} onChange={onChange} suppliers={supplierOptions} />
-              <StatusFields values={values} onChange={onChange} />
+      <div className="compact-admin-editor">
+        <aside className="compact-model-summary">
+          <div className="compact-model-photo">
+            <ProductImage src={mainImage?.preview || product.imageUrl} alt={values.name} sizes="220px" />
+          </div>
+          <div>
+            <p className="mu-eyebrow">{values.brandName}</p>
+            <h2>{values.name}</h2>
+            <p className="compact-model-sku">{values.sku}</p>
+          </div>
+          <dl>
+            <div>
+              <dt>{ux('savedPrice')}</dt>
+              <dd>{formatVND(product.price, locale)}</dd>
             </div>
-          </Card>
-        </div>
-        <Card id="edit-inventory" title={t('inventory')}>
-          <InventoryFields values={values} errors={errors} onChange={onChange} />
-        </Card>
-
-        <div className="admin-editor-actions flex flex-wrap justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setConfirmingDelete(true)}
-            className="rounded-md border border-danger px-5 py-2 font-medium text-danger hover:bg-danger hover:text-white"
-          >
-            {t('remove')}
-          </button>
-          <div className="flex gap-3">
+            <div>
+              <dt>{t('stock')}</dt>
+              <dd>{values.stock}</dd>
+            </div>
+          </dl>
+          <Link href="/admin/products">← {t('backToList')}</Link>
+        </aside>
+        <div className="compact-admin-editor-main">
+          {Object.keys(errors).length > 0 && (
+            <p className="admin-load-error" role="alert">
+              {ux('formErrors', { count: Object.keys(errors).length })}
+            </p>
+          )}
+          <WorkspaceTabs
+            label={ux('editorSections')}
+            value={activeTab}
+            onChange={setActiveTab}
+            tabs={[
+              {
+                id: 'basics',
+                label: t('basics'),
+                count: Object.keys(errors).filter((key) => tabForError(key) === 'basics').length || undefined,
+                content: (
+                  <BasicInfoFields
+                    values={values}
+                    errors={errors}
+                    onChange={onChange}
+                    categories={categories}
+                    readOnly={option}
+                    withCondition={false}
+                    withDescriptions={false}
+                  />
+                ),
+              },
+              {
+                id: 'conditions',
+                label: t('conditionSection'),
+                count: Object.keys(errors).filter((key) => tabForError(key) === 'conditions').length || undefined,
+                content: (
+                  <div className="compact-condition-editor">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <ConditionFields values={values} errors={errors} onChange={onChange} />
+                    </div>
+                    <ProductConditions product={product} onCreated={load} />
+                  </div>
+                ),
+              },
+              {
+                id: 'images',
+                label: t('images'),
+                count: Object.keys(errors).filter((key) => tabForError(key) === 'images').length || undefined,
+                content: (
+                  <ProductImagesField
+                    mainImage={mainImage}
+                    gallery={gallery}
+                    onMainImageChange={setMainImage}
+                    onGalleryChange={setGallery}
+                    error={errors.mainImage ? t(`validation.${errors.mainImage}`) : undefined}
+                  />
+                ),
+              },
+              {
+                id: 'pricing',
+                label: t('pricing'),
+                count: Object.keys(errors).filter((key) => tabForError(key) === 'pricing').length || undefined,
+                content: <PricingFields values={values} errors={errors} onChange={onChange} />,
+              },
+              {
+                id: 'inventory',
+                label: t('inventory'),
+                count: Object.keys(errors).filter((key) => tabForError(key) === 'inventory').length || undefined,
+                content: <InventoryFields values={values} errors={errors} onChange={onChange} />,
+              },
+              {
+                id: 'description',
+                label: ux('descriptionTab'),
+                content: <DescriptionFields values={values} errors={errors} onChange={onChange} readOnly={option} />,
+              },
+              {
+                id: 'supplierStatus',
+                label: t('supplierStatus'),
+                content: (
+                  <div className="grid gap-6">
+                    <SupplierField values={values} onChange={onChange} suppliers={supplierOptions} />
+                    <StatusFields values={values} onChange={onChange} />
+                  </div>
+                ),
+              },
+            ]}
+          />
+          <div className="admin-editor-actions flex flex-wrap justify-between gap-3">
             <button
               type="button"
-              onClick={() => applyProduct(product)}
-              disabled={saving}
-              className="rounded-md border border-stroke px-5 py-2 font-medium dark:border-strokedark"
+              onClick={() => setConfirmingDelete(true)}
+              className="rounded-md border border-danger px-5 py-2 font-medium text-danger hover:bg-danger hover:text-white"
             >
-              {t('cancel')}
+              {t('remove')}
             </button>
-            <button
-              type="button"
-              onClick={save}
-              disabled={saving}
-              className="rounded-md bg-brand px-5 py-2 font-semibold text-brand-ink hover:bg-brand-hover disabled:opacity-60"
-            >
-              {saving ? t('saving') : t('save')}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => applyProduct(product)}
+                disabled={saving}
+                className="rounded-md border border-stroke px-5 py-2 font-medium dark:border-strokedark"
+              >
+                {t('cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={save}
+                disabled={saving}
+                className="rounded-md bg-brand px-5 py-2 font-semibold text-brand-ink hover:bg-brand-hover disabled:opacity-60"
+              >
+                {saving ? t('saving') : t('save')}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -240,7 +306,7 @@ const ProductEdit = () => {
         onConfirm={remove}
         onClose={() => setConfirmingDelete(false)}
       />
-    </>
+    </div>
   );
 };
 

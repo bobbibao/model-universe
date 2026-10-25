@@ -26,7 +26,13 @@ export const BasicInfoFields = ({
   categories,
   readOnly = false,
   withCondition = true,
-}: SectionProps & { categories: Category[]; readOnly?: boolean; withCondition?: boolean }) => {
+  withDescriptions = true,
+}: SectionProps & {
+  categories: Category[];
+  readOnly?: boolean;
+  withCondition?: boolean;
+  withDescriptions?: boolean;
+}) => {
   const t = useTranslations('adminProducts'),
     catalog = useTranslations('catalog');
   return (
@@ -76,6 +82,21 @@ export const BasicInfoFields = ({
           <ConditionFields values={values} errors={errors} onChange={onChange} />
         </fieldset>
       )}
+      {withDescriptions && (
+        <div className="md:col-span-2">
+          <DescriptionFields values={values} errors={errors} onChange={onChange} readOnly={readOnly} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const DescriptionFields = ({ values, onChange, readOnly = false }: SectionProps & { readOnly?: boolean }) => {
+  const t = useTranslations('adminProducts'),
+    catalog = useTranslations('catalog');
+  return (
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      {' '}
       {(['descriptionEn', 'descriptionVi'] as const).map((field) => (
         <div className="md:col-span-2" key={field}>
           <label className="mu-field" htmlFor={field}>

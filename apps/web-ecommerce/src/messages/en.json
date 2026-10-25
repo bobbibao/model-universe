@@ -3681,6 +3681,12 @@
     "filteredRecords": "Filters are active",
     "editorSections": "Product editor sections",
     "formErrors": "Please check {count} highlighted fields before saving.",
-    "availableOffers": "Member & shipping offers"
+    "availableOffers": "Member & shipping offers",
+    "productInformation": "Model information",
+    "specificationsTab": "Specifications",
+    "descriptionTab": "Description",
+    "offersTab": "Offers",
+    "catalogWorkspace": "Model catalog workspace",
+    "savedPrice": "Saved price"
   }
 }

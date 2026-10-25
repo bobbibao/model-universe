@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 
+import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
+import AdminAssistant from '@/components/Admin/AdminAssistant';
 import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
 import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
@@ -23,6 +25,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 
 const ProductList = () => {
   const router = useRouter();
+  const [catalogTab, setCatalogTab] = useState('catalog');
   const t = useTranslations('adminProducts'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
@@ -194,99 +197,116 @@ const ProductList = () => {
   ];
 
   return (
-    <>
-      <Breadcrumb pageName={t('title')} />
-      <InventoryStats />
-      {failed && (
-        <div role="alert" className="admin-load-error">
-          <span>{ux('loadFailed')}</span>
-          <button type="button" onClick={() => setRetry((value) => value + 1)}>
-            {ux('retry')}
-          </button>
-        </div>
-      )}
-      {(searchInput || categoryId || status) && (
-        <div className="admin-filter-summary">
-          <span>{ux('filteredRecords')}</span>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchInput('');
-              setSearch('');
-              setCategoryId('');
-              setStatus('');
-              setPage(1);
-            }}
-          >
-            {ux('clearFilters')}
-          </button>
-        </div>
-      )}
-      <DataTable
-        title={t('list')}
-        actions={
-          <>
-            <input
-              className={`${inputClassName} !py-2 sm:w-64`}
-              placeholder={t('search')}
-              aria-label={t('search')}
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-            />
-            <select
-              className={`${inputClassName} !py-2 sm:w-44`}
-              aria-label={t('category')}
-              value={categoryId}
-              onChange={(event) => {
-                setCategoryId(event.target.value ? Number(event.target.value) : '');
-                setPage(1);
-              }}
-            >
-              <option value="">{t('allCategories')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className={`${inputClassName} !py-2 sm:w-40`}
-              aria-label={t('status')}
-              value={status}
-              onChange={(event) => {
-                setStatus(event.target.value as AdminProductListParams['status']);
-                setPage(1);
-              }}
-            >
-              <option value="">{t('allStatuses')}</option>
-              <option value="active">{t('active')}</option>
-              <option value="archived">{t('archived')}</option>
-              <option value="featured">{t('featured')}</option>
-              <option value="held">{t('held')}</option>
-            </select>
-            <Link
-              href="/admin/products/new"
-              className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-ink hover:bg-brand-hover"
-            >
-              {t('create')}
-            </Link>
-          </>
-        }
-        columns={columns}
-        data={products}
-        rowKey={(product) => product.id}
-        loading={loading}
-        emptyText={failed ? ux('loadFailed') : t('empty')}
-        onRowClick={(product) => router.push(`/admin/products/${product.id}`)}
-        sort={sort}
-        onSortChange={(nextSort) => {
-          setSort(nextSort);
-          setPage(1);
-        }}
-        pagination={pagination}
-        onPageChange={setPage}
+    <div className="compact-admin-catalog-page">
+      <Breadcrumb pageName={t('title')} actions={<AdminAssistant inline />} />
+      <WorkspaceTabs
+        className="compact-catalog-tabs"
+        label={ux('catalogWorkspace')}
+        value={catalogTab}
+        onChange={setCatalogTab}
+        tabs={[
+          {
+            id: 'catalog',
+            label: t('list'),
+            content: (
+              <div className="compact-catalog-results">
+                {' '}
+                {failed && (
+                  <div role="alert" className="admin-load-error">
+                    <span>{ux('loadFailed')}</span>
+                    <button type="button" onClick={() => setRetry((value) => value + 1)}>
+                      {ux('retry')}
+                    </button>
+                  </div>
+                )}
+                {(searchInput || categoryId || status) && (
+                  <div className="admin-filter-summary">
+                    <span>{ux('filteredRecords')}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchInput('');
+                        setSearch('');
+                        setCategoryId('');
+                        setStatus('');
+                        setPage(1);
+                      }}
+                    >
+                      {ux('clearFilters')}
+                    </button>
+                  </div>
+                )}
+                <DataTable
+                  title={t('list')}
+                  actions={
+                    <>
+                      <input
+                        className={`${inputClassName} !py-2 sm:w-64`}
+                        placeholder={t('search')}
+                        aria-label={t('search')}
+                        value={searchInput}
+                        onChange={(event) => setSearchInput(event.target.value)}
+                      />
+                      <select
+                        className={`${inputClassName} !py-2 sm:w-44`}
+                        aria-label={t('category')}
+                        value={categoryId}
+                        onChange={(event) => {
+                          setCategoryId(event.target.value ? Number(event.target.value) : '');
+                          setPage(1);
+                        }}
+                      >
+                        <option value="">{t('allCategories')}</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className={`${inputClassName} !py-2 sm:w-40`}
+                        aria-label={t('status')}
+                        value={status}
+                        onChange={(event) => {
+                          setStatus(event.target.value as AdminProductListParams['status']);
+                          setPage(1);
+                        }}
+                      >
+                        <option value="">{t('allStatuses')}</option>
+                        <option value="active">{t('active')}</option>
+                        <option value="archived">{t('archived')}</option>
+                        <option value="featured">{t('featured')}</option>
+                        <option value="held">{t('held')}</option>
+                      </select>
+                      <Link
+                        href="/admin/products/new"
+                        className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-ink hover:bg-brand-hover"
+                      >
+                        {t('create')}
+                      </Link>
+                    </>
+                  }
+                  columns={columns}
+                  data={products}
+                  rowKey={(product) => product.id}
+                  loading={loading}
+                  emptyText={failed ? ux('loadFailed') : t('empty')}
+                  onRowClick={(product) => router.push(`/admin/products/${product.id}`)}
+                  sort={sort}
+                  onSortChange={(nextSort) => {
+                    setSort(nextSort);
+                    setPage(1);
+                  }}
+                  pagination={pagination}
+                  onPageChange={setPage}
+                />
+              </div>
+            ),
+          },
+          { id: 'inventory', label: t('stats.title'), content: <InventoryStats expanded /> },
+        ]}
       />
-    </>
+    </div>
   );
 };
 
