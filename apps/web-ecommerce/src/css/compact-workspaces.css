@@ -39,14 +39,11 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   outline-offset: -3px;
 }
 .workspace-tab-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 20px;
-  height: 20px;
-  padding-inline: 5px;
-  border: 1px solid currentColor;
-  border-radius: 5px;
-  font-size: 10px;
+  flex-shrink: 0;
+  font-size: 0.85em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
 }
 .workspace-tabpanels {
   flex: 1;
@@ -231,6 +228,32 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   flex-shrink: 0;
 }
 @media (max-width: 640px) {
+  .product-information > .workspace-tablist {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+    border: 0;
+    gap: 0;
+    padding-inline: 4px;
+  }
+  .product-information .workspace-tablist > button {
+    gap: 4px;
+    padding: 12px 6px;
+    border: 0;
+    white-space: normal;
+    font-size: 12px;
+    line-height: 1.5;
+    background: transparent;
+  }
+  .product-information .workspace-tablist > button[aria-selected='true'] {
+    border: 0;
+    background: transparent;
+    color: var(--commerce-accent);
+    font-weight: 800;
+  }
+  .product-information .workspace-tab-label {
+    min-width: 0;
+  }
   .workspace-tablist > button {
     min-height: 44px;
   }

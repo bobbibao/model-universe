@@ -52,8 +52,8 @@ export default function WorkspaceTabs({
               nextTab?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
             }}
           >
-            {tab.label}
-            {tab.count !== undefined && <span className="workspace-tab-count">{tab.count}</span>}
+            <span className="workspace-tab-label">{tab.label}</span>
+            {tab.count !== undefined && <span className="workspace-tab-count">({tab.count})</span>}
           </button>
         ))}
       </div>

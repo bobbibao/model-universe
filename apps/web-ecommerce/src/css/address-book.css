@@ -1,0 +1,205 @@
+.address-book {
+  min-width: 0;
+  container-type: inline-size;
+  color: #292535;
+}
+.address-book-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.address-book-header h1,
+.address-book-header h2 {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+.address-book-header p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #777080;
+  margin-top: 6px;
+}
+.address-book-header .mu-button {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  min-height: 44px;
+}
+.address-book-layout {
+  display: grid;
+  align-items: start;
+  gap: 20px;
+}
+.address-book-list {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.address-book-count {
+  font-size: 12px;
+  color: #777080;
+  font-variant-numeric: tabular-nums;
+}
+.address-book-card,
+.address-book-editor {
+  padding: 20px;
+  border: 1px solid #e7e2ed;
+  border-radius: 14px;
+  background: #fff;
+  min-width: 0;
+}
+.address-book-card.is-selected {
+  border-color: #7956d8;
+  background: #fdfbff;
+}
+.address-book-card-heading {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.address-book-card-heading h2,
+.address-book-card-heading h3 {
+  font-size: 16px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+.address-book-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: #f4effb;
+  color: #6541b7;
+}
+.address-book-contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.address-book-contact span {
+  color: #777080;
+  font-size: 13px;
+}
+.address-book-location {
+  color: #696273;
+  font-size: 13px;
+  line-height: 1.7;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.address-book-actions {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+  border-top: 1px solid #f0ecf4;
+  padding-top: 6px;
+}
+.address-book-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  color: #6541b7;
+  font-size: 12px;
+  font-weight: 650;
+}
+.address-book-actions .is-danger {
+  color: #ae3c55;
+}
+.address-book :is(button, input, select, textarea):disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.address-book-empty {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  padding: 36px 20px;
+  border: 1px dashed #d8cfe6;
+  border-radius: 14px;
+  color: #777080;
+  text-align: center;
+  font-size: 14px;
+}
+.address-book-empty svg {
+  color: #7956d8;
+}
+.address-book-policy {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #777080;
+  margin-top: 4px;
+}
+.address-book-editor > h2,
+.address-book-editor > h3 {
+  font-size: 18px;
+  font-weight: 750;
+  margin-bottom: 20px;
+  scroll-margin-top: 110px;
+}
+.address-book-editor fieldset {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+.address-book-editor :is(input, select, textarea) {
+  min-width: 0;
+}
+.address-book-editor .mu-field {
+  margin-bottom: 0;
+}
+.address-book-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-top: 1px solid #eee8f4;
+  padding-top: 16px;
+}
+.address-book-form-actions :is(.mu-button, .mu-button-secondary) {
+  min-height: 44px;
+  padding: 12px 20px;
+}
+.address-book-notice {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 14px;
+  border-radius: 10px;
+  background: #f7f2fc;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+@container (min-width: 900px) {
+  .address-book-layout.is-editing {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+}
+@media (max-width: 640px) {
+  .address-book-header {
+    align-items: start;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .address-book-header h1,
+  .address-book-header h2 {
+    font-size: 23px;
+  }
+  .address-book-card,
+  .address-book-editor {
+    padding: 16px;
+  }
+  .address-book-form-actions > * {
+    flex: 1;
+  }
+}

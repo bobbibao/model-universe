@@ -165,6 +165,191 @@ async function capture(page: Page, name: string) {
 }
 
 for (const locale of ['vi', 'en'] as const) {
+  for (const width of [1366, 390]) {
+    test(`${locale} ${width}: workspace polish keeps filters compact, tabs readable and event cards stable`, async ({
+      page,
+    }) => {
+      await fixture(page);
+      const m = locale === 'vi' ? vi : en;
+      await page.setViewportSize({ width, height: width === 390 ? 844 : 768 });
+      await page.goto(`/${locale}/cua-hang`);
+      if (width === 390) {
+        const mobileFilters = page.locator('.catalog-mobile-filters:visible');
+        await expect(mobileFilters).toHaveCount(1);
+        await mobileFilters.locator('summary').click();
+      }
+      const filters = page.locator('.catalog-filters:visible');
+      await expect(filters).toHaveCount(1);
+      await expect(filters.locator('select')).toHaveCount(4);
+      await expect(filters.locator('.catalog-filter-footer')).toHaveCount(0);
+      expect(await page.locator('.catalog-sidebar').evaluate((el) => getComputedStyle(el).overflowY)).toBe('visible');
+      if (width > 1024)
+        expect((await filters.boundingBox())!.y + (await filters.boundingBox())!.height).toBeLessThan(768);
+      await filters.locator('#filter-condition').selectOption('preowned');
+      await expect(page).toHaveURL(/condition=preowned/);
+      await page.locator('.catalog-clear').click();
+      await expect(page).not.toHaveURL(/condition=/);
+      await capture(page, `polish-filters-${locale}-${width}`);
+
+      await page.goto(`/${locale}/san-pham/${model.slug}`);
+      const information = page.locator('.product-information');
+      await information.getByRole('tab').last().click();
+      const count = information.locator('.workspace-tab-count');
+      await expect(count).toHaveText('(0)');
+      expect(await count.evaluate((el) => getComputedStyle(el).borderWidth)).toBe('0px');
+      if (width === 390) {
+        expect(
+          await information
+            .getByRole('tab', { selected: true })
+            .evaluate((el) => getComputedStyle(el).borderBottomWidth),
+        ).toBe('0px');
+        expect(
+          await information.locator('.workspace-tablist').evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+        ).toBe(true);
+      }
+      await information.getByRole('tab').first().focus();
+      await page.keyboard.press('End');
+      await expect(information.getByRole('tab').last()).toBeFocused();
+      await information
+        .getByRole('tab')
+        .last()
+        .evaluate((el) => el.blur());
+      await information.screenshot({
+        path: `../../.artifacts/model-universe/commerce-experience/polish-tabs-${locale}-${width}.png`,
+      });
+
+      await page.route('**/api/sales/2', (route) =>
+        route.fulfill({
+          json: {
+            id: 2,
+            title: 'Collector event',
+            status: 'running',
+            description: null,
+            startsAt: new Date(Date.now() - 86400000).toISOString(),
+            endsAt: null,
+            maximumPercent: 10,
+            products: [{ ...model, imageUrl: '/images/store/product-placeholder.svg', stock: 3, groupStock: 3 }],
+          },
+        }),
+      );
+      await page.goto(`/${locale}/su-kien/2`);
+      const card = page.locator('.sale-products .product-tile').first();
+      await card.scrollIntoViewIfNeeded();
+      const before = await card.boundingBox();
+      await card.hover();
+      await expect.poll(() => card.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+      expect(Math.abs((await card.boundingBox())!.y - before!.y)).toBeLessThan(1);
+      await capture(page, `polish-event-${locale}-${width}`);
+      await expect(page.getByText(m.catalog.instantFilterHint, { exact: true })).toHaveCount(0);
+    });
+
+    test(`${locale} ${width}: workspace polish address book preserves edits, versions and save locks`, async ({
+      page,
+      context,
+    }) => {
+      await fixture(page);
+      const m = locale === 'vi' ? vi : en;
+      await context.addCookies([
+        { name: 'access_token', value: await signSessionToken(900001, 'USER'), url: previewUrl, httpOnly: true },
+      ]);
+      await page.setViewportSize({ width, height: 900 });
+      await page.route('**/api/auth/me', (route) =>
+        route.fulfill({
+          json: {
+            user: { id: 900001, role: 'USER', firstName: 'UI', lastName: 'Collector', email: 'ui@example.test' },
+          },
+        }),
+      );
+      const shipping = {
+        recipientName: 'Collector',
+        phone: '0901234567',
+        address: '12 Nguyen Trai',
+        ward: 'Ben Thanh',
+        district: 'Quan 1',
+        city: 'Ho Chi Minh',
+        note: '',
+      };
+      const delivery = {
+        street: shipping.address,
+        provinceCode: '79',
+        provinceName: shipping.city,
+        districtCode: '001',
+        districtName: shipping.district,
+        communeCode: '00101',
+        communeName: shipping.ward,
+      };
+      let rows = [{ id: 1, label: 'Home · Collector delivery address', version: 3, shipping, delivery }];
+      const writes: { path: string; body: Record<string, unknown> }[] = [];
+      let releaseSave: () => void = () => {};
+      const saved = new Promise<void>((resolve) => {
+        releaseSave = resolve;
+      });
+      await page.route('**/api/addresses**', async (route) => {
+        const path = new URL(route.request().url()).pathname;
+        if (route.request().method() === 'GET') return route.fulfill({ json: rows });
+        const body = route.request().postDataJSON();
+        writes.push({ path, body });
+        if (path.endsWith('/remove')) {
+          rows = [];
+          return route.fulfill({ json: {} });
+        }
+        if (writes.length === 1)
+          return route.fulfill({ status: 503, json: { statusCode: 503, userMessages: ['Fixture uncertain save'] } });
+        await saved;
+        rows = [{ ...rows[0], ...body, version: 4 }];
+        return route.fulfill({ json: rows[0] });
+      });
+      await page.route('**/api/shipping/**', (route) => {
+        const path = new URL(route.request().url()).pathname;
+        return route.fulfill({
+          json: path.endsWith('/provinces')
+            ? [{ code: '79', name: shipping.city }]
+            : path.endsWith('/districts')
+              ? [{ code: '001', name: shipping.district }]
+              : path.endsWith('/communes')
+                ? [{ code: '00101', name: shipping.ward }]
+                : [],
+        });
+      });
+      await page.goto(`/${locale}/user-profile?section=addresses`);
+      await expect(page.locator('.account-sidebar a[href$="/wishlist"]')).toHaveCount(0);
+      await expect(page.locator('.address-book-card')).toHaveCount(1);
+      await expect(page.locator('.address-book-editor')).toHaveCount(0);
+      await page.locator('.address-book-card').getByRole('button', { name: m.customerTools.editAddress }).click();
+      const form = page.getByRole('form', { name: m.customerTools.addressForm });
+      await expect(form.locator('.address-map')).toHaveCount(0);
+      await form.locator('input[name="recipientName"]').fill('Updated Collector');
+      await capture(page, `polish-address-editor-${locale}-${width}`);
+      await form.getByRole('button', { name: m.common.submit, exact: true }).click();
+      await expect.poll(() => writes.length).toBe(1);
+      await expect(form.getByRole('button', { name: m.common.submit, exact: true })).toBeEnabled();
+      await expect(form.locator('input[name="recipientName"]')).toHaveValue('Updated Collector');
+      await form.getByRole('button', { name: m.common.submit, exact: true }).click();
+      await expect(form.locator('input[name="recipientName"]')).toBeDisabled();
+      await expect(form.getByRole('button', { name: m.common.cancel, exact: true })).toBeDisabled();
+      expect(writes[0].body).toMatchObject({
+        id: 1,
+        expectedVersion: 3,
+        shipping: { recipientName: 'Updated Collector' },
+        delivery: { provinceCode: '79', communeCode: '00101' },
+      });
+      releaseSave();
+      await expect(form).toHaveCount(0);
+      await expect(page.locator('.address-book-contact')).toContainText('Updated Collector');
+      await page.locator('.address-book-card').getByRole('button', { name: m.common.remove, exact: true }).click();
+      const dialog = page.getByRole('dialog');
+      await dialog.getByRole('button', { name: m.common.cancel, exact: true }).click();
+      expect(writes).toHaveLength(2);
+      await page.locator('.address-book-card').getByRole('button', { name: m.common.remove, exact: true }).click();
+      await dialog.getByRole('button', { name: m.common.remove, exact: true }).click();
+      await expect(page.locator('.address-book-card')).toHaveCount(0);
+      expect(writes[2]).toMatchObject({ path: '/api/addresses/1/remove', body: { expectedVersion: 4 } });
+      await capture(page, `polish-address-empty-${locale}-${width}`);
+    });
+  }
+}
+
+for (const locale of ['vi', 'en'] as const) {
   for (const width of [1440, 390]) {
     test(`${locale} ${width}: direct sales select exact units, require real receipts and keep retry identity`, async ({
       page,
