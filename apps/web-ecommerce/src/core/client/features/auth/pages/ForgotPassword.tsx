@@ -99,10 +99,10 @@ export default function ForgotPassword() {
           <button
             type="button"
             className={secondaryButtonClassName}
-            onClick={() => {
+            onClick={(event) => {
               setSent(false);
               setSeconds(0);
-              document.getElementById('email')?.focus();
+              event.currentTarget.form?.querySelector<HTMLInputElement>('input[name="email"]')?.focus();
             }}
           >
             {en ? 'Use another email' : 'Dùng email khác'}

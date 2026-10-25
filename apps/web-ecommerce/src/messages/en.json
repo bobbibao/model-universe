@@ -1883,7 +1883,13 @@
       "mainImageRequired": "Choose a main image.",
       "packagingInvalid": "Enter length, width, height (cm) and weight (g) as whole positive numbers, or leave all four empty.",
       "missingAccessoriesRequired": "List the missing accessories.",
-      "defectsRequired": "Describe at least one defect."
+      "defectsRequired": "Describe at least one defect.",
+      "preownedStockInvalid": "Pre-owned stock must be 0 or 1.",
+      "stockChangeRestricted": "Increase pre-owned stock through inspected intake or a verified return.",
+      "packagingSideInvalid": "Enter a whole number from 1 to 200 cm. Complete all four measurements or leave all empty.",
+      "packagingWeightInvalid": "Enter whole grams from 1 to 50,000. Complete all four measurements or leave all empty.",
+      "issueCountInvalid": "Issue count must be a whole number from 0 to 100.",
+      "receivedDateInvalid": "Enter a valid date as YYYY-MM-DD, or leave empty."
     },
     "created": "Product created.",
     "updated": "Product updated.",
@@ -1958,7 +1964,20 @@
     "editingUnit": "Editing this listing",
     "editingCondition": "Edit condition · {sku}",
     "conditionInventory": "Stock by condition",
-    "conditionInventoryHint": "All non-archived listings. Inventory status is shown separately on each listing."
+    "conditionInventoryHint": "All non-archived listings. Inventory status is shown separately on each listing.",
+    "fieldGuide": {
+      "stockIdentity": "SKU & inventory",
+      "stock": "Available quantity. Enter a whole number from 0.",
+      "uniqueStock": "Do not increase pre-owned stock here; use inspected intake or a verified return.",
+      "displayMetadata": "Descriptive specifications",
+      "displayMetadataHint": "Reference text for the product and assistant. Shipping uses the package measurements above; these groups are stored separately.",
+      "displayDimensions": "Descriptive dimensions",
+      "inherited": "From main listing",
+      "listLines": "One accessory or issue per line.",
+      "money": "Enter whole VND without separators or currency symbols.",
+      "conditionLocked": "This pre-owned item has its own identity; its condition cannot be changed here.",
+      "referenceFirst": "Enter a reference price to apply an issue count to the formula."
+    }
   },
   "adminCoupons": {
     "page": "Promotions",

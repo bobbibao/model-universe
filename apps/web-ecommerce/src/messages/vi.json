@@ -1883,7 +1883,13 @@
       "mainImageRequired": "Vui lòng chọn ảnh chính.",
       "packagingInvalid": "Nhập đủ dài, rộng, cao (cm) và cân nặng (g) bằng số nguyên dương, hoặc để trống cả bốn.",
       "missingAccessoriesRequired": "Liệt kê phụ kiện còn thiếu.",
-      "defectsRequired": "Mô tả ít nhất một lỗi."
+      "defectsRequired": "Mô tả ít nhất một lỗi.",
+      "preownedStockInvalid": "Hàng 2hand chỉ có thể tồn 0 hoặc 1.",
+      "stockChangeRestricted": "Không tăng tồn hàng 2hand tại đây; dùng luồng nhập hoặc hoàn trả đã kiểm định.",
+      "packagingSideInvalid": "Nhập số nguyên từ 1 đến 200 cm. Cần đủ cả bốn thông số hoặc để trống tất cả.",
+      "packagingWeightInvalid": "Nhập số nguyên từ 1 đến 50.000 g. Cần đủ cả bốn thông số hoặc để trống tất cả.",
+      "issueCountInvalid": "Số lỗi phải là số nguyên từ 0 đến 100.",
+      "receivedDateInvalid": "Nhập ngày hợp lệ theo YYYY-MM-DD, hoặc để trống."
     },
     "created": "Đã tạo sản phẩm.",
     "updated": "Đã cập nhật sản phẩm.",
@@ -1958,7 +1964,20 @@
     "editingUnit": "Đang chỉnh sửa",
     "editingCondition": "Chỉnh tình trạng · {sku}",
     "conditionInventory": "Tồn kho theo tình trạng",
-    "conditionInventoryHint": "Tổng các listing chưa lưu trữ. Trạng thái kho được hiển thị riêng tại từng listing."
+    "conditionInventoryHint": "Tổng các listing chưa lưu trữ. Trạng thái kho được hiển thị riêng tại từng listing.",
+    "fieldGuide": {
+      "stockIdentity": "Mã hàng & tồn kho",
+      "stock": "Số lượng có thể bán. Nhập số nguyên từ 0.",
+      "uniqueStock": "Hàng 2hand không tăng tồn tại đây; dùng luồng nhập hoặc hoàn trả đã kiểm định.",
+      "displayMetadata": "Thông số mô tả",
+      "displayMetadataHint": "Nội dung tham khảo cho sản phẩm và trợ lý. Phí vận chuyển dùng nhóm kích thước đóng gói phía trên; hai nhóm được lưu riêng.",
+      "displayDimensions": "Kích thước mô tả",
+      "inherited": "Từ sản phẩm chính",
+      "listLines": "Mỗi phụ kiện hoặc lỗi trên một dòng.",
+      "money": "Nhập số nguyên VND, không dấu phân cách hoặc ký hiệu tiền.",
+      "conditionLocked": "Hàng 2hand đã có định danh riêng; không đổi tình trạng tại đây.",
+      "referenceFirst": "Nhập giá tham chiếu để áp dụng số lỗi vào công thức."
+    }
   },
   "adminCoupons": {
     "page": "Khuyến mãi",

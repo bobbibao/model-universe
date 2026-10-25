@@ -4,7 +4,8 @@ import { catalogPricing } from '@/shared/sale-pricing';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { ASSEMBLY_STATES, CONDITIONS } from '@/shared/gunpla';
-import TextField, { inputClassName } from '@/components/FormElements/TextField';
+import TextField from '@/components/FormElements/TextField';
+import TextAreaField from '@/components/FormElements/TextAreaField';
 import SelectField from '@/components/FormElements/SelectField';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Category } from '@/shared/types/product';
@@ -41,41 +42,48 @@ export const BasicInfoFields = ({
       <TextField
         label={t('name')}
         name="name"
+        className="md:col-span-2"
+        required
         value={values.name}
-        disabled={readOnly}
+        readOnly={readOnly}
         onChange={(event) => onChange('name', event.target.value)}
         error={errors.name ? t(`validation.${errors.name}`) : undefined}
       />
       <TextField
         label={t('brand')}
         name="brandName"
+        required
         value={values.brandName}
-        disabled={readOnly}
+        readOnly={readOnly}
         onChange={(event) => onChange('brandName', event.target.value)}
         error={errors.brandName ? t(`validation.${errors.brandName}`) : undefined}
+      />
+      <TextField
+        label={catalog('modelCode')}
+        name="modelCode"
+        value={values.modelCode}
+        readOnly={readOnly}
+        onChange={(event) => onChange('modelCode', event.target.value)}
       />
       <div>
         <SelectField
           label={t('category')}
           name="categoryId"
+          disabled={readOnly}
           placeholder={t('noCategory')}
           options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
           value={values.categoryId}
-          disabled={readOnly}
           onChange={(event) => onChange('categoryId', event.target.value)}
         />
         <p className="mt-1 text-xs text-body">{t('categoryHint')}</p>
       </div>
-      {(['scale', 'modelCode'] as const).map((field) => (
-        <TextField
-          key={field}
-          label={catalog(field)}
-          name={field}
-          value={values[field]}
-          disabled={readOnly}
-          onChange={(event) => onChange(field, event.target.value)}
-        />
-      ))}
+      <TextField
+        label={catalog('scale')}
+        name="scale"
+        value={values.scale}
+        readOnly={readOnly}
+        onChange={(event) => onChange('scale', event.target.value)}
+      />
       {withCondition && (
         <fieldset className="grid grid-cols-1 gap-5 rounded-lg border border-stroke p-4 md:col-span-2 md:grid-cols-2 dark:border-dark-3">
           <legend className="px-1 text-sm font-semibold text-black dark:text-white">{t('conditionSection')}</legend>
@@ -95,60 +103,48 @@ export const DescriptionFields = ({ values, onChange, readOnly = false }: Sectio
   const t = useTranslations('adminProducts'),
     catalog = useTranslations('catalog');
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      {' '}
-      {(['descriptionEn', 'descriptionVi'] as const).map((field) => (
-        <div className="md:col-span-2" key={field}>
-          <label className="mu-field" htmlFor={field}>
-            {catalog(field)}
-          </label>
-          <textarea
-            id={field}
-            className="mu-input"
-            rows={3}
-            value={values[field]}
-            disabled={readOnly}
-            onChange={(event) => onChange(field, event.target.value)}
-          />
-        </div>
-      ))}
-      <div className="md:col-span-2">
-        <label htmlFor="description" className="mb-2 block text-sm font-medium text-black dark:text-white">
-          {t('description')}
-        </label>
-        <textarea
-          id="description"
-          rows={5}
-          className={inputClassName}
-          value={values.description}
-          disabled={readOnly}
-          onChange={(event) => onChange('description', event.target.value)}
+    <div className="grid gap-5">
+      {readOnly && <p className="form-field-hint">{t('inheritedNote')}</p>}
+      {(['descriptionVi', 'descriptionEn', 'description'] as const).map((field) => (
+        <TextAreaField
+          key={field}
+          label={field === 'description' ? t('description') : catalog(field)}
+          name={field}
+          rows={field === 'description' ? 5 : 3}
+          value={values[field]}
+          readOnly={readOnly}
+          onChange={(event) => onChange(field, event.target.value)}
         />
-      </div>
+      ))}
     </div>
   );
 };
 
 // The condition of one unit: what a customer chooses between on the product page. Incomplete and defective units must
 // list what is missing or wrong.
-export const ConditionFields = ({ values, errors, onChange }: SectionProps) => {
+export const ConditionFields = ({
+  values,
+  errors,
+  onChange,
+  lockedCondition = false,
+}: SectionProps & { lockedCondition?: boolean }) => {
   const catalog = useTranslations('catalog'),
     t = useTranslations('adminProducts');
   const listField = (field: 'includedAccessories' | 'missingAccessories' | 'defects', label: string) => (
-    <div className="md:col-span-2" key={field}>
-      <label className="mu-field" htmlFor={field}>
-        {label}
-      </label>
-      <textarea
-        id={field}
-        className="mu-input"
-        rows={3}
-        value={values[field]}
-        aria-invalid={errors[field] ? true : undefined}
-        onChange={(event) => onChange(field, event.target.value)}
-      />
-      {errors[field] && <p className="mt-1 text-sm text-danger">{t(`validation.${errors[field]}`)}</p>}
-    </div>
+    <TextAreaField
+      key={field}
+      className="md:col-span-2"
+      label={label}
+      name={field}
+      hint={t('fieldGuide.listLines')}
+      value={values[field]}
+      required={
+        (field === 'missingAccessories' && values.condition === 'incomplete') ||
+        (field === 'defects' && values.condition === 'defective')
+      }
+      error={errors[field] ? t(`validation.${errors[field]}`) : undefined}
+      onChange={(event) => onChange(field, event.target.value)}
+    />
   );
   return (
     <>
@@ -156,11 +152,14 @@ export const ConditionFields = ({ values, errors, onChange }: SectionProps) => {
         <SelectField
           label={catalog('condition')}
           name="condition"
+          disabled={lockedCondition}
+          hint={
+            lockedCondition ? t('fieldGuide.conditionLocked') : catalog(`conditionDescriptions.${values.condition}`)
+          }
           options={CONDITIONS.map((value) => ({ value, label: catalog(value) }))}
           value={values.condition}
           onChange={(event) => onChange('condition', event.target.value as ProductFormValues['condition'])}
         />
-        <p className="mt-1 text-xs text-body">{catalog(`conditionDescriptions.${values.condition}`)}</p>
       </div>
       <SelectField
         label={catalog('assembly')}
@@ -175,7 +174,8 @@ export const ConditionFields = ({ values, errors, onChange }: SectionProps) => {
         value={values.boxCondition}
         onChange={(event) => onChange('boxCondition', event.target.value)}
       />
-      <TextField
+      <TextAreaField
+        rows={2}
         label={t('conditionNote')}
         name="conditionNote"
         value={values.conditionNote}
@@ -208,20 +208,51 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
       <TextField
         label={en ? 'Market reference · member price S (VND)' : 'Tham chiếu thị trường · giá thành viên S (đ)'}
         name="pricingReferenceMemberVnd"
+        required={!values.price}
+        type="number"
+        min={1}
+        step={1}
         inputMode="numeric"
+        hint={t('fieldGuide.money')}
+        error={errors.price ? t(`validation.${errors.price}`) : undefined}
         value={values.pricingReferenceMemberVnd}
-        placeholder="1.100.000"
-        onChange={(e) => onChange('pricingReferenceMemberVnd', e.target.value.replace(/\D/g, ''))}
+        placeholder="1100000"
+        onChange={(e) => onChange('pricingReferenceMemberVnd', e.target.value)}
       />
       <TextField
         label={en ? 'Ordinary issues (50,000 VND each)' : 'Số lỗi thông thường (50.000đ/lỗi)'}
         name="pricingIssueCount"
+        disabled={!values.pricingReferenceMemberVnd}
+        hint={!values.pricingReferenceMemberVnd ? t('fieldGuide.referenceFirst') : undefined}
+        error={errors.pricingIssueCount ? t(`validation.${errors.pricingIssueCount}`) : undefined}
         type="number"
+        step={1}
+        required
         min={0}
         max={100}
         value={values.pricingIssueCount}
         onChange={(e) => onChange('pricingIssueCount', e.target.value)}
       />
+      <div className="md:col-span-2">
+        <TextField
+          label={
+            en ? 'Actual cost C · from the purchase / intake record' : 'Giá vốn thực tế C · theo chứng từ nhập/thu'
+          }
+          name="importPrice"
+          type="number"
+          min={0}
+          step={1}
+          inputMode="numeric"
+          value={values.importPrice}
+          onChange={(e) => onChange('importPrice', e.target.value)}
+          error={errors.importPrice ? t(`validation.${errors.importPrice}`) : undefined}
+        />
+        <p className="mt-2 text-xs leading-6 text-body">
+          {en
+            ? 'Actual cost is kept separately from the calculated buyback offer. It determines whether sale and voucher combinations are safe.'
+            : 'Giá vốn đã chi giữ riêng với giá thu dự kiến. Hệ thống dùng giá vốn để kiểm tra sale và voucher có thể cộng dồn.'}
+        </p>
+      </div>
       <div className="rounded-xl border border-stroke bg-gray p-4 dark:border-store-card dark:bg-store-panel md:col-span-2">
         <p className="text-sm font-semibold">
           {en ? 'Calculated prices · outputs cannot be edited' : 'Giá theo công thức · không nhập đè kết quả'}
@@ -258,113 +289,135 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
             {formulaError}
           </p>
         )}
-        {errors.price && <p className="mt-2 text-sm text-danger">{t(`validation.${errors.price}`)}</p>}
-      </div>
-      <div className="md:col-span-2">
-        <TextField
-          label={
-            en ? 'Actual cost C · from the purchase / intake record' : 'Giá vốn thực tế C · theo chứng từ nhập/thu'
-          }
-          name="importPrice"
-          inputMode="numeric"
-          value={values.importPrice}
-          onChange={(e) => onChange('importPrice', e.target.value.replace(/\D/g, ''))}
-          error={errors.importPrice ? t(`validation.${errors.importPrice}`) : undefined}
-        />
-        <p className="mt-2 text-xs leading-6 text-body">
-          {en
-            ? 'Actual cost is kept separately from the calculated buyback offer. It determines whether sale and voucher combinations are safe.'
-            : 'Giá vốn đã chi giữ riêng với giá thu dự kiến. Hệ thống dùng giá vốn để kiểm tra sale và voucher có thể cộng dồn.'}
-        </p>
       </div>
     </div>
   );
 };
 
-export const InventoryFields = ({ values, errors, onChange }: SectionProps) => {
+export const InventoryFields = ({
+  values,
+  errors,
+  onChange,
+  readOnly = false,
+  maxStock,
+}: SectionProps & { readOnly?: boolean; maxStock?: number }) => {
   const t = useTranslations('adminProducts');
+  const hasPackaging = [values.packLengthCm, values.packWidthCm, values.packHeightCm, values.packWeightGram].some(
+    (value) => value.trim(),
+  );
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      <TextField
-        label={t('stock')}
-        name="stock"
-        inputMode="numeric"
-        value={values.stock}
-        onChange={(event) => onChange('stock', event.target.value.replace(/\D/g, ''))}
-        error={errors.stock ? t(`validation.${errors.stock}`) : undefined}
-      />
-      <TextField
-        label="SKU"
-        name="sku"
-        value={values.sku}
-        onChange={(event) => onChange('sku', event.target.value)}
-        error={errors.sku ? t(`validation.${errors.sku}`) : undefined}
-      />
-      <TextField
-        label={t('weight')}
-        name="weight"
-        placeholder={t('weightExample')}
-        value={values.weight}
-        onChange={(event) => onChange('weight', event.target.value)}
-      />
-      <TextField
-        label={t('dimensions')}
-        name="dimensions"
-        placeholder={t('dimensionsExample')}
-        value={values.dimensions}
-        onChange={(event) => onChange('dimensions', event.target.value)}
-      />
-      <div>
-        <TextField
-          label={t('receivedDate')}
-          name="productionDate"
-          type="date"
-          value={values.productionDate}
-          onChange={(event) => onChange('productionDate', event.target.value)}
-        />
-        <p className="mt-1 text-xs text-body">{t('receivedDateHint')}</p>
-      </div>
-      <fieldset className="grid grid-cols-2 gap-4 rounded-lg border border-stroke p-4 md:col-span-2 md:grid-cols-4 dark:border-dark-3">
-        <legend className="px-1 text-sm font-semibold text-black dark:text-white">{t('packaging.title')}</legend>
-        <p className="col-span-2 text-sm text-dark-5 md:col-span-4">{t('packaging.hint')}</p>
-        {(
-          [
-            ['packLengthCm', 'lengthCm'],
-            ['packWidthCm', 'widthCm'],
-            ['packHeightCm', 'heightCm'],
-            ['packWeightGram', 'weightGram'],
-          ] as const
-        ).map(([key, label]) => (
+    <div className="product-form-sections">
+      <fieldset className="product-form-section">
+        <legend>{t('fieldGuide.stockIdentity')}</legend>
+        <div className="grid gap-5 md:grid-cols-3">
           <TextField
-            key={key}
-            label={t(`packaging.${label}`)}
-            name={key}
+            label="SKU"
+            name="sku"
+            required
+            value={values.sku}
+            onChange={(event) => onChange('sku', event.target.value)}
+            error={errors.sku ? t(`validation.${errors.sku}`) : undefined}
+          />
+          <TextField
+            label={t('stock')}
+            name="stock"
+            type="number"
+            min={0}
+            max={maxStock ?? (values.condition === 'preowned' ? 1 : undefined)}
+            step={1}
+            required
             inputMode="numeric"
-            value={values[key]}
-            onChange={(event) => onChange(key, event.target.value.replace(/\D/g, ''))}
+            value={values.stock}
+            hint={maxStock !== undefined ? t('fieldGuide.uniqueStock') : t('fieldGuide.stock')}
+            onChange={(event) => onChange('stock', event.target.value)}
+            error={errors.stock ? t(`validation.${errors.stock}`) : undefined}
           />
-        ))}
-        {errors.packLengthCm && (
-          <p className="col-span-2 text-sm text-danger md:col-span-4">{t(`validation.${errors.packLengthCm}`)}</p>
-        )}
-        <label className="col-span-2 flex items-start gap-3">
-          <input
-            type="checkbox"
-            className="mt-1 h-5 w-5 accent-brand-hover"
-            checked={values.packFragile}
-            onChange={(event) => onChange('packFragile', event.target.checked)}
+          <TextField
+            label={t('receivedDate')}
+            name="productionDate"
+            type="date"
+            error={errors.productionDate ? t(`validation.${errors.productionDate}`) : undefined}
+            value={values.productionDate}
+            hint={t('receivedDateHint')}
+            onChange={(event) => onChange('productionDate', event.target.value)}
           />
-          <span className="text-sm">{t('packaging.fragile')}</span>
-        </label>
-        <label className="col-span-2 flex items-start gap-3">
-          <input
-            type="checkbox"
-            className="mt-1 h-5 w-5 accent-brand-hover"
-            checked={values.packAnyOrientation}
-            onChange={(event) => onChange('packAnyOrientation', event.target.checked)}
+        </div>
+      </fieldset>
+      <fieldset className="product-form-section">
+        <legend>
+          {t('packaging.title')}
+          {readOnly && <small>{t('fieldGuide.inherited')}</small>}
+        </legend>
+        <p className="form-section-hint">{readOnly ? t('inheritedNote') : t('packaging.hint')}</p>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {(
+            [
+              ['packLengthCm', 'lengthCm'],
+              ['packWidthCm', 'widthCm'],
+              ['packHeightCm', 'heightCm'],
+              ['packWeightGram', 'weightGram'],
+            ] as const
+          ).map(([key, label]) => (
+            <TextField
+              key={key}
+              label={t(`packaging.${label}`)}
+              name={key}
+              type="number"
+              min={1}
+              max={key === 'packWeightGram' ? 50000 : 200}
+              step={1}
+              inputMode="numeric"
+              required={hasPackaging && !readOnly}
+              readOnly={readOnly}
+              value={values[key]}
+              error={errors[key] ? t(`validation.${errors[key]}`) : undefined}
+              onChange={(event) => onChange(key, event.target.value)}
+            />
+          ))}
+          <label className="product-form-check col-span-2">
+            <input
+              type="checkbox"
+              disabled={readOnly || !hasPackaging}
+              checked={values.packFragile}
+              onChange={(event) => onChange('packFragile', event.target.checked)}
+            />
+            <span>{t('packaging.fragile')}</span>
+          </label>
+          <label className="product-form-check col-span-2">
+            <input
+              type="checkbox"
+              disabled={readOnly || !hasPackaging}
+              checked={values.packAnyOrientation}
+              onChange={(event) => onChange('packAnyOrientation', event.target.checked)}
+            />
+            <span>{t('packaging.anyOrientation')}</span>
+          </label>
+        </div>
+      </fieldset>
+      <fieldset className="product-form-section">
+        <legend>
+          {t('fieldGuide.displayMetadata')}
+          {readOnly && <small>{t('fieldGuide.inherited')}</small>}
+        </legend>
+        <p className="form-section-hint">{t('fieldGuide.displayMetadataHint')}</p>
+        <div className="grid gap-5 md:grid-cols-2">
+          <TextField
+            label={t('weight')}
+            name="weight"
+            placeholder={t('weightExample')}
+            readOnly={readOnly}
+            value={values.weight}
+            onChange={(event) => onChange('weight', event.target.value)}
           />
-          <span className="text-sm">{t('packaging.anyOrientation')}</span>
-        </label>
+          <TextField
+            label={t('fieldGuide.displayDimensions')}
+            name="dimensions"
+            placeholder={t('dimensionsExample')}
+            readOnly={readOnly}
+            value={values.dimensions}
+            onChange={(event) => onChange('dimensions', event.target.value)}
+          />
+        </div>
       </fieldset>
     </div>
   );
@@ -374,12 +427,15 @@ export const SupplierField = ({
   values,
   onChange,
   suppliers,
-}: Omit<SectionProps, 'errors'> & { suppliers: SupplierOption[] }) => {
+  readOnly = false,
+}: Omit<SectionProps, 'errors'> & { suppliers: SupplierOption[]; readOnly?: boolean }) => {
   const t = useTranslations('adminProducts');
   return (
     <SelectField
       label={t('supplier')}
       name="supplierId"
+      disabled={readOnly}
+      hint={readOnly ? t('inheritedNote') : undefined}
       placeholder={t('noSupplier')}
       options={suppliers.map((supplier) => ({
         value: String(supplier.id),
