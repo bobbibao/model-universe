@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
+import Link from '@/i18n/navigation';
 
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
@@ -16,10 +17,11 @@ import type { Order, OrderStatus } from '@/shared/types/order';
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 400;
 
-
 const OrderList = () => {
   const router = useRouter();
-  const t = useTranslations('operationsOrders'), statusLabel = useTranslations('checkout.orderStatus'), locale = useLocale();
+  const t = useTranslations('operationsOrders'),
+    statusLabel = useTranslations('checkout.orderStatus'),
+    locale = useLocale();
   const formatDateTime = (value: string) => new Date(value).toLocaleString(locale);
   const [orders, setOrders] = useState<Order[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -27,6 +29,8 @@ const OrderList = () => {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<OrderStatus | ''>('');
+  const direct = useTranslations('directSales');
+  const [channel, setChannel] = useState('');
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortState>({ key: 'createdAt', direction: 'desc' });
 
@@ -43,6 +47,7 @@ const OrderList = () => {
     const result = await OrderApi.getOrders({
       q: search,
       status,
+      channel,
       page,
       per_page: PAGE_SIZE,
       sort: sort.key,
@@ -51,7 +56,7 @@ const OrderList = () => {
     setOrders(result?.data || []);
     setPagination(result?.pagination);
     setLoading(false);
-  }, [search, status, page, sort]);
+  }, [search, status, channel, page, sort]);
 
   useEffect(() => {
     loadOrders();
@@ -59,6 +64,7 @@ const OrderList = () => {
 
   const columns: DataTableColumn<Order>[] = [
     { key: 'id', header: 'ID', sortable: true, render: (order) => `#${order.id}` },
+    { key: 'salesChannel', header: direct('channel'), render: (order) => direct(order.salesChannel || 'WEBSITE') },
     { key: 'createdAt', header: t('createdAt'), sortable: true, render: (order) => formatDateTime(order.createdAt) },
     {
       key: 'customer',
@@ -66,7 +72,7 @@ const OrderList = () => {
       render: (order) => (
         <div>
           <p className="font-medium">{order.recipientName}</p>
-          <p className="text-sm text-body">{order.user?.email}</p>
+          <p className="text-sm text-body">{order.user?.email || order.phone || direct('guestLabel')}</p>
         </div>
       ),
     },
@@ -92,6 +98,9 @@ const OrderList = () => {
         title={t('list')}
         actions={
           <>
+            <Link href="/admin/orders/new" className="mu-button">
+              {direct('title')}
+            </Link>
             <input
               className={`${inputClassName} !py-2 sm:w-64`}
               placeholder={t('search')}
@@ -112,6 +121,22 @@ const OrderList = () => {
               {(Object.keys(ORDER_STATUS_LABELS) as OrderStatus[]).map((value) => (
                 <option key={value} value={value}>
                   {statusLabel(value)}
+                </option>
+              ))}
+            </select>
+            <select
+              className={`${inputClassName} !py-2 sm:w-44`}
+              aria-label={direct('channel')}
+              value={channel}
+              onChange={(event) => {
+                setChannel(event.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">{direct('allChannels')}</option>
+              {['WEBSITE', 'COUNTER', 'ASSISTED'].map((value) => (
+                <option key={value} value={value}>
+                  {direct(value)}
                 </option>
               ))}
             </select>

@@ -1,0 +1,167 @@
+.direct-sale-fields {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+.direct-sale-catalog,
+.direct-sale-checkout {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-width: 0;
+}
+.direct-sale-results {
+  margin-top: 0.75rem;
+  max-height: 30rem;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+.direct-sale-product {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--admin-line);
+}
+.direct-sale-product:last-child {
+  border-bottom: 0;
+}
+.direct-sale-product img {
+  height: 3.75rem;
+  object-fit: contain;
+  border-radius: 0.375rem;
+  background: var(--admin-soft);
+}
+.direct-sale-product-action {
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+}
+.direct-sale-product-action button {
+  padding: 0.375rem 0.75rem;
+  min-height: 2.25rem;
+}
+.direct-sale-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 6rem auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--admin-line);
+}
+.direct-sale-line:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.direct-sale-line label {
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.direct-sale-line input {
+  padding: 0.5rem;
+}
+.direct-sale-customer {
+  padding: 0.75rem;
+  background: var(--admin-soft);
+  border: 1px solid var(--admin-line);
+  border-radius: 0.5rem;
+}
+.direct-sale-customer-results {
+  max-height: 12rem;
+  overflow-y: auto;
+  border: 1px solid var(--admin-line);
+  border-radius: 0.5rem;
+}
+.direct-sale-customer-results button {
+  text-align: left;
+  width: 100%;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.direct-sale-customer-results button:hover,
+.direct-sale-customer-results button:focus-visible {
+  background: var(--admin-soft);
+}
+.direct-sale-customer-results span {
+  font-size: 0.75rem;
+}
+.direct-sale-verification {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+}
+.direct-sale-verification input {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  accent-color: var(--admin-accent);
+}
+.direct-sale-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-line);
+}
+.direct-sale-total strong {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+@media (min-width: 1280px) {
+  .direct-sale-fields {
+    grid-template-columns: minmax(0, 1.2fr) minmax(22rem, 1fr);
+    align-items: start;
+  }
+}
+@media (min-width: 1440px) {
+  .direct-sale-fields {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .direct-sale-checkout {
+    display: contents;
+  }
+  .direct-sale-results {
+    max-height: clamp(16rem, calc(100dvh - 27rem), 30rem);
+  }
+}
+@media (max-width: 479px) {
+  .direct-sale-line {
+    grid-template-columns: minmax(0, 1fr) 5rem;
+  }
+  .direct-sale-line > :last-child {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+  }
+  .direct-sale-product {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .direct-sale-product img {
+    width: 2.5rem;
+  }
+  .direct-sale-product-action {
+    grid-column: 2;
+    grid-template-columns: 1fr auto;
+    justify-items: start;
+    align-items: center;
+  }
+  .direct-sale-product-action strong {
+    grid-column: 1;
+  }
+  .direct-sale-product-action span {
+    grid-column: 1;
+  }
+  .direct-sale-product-action button {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}

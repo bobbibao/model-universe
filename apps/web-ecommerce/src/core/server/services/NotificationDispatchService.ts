@@ -11,7 +11,7 @@ import { sendZaloText, sendZns, zaloMode, zaloRecipients, znsEnabled, znsPhone }
 export const MAX_DELIVERY_ATTEMPTS = 3;
 
 export interface CustomerMessage {
-  userId: number;
+  userId: number | null;
   kind: string;
   entityId: number;
   // One notification per key: a repeated event (webhook retry, double click) never notifies twice.
@@ -37,6 +37,8 @@ export default class NotificationDispatchService {
   private mail = new MailService();
 
   async notifyCustomer(message: CustomerMessage, transaction?: Transaction) {
+    // Walk-in customers have no website inbox. Never attribute their messages to the selling staff account.
+    if (!message.userId) return;
     const [row, created] = await CommerceNotificationModel.findOrCreate({
       where: { dedupeKey: message.dedupeKey },
       defaults: {

@@ -173,7 +173,7 @@ export default class LoyaltyService {
     const days = returnControlDays(policy);
     const rows = (await DatabaseProvider.getInstance().query(
       `SELECT o.id FROM "order" o
-        WHERE o.status = 'DELIVERED' AND o."paymentStatus" = 'PAID'
+        WHERE o.status = 'DELIVERED' AND o."paymentStatus" = 'PAID' AND o."userId" IS NOT NULL
           AND COALESCE(o."deliveredAt", o."updatedAt") > :cutoff
           AND COALESCE(o."deliveredAt", o."updatedAt") >= :since
           AND NOT EXISTS (SELECT 1 FROM loyalty_ledger l WHERE l."sourceReference" = 'order:' || o.id)
@@ -230,7 +230,7 @@ export default class LoyaltyService {
   private async uncredited({ since, cutoff, limit }: { since?: Date; cutoff: Date; limit: number }) {
     return (await DatabaseProvider.getInstance().query(
       `SELECT o.id FROM "order" o
-        WHERE o.status = 'DELIVERED' AND o."paymentStatus" = 'PAID'
+        WHERE o.status = 'DELIVERED' AND o."paymentStatus" = 'PAID' AND o."userId" IS NOT NULL
           AND COALESCE(o."deliveredAt", o."updatedAt") <= :cutoff
           ${since ? `AND COALESCE(o."deliveredAt", o."updatedAt") >= :since` : ''}
           AND NOT EXISTS (SELECT 1 FROM loyalty_ledger l WHERE l."sourceReference" = 'order:' || o.id)
@@ -288,11 +288,12 @@ export default class LoyaltyService {
   // The caller already owns the order lock. `catchUp`: the admin's reason when an older purchase is rewarded late.
   async reconcileOrder(
     order: OrderModel,
-    actorUserId: number,
+    actorUserId: number | null,
     transaction: Transaction,
     catchUp?: string,
     now = new Date(),
   ) {
+    if (!order.userId) return; // Guest sales never earn points for a staff or shared guest account.
     const policy = await CommercePolicyModel.findOne({
       where: { name: 'loyalty' },
       order: [['version', 'DESC']],

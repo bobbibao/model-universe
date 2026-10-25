@@ -359,6 +359,7 @@ export default class PaymentGatewayService {
       }
       const hasReceipt = order.prepaidVnd > 0;
       try {
+        if (!order.userId) throw HttpError.conflict('Guest direct sales do not use website payment links.');
         await new OrderService().recordProviderPrepayment(
           orderId,
           order.userId,

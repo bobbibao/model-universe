@@ -87,6 +87,7 @@ const cancelReasonOf = (data: Record<string, unknown>, allowed: readonly string[
 };
 
 export interface OrderListQuery {
+  channel?: string;
   status?: string;
   q?: string;
   limit: number;
@@ -641,7 +642,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       const order = await OrderModel.findByPk(orderId, { transaction, lock: transaction.LOCK.UPDATE });
       if (!order || order.status !== 'PROCESSING') return;
       if (reason === 'payment_timeout' && order.prepaidVnd > 0) return; // paid meanwhile
-      await this.changeStatus(order, 'CANCELLED', transaction, order.userId);
+      await this.changeStatus(order, 'CANCELLED', transaction, order.createdByUserId ?? order.userId ?? undefined);
       await order.update(
         {
           cancelReason: reason,
@@ -1093,8 +1094,9 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     return this.getAdmin(orderId);
   }
 
-  async listAdmin({ status, q, limit, offset, sortKey, sortDirection }: OrderListQuery) {
+  async listAdmin({ status, channel, q, limit, offset, sortKey, sortDirection }: OrderListQuery) {
     const conditions: WhereOptions[] = [];
+    if (channel && ['WEBSITE', 'COUNTER', 'ASSISTED'].includes(channel)) conditions.push({ salesChannel: channel });
     if (status && STATUSES.includes(status as OrderStatus)) conditions.push({ status });
     const search = asTrimmedString(q);
     if (search) {
