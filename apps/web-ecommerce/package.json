@@ -18,6 +18,7 @@
     "seed-ci": "ts-node scripts/seed.ts",
     "db:migrate": "ts-node scripts/migrate.ts",
     "catalog:import": "ts-node scripts/import-catalog.ts",
+    "images:import": "ts-node scripts/import-product-images.ts",
     "partners:seed": "ts-node scripts/seed-partners.ts",
     "payos:test-webhook": "ts-node scripts/payos-test-webhook.ts"
   },
@@ -60,6 +61,7 @@
     "reflect-metadata": "^0.2.2",
     "sequelize": "^6.37.3",
     "sequelize-typescript": "^2.1.6",
+    "sharp": "0.33.5",
     "umzug": "^3.8.3",
     "winston": "^3.13.1"
   },
