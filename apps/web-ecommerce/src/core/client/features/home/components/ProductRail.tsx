@@ -1,5 +1,7 @@
 'use client';
 
+import './product-card-hover.css';
+
 import { useEffect, useState, type ReactNode } from 'react';
 import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
