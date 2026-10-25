@@ -381,25 +381,6 @@ select:not([multiple]) {
 .catalog-price-inputs > span {
   color: #a099ae;
 }
-.catalog-filter-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  align-items: center;
-  margin-top: 14px;
-}
-.catalog-filter-footer p {
-  font-size: 12px;
-  color: #7e7589;
-}
-.catalog-filter-footer button {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  color: #6541b7;
-  font-size: 12px;
-  min-height: 36px;
-}
 .catalog-results {
   margin-block: 24px;
   font-size: 13px;

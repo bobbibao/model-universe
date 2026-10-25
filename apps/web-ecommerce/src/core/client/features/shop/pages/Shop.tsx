@@ -295,7 +295,6 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
               scales={filterOptions.scales}
               priceLimit={priceLimit}
               onChange={changeFilters}
-              onReset={() => navigate({})}
             />
           </details>
         </aside>
