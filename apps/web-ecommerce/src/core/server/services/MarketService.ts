@@ -15,7 +15,7 @@ import { asTrimmedString, isHttpUrl, toInteger } from '../../../shared/server/ut
 // the Agent API (`POST /market/observations`: trends, competitor-site prices, source health).
 
 export const CSV_COLUMNS = ['competitor', 'sku', 'url', 'title', 'price_vnd', 'observed_at'] as const;
-export const CSV_TEMPLATE = `${CSV_COLUMNS.join(',')}\nThời Trang ABC,SKU123,https://abc.example/san-pham/1,Giày chạy bộ,1250000,2026-09-30\n`;
+export const CSV_TEMPLATE = `${CSV_COLUMNS.join(',')}\nHobby ABC,SKU123,https://abc.example/san-pham/1,Motor Nuclear MNP-XH01 Bạch Khởi,720000,2026-09-30\n`;
 
 const MAX_CSV_ROWS = 1000;
 const MAX_TITLE = 200;

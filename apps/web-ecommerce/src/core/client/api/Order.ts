@@ -7,7 +7,7 @@ import type { Order, OrderStatus, ShippingInfo } from '@/shared/types/order';
 import type { DeliveryAddress } from '@/shared/fulfillment';
 
 export interface PlaceOrderInput {
-  items: { productId: number; size: string; quantity: number }[];
+  items: { productId: number; quantity: number }[];
   shipping: ShippingInfo;
   couponCode?: string;
   useMemberDiscount?: boolean;

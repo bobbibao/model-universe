@@ -4,19 +4,17 @@ import ProductDiscountService, { ProductPricing, toPricing } from './ProductDisc
 import { earnedPoints } from '../../../shared/promotions';
 import PromotionService, { BENEFIT_MESSAGES, RANK_REFUSAL_MESSAGE } from './PromotionService';
 import { quoteContent, signQuote } from './CheckoutQuote';
-import { asTrimmedString, toInteger } from '../../../shared/server/utils/ValidationUtils';
+import { toInteger } from '../../../shared/server/utils/ValidationUtils';
 
 export interface CartItemInput {
   productId: number;
-  size: string;
   quantity: number;
 }
 
-export type CartLineStatus = 'OK' | 'UNAVAILABLE' | 'OUT_OF_STOCK' | 'INSUFFICIENT_STOCK' | 'INVALID_SIZE';
+export type CartLineStatus = 'OK' | 'UNAVAILABLE' | 'OUT_OF_STOCK' | 'INSUFFICIENT_STOCK';
 
 export interface CartLine {
   productId: number;
-  size: string;
   quantity: number;
   status: CartLineStatus;
   message?: string;
@@ -30,20 +28,17 @@ export interface CartLine {
 const MAX_CART_LINES = 100;
 const MAX_LINE_QUANTITY = 999;
 
-// Cleans the client payload: valid ids and quantities only, identical product/size lines merged.
+// Cleans the client payload: valid ids and quantities only, lines of the same product merged.
 export const normalizeCartItems = (raw: unknown): CartItemInput[] => {
   if (!Array.isArray(raw)) return [];
-  const merged = new Map<string, CartItemInput>();
+  const merged = new Map<number, CartItemInput>();
   for (const entry of raw.slice(0, MAX_CART_LINES)) {
     const productId = toInteger(entry?.productId);
     const quantity = toInteger(entry?.quantity);
     if (!productId || productId <= 0 || !quantity || quantity <= 0) continue;
-    const size = asTrimmedString(entry?.size);
-    const key = `${productId}::${size}`;
-    const existing = merged.get(key);
-    merged.set(key, {
+    const existing = merged.get(productId);
+    merged.set(productId, {
       productId,
-      size,
       quantity: Math.min(MAX_LINE_QUANTITY, (existing?.quantity || 0) + quantity),
     });
   }
@@ -82,7 +77,6 @@ export default class CartService {
       ...toPricing(product.price, discounts.get(product.id)),
     });
 
-    // Stock is per product, so quantities of different sizes are added up.
     const requestedByProduct = new Map<number, number>();
     items.forEach((item) =>
       requestedByProduct.set(item.productId, (requestedByProduct.get(item.productId) || 0) + item.quantity),
@@ -102,10 +96,6 @@ export default class CartService {
       }
       const summary = summarize(product);
       const base = { ...item, availableStock: product.stock, product: summary };
-      const sizes = product.availableSizes || [];
-      if ((sizes.length > 0 && !sizes.includes(item.size)) || (sizes.length === 0 && item.size)) {
-        return { ...base, status: 'INVALID_SIZE', message: 'Kích thước này không còn được cung cấp.', lineTotal: 0 };
-      }
       if (product.stock <= 0) {
         return { ...base, status: 'OUT_OF_STOCK', message: 'Sản phẩm đã hết hàng.', lineTotal: 0 };
       }
@@ -113,7 +103,7 @@ export default class CartService {
         return {
           ...base,
           status: 'INSUFFICIENT_STOCK',
-          message: `Chỉ còn ${product.stock} sản phẩm trong kho (tính cả các kích thước khác trong giỏ).`,
+          message: `Chỉ còn ${product.stock} sản phẩm trong kho.`,
           lineTotal: 0,
         };
       }

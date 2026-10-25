@@ -9,10 +9,18 @@ export async function getFeaturedProducts(): Promise<ProductSummary[] | undefine
     const options: RequestInit & { cache: 'no-store' } = {
       cache: 'no-store', signal: AbortSignal.timeout(2500),
     };
-    const response = await fetch(`http://127.0.0.1:${port}/api/products?featured=true&per_page=8`, options);
-    if (!response.ok) return undefined;
-    const result = await response.json() as { payload?: { data?: ProductSummary[] } };
-    return Array.isArray(result.payload?.data) ? result.payload.data : undefined;
+    const list = async (query: string) => {
+      const response = await fetch(`http://127.0.0.1:${port}/api/products?${query}`, options);
+      if (!response.ok) return undefined;
+      const result = await response.json() as { payload?: { data?: ProductSummary[] } };
+      return Array.isArray(result.payload?.data) ? result.payload.data : undefined;
+    };
+    // Staff-featured models first; the home banners need photos, so in-stock best sellers fill the rest.
+    const featured = await list('featured=true&per_page=8');
+    if (!featured || featured.length >= 8) return featured;
+    const sellers = (await list('inStock=true&sort=best_selling&per_page=16')) ?? [];
+    const ids = new Set(featured.map((product) => product.id));
+    return [...featured, ...sellers.filter((product) => !ids.has(product.id))].slice(0, 8);
   } catch {
     return undefined;
   }

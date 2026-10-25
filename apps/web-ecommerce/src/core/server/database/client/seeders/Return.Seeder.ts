@@ -126,13 +126,11 @@ const createDeliveredOrder = async (customer: UserModel, product: ProductModel, 
     },
     { silent: true },
   );
-  const size = product.availableSizes.length > 0 ? faker.helpers.arrayElement(product.availableSizes) : '';
   const line = await OrderItemModel.create({
     orderId: order.id,
     productId: product.id,
     productName: product.name,
     imageUrl: product.imageUrl,
-    size,
     quantity,
     unitPrice: product.price,
     createdAt,

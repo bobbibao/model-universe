@@ -75,13 +75,8 @@ describe('legal maximum on stacked promotions', () => {
       sequelize,
       `SELECT id FROM "user" WHERE role = 'USER' LIMIT 1`,
     );
-    const [{ sizes }] = await select<{ sizes: string[] }>(
-      sequelize,
-      'SELECT "availableSizes" AS sizes FROM product WHERE id = :id',
-      { id: product.id },
-    );
     const order = await new OrderService().placeOrder(userId, {
-      items: [{ productId: product.id, size: sizes[0] ?? '', quantity: 2 }],
+      items: [{ productId: product.id, quantity: 2 }],
       shipping: { recipientName: 'Khách Test', phone: '0912345678', address: '12 Đường B', city: 'Hà Nội' },
       couponCode: 'AI-RAW30',
       paymentPlan: 'deposit',

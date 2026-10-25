@@ -97,7 +97,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
   };
   const place = (extra: Record<string, unknown>, quantity = 1) =>
     orders.placeOrder(userId, {
-      items: [{ productId: product.id, quantity, size: '' }],
+      items: [{ productId: product.id, quantity }],
       shipping,
       paymentPlan: 'deposit',
       requestKey: `delivery-${++sequence}-${Date.now()}`,
@@ -319,7 +319,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
       const checkout = new CheckoutService();
       const before = await OrderModel.count({ where: { userId } });
       const request = {
-        items: [{ productId: product.id, quantity: 1, size: '' }],
+        items: [{ productId: product.id, quantity: 1 }],
         shipping: { ...shipping, recipientName: 'QR Collector', phone: '0907654321' },
         paymentPlan: 'deposit',
         depositVnd: 200_000,
@@ -414,7 +414,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
       const checkout = new CheckoutService(),
         stock = (await product.reload()).stock;
       const request = {
-        items: [{ productId: product.id, quantity: 1, size: '' }],
+        items: [{ productId: product.id, quantity: 1 }],
         shipping,
         fulfillmentMethod: 'COURIER_COD',
         deliveryAddress: address,
@@ -460,7 +460,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
       const checkout = new CheckoutService();
       const stock = (await product.reload()).stock;
       const request = {
-        items: [{ productId: product.id, quantity: 2, size: '' }],
+        items: [{ productId: product.id, quantity: 2 }],
         shipping,
         paymentPlan: 'full',
         fulfillmentMethod: 'COURIER_COD',
@@ -722,9 +722,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
     await orders.cancelForUser(userId, order.id, { reason: 'changed_mind' });
     expect((await CouponModel.findOne({ where: { code: 'GUARD25CAP' } }))!.budgetUsedVnd).toBe(0);
     // The wallet shows the public voucher; best voucher picks the largest saving.
-    const evaluation = await new VoucherService().evaluateCart(userId, [
-      { productId: product.id, quantity: 1, size: '' },
-    ]);
+    const evaluation = await new VoucherService().evaluateCart(userId, [{ productId: product.id, quantity: 1 }]);
     expect(evaluation.best?.code).toBe('GUARD25CAP');
   });
 

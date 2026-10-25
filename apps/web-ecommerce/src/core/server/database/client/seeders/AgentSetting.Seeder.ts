@@ -17,14 +17,14 @@ export const ensureAgentSettingDefaults = async (overrides: Partial<AgentSetting
   );
 };
 
-// Development data: Google Trends keywords for the seeded categories (the seeded trend history uses them).
+// Development data: Google Trends keywords for the shop's model lines (the seeded trend history uses them).
 export const DEV_TREND_KEYWORDS: TrendKeyword[] = [
-  { keyword: 'giày nam', category: 'shoes' },
-  { keyword: 'dép', category: 'slippers' },
-  { keyword: 'áo thun', category: 't-shirts' },
-  { keyword: 'bốt', category: 'boots' },
-  { keyword: 'áo khoác', category: 'jackets' },
-  { keyword: 'giày sneaker', category: 'sneakers' },
+  { keyword: 'metal build', category: 'alloy-figures' },
+  { keyword: 'mô hình hợp kim', category: 'alloy-figures' },
+  { keyword: 'motor nuclear', category: 'mecha-model-kits' },
+  { keyword: 'mô hình lắp ráp', category: 'mecha-model-kits' },
+  { keyword: 'cangdao', category: 'alloy-figures' },
+  { keyword: 'mecha kit', category: 'mecha-model-kits' },
 ];
 
 export const seedAgentSettingData = async (): Promise<void> => {

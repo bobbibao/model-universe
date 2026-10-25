@@ -60,7 +60,11 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
   const load = useCallback(() => void PromotionApi.hub().then(setHub), []);
   useEffect(load, [load, user?.id]);
   const money = (value: number) => formatVND(value, locale);
-  const pictured = products.filter((product) => product.imageUrl && product.stock > 0);
+  // Real photos only: a catalogue placeholder (no photo yet) is not shown in a banner.
+  const pictured = products.filter(
+    (product) =>
+      product.imageUrl && !product.imageUrl.includes('placehold.co') && (product.groupStock ?? product.stock) > 0,
+  );
   const pick = (offset: number) =>
     [0, 1, 2].map((i) => pictured[(offset + i) % Math.max(1, pictured.length)]).filter(Boolean);
   const event = hub?.events[0];

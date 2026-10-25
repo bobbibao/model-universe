@@ -39,31 +39,25 @@ export async function executeCustomerAction(raw: CustomerAction, context: Contex
     case 'cart_update':
     case 'wishlist_add': {
       const product = requireResult(await ProductApi.getProduct(action.productId!));
-      const size = action.size || '';
-      if (product.availableSizes.length ? !product.availableSizes.includes(size) : !!size)
-        throw new Error(t('invalidSize'));
       if (action.kind === 'wishlist_add') {
-        requireResult(await WishlistApi.addItem(product.id, size));
+        requireResult(await WishlistApi.addItem(product.id));
         break;
       }
-      const existing = cart.entries.find(({ item }) => item.productId === product.id && item.size === size);
-      const otherQuantity = cart.entries
-        .filter(({ item }) => item.productId === product.id && (action.kind === 'cart_add' || item.size !== size))
-        .reduce((sum, { item }) => sum + item.quantity, 0);
+      const existing = cart.entries.find(({ item }) => item.productId === product.id);
+      const otherQuantity = action.kind === 'cart_add' ? (existing?.item.quantity ?? 0) : 0;
       if (otherQuantity + action.quantity! > product.stock)
         throw new Error(t('stockExceeded', { stock: product.stock }));
       if (action.kind === 'cart_update') {
         if (!existing) throw new Error(t('missingLine'));
-        cart.updateQuantity(product.id, size, action.quantity!);
-      } else requireResult(cart.addItem(product, size, action.quantity!));
+        cart.updateQuantity(product.id, action.quantity!);
+      } else requireResult(cart.addItem(product, action.quantity!));
       return action.kind === 'cart_add'
         ? t('added', { quantity: action.quantity!, name: product.name })
         : t('updated', { quantity: action.quantity!, name: product.name });
     }
     case 'cart_remove':
-      if (!cart.entries.some(({ item }) => item.productId === action.productId && item.size === action.size))
-        throw new Error(t('notInBag'));
-      cart.removeItem(action.productId!, action.size!);
+      if (!cart.entries.some(({ item }) => item.productId === action.productId)) throw new Error(t('notInBag'));
+      cart.removeItem(action.productId!);
       return t('removed');
     case 'cart_clear':
       cart.clearCart();
@@ -79,7 +73,7 @@ export async function executeCustomerAction(raw: CustomerAction, context: Contex
     case 'apply_coupon': {
       const quote = requireResult(
         await CartApi.getQuote(
-          cart.entries.map(({ item }) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
+          cart.entries.map(({ item }) => ({ productId: item.productId, quantity: item.quantity })),
         ),
       );
       if (!quote.itemCount || quote.hasIssues) throw new Error(t('checkBag'));

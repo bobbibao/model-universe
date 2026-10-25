@@ -62,7 +62,6 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
     return {
       q: searchParams.get('q') || '',
       category: categorySlug || searchParams.get('category') || '',
-      gender: '',
       scale: searchParams.get('scale') || '',
       condition: searchParams.get('condition') || '',
       assemblyState: searchParams.get('assemblyState') || '',

@@ -131,5 +131,13 @@
     "canonicalPath": "model_universe_seed.md",
     "receivedAt": "2026-10-25",
     "note": "The shop's whole own catalogue as the owner declared it on 2026-10-25: 100 versions of 6 brands with scale, default package weight/size, buy-in B, selling price S, quantity, condition and received date (26 units in stock). Supersedes the catalogue tab of the 2026-10-23 copy; the image column is not archived."
+  },
+  {
+    "originalPath": "Đặc tả thu mua 17%, ba mức giá và kiểm duyệt trước đăng bán – MODEL UNIVERSE (docs.google.com/document/d/15KBaG53zQKpIuejytfHZivk4Ee5i1RQrUI3yTSpH610), referenced by the header added to every business document of drive.google.com/drive/folders/1YAEt9Fzo3XTo9UTAWO0MD0JYiy-UNl6g",
+    "archivePath": "business/source/vi/buyback-17-percent-specification.md",
+    "sha256": "aff470953134b87658819c806e8ae2db7a54de631a2f23a68ab218e5494eaac9",
+    "canonicalPath": "business/buyback-policy.md",
+    "receivedAt": "2026-10-25",
+    "note": "Buy-back at 17% of the approved target price S (B17), no tier or per-issue deductions; three prices H/S/R with R a verified real list price; QC gate before publication; trade and pawn references. Also records the 2026-10-25 header on every Drive document and the workbook columns H/I/O/P/Q."
   }
 ]

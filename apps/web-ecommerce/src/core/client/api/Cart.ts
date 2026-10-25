@@ -14,7 +14,7 @@ export interface QuoteBenefits {
 export default class CartApi {
   // The cart priced with its benefits; a refused code comes back with its reason.
   static async getQuote(
-    items: { productId: number; size: string; quantity: number }[],
+    items: { productId: number; quantity: number }[],
     benefits: QuoteBenefits = {},
   ): Promise<CartQuote | undefined> {
     try {

@@ -28,9 +28,6 @@ export default class OrderItemModel extends Model {
   @Column({ type: DataType.STRING, allowNull: false })
   imageUrl!: string;
 
-  @Column({ type: DataType.STRING, allowNull: false, defaultValue: '' })
-  size!: string;
-
   @Column({ type: DataType.INTEGER, allowNull: false })
   quantity!: number;
 

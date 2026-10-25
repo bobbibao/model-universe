@@ -33,7 +33,7 @@ const itemsInclude = {
     {
       model: OrderItemModel,
       as: 'orderItem',
-      attributes: ['id', 'productId', 'productName', 'imageUrl', 'size', 'quantity', 'unitPrice'],
+      attributes: ['id', 'productId', 'productName', 'imageUrl', 'quantity', 'unitPrice'],
     },
   ],
 };

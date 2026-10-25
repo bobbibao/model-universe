@@ -141,7 +141,7 @@ const Cart = () => {
   // Every carrier's price for this bag and address and the cheapest one (the order uses it); quoted again on change.
   const [feeQuote, setFeeQuote] = useState<{ key: string; quote: FeeQuote | null }>();
   const feeKey = JSON.stringify({
-    items: entries.map(({ item }) => [item.productId, item.size, item.quantity]),
+    items: entries.map(({ item }) => [item.productId, item.quantity]),
     address: [
       deliveryAddress.provinceCode,
       deliveryAddress.districtCode,
@@ -154,7 +154,7 @@ const Cart = () => {
     let active = true;
     const timer = setTimeout(() => {
       void Api.post('/shipping/quote', {
-        items: entries.map(({ item }) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
+        items: entries.map(({ item }) => ({ productId: item.productId, quantity: item.quantity })),
         address: deliveryAddress,
       })
         .then((response) => active && setFeeQuote({ key: feeKey, quote: response.data }))
@@ -175,7 +175,7 @@ const Cart = () => {
   // when both profit checks pass, and the free-shipping code against the carrier fee.
   const benefitShippingFee = courier ? (currentFee?.feeVnd ?? 0) : 0;
   const checkoutSignature = JSON.stringify({
-    items: entries.map(({ item }) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
+    items: entries.map(({ item }) => ({ productId: item.productId, quantity: item.quantity })),
     code: coupon?.code,
     freeship: freeship?.code,
     fee: benefitShippingFee,
@@ -188,7 +188,7 @@ const Cart = () => {
     }
     let cancelled = false;
     const request = JSON.parse(checkoutSignature) as {
-      items: { productId: number; size: string; quantity: number }[];
+      items: { productId: number; quantity: number }[];
       code?: string;
       freeship?: string;
       fee: number;
@@ -241,9 +241,7 @@ const Cart = () => {
   const codFloor = courier && codLimitVnd !== null ? Math.max(0, total - codLimitVnd) : 0;
   const depositFloor = Math.max(codFloor, Math.min(shippingFee, total));
   const { paymentPlan, depositVnd, upfrontVnd, balanceVnd } = useUpfrontPayment(total, merchandiseTotal, depositFloor);
-  const hasRemovable = entries.some(
-    ({ line }) => line && ['UNAVAILABLE', 'OUT_OF_STOCK', 'INVALID_SIZE'].includes(line.status),
-  );
+  const hasRemovable = entries.some(({ line }) => line && ['UNAVAILABLE', 'OUT_OF_STOCK'].includes(line.status));
 
   // For courier delivery the address lines come from the address picker; an in-person order is collected at the shop.
   const [showroom, setShowroom] = useState<Showroom | null>(null);
@@ -358,7 +356,7 @@ const Cart = () => {
     setPlacing(true);
     try {
       const input = {
-        items: entries.map(({ item }) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
+        items: entries.map(({ item }) => ({ productId: item.productId, quantity: item.quantity })),
         shipping: orderShipping,
         // Only the benefits the quote accepted; a refused code is shown in the cart, not sent.
         couponCode: checkedQuote?.couponCode || undefined,
@@ -449,7 +447,7 @@ const Cart = () => {
               </div>
             )}
             {entries.map((entry) => (
-              <CartLineItem key={`${entry.item.productId}-${entry.item.size}`} entry={entry} />
+              <CartLineItem key={entry.item.productId} entry={entry} />
             ))}
           </section>
           {user && (
@@ -532,7 +530,6 @@ const Cart = () => {
               loggedIn={!!user}
               items={entries.map(({ item }) => ({
                 productId: item.productId,
-                size: item.size,
                 quantity: item.quantity,
               }))}
               subtotal={benefitSubtotalVnd}
@@ -631,7 +628,7 @@ const Cart = () => {
         message={
           <OrderConfirmSummary
             items={entries.map(({ item, line }) => ({
-              key: `${item.productId}-${item.size}`,
+              key: String(item.productId),
               name: line?.product?.name || item.name,
               imageUrl: line?.product?.imageUrl || item.imageUrl,
               quantity: item.quantity,

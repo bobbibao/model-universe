@@ -2,22 +2,12 @@ import WishlistItemModel from '../database/client/models/WishlistItem.Model';
 import ProductModel, { isSellable } from '../database/client/models/Product.Model';
 import ProductDiscountService, { toPricing } from './ProductDiscountService';
 import HttpError from '../../../shared/server/utils/HttpError';
-import { asTrimmedString, toInteger } from '../../../shared/server/utils/ValidationUtils';
+import { toInteger } from '../../../shared/server/utils/ValidationUtils';
 
 const productInclude = {
   model: ProductModel,
   as: 'product',
-  attributes: [
-    'id',
-    'name',
-    'brandName',
-    'price',
-    'imageUrl',
-    'stock',
-    'isArchived',
-    'inventoryStatus',
-    'availableSizes',
-  ],
+  attributes: ['id', 'name', 'brandName', 'price', 'imageUrl', 'stock', 'isArchived', 'inventoryStatus'],
 };
 
 export default class WishlistService {
@@ -36,7 +26,6 @@ export default class WishlistService {
       return {
         id: item.id,
         productId: item.productId,
-        size: item.size,
         createdAt: item.createdAt,
         available: isSellable(product),
         product: {
@@ -55,15 +44,10 @@ export default class WishlistService {
   // Adding an item that is already in the list is a no-op.
   async add(userId: number, data: Record<string, unknown>) {
     const productId = toInteger(data.productId);
-    const size = asTrimmedString(data.size);
     const product = productId ? await ProductModel.findByPk(productId) : null;
     if (!product || !isSellable(product)) throw HttpError.notFound('Không tìm thấy sản phẩm.');
-    const sizes = product.availableSizes || [];
-    if ((sizes.length > 0 && !sizes.includes(size)) || (sizes.length === 0 && size)) {
-      throw HttpError.badRequest('Kích thước không hợp lệ.');
-    }
-    const [item] = await WishlistItemModel.findOrCreate({ where: { userId, productId: product.id, size } });
-    return { id: item.id, productId: item.productId, size: item.size };
+    const [item] = await WishlistItemModel.findOrCreate({ where: { userId, productId: product.id } });
+    return { id: item.id, productId: item.productId };
   }
 
   async remove(userId: number, itemId: number): Promise<void> {

@@ -24,7 +24,7 @@ describe('unique collectible and marketplace checkout integrity', () => {
     adminId = (await UserModel.findOne({ where: { role: 'ADMIN' } }))!.id;
     supplierId = (await SupplierModel.findOne({ where: { isActive: true } }))!.id;
     const source = (await ProductModel.findOne({ where: { condition: 'new', isArchived: false } }))!;
-    const base = { categoryId: source.categoryId, brandName: 'Synthetic Fixture Manufacturer', price: 200000, importPrice: 0, sold: 0, availableSizes: [], gender: 'unisex' };
+    const base = { categoryId: source.categoryId, brandName: 'Synthetic Fixture Manufacturer', price: 200000, importPrice: 0, sold: 0 };
     fresh = await ProductModel.create({ ...base, sku: 'INTEGRITY-NEW', name: 'Synthetic new kit', condition: 'new', stock: 3, imageUrl: source.imageUrl });
     used = await ProductModel.create({ ...base, sku: 'INTEGRITY-USED', name: 'Synthetic unique used kit', condition: 'preowned', stock: 0, imageUrl: photos[0] });
     await ProductImageModel.bulkCreate(photos.slice(1).map((url, sortOrder) => ({ productId: used.id, url, sortOrder })));
@@ -64,7 +64,7 @@ describe('unique collectible and marketplace checkout integrity', () => {
   });
   it('does not route accidentally published partner stock through shop COD or consume shop vouchers', async () => {
     const partner = await PartnerProfileModel.create({ userId, requestKey: 'synthetic-integrity', requestDigest: 'synthetic-integrity', application: {}, currentEvidenceIds: [], status: 'verified' });
-    const seller = await ProductModel.create({ name: 'Synthetic accidental publication', sku: 'INTEGRITY-PARTNER', brandName: fresh.brandName, categoryId: fresh.categoryId, imageUrl: fresh.imageUrl, price: 300000, stock: 1, sold: 0, partnerId: partner.id, listingStatus: 'published', condition: 'new', availableSizes: [] });
+    const seller = await ProductModel.create({ name: 'Synthetic accidental publication', sku: 'INTEGRITY-PARTNER', brandName: fresh.brandName, categoryId: fresh.categoryId, imageUrl: fresh.imageUrl, price: 300000, stock: 1, sold: 0, partnerId: partner.id, listingStatus: 'published', condition: 'new' });
     const coupon = await CouponModel.create({ code: 'INTEGRITY-SHOP', title: 'Synthetic shop voucher', source: 'admin', discountPercent: 10, usageCount: 0, isActive: true, minOrderVnd: 0, startDate: new Date(0), expirationDate: new Date(Date.now() + 3600000) });
     const count = await OrderModel.count(), stock = (await fresh.reload()).stock;
     await expect(new OrderService().placeOrder(userId, { items: [{ productId: fresh.id, quantity: 1 }, { productId: seller.id, quantity: 1 }], shipping, couponCode: coupon.code, paymentPlan: 'full' })).rejects.toMatchObject({ code: 'MARKETPLACE_CHECKOUT_REQUIRED' });

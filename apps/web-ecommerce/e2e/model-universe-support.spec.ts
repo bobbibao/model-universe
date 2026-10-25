@@ -25,7 +25,7 @@ for (const locale of ['vi', 'en']) {
       const product = products.find((item: { stock: number; condition: string }) => item.stock > 4 && item.condition === 'new');
       expect(product).toBeTruthy();
       const created = await page.request.post('/api/orders', { data: {
-        items: [{ productId: product.id, quantity: 1, size: '' }],
+        items: [{ productId: product.id, quantity: 1 }],
         shipping: { recipientName: 'Synthetic Support Collector', phone: '0901234567', address: '12 Verification Street', city: 'Fixture City' },
         requestKey: crypto.randomUUID(),
         paymentPlan: 'deposit',

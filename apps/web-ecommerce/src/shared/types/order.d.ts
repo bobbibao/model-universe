@@ -17,7 +17,6 @@ export type OrderItem = {
   productId: number;
   productName: string;
   imageUrl: string;
-  size: string;
   quantity: number;
   unitPrice: number;
   modelSnapshot?: Record<string, unknown> | null;

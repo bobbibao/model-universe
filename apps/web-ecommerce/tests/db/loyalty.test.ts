@@ -38,7 +38,7 @@ describe('member transactions on disposable PostgreSQL', () => {
   };
   const checkout = (key: string, owner = userId, couponCode?: string) =>
     orders.placeOrder(owner, {
-      items: [{ productId: product.id, size: '', quantity: 1 }],
+      items: [{ productId: product.id, quantity: 1 }],
       shipping,
       requestKey: key,
       couponCode,

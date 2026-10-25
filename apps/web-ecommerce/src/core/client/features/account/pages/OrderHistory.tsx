@@ -112,7 +112,7 @@ const OrderHistory = ({ embedded = false }: { embedded?: boolean } = {}) => {
     let added = 0;
     for (const item of order.items || []) {
       const product = await ProductApi.getProduct(item.productId);
-      if (product && product.stock > 0 && addItem(product, item.size || '', Math.min(item.quantity, product.stock)))
+      if (product && product.stock > 0 && addItem(product, Math.min(item.quantity, product.stock)))
         added += 1;
     }
     if (added) router.push('/cart');

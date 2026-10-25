@@ -35,7 +35,7 @@ describe('pricing guard: approved prices and costs, voucher policy, signed quote
     policies = new CommercePolicyService(),
     cart = new CartService(),
     orders = new OrderService();
-  const items = (p = product) => [{ productId: p.id, quantity: 1, size: '' }];
+  const items = (p = product) => [{ productId: p.id, quantity: 1 }];
   const quote = (code = 'KIT12P', p = product) => cart.quote(items(p), { couponCode: code, userId });
   const place = (extra: Record<string, unknown> = {}, p = product) =>
     orders.placeOrder(userId, {

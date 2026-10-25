@@ -20,7 +20,7 @@ describe('Agent API: promotions', () => {
     // Boundary fixtures must not depend on a small catalog's deterministic SKU hash producing a new arrival.
     const source = (await ProductModel.findOne({ where: { condition: 'new', isArchived: false } }))!;
     await ProductModel.create({ name: 'Synthetic recently received Gunpla test fixture', sku: 'PROMOTION-NEW-ARRIVAL', brandName: source.brandName,
-      categoryId: source.categoryId, imageUrl: source.imageUrl, price: 200000, importPrice: 120000, stock: 10, sold: 0, condition: 'new', availableSizes: [], createdAt: new Date() });
+      categoryId: source.categoryId, imageUrl: source.imageUrl, price: 200000, importPrice: 120000, stock: 10, sold: 0, condition: 'new', createdAt: new Date() });
   }, 600_000);
   afterAll(() => sequelize.close());
 

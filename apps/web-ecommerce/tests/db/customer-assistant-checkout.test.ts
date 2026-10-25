@@ -54,7 +54,7 @@ describe('customer assistant checkout on a throwaway database', () => {
     jest.restoreAllMocks();
     await db?.close();
   });
-  const items = () => [{ productId: product.id, size: product.availableSizes[0] || '', quantity: 1 }];
+  const items = () => [{ productId: product.id, quantity: 1 }];
   const shipping = { recipientName: 'Khách Test', phone: '0901234567', address: '12 Đường A', city: 'Hồ Chí Minh' };
 
   it('allows guest cart quotes and requires authentication when quoting a coupon', async () => {

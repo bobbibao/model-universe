@@ -55,7 +55,7 @@ describe('customer assistant boundaries and catalog advice', () => {
       expirationDate: new Date(Date.now() + 60000),
       usageLimit: null,
     } as never);
-    expect(await new CartService().quote([{ productId: 3, size: 'M', quantity: 1 }], { couponCode: 'AGENT25' })).toMatchObject({
+    expect(await new CartService().quote([{ productId: 3, quantity: 1 }], { couponCode: 'AGENT25' })).toMatchObject({
       subtotal: 500000,
       discount: 0,
       total: 500000,
@@ -72,7 +72,7 @@ describe('customer assistant boundaries and catalog advice', () => {
     const create = jest.spyOn(OrderModel, 'create');
     await expect(
       new OrderService().placeOrder(7, {
-        items: [{ productId: 3, size: 'M', quantity: 1 }],
+        items: [{ productId: 3, quantity: 1 }],
         shipping: { recipientName: 'Lan', phone: '0901234567', address: '12 Đường A', city: 'Hồ Chí Minh' },
         expectedTotal: 600000,
         paymentPlan: 'deposit',
@@ -189,7 +189,7 @@ describe('customer assistant boundaries and catalog advice', () => {
 
     jest.spyOn(service, 'decide').mockResolvedValue({
       answer: 'Added to your bag.',
-      actions: [{ kind: 'cart_add', productId: 3, size: '', quantity: 1 }],
+      actions: [{ kind: 'cart_add', productId: 3, quantity: 1 }],
     });
     const pending = await service.chat(makeUser('USER'), { message: 'Add it', locale: 'en' });
     expect(pending.actions).toHaveLength(1);

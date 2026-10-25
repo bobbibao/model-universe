@@ -24,7 +24,6 @@ export interface SeedProduct extends GunplaAttributes {
   name: string;
   brandName: string;
   category: string;
-  availableSizes: string[];
   stock: number;
   priceVnd: number;
   productionDate: string;

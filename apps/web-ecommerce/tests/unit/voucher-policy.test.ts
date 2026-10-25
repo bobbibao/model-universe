@@ -50,8 +50,8 @@ describe('signed checkout quotes', () => {
   const content: QuoteContent = {
     userId: 7,
     items: [
-      { productId: 2, size: '', quantity: 1, unitVnd: 500_000 },
-      { productId: 1, size: 'M', quantity: 2, unitVnd: 1_000_000 },
+      { productId: 2, quantity: 1, unitVnd: 500_000 },
+      { productId: 1, quantity: 2, unitVnd: 1_000_000 },
     ],
     couponCode: 'MEMBER10',
     freeshipCode: null,

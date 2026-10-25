@@ -144,7 +144,6 @@
     "assistantPrompt": "Giải thích mô hình #{id} ({name}): thông số đã xác minh, tình trạng, ưu nhược điểm và đánh giá của cửa hàng. Trả lời bằng tiếng Việt.",
     "askAssistant": "Hỏi trợ lý về mô hình này",
     "assistantNote": "Hiểu rõ kit. So sánh lựa chọn.",
-    "legacySize": "Tùy chọn kích thước cũ",
     "quantity": "Số lượng",
     "decrease": "Giảm số lượng",
     "increase": "Tăng số lượng",
@@ -201,8 +200,7 @@
     "moveToBag": "Chuyển vào giỏ",
     "removeNamed": "Xoá {name} khỏi danh sách yêu thích",
     "soldOut": "Hết hàng",
-    "unavailable": "Ngừng kinh doanh",
-    "size": "Kích thước"
+    "unavailable": "Ngừng kinh doanh"
   },
   "common": {
     "pagePosition": "Trang {page} / {total}",
@@ -584,7 +582,6 @@
     "note": "Ghi chú đơn hàng",
     "optional": "Không bắt buộc",
     "brand": "Hãng sản xuất",
-    "size": "Lựa chọn kích thước cũ",
     "reduce": "Giảm còn {count}",
     "remove": "Xóa",
     "decrease": "Giảm số lượng",
@@ -623,7 +620,6 @@
     "lineStatus": {
       "UNAVAILABLE": "Mô hình này không còn bán.",
       "OUT_OF_STOCK": "Mô hình này đã hết hàng.",
-      "INVALID_SIZE": "Lựa chọn cũ không còn bán.",
       "INSUFFICIENT_STOCK": "Giảm số lượng về tồn kho còn lại."
     },
     "validationOrder": "Chưa xác minh được đơn hàng. Kiểm tra lịch sử đơn trước khi thử lại.",
@@ -912,7 +908,6 @@
       "REJECTED": "Từ chối"
     },
     "reasons": {
-      "wrong_size": "Sai kích cỡ của giao dịch cũ",
       "defective": "Mô hình lỗi",
       "not_as_described": "Khác đáng kể so với mô tả",
       "changed_mind": "Đổi ý",
@@ -2053,8 +2048,6 @@
     "order": "Đơn hàng #{id}",
     "product": "Sản phẩm #{id}",
     "clearNote": "Xóa tất cả {count} sản phẩm khỏi giỏ hàng hiện tại.",
-    "size": "Kích thước",
-    "chooseSize": "Chọn size",
     "quantity": "Số lượng",
     "coupon": "Mã giảm giá",
     "name": "Họ tên",
@@ -2080,7 +2073,6 @@
     "apiFailed": "Chưa thực hiện được. Hãy kiểm tra dữ liệu và thử lại.",
     "invalid": "Thao tác không hợp lệ.",
     "opened": "Đã mở trang bạn yêu cầu.",
-    "invalidSize": "Chọn kích thước được cung cấp.",
     "stockExceeded": "Số lượng vượt tồn kho hiện tại ({stock}).",
     "missingLine": "Sản phẩm với kích thước này chưa có trong giỏ.",
     "added": "Đã thêm {quantity} {name} vào giỏ.",

@@ -1,6 +1,4 @@
-// Retained apparel reasons remain readable in historical transactions.
 export const RETURN_REASONS = [
-  'wrong_size',
   'defective',
   'not_as_described',
   'changed_mind',
@@ -11,7 +9,6 @@ export const RETURN_REASONS = [
   'shipping_damage',
 ] as const;
 export type ReturnReason = (typeof RETURN_REASONS)[number];
-export const MODEL_RETURN_REASONS = RETURN_REASONS.filter((reason) => reason !== 'wrong_size');
 export const SUPPORT_OUTCOMES = [
   'parts',
   'exchange',

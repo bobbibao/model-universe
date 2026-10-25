@@ -138,7 +138,7 @@ export function CustomerAssistantProvider({ children }: { children: ReactNode })
           locale,
           history,
           path: pathname,
-          cart: entries.map(({ item }) => ({ productId: item.productId, size: item.size, quantity: item.quantity })),
+          cart: entries.map(({ item }) => ({ productId: item.productId, quantity: item.quantity })),
         }),
       });
       const reply = response.headers.get('content-type')?.includes('application/x-ndjson')

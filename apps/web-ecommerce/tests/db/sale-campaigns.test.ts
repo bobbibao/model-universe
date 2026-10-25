@@ -29,7 +29,6 @@ describe('store sale campaigns', () => {
       sku: 'SALE-TEST-KIT',
       brandName: 'Test',
       categoryId: category.id,
-      gender: 'unisex',
       price: 1_000_000,
       importPrice: 100_000,
       stock: 3,
@@ -82,7 +81,7 @@ describe('store sale campaigns', () => {
     const publicEvent = (await service.storefront()).events.find((e) => e.id === a.id)!;
     expect(publicEvent.products[0].salePrice).toBe(850_000);
     expect(JSON.stringify(publicEvent)).not.toMatch(/costVnd|importPrice|digest|createdByUserId/);
-    const cart = await new CartService().quote([{ productId: product.id, quantity: 1, size: '' }]);
+    const cart = await new CartService().quote([{ productId: product.id, quantity: 1 }]);
     expect(cart.subtotal).toBe(850_000);
     expect(await PromotionAuditModel.count({ where: { entityType: 'sale_campaign', entityId: a.id } })).toBe(1);
   });
@@ -102,11 +101,11 @@ describe('store sale campaigns', () => {
       usageCount: 0,
     });
     const cart = new CartService();
-    const quote = await cart.quote([{ productId: product.id, quantity: 1, size: '' }], { couponCode: coupon.code, userId: adminId });
+    const quote = await cart.quote([{ productId: product.id, quantity: 1 }], { couponCode: coupon.code, userId: adminId });
     expect(quote.discount).toBe(85_000);
     await ProductDiscountModel.update({ percent: 25 }, { where: { productId: product.id } });
     // The quote explains the refusal; placing the order refuses it outright.
-    const refused = await cart.quote([{ productId: product.id, quantity: 1, size: '' }], {
+    const refused = await cart.quote([{ productId: product.id, quantity: 1 }], {
       couponCode: coupon.code,
       userId: adminId,
     });

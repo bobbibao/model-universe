@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Modal/Modal';
 import { inputClassName } from '@/components/FormElements/TextField';
-import { MODEL_RETURN_REASONS } from '@/shared/return-rules';
+import { RETURN_REASONS } from '@/shared/return-rules';
 import Api from '@/core/client/api/Api';
 import ReturnApi from '@/core/client/api/Return';
 import type { Order } from '@/shared/types/order';
@@ -97,10 +97,7 @@ const ReturnRequestModal = ({ open, order, info, onClose, onCreated }: ReturnReq
           const line = lines[item.id] || { quantity: 0, reason: '' };
           return (
             <div key={item.id} className="rounded border border-stroke p-3 dark:border-strokedark">
-              <p className="font-medium">
-                {item.productName}
-                {item.size && <span className="text-body"> · Size {item.size}</span>}
-              </p>
+              <p className="font-medium">{item.productName}</p>
               {max === 0 ? (
                 <p className="text-sm text-body">{t('allRequested')}</p>
               ) : (
@@ -128,7 +125,7 @@ const ReturnRequestModal = ({ open, order, info, onClose, onCreated }: ReturnReq
                       onChange={(event) => update(item.id, { reason: event.target.value as ReturnReason })}
                     >
                       <option value="">{t('chooseReason')}</option>
-                      {MODEL_RETURN_REASONS.map((value) => (
+                      {RETURN_REASONS.map((value) => (
                         <option key={value} value={value}>
                           {t(`reasons.${value}`)}
                         </option>

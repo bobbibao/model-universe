@@ -94,7 +94,7 @@ export default class ReservationService {
     if (existing) return assertReplay(existing);
     try {
       return await DatabaseProvider.getInstance().transaction(async transaction => {
-        const { lines, products } = await new CartService().resolveLines([{ productId, quantity, size: '' }], { transaction, lock: true });
+        const { lines, products } = await new CartService().resolveLines([{ productId, quantity }], { transaction, lock: true });
         const line = lines[0];
         if (line?.status !== 'OK') throw HttpError.conflict('The model is no longer available.');
         if (!Number.isSafeInteger(line.lineTotal) || line.lineTotal < 1 || line.lineTotal > 2147483647) throw HttpError.badRequest('The reservation amount exceeds the supported integer VND range.');
@@ -186,7 +186,7 @@ export default class ReservationService {
       if (!product) throw HttpError.notFound('Reserved model not found.');
       const shipping = this.orders.validateShipping(row.shipping);
       const order = await OrderModel.create({ ...shipping, userId: row.userId, status: 'PROCESSING', paymentMethod: 'COD', paymentStatus: row.paidVnd === row.totalVnd ? 'PAID' : 'PENDING', requiresCollectionConfirmation:true, subtotal: row.totalVnd, total: row.totalVnd, prepaidVnd: row.paidVnd, paymentSource: row.paidVnd === row.totalVnd ? 'BANK_TRANSFER' : 'TRANSFER_PLUS_COD', note: `${shipping.note || ''}\nReservation #${id}; ${row.deliveryMethod}; COD balance ${row.totalVnd - row.paidVnd} VND.`.trim() }, { transaction });
-      await OrderItemModel.create({ orderId: order.id, productId: row.productId, productName: row.productName, imageUrl: row.imageUrl, size: '', quantity: row.quantity, unitPrice: row.unitPriceVnd, modelSnapshot: row.modelSnapshot }, { transaction });
+      await OrderItemModel.create({ orderId: order.id, productId: row.productId, productName: row.productName, imageUrl: row.imageUrl, quantity: row.quantity, unitPrice: row.unitPriceVnd, modelSnapshot: row.modelSnapshot }, { transaction });
       await product.increment('sold', { by: row.quantity, transaction });
       await row.update({ status: 'fulfilling', orderId: order.id }, { transaction });
       await this.audit(row, actorUserId, 'fulfillment_confirmed', 'Shop confirmed fulfillment and stopped expiry; stock allocation transferred to order.', transaction, { orderId: order.id, codDueVnd: row.totalVnd - row.paidVnd });

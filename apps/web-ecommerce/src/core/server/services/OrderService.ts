@@ -453,7 +453,6 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
             productId: line.productId,
             productName: line.product?.name,
             imageUrl: line.product?.imageUrl,
-            size: line.size,
             quantity: line.quantity,
             modelSnapshot: (() => {
               const product = products.get(line.productId) as ProductModel;

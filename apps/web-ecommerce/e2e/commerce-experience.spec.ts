@@ -42,7 +42,6 @@ async function fixture(page: Page, admin = false, complex = false, partnerId: nu
         includedAccessories: [] as string[],
       },
     ],
-    availableSizes: [],
     isArchived: false,
     inventoryStatus: 'available',
     importPrice: 500000,

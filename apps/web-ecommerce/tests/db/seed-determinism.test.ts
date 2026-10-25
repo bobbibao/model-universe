@@ -11,7 +11,7 @@ const CHECKSUMS: Record<string, string> = {
     "supplierId"), ',' ORDER BY sku)) FROM product`,
   order: `SELECT md5(string_agg(concat_ws('|', id, "userId", status, total, discount, "couponCode", "createdAt",
     "deliveredAt", "utmSource", "utmMedium", "utmCampaign", "clickIdType", "clickId"), ',' ORDER BY id)) FROM "order"`,
-  order_item: `SELECT md5(string_agg(concat_ws('|', id, "orderId", "productId", size, quantity, "unitPrice"), ','
+  order_item: `SELECT md5(string_agg(concat_ws('|', id, "orderId", "productId", quantity, "unitPrice"), ','
     ORDER BY id)) FROM order_item`,
   stock_import_item: `SELECT md5(string_agg(concat_ws('|', id, "productId", quantity, "createdAt"), ',' ORDER BY id))
     FROM stock_import_item`,

@@ -20,7 +20,7 @@ describe('customer address snapshots and durable stock alerts', () => {
     [userId, otherId] = (await UserModel.findAll({ where: { role: 'USER', isActive: true }, order: [['id', 'ASC']], limit: 2 })).map(user => user.id);
     const source = (await ProductModel.findOne({ where: { condition: 'new', isArchived: false } }))!;
     product = await ProductModel.create({ name: 'Synthetic restock and finder fixture', sku: 'CUSTOMER-TOOLS-FIXTURE', brandName: 'Fixture Manufacturer', categoryId: source.categoryId,
-      price: 200000, importPrice: 0, stock: 3, sold: 0, imageUrl: source.imageUrl, condition: 'new', assemblyState: 'unassembled', scale: '1/144', availableSizes: [], gender: 'unisex' });
+      price: 200000, importPrice: 0, stock: 3, sold: 0, imageUrl: source.imageUrl, condition: 'new', assemblyState: 'unassembled', scale: '1/144' });
   }, 120000);
   afterAll(async () => { await db?.close(); });
 
@@ -34,7 +34,7 @@ describe('customer address snapshots and durable stock alerts', () => {
   });
   it('isolates address updates and removal and preserves the destination already snapshotted on an order', async () => {
     let row = (await addresses.list(userId))[0];
-    const order = await new OrderService().placeOrder(userId, { items: [{ productId: product.id, quantity: 1, size: '' }], shipping: row.shipping, expectedTotal: product.price, requestKey: crypto.randomUUID(), paymentPlan: 'full' });
+    const order = await new OrderService().placeOrder(userId, { items: [{ productId: product.id, quantity: 1 }], shipping: row.shipping, expectedTotal: product.price, requestKey: crypto.randomUUID(), paymentPlan: 'full' });
     await expect(addresses.save(otherId, { id: row.id, label: 'Stolen', shipping, expectedVersion: row.version })).rejects.toMatchObject({ statusCode: 404 });
     await expect(addresses.remove(otherId, row.id, row.version)).rejects.toMatchObject({ statusCode: 404 });
     row = await addresses.save(userId, { id: row.id, label: 'New home', shipping: { ...shipping, address: '34 New Synthetic Road' }, expectedVersion: row.version });

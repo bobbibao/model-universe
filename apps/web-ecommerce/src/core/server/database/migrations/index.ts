@@ -68,6 +68,11 @@ import { ensureAgentSettingDefaults } from '../client/seeders/AgentSetting.Seede
 import { ensureMarketEvents } from '../client/seeders/Market.Seeder';
 import { estimatedPricing, loadCatalogEntries, ownerCatalogValues } from '../client/seeders/ModelUniverseCatalog';
 import { loadOwnerCatalog, ownerCatalogSeeded, syncOwnerCatalog } from '../client/seeders/OwnerCatalog';
+import { CATEGORIES } from '../client/seeders/Category.Seeder';
+import { RETURN_REASONS } from '../../../../shared/return-rules';
+import Logger from '../../../../shared/server/utils/logger';
+import { purgeRows } from './purge';
+import { QueryTypes } from 'sequelize';
 import ReservationModel from '../client/models/Reservation.Model';
 import ReservationPaymentModel from '../client/models/ReservationPayment.Model';
 import ReservationEventModel from '../client/models/ReservationEvent.Model';
@@ -1012,6 +1017,88 @@ export const MIGRATIONS: Migration[] = [
       // development seed in this process already wrote the catalogue, with its demo stock and history: it is kept.
       if (ownerCatalogSeeded()) return;
       await context.sequelize.transaction((transaction) => syncOwnerCatalog(loadOwnerCatalog(), transaction));
+    },
+  },
+  {
+    name: '2026-10-25-46-purge-legacy-apparel',
+    up: async ({ context }) => {
+      // The owner asked for everything of the former clothing shop to be gone: its products (sized, gendered or with
+      // asos images) with every order, receipt, return, review and stock import that refers to them, its categories,
+      // and the clothing-only columns (product gender and sizes, order line and wishlist sizes, the "wrong size" return
+      // reason). Model orders, customers and the shop's catalogue are kept.
+      const { sequelize } = context;
+      const queryInterface = sequelize.getQueryInterface();
+      await sequelize.transaction(async (transaction) => {
+        const product = await queryInterface.describeTable('product');
+        const legacy = [
+          `"imageUrl" LIKE 'https://images.asos-media.com/%'`,
+          ...('gender' in product ? [`gender::text <> 'unisex'`] : []),
+          ...('availableSizes' in product ? [`jsonb_array_length("availableSizes") > 0`] : []),
+        ].join(' OR ');
+        const select = (sql: string) =>
+          sequelize.query<{ id: number }>(sql, { type: QueryTypes.SELECT, transaction }).then((rows) => rows.map((row) => row.id));
+        const products = await select(`SELECT id FROM product WHERE "partnerId" IS NULL AND (${legacy})`);
+        if (products.length > 0) {
+          const list = products.join(',');
+          // Whole orders and receipts: a document is not kept with some of its lines removed.
+          const orders = await select(`SELECT DISTINCT "orderId" AS id FROM order_item WHERE "productId" IN (${list})`);
+          const imports = await select(
+            `SELECT DISTINCT "stockImportId" AS id FROM stock_import_item WHERE "productId" IN (${list})`,
+          );
+          const deleted = await purgeRows(
+            sequelize,
+            { order: orders, stock_import: imports, product: products },
+            transaction,
+          );
+          Logger.INFO(`Legacy apparel purged: ${JSON.stringify(deleted)}.`);
+        }
+        const kept = CATEGORIES.map((category) => `'${category.slug}'`).join(',');
+        await sequelize.query(
+          `DELETE FROM category c WHERE c.slug NOT IN (${kept}) AND NOT EXISTS (SELECT 1 FROM product p WHERE p."categoryId" = c.id)`,
+          { transaction },
+        );
+        // The agent's views read the columns changed below; they are recreated after the migrations.
+        const views = await sequelize.query<{ name: string }>(
+          `SELECT viewname AS name FROM pg_views WHERE schemaname = 'analytics'`,
+          { type: QueryTypes.SELECT, transaction },
+        );
+        for (const view of views) await sequelize.query(`DROP VIEW IF EXISTS analytics."${view.name}" CASCADE`, { transaction });
+        if ('gender' in product) await queryInterface.removeColumn('product', 'gender', { transaction });
+        if ('availableSizes' in product) await queryInterface.removeColumn('product', 'availableSizes', { transaction });
+        await sequelize.query('DROP TYPE IF EXISTS enum_product_gender', { transaction });
+        if ('size' in (await queryInterface.describeTable('order_item')))
+          await queryInterface.removeColumn('order_item', 'size', { transaction });
+        if ('size' in (await queryInterface.describeTable('wishlist_item'))) {
+          await sequelize.query(
+            `DELETE FROM wishlist_item w USING wishlist_item k
+              WHERE w."userId" = k."userId" AND w."productId" = k."productId" AND w.id > k.id`,
+            { transaction },
+          );
+          await queryInterface.removeColumn('wishlist_item', 'size', { transaction });
+        }
+        await sequelize.query(
+          'CREATE UNIQUE INDEX IF NOT EXISTS wishlist_item_user_id_product_id ON wishlist_item ("userId", "productId")',
+          { transaction },
+        );
+        const [sized] = await sequelize.query<{ n: number }>(
+          `SELECT count(*)::int AS n FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+            WHERE t.typname = 'enum_return_item_reason' AND e.enumlabel = 'wrong_size'`,
+          { type: QueryTypes.SELECT, transaction },
+        );
+        if (sized.n > 0) {
+          await sequelize.query(`ALTER TYPE enum_return_item_reason RENAME TO enum_return_item_reason_old`, { transaction });
+          await sequelize.query(
+            `CREATE TYPE enum_return_item_reason AS ENUM (${RETURN_REASONS.map((reason) => `'${reason}'`).join(', ')})`,
+            { transaction },
+          );
+          await sequelize.query(
+            `ALTER TABLE return_item ALTER COLUMN reason TYPE enum_return_item_reason
+               USING (CASE WHEN reason::text = 'wrong_size' THEN 'other' ELSE reason::text END)::enum_return_item_reason`,
+            { transaction },
+          );
+          await sequelize.query('DROP TYPE enum_return_item_reason_old', { transaction });
+        }
+      });
     },
   },
 ];
