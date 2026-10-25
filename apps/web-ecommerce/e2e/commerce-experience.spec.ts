@@ -18,7 +18,7 @@ test.beforeAll(async ({ request }) => {
   model = await (await request.get(`/api/products/${catalog.payload.data[0].id}`)).json();
 });
 
-async function fixture(page: Page, admin = false, complex = false, partnerId: number | null = null) {
+async function fixture(page: Page, admin = false, complex = false, partnerId: number | null = null, soldOut = false) {
   const product = {
     ...model,
     partnerId,
@@ -65,6 +65,11 @@ async function fixture(page: Page, admin = false, complex = false, partnerId: nu
       discountPercent: 11,
       images: ['/images/store/product-placeholder.svg?angle=2'],
     });
+  }
+  if (soldOut) {
+    product.stock = 0;
+    product.groupStock = 0;
+    product.conditionOptions.forEach((unit) => (unit.stock = 0));
   }
   const requests: string[] = [];
   await page.route('**/api/**', async (route) => {
@@ -143,6 +148,9 @@ async function fixture(page: Page, admin = false, complex = false, partnerId: nu
           conditions: [],
         },
       });
+    if (path === '/api/vouchers/evaluate')
+      return route.fulfill({ json: { options: [], best: null, bestFreeship: null } });
+    if (path === '/api/vouchers') return route.fulfill({ json: { vouchers: [], monthly: null } });
     if (path === '/api/cart/quote')
       return route.fulfill({ json: { lines: [], itemCount: 0, subtotal: 0, hasIssues: false } });
     // Every other endpoint stays inside the fixture, including accidental writes.
@@ -402,3 +410,122 @@ for (const locale of ['vi', 'en'] as const) {
     expect(errors).toEqual([]);
   });
 }
+
+for (const locale of ['vi', 'en'] as const) {
+  const m = locale === 'vi' ? vi : en;
+  test(locale + ': sold-out purchase actions offer restock subscription directly', async ({ page }) => {
+    await fixture(page, true, false, null, true);
+    let preferences: { productId: number; active: boolean }[] = [];
+    let reads = 0;
+    await page.route('**/api/notifications/restocks**', async (route) => {
+      if (route.request().method() === 'GET') reads++;
+      else preferences = [{ productId: model.id, active: route.request().postDataJSON().active }];
+      await route.fulfill({ json: preferences });
+    });
+    await page.goto('/' + locale + '/cua-hang');
+    const action = page.locator('.product-tile').getByRole('button', { name: m.customerTools.startAlert, exact: true });
+    await action.click();
+    await expect(
+      page.locator('.product-tile').getByRole('button', { name: m.customerTools.stopAlert, exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(reads).toBe(1);
+    await page.goto('/' + locale + '/san-pham/' + model.slug);
+    const purchase = page.locator('.product-purchase-actions');
+    await expect(purchase.getByRole('button', { name: m.customerTools.stopAlert, exact: true })).toBeEnabled();
+    await expect(purchase.getByRole('button', { name: m.catalog.soldOut, exact: true })).toHaveCount(0);
+    await purchase.getByRole('button', { name: m.customerTools.stopAlert, exact: true }).click();
+    await expect(purchase.getByRole('button', { name: m.customerTools.startAlert, exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await capture(page, locale + '-restock-action');
+  });
+  test(locale + ': guest stock alert returns through sign-in', async ({ page }) => {
+    await fixture(page, false, false, null, true);
+    await page.goto('/' + locale + '/san-pham/' + model.slug);
+    await expect(
+      page.locator('.product-purchase-actions').getByRole('link', { name: m.customerTools.startAlert, exact: true }),
+    ).toHaveAttribute('href', /auth\/signin\?redirect=/);
+  });
+  test(locale + ': reopened QR locks the payment plan after reload and close', async ({ page }) => {
+    await page.setViewportSize({ width: locale === 'vi' ? 390 : 1440, height: locale === 'vi' ? 844 : 768 });
+    await fixture(page, true);
+    await page.addInitScript(
+      (product) =>
+        localStorage.setItem(
+          'cart',
+          JSON.stringify([
+            {
+              productId: product.id,
+              size: '',
+              quantity: 1,
+              name: product.name,
+              imageUrl: product.imageUrl,
+              price: product.price,
+              brandName: product.brandName,
+            },
+          ]),
+        ),
+      model,
+    );
+    const session = {
+      id: 900123,
+      status: 'OPEN',
+      orderId: null,
+      totalVnd: 1000000,
+      upfrontDueVnd: 100000,
+      depositAmountVnd: 100000,
+      balanceVnd: 900000,
+      paymentPlan: 'deposit',
+      depositVnd: 100000,
+      expiresAt: new Date(Date.now() + 600000).toISOString(),
+      serverTime: new Date().toISOString(),
+      shipping: null,
+      payment: {
+        amountVnd: 100000,
+        qrCode: 'SYNTHETIC-QR',
+        checkoutUrl: null,
+        bankBin: null,
+        accountNumber: 'SYNTHETIC',
+        accountName: 'UI FIXTURE',
+        description: 'MUC900123',
+      },
+    };
+    await page.route('**/api/checkout/sessions**', (route) =>
+      route.fulfill({ json: route.request().url().endsWith('/sessions') ? [session] : session }),
+    );
+    await page.goto('/' + locale + '/cart');
+    await expect(page.locator('.payment-plan input[type="radio"]')).toHaveCount(2);
+    for (const input of await page.locator('.payment-plan input[type="radio"]').all())
+      await expect(input).toBeDisabled();
+    await page
+      .locator('.pending-checkout-bar')
+      .getByRole('button', { name: m.checkoutPayment.openQr, exact: true })
+      .click();
+    await expect(page.getByRole('dialog')).toContainText(m.checkoutPayment.planLocked);
+    await expect(page.locator('.checkout-qr-plans')).toHaveCount(0);
+    await capture(page, locale + '-locked-qr');
+    await page.keyboard.press('Escape');
+    await page.reload();
+    await expect(page.locator('.payment-plan input[type="radio"]')).toHaveCount(2);
+    for (const input of await page.locator('.payment-plan input[type="radio"]').all())
+      await expect(input).toBeDisabled();
+    session.status = 'EXPIRED';
+    await expect(page.locator('.payment-plan input[type="radio"]').first()).toBeEnabled();
+  });
+}
+
+for (const locale of ['vi', 'en'])
+  test(locale + ': hourly offers are absent from the promotions page and live hub', async ({ page, request }) => {
+    await page.goto('/' + locale + '/uu-dai');
+    await expect(page.locator('#vouchers')).toBeVisible();
+    await expect(page.locator('.drop-timeline, .banner-slots')).toHaveCount(0);
+    await expect(page.locator('#vouchers')).not.toContainText('Săn trưa');
+    const hub = await (await request.get('/api/promotions/hub')).json();
+    expect(
+      hub.drops.filter(
+        (drop: { code: string | null; title: string }) =>
+          /^D\d{6}-(00|12|20)$/.test(drop.code || '') || /Săn trưa|Săn đêm|Freeship 0H/.test(drop.title),
+      ),
+    ).toEqual([]);
+  });

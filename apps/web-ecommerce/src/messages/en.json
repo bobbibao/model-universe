@@ -538,7 +538,8 @@
       "depositHintInPerson": "10% of the model value so the shop holds it for you; pay the rest at the shop when you see it.",
       "fullHintInPerson": "Pay everything now; at the shop you only check and collect it.",
       "payAtShop": "Pay at the shop",
-      "noteInPerson": "The shop holds the model as soon as the deposit arrives."
+      "noteInPerson": "The shop holds the model as soon as the deposit arrives.",
+      "locked": "The payment plan is locked for this checkout."
     },
     "emptyTitle": "Your next build starts here",
     "bagHint": "Review your models and delivery details before placing your order.",
@@ -1561,7 +1562,8 @@
       "codAmountVnd": "COD: {amount}"
     },
     "addressLabelHint": "e.g. Home, Office (optional)",
-    "addressIncomplete": "Choose the province/city, district, ward and enter the street."
+    "addressIncomplete": "Choose the province/city, district, ward and enter the street.",
+    "alertFailed": "Could not save your request. Please try again."
   },
   "accountHub": {
     "eyebrow": "COLLECTOR SPACE",
@@ -3012,7 +3014,6 @@
     "copy": "Copy {label}",
     "copyShort": "Copy",
     "copied": "{label} copied.",
-    "changeMethod": "Change how you pay",
     "depositPercent": "{percent}% deposit",
     "full": "Full amount",
     "orderTotal": "Order total",
@@ -3048,7 +3049,9 @@
     "openQr": "Open the QR",
     "underpaid": "The last transfer was short. The shop will refund it; get a new QR and pay the exact amount.",
     "orderOverdue": "This order passed its payment deadline and can no longer be paid; it is cancelled automatically. Order again from the bag for current prices and stock.",
-    "orderDeadline": "Pay by {time}"
+    "orderDeadline": "Pay by {time}",
+    "planLocked": "The payment plan and amount are locked for this QR code.",
+    "restartExpired": "Close this dialog and return to your cart to start a new checkout."
   },
   "cancellation": {
     "button": "Cancel order",
@@ -3391,7 +3394,6 @@
     "checkedInStreak": "Checked in · {streak}-day streak",
     "wheelReady": "You have 1 spin left today",
     "openVouchers": "{count} vouchers waiting to be saved",
-    "dropTimes": "New vouchers open at 00:00, 12:00 and 20:00",
     "points": "points",
     "joinTitle": "Sign in for offers",
     "joinText": "Save vouchers, check in, spin and earn points on every order.",
@@ -3413,15 +3415,13 @@
     "wheelWon": "You won: {prize}",
     "wheelWonCode": "You won {prize}. Code {code} is in your wallet.",
     "dropsTitle": "Vouchers",
-    "dropsText": "Codes to use now and timed drops (limited — save them before they run out).",
+    "dropsText": "Choose and save vouchers for your order.",
     "filter": {
       "all": "All",
       "discount": "Discount",
       "freeship": "Free shipping"
     },
-    "slotOpen": "Open",
-    "slotLater": "Later today",
-    "noDrops": "No matching vouchers yet. New ones open at 12:00 and 20:00.",
+    "noDrops": "No matching vouchers available.",
     "freeship": "Shipping",
     "discount": "Off",
     "minOrder": "Orders from {amount}",
@@ -3477,10 +3477,8 @@
     "flashUpTo": "Up to {percent}% off, while stocks last.",
     "shopNow": "Shop now",
     "vouchersKicker": "Daily voucher drops",
-    "vouchersTitle": "New vouchers three times a day",
-    "vouchersText": "Save them to your wallet before they run out and use them at checkout.",
-    "slotFreeship": "Free shipping {amount}",
-    "slotDiscount": "{percent}% off",
+    "vouchersTitle": "Offers for your next build",
+    "vouchersText": "Find the right voucher and save an offer for your order.",
     "collect": "Save vouchers",
     "freeshipKicker": "Free shipping",
     "freeshipTitle": "Free shipping up to {amount} on eligible orders",

@@ -78,6 +78,7 @@ const initialUnitId = (product: ProductDetailType, requested: number | null) => 
 const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType } = {}) => {
   const t = useTranslations('catalog');
   const ux = useTranslations('commerceUX');
+  const restockText = useTranslations('customerTools');
   const seller = useTranslations('sellerStore');
   const locale = useLocale();
   // The SEO page passes the slug; older /shop/product/<id> links redirect to it.
@@ -324,13 +325,17 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             </div>
 
             <div className="product-purchase-actions flex flex-wrap gap-3">
-              <button
-                disabled={!inStock}
-                onClick={addToCart}
-                className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {inStock ? t('addToCart') : t('soldOut')}
-              </button>
+              {inStock ? (
+                <button
+                  disabled={!inStock}
+                  onClick={addToCart}
+                  className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {t('addToCart')}
+                </button>
+              ) : (
+                <RestockAlert key={unit.id} productId={unit.id} className="mu-button" />
+              )}
               <button
                 onClick={toggleWishlist}
                 disabled={wishlistBusy}
@@ -408,7 +413,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             </p>
             <p className="mu-note">{t('unboxing')}</p>
           </div>
-          {!inStock && <RestockAlert key={unit.id} productId={unit.id} />}
           <dl className="product-specifications grid grid-cols-2 gap-3 sm:grid-cols-3">
             <InfoItem label={t('brand')} value={product.brandName} />
             <InfoItem label={t('modelCode')} value={product.modelCode || '—'} />
@@ -466,11 +470,13 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
                 block: 'center',
               });
-              const target = purchaseRef.current?.querySelector<HTMLButtonElement>('.product-purchase-actions button');
-              (target && !target.disabled ? target : purchaseRef.current)?.focus({ preventScroll: true });
+              const target = purchaseRef.current?.querySelector<HTMLElement>(
+                '.product-purchase-actions button, .product-purchase-actions .restock-action a',
+              );
+              (target && !target.matches(':disabled') ? target : purchaseRef.current)?.focus({ preventScroll: true });
             }}
           >
-            {inStock ? ux('chooseAndBuy') : t('soldOut')} <span aria-hidden="true">↑</span>
+            {inStock ? ux('chooseAndBuy') : restockText('startAlert')} <span aria-hidden="true">↑</span>
           </button>
         </div>
       )}

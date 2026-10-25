@@ -6,6 +6,7 @@ import useCustomerActionRefresh from '@/hooks/useCustomerActionRefresh';
 import Link from '@/i18n/navigation';
 import ProductImage from '@/components/ProductImage';
 import PriceTag from '@/components/PriceTag';
+import RestockAlert from '../../shop/components/RestockAlert';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import WorkspaceHeader from '@/components/Store/WorkspaceHeader';
 import EmptyState from '@/components/Store/EmptyState';
@@ -136,15 +137,18 @@ export default function Wishlist() {
                       discountPercent={item.product.discountPercent}
                     />
                   </div>
-                  <button
-                    className="mu-button wishlist-move"
-                    disabled={busy || !item.available || soldOut}
-                    onClick={() => void act(item, true)}
-                  >
-                    <AdminIcon name="bag" size={17} />
-                    {busy ? common('processing') : t('moveToBag')}
-                  </button>
-
+                  {item.available && soldOut ? (
+                    <RestockAlert productId={item.product.id} className="mu-button wishlist-move" />
+                  ) : (
+                    <button
+                      className="mu-button wishlist-move"
+                      disabled={busy || !item.available || soldOut}
+                      onClick={() => void act(item, true)}
+                    >
+                      <AdminIcon name="bag" size={17} />
+                      {busy ? common('processing') : t('moveToBag')}
+                    </button>
+                  )}
                 </div>
               </article>
             );

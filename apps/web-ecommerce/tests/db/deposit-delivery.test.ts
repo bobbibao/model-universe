@@ -308,7 +308,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
     });
   });
 
-  it('QR checkout: no order until payOS confirms; plan switch replaces the QR; the paid session becomes one order and its address is saved', async () => {
+  it('QR checkout: no order until payOS confirms; plan is locked after the QR opens; the paid session becomes one order and its address is saved', async () => {
     const payos = fakePayOS();
     setPayOSClient(payos.client);
     const previous = { ...process.env };
@@ -340,34 +340,42 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
       expect(payos.created).toHaveLength(1);
       // Another customer cannot see it.
       await expect(checkout.get(otherId, opened.id)).rejects.toMatchObject({ statusCode: 404 });
-      // Switching to full payment cancels the first QR and opens a new one for the total.
-      const full = await checkout.changePlan(userId, opened.id, { paymentPlan: 'full' });
-      expect(full).toMatchObject({ paymentPlan: 'full', upfrontDueVnd: full.totalVnd });
-      expect(payos.cancelled).toEqual([Number(payos.created[0].orderCode)]);
-      expect(payos.created).toHaveLength(2);
-      expect(await OrderModel.count({ where: { userId } })).toBe(before);
+      // Once opened, neither a stale client nor a fresh request key can change the payment plan.
+      await expect(checkout.changePlan(userId, opened.id)).rejects.toMatchObject({
+        statusCode: 409,
+        code: 'PAYMENT_PLAN_LOCKED',
+      });
+      await expect(checkout.changePlan(otherId, opened.id)).rejects.toMatchObject({ statusCode: 404 });
+      await expect(
+        checkout.create(userId, { ...request, paymentPlan: 'full', requestKey: 'different-qr-' + Date.now() }),
+      ).rejects.toMatchObject({ statusCode: 409, code: 'CHECKOUT_PENDING' });
+      expect(payos.cancelled).toHaveLength(0);
+      expect(payos.created).toHaveLength(1);
       // A forged confirmation changes nothing; the real one creates exactly one order with the payment recorded.
       const payments = new PaymentGatewayService();
-      const orderCode = Number(payos.created[1].orderCode);
+      const orderCode = Number(payos.created[0].orderCode);
       await expect(
-        payments.webhook({ signature: 'forged', data: { orderCode, amount: full.totalVnd, reference: 'FTQR1' } }),
+        payments.webhook({
+          signature: 'forged',
+          data: { orderCode, amount: opened.upfrontDueVnd, reference: 'FTQR1' },
+        }),
       ).rejects.toMatchObject({ statusCode: 401 });
       await payments.webhook({
         signature: 'valid',
-        data: { orderCode, amount: full.totalVnd, reference: 'FTQR26101800001' },
+        data: { orderCode, amount: opened.upfrontDueVnd, reference: 'FTQR26101800001' },
       });
       await payments.webhook({
         signature: 'valid',
-        data: { orderCode, amount: full.totalVnd, reference: 'FTQR26101800001' },
+        data: { orderCode, amount: opened.upfrontDueVnd, reference: 'FTQR26101800001' },
       });
       const session = (await CheckoutSessionModel.findByPk(opened.id))!;
-      expect(session).toMatchObject({ status: 'COMPLETED', paidVnd: full.totalVnd });
+      expect(session).toMatchObject({ status: 'COMPLETED', paidVnd: opened.upfrontDueVnd });
       expect(await OrderModel.count({ where: { userId } })).toBe(before + 1);
       const order = (await OrderModel.findByPk(session.orderId!))!;
       expect(order).toMatchObject({
-        paymentPlan: 'full',
-        prepaidVnd: full.totalVnd,
-        paymentStatus: 'PAID',
+        paymentPlan: 'deposit',
+        prepaidVnd: opened.upfrontDueVnd,
+        paymentStatus: 'PENDING',
         communeCode: '26734',
       });
       expect(await OrderPrepaymentModel.count({ where: { orderId: order.id } })).toBe(1);
@@ -393,6 +401,54 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
     }
   });
 
+  it('QR checkout serializes competing plans and allows a new plan only after explicit cancellation', async () => {
+    const payos = fakePayOS();
+    setPayOSClient(payos.client);
+    const previous = { ...process.env };
+    Object.assign(process.env, {
+      PAYOS_CLIENT_ID: 'fixture-client',
+      PAYOS_API_KEY: 'fixture-key',
+      PAYOS_CHECKSUM_KEY: 'fixture-checksum',
+    });
+    try {
+      const checkout = new CheckoutService(),
+        stock = (await product.reload()).stock;
+      const request = {
+        items: [{ productId: product.id, quantity: 1, size: '' }],
+        shipping,
+        fulfillmentMethod: 'COURIER_COD',
+        deliveryAddress: address,
+      };
+      const results = await Promise.allSettled(
+        ['deposit', 'full'].map((paymentPlan) =>
+          checkout.create(userId, { ...request, paymentPlan, requestKey: 'race-' + paymentPlan + '-' + Date.now() }),
+        ),
+      );
+      const successes = results.filter(
+        (result): result is PromiseFulfilledResult<Awaited<ReturnType<CheckoutService['create']>>> =>
+          result.status === 'fulfilled',
+      );
+      expect(successes).toHaveLength(1);
+      const rejected = results.find((result) => result.status === 'rejected') as PromiseRejectedResult;
+      expect(rejected.reason).toMatchObject({ statusCode: 409, code: 'CHECKOUT_PENDING' });
+      expect(payos.created).toHaveLength(1);
+      expect((await product.reload()).stock).toBe(stock - 1);
+      await checkout.cancel(userId, successes[0].value.id);
+      const next = await checkout.create(userId, {
+        ...request,
+        paymentPlan: 'full',
+        requestKey: 'after-cancel-' + Date.now(),
+      });
+      expect(next.paymentPlan).toBe('full');
+      expect(payos.created).toHaveLength(2);
+      await checkout.cancel(userId, next.id);
+      expect((await product.reload()).stock).toBe(stock);
+    } finally {
+      setPayOSClient(null);
+      process.env = previous;
+    }
+  });
+
   it('QR checkout holds the stock while the QR is open and gives it back on expiry; a late payment for a sold-out model is refunded', async () => {
     const payos = fakePayOS();
     setPayOSClient(payos.client);
@@ -412,12 +468,15 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
       };
       const first = await checkout.create(userId, { ...request, requestKey: `qr-hold-1-${Date.now()}` });
       expect((await product.reload()).stock).toBe(stock - 2);
-      // One open checkout per customer: a new one replaces the first and its hold.
-      const opened = await checkout.create(userId, { ...request, requestKey: `qr-hold-2-${Date.now()}` });
-      expect((await CheckoutSessionModel.findByPk(first.id))!.status).toBe('CANCELLED');
-      expect((await product.reload()).stock).toBe(stock - 2);
-      // Changing the plan keeps the hold (the preview counts the customer's own held stock).
-      await checkout.changePlan(userId, opened.id, { paymentPlan: 'deposit' });
+      // A second tab cannot replace the first session, even with the same plan.
+      await expect(
+        checkout.create(userId, { ...request, requestKey: 'qr-hold-2-' + Date.now() }),
+      ).rejects.toMatchObject({ statusCode: 409, code: 'CHECKOUT_PENDING' });
+      const opened = first;
+      await expect(checkout.changePlan(userId, opened.id)).rejects.toMatchObject({
+        statusCode: 409,
+        code: 'PAYMENT_PLAN_LOCKED',
+      });
       expect((await product.reload()).stock).toBe(stock - 2);
       // Not paid in time: the QR expires and the stock comes back.
       await CheckoutSessionModel.update(

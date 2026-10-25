@@ -59,14 +59,6 @@ export default class CheckoutApi {
   static async status(id: number): Promise<CheckoutSession> {
     return (await Api.get(`/checkout/sessions/${id}`)).data;
   }
-  static async changePlan(
-    id: number,
-    paymentPlan: PaymentPlan,
-    depositVnd: number | undefined,
-    locale: string,
-  ): Promise<CheckoutSession> {
-    return (await Api.post(`/checkout/sessions/${id}/plan`, { paymentPlan, depositVnd, locale })).data;
-  }
   // The customer's checkouts still waiting for payment (the orders page shows them again; nothing new is created).
   static async open(): Promise<CheckoutSession[]> {
     return (await Api.get('/checkout/sessions')).data;

@@ -27,8 +27,7 @@ checkout.
   validates the request exactly as placing the order would (prices, stock, voucher, carrier fee, deposit) and returns
   a VietQR payment for the upfront amount, shown in a dialog with the receiving account, amount and memo (`MUC<id>`)
   and a countdown of `PAYOS_LINK_MINUTES` (30 by default).
-- While the QR is open the customer can switch between the deposit and full payment: the totals are checked
-  again, the old payOS link is cancelled and a new QR with a fresh countdown replaces it. Cancelling closes the session.
+- The payment plan (10% deposit or full) and amount lock when checkout starts. The QR has no plan switch. The server rejects plan changes and new sessions while an existing payment is OPEN or PAID, including requests from another tab/device. To choose differently, explicitly cancel the unpaid session and start again. Retrying the same request returns its existing session without issuing another QR.
   Closing the dialog keeps the session; the bag offers "continue payment", also after a reload in the same tab.
 - The order is created only when payOS confirms the money: the signed webhook (`POST /api/payments/payos/webhook`,
   verified with the checksum key by the official SDK) or a server-side status check while the dialog polls (every 3

@@ -121,7 +121,7 @@ app
         vouchers.runExpiryReminders(),
         dispatcher.dispatch(),
         orderSync.run(),
-        promotions.ensureDailyDrops().then(() => promotions.ensureStandingOffers()),
+        promotions.ensureStandingOffers(),
         loyalty.creditMatured(),
         reconciliation.run(),
       ]).then((results) => {

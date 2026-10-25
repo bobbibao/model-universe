@@ -26,8 +26,18 @@ export default function PaymentPlanPicker({
   compact = false,
   inPerson = false,
   inline = false,
+  disabled = false,
+  lockedPayment,
 }: {
   total: number;
+  disabled?: boolean;
+  lockedPayment?: {
+    paymentPlan: PaymentPlan;
+    totalVnd: number;
+    upfrontDueVnd: number;
+    balanceVnd: number;
+    depositAmountVnd: number;
+  };
   basis?: number;
   floor?: number;
   compact?: boolean;
@@ -39,8 +49,12 @@ export default function PaymentPlanPicker({
   const t = useTranslations('checkout.payment'),
     locale = useLocale();
   const money = (amount: number) => formatVND(amount, locale);
-  const { paymentPlan, setPaymentPlan } = useCheckoutDraft();
-  const { upfrontVnd, balanceVnd } = useUpfrontPayment(total, basis, floor);
+  const { paymentPlan: draftPlan, setPaymentPlan } = useCheckoutDraft();
+  const draftPayment = useUpfrontPayment(total, basis, floor);
+  const paymentPlan = lockedPayment?.paymentPlan ?? draftPlan;
+  const upfrontVnd = lockedPayment?.upfrontDueVnd ?? draftPayment.upfrontVnd;
+  const balanceVnd = lockedPayment?.balanceVnd ?? draftPayment.balanceVnd;
+  const locked = disabled || !!lockedPayment;
   const option = (plan: PaymentPlan, title: string, detail: string) => (
     <label className={`payment-plan-option${paymentPlan === plan ? ' is-selected' : ''}`}>
       <input type="radio" name="payment-plan" checked={paymentPlan === plan} onChange={() => setPaymentPlan(plan)} />
@@ -51,14 +65,18 @@ export default function PaymentPlanPicker({
     </label>
   );
   return (
-    <fieldset className={`payment-plan${compact ? ' is-compact' : ''}${inline ? ' is-inline' : ''}`}>
+    <fieldset disabled={locked} className={`payment-plan${compact ? ' is-compact' : ''}${inline ? ' is-inline' : ''}`}>
       <legend>{t('title')}</legend>
       {option(
         'deposit',
-        `${t('deposit')} · ${money(depositDueVnd(total, basis, floor))}`,
+        `${t('deposit')} · ${money(lockedPayment?.depositAmountVnd ?? depositDueVnd(total, basis, floor))}`,
         t(inPerson ? 'depositHintInPerson' : 'depositHint'),
       )}
-      {option('full', `${t('full')} · ${money(total)}`, t(inPerson ? 'fullHintInPerson' : 'fullHint'))}
+      {option(
+        'full',
+        `${t('full')} · ${money(lockedPayment?.totalVnd ?? total)}`,
+        t(inPerson ? 'fullHintInPerson' : 'fullHint'),
+      )}
       {!inline && (
         <dl className="payment-plan-split" aria-live="polite">
           <div>
@@ -72,7 +90,7 @@ export default function PaymentPlanPicker({
         </dl>
       )}
       <p className="payment-plan-note">
-        {t(inPerson ? 'noteInPerson' : 'note')} <strong>{t('cancelPolicy')}</strong>
+        {locked ? t('locked') : t(inPerson ? 'noteInPerson' : 'note')} <strong>{t('cancelPolicy')}</strong>
       </p>
     </fieldset>
   );

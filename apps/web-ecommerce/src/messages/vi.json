@@ -538,7 +538,8 @@
       "depositHintInPerson": "10% giá trị mô hình để shop giữ hàng cho bạn; phần còn lại trả tại shop khi xem hàng.",
       "fullHintInPerson": "Thanh toán toàn bộ trước, tới shop chỉ cần xem và nhận hàng.",
       "payAtShop": "Trả tại shop",
-      "noteInPerson": "Shop giữ hàng cho bạn ngay khi nhận được tiền cọc."
+      "noteInPerson": "Shop giữ hàng cho bạn ngay khi nhận được tiền cọc.",
+      "locked": "Phương án thanh toán đã được khóa cho phiên này."
     },
     "emptyTitle": "Sẵn sàng cho bộ kit tiếp theo?",
     "bagHint": "Kiểm tra mô hình và thông tin giao hàng trước khi đặt đơn.",
@@ -1513,7 +1514,7 @@
     "alertSent": "Đã gửi thông báo vào hộp thông báo của bạn.",
     "alertOff": "Đã dừng thông báo tồn kho.",
     "stopAlert": "Dừng thông báo này",
-    "startAlert": "Báo tôi khi có hàng",
+    "startAlert": "Nhận thông báo khi có hàng",
     "alertNote": "Nhận một thông báo trong tài khoản khi đúng tin đăng này có hàng trở lại. Không bao gồm email hay giữ hàng.",
     "signInAlert": "Đăng nhập để nhận báo có hàng",
     "finder": "Tìm mô hình tiếp theo",
@@ -1561,7 +1562,8 @@
       "codAmountVnd": "COD: {amount}"
     },
     "addressLabelHint": "Ví dụ: Nhà, Công ty (không bắt buộc)",
-    "addressIncomplete": "Chọn tỉnh/thành, quận/huyện, phường/xã và nhập số nhà, tên đường."
+    "addressIncomplete": "Chọn tỉnh/thành, quận/huyện, phường/xã và nhập số nhà, tên đường.",
+    "alertFailed": "Chưa lưu được yêu cầu. Vui lòng thử lại."
   },
   "accountHub": {
     "eyebrow": "KHÔNG GIAN SƯU TẦM",
@@ -3012,7 +3014,6 @@
     "copy": "Sao chép {label}",
     "copyShort": "Sao chép",
     "copied": "Đã sao chép {label}.",
-    "changeMethod": "Đổi hình thức thanh toán",
     "depositPercent": "Cọc {percent}%",
     "full": "Toàn bộ",
     "orderTotal": "Tổng đơn hàng",
@@ -3048,7 +3049,9 @@
     "openQr": "Mở mã QR",
     "underpaid": "Khoản chuyển vừa rồi chưa đủ số tiền. Cửa hàng sẽ liên hệ hoàn lại khoản đó; hãy tạo mã QR mới và chuyển đúng số tiền.",
     "orderOverdue": "Đơn đã quá hạn thanh toán nên không thể thanh toán nữa; đơn sẽ được huỷ tự động. Hãy đặt lại từ giỏ hàng để có giá và tồn kho mới nhất.",
-    "orderDeadline": "Hạn thanh toán: {time}"
+    "orderDeadline": "Hạn thanh toán: {time}",
+    "planLocked": "Đã khóa phương án thanh toán và số tiền cần chuyển cho mã QR này.",
+    "restartExpired": "Đóng cửa sổ và quay lại giỏ hàng để tạo phiên thanh toán mới."
   },
   "cancellation": {
     "button": "Huỷ đơn hàng",
@@ -3391,7 +3394,6 @@
     "checkedInStreak": "Đã điểm danh · chuỗi {streak} ngày",
     "wheelReady": "Bạn còn 1 lượt quay hôm nay",
     "openVouchers": "{count} mã đang chờ bạn lưu",
-    "dropTimes": "Mã mới mở lúc 00:00, 12:00 và 20:00",
     "points": "điểm",
     "joinTitle": "Đăng nhập để nhận ưu đãi",
     "joinText": "Lưu mã, điểm danh, quay thưởng và tích điểm cho mỗi đơn hàng.",
@@ -3413,15 +3415,13 @@
     "wheelWon": "Bạn nhận được: {prize}",
     "wheelWonCode": "Bạn nhận được {prize}. Mã {code} đã vào ví.",
     "dropsTitle": "Mã giảm giá",
-    "dropsText": "Mã dùng ngay và mã mở theo khung giờ (số lượng có hạn — lưu vào ví trước khi hết).",
+    "dropsText": "Chọn và lưu mã ưu đãi phù hợp với đơn hàng của bạn.",
     "filter": {
       "all": "Tất cả",
       "discount": "Giảm giá",
       "freeship": "Freeship"
     },
-    "slotOpen": "Đang mở",
-    "slotLater": "Sắp mở",
-    "noDrops": "Chưa có mã phù hợp. Mã mới mở lúc 12:00 và 20:00.",
+    "noDrops": "Chưa có mã ưu đãi phù hợp.",
     "freeship": "Freeship",
     "discount": "Giảm",
     "minOrder": "Đơn từ {amount}",
@@ -3477,10 +3477,8 @@
     "flashUpTo": "Giảm tới {percent}%, số lượng có hạn.",
     "shopNow": "Mua ngay",
     "vouchersKicker": "Săn mã mỗi ngày",
-    "vouchersTitle": "Mã mới mở 3 lần mỗi ngày",
-    "vouchersText": "Lưu mã vào ví trước khi hết lượt, dùng khi thanh toán.",
-    "slotFreeship": "Freeship {amount}",
-    "slotDiscount": "Giảm {percent}%",
+    "vouchersTitle": "Ưu đãi dành cho bộ sưu tập của bạn",
+    "vouchersText": "Chọn mã phù hợp và lưu ưu đãi cho đơn hàng của bạn.",
     "collect": "Lưu mã ngay",
     "freeshipKicker": "Miễn phí vận chuyển",
     "freeshipTitle": "Freeship tới {amount} cho đơn đủ điều kiện",

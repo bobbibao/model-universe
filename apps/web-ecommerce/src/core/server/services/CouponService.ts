@@ -1,3 +1,4 @@
+import { isRetiredTimedCoupon } from '../../../shared/retired-promotions';
 import { Op, WhereOptions } from 'sequelize';
 import { TIER_ORDER } from '../../../shared/promotions';
 import CouponModel from '../database/client/models/Coupon.Model';
@@ -179,6 +180,7 @@ export const couponDiscount = (coupon: SmartCoupon, lines: PricedLine[]) => {
 export const assertCouponUsable = (coupon: CouponModel | null, subtotal: number, userId?: number): CouponModel => {
   const now = Date.now();
   if (!coupon) throw HttpError.badRequest('Mã giảm giá không tồn tại.');
+  if (isRetiredTimedCoupon(coupon.code)) throw HttpError.conflict('Mã ưu đãi theo giờ đã ngừng áp dụng.', 'PROMOTION_RETIRED');
   if (subtotal < 1)
     throw HttpError.conflict('This benefit requires eligible shop-owned merchandise.', 'BENEFIT_CONFLICT');
   if (coupon.ownerUserId && coupon.ownerUserId !== userId)

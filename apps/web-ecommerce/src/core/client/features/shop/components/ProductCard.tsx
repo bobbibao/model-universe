@@ -8,6 +8,7 @@ import type { ProductSummary } from '@/shared/types/product';
 import { productPath } from '@/shared/slug';
 import { FREESHIP_TIERS } from '@/shared/promotions';
 import RatingStars from './RatingStars';
+import RestockAlert from './RestockAlert';
 import PromoIcon from '@/components/PromoIcon';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -120,10 +121,14 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
             </p>
           )}
         </div>
-        <Link href={href} className="product-tile-action" aria-label={ux('viewProduct', { name: product.name })}>
-          {ux(groupStock > 0 ? 'chooseProduct' : 'viewDetails')}
-          <span aria-hidden="true">↗</span>
-        </Link>
+        {groupStock <= 0 ? (
+          <RestockAlert productId={product.id} returnTo={href} className="product-tile-action" />
+        ) : (
+          <Link href={href} className="product-tile-action" aria-label={ux('viewProduct', { name: product.name })}>
+            {ux('chooseProduct')}
+            <span aria-hidden="true">↗</span>
+          </Link>
+        )}
       </div>
     </div>
   );

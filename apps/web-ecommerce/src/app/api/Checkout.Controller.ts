@@ -59,7 +59,7 @@ export default class CheckoutController extends ApiBaseController {
   async changePlan(req: Request, res: Response) {
     try {
       return res.json(
-        await this.service.changePlan(this.user(req), toInteger(req.params.id) || 0, req.body || {}, this.locale(req)),
+        await this.service.changePlan(this.user(req), toInteger(req.params.id) || 0),
       );
     } catch (error) {
       return this.handleError(res, error, 'Checkout payment change');

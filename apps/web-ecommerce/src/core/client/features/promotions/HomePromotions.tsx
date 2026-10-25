@@ -10,7 +10,7 @@ import PromoIcon, { type PromoIconName } from '@/components/PromoIcon';
 import PromotionApi, { type PromotionsHub, type VoucherDrop } from '@/core/client/api/Promotion';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCountdown } from '@/components/PriceTag';
-import { DAILY_DROPS, FREESHIP_TIERS, TIER_ORDER } from '@/shared/promotions';
+import { FREESHIP_TIERS, TIER_ORDER } from '@/shared/promotions';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { ProductSummary } from '@/shared/types/product';
 import VoucherTicket from './VoucherTicket';
@@ -47,7 +47,7 @@ function Clock({ endsAt, label }: { endsAt: string; label: string }) {
   );
 }
 
-// The top of the home page: a banner carousel (the running sale, timed voucher drops, free shipping, membership), each
+// The top of the home page: a banner carousel (the running sale, vouchers, free shipping, membership), each
 // slide pictured with real kits from the catalogue; quick links into the offers; and today's vouchers to save.
 export default function HomePromotions({ products = [] }: { products?: ProductSummary[] }) {
   const t = useTranslations('homePromotions'),
@@ -123,18 +123,6 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
             </span>
             <h2>{t('vouchersTitle')}</h2>
             <p>{t('vouchersText')}</p>
-            <ul className="banner-slots">
-              {DAILY_DROPS.map((drop) => (
-                <li key={drop.slug}>
-                  <b>{String(drop.hour).padStart(2, '0')}:00</b>
-                  <span>
-                    {drop.benefitType === 'freeship'
-                      ? t('slotFreeship', { amount: money(drop.maxShippingVnd ?? 0) })
-                      : t('slotDiscount', { percent: drop.discountPercent })}
-                  </span>
-                </li>
-              ))}
-            </ul>
             <span className="banner-cta">
               {t('collect')} <PromoIcon name="arrow" size={16} />
             </span>
@@ -204,7 +192,13 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
               {t('seeAll')} <PromoIcon name="arrow" size={14} />
             </Link>
           </header>
-          <Carousel label={t('todayVouchers')} className="voucher-carousel" autoplayMs={3800} loop={vouchers.length > 3} dots={false}>
+          <Carousel
+            label={t('todayVouchers')}
+            className="voucher-carousel"
+            autoplayMs={3800}
+            loop={vouchers.length > 3}
+            dots={false}
+          >
             {vouchers.map((drop) => (
               <VoucherTicket
                 key={`${drop.kind}-${drop.id}`}
