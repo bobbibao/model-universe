@@ -3902,5 +3902,59 @@
     "allChannels": "All order sources",
     "createdBy": "Created by staff #{id}",
     "cashPaid": "Verified cash payment"
+  },
+  "itemCondition": {
+    "conditionTitle": "Condition",
+    "name": "Model name",
+    "namePlaceholder": "e.g. MG RX-78-2 Ver.Ka",
+    "groups": {
+      "version": "Version",
+      "assemblyState": "Assembly",
+      "box": "Box",
+      "accessories": "Accessories",
+      "defects": "Defects",
+      "history": "Repairs"
+    },
+    "options": {
+      "version": {
+        "standard": "Standard",
+        "limited": "Limited / P-Bandai"
+      },
+      "box": {
+        "sealed": "Sealed",
+        "opened": "Opened, box fine",
+        "damaged": "Box dented / torn",
+        "none": "No box"
+      },
+      "accessories": {
+        "complete": "Complete",
+        "missing": "Missing some"
+      },
+      "defects": {
+        "none": "None",
+        "minor": "Scratches, loose joints",
+        "broken": "Broken / cracked / missing parts",
+        "serious": "Seriously damaged"
+      },
+      "history": {
+        "original": "Original",
+        "repaired": "Repaired / parts replaced"
+      }
+    },
+    "newVerdict": "New unit: it can be priced online.",
+    "reviewVerdict": "The shop will quote it from the photos.",
+    "note": "Note (optional)",
+    "noteRequired": "Describe the defects, missing items or repairs",
+    "notePlaceholder": "e.g. left finger broken, one shield missing…",
+    "sameModel": "The shop's model",
+    "photos": "Real photos",
+    "photoCount": "{count} photos · at least 3",
+    "photosHint": "Front, back, sides, box, accessories and close-ups of any defect.",
+    "photosHintVideo": "Front, back, sides, box, accessories, close-ups of any defect and one video of everything.",
+    "add": "Add photos",
+    "remove": "Remove",
+    "uploading": "Uploading {current}/{total}",
+    "agree": "I confirm the information is true and agree to the shop inspecting the unit and sending the official price.",
+    "terms": "Read the terms"
   }
 }

@@ -3902,5 +3902,59 @@
     "allChannels": "Tất cả nguồn đơn",
     "createdBy": "Nhân viên lập đơn #{id}",
     "cashPaid": "Tiền mặt đã xác nhận"
+  },
+  "itemCondition": {
+    "conditionTitle": "Tình trạng mô hình",
+    "name": "Tên mô hình",
+    "namePlaceholder": "Ví dụ: MG RX-78-2 Ver.Ka",
+    "groups": {
+      "version": "Phiên bản",
+      "assemblyState": "Lắp ráp",
+      "box": "Hộp",
+      "accessories": "Phụ kiện",
+      "defects": "Lỗi",
+      "history": "Sửa chữa"
+    },
+    "options": {
+      "version": {
+        "standard": "Bản thường",
+        "limited": "Bản giới hạn / P-Bandai"
+      },
+      "box": {
+        "sealed": "Nguyên seal",
+        "opened": "Đã mở, hộp đẹp",
+        "damaged": "Hộp móp / rách",
+        "none": "Không có hộp"
+      },
+      "accessories": {
+        "complete": "Đủ phụ kiện",
+        "missing": "Thiếu phụ kiện"
+      },
+      "defects": {
+        "none": "Không lỗi",
+        "minor": "Trầy, lỏng khớp",
+        "broken": "Gãy / nứt / thiếu chi tiết",
+        "serious": "Hư hỏng nặng"
+      },
+      "history": {
+        "original": "Nguyên bản",
+        "repaired": "Đã sửa / thay part"
+      }
+    },
+    "newVerdict": "Hàng mới: có thể có giá ngay trên web.",
+    "reviewVerdict": "Shop sẽ xem ảnh và báo giá cho bạn.",
+    "note": "Ghi chú (không bắt buộc)",
+    "noteRequired": "Mô tả lỗi, phần thiếu hoặc sửa chữa",
+    "notePlaceholder": "Ví dụ: gãy ngón tay trái, thiếu 1 khiên…",
+    "sameModel": "Đúng mẫu của shop",
+    "photos": "Ảnh thực tế",
+    "photoCount": "{count} ảnh · tối thiểu 3",
+    "photosHint": "Trước, sau, hai bên, hộp, phụ kiện và cận cảnh lỗi (nếu có).",
+    "photosHintVideo": "Trước, sau, hai bên, hộp, phụ kiện, cận cảnh lỗi và 1 video quay toàn bộ.",
+    "add": "Thêm ảnh",
+    "remove": "Bỏ",
+    "uploading": "Đang tải {current}/{total}",
+    "agree": "Tôi xác nhận thông tin trung thực và đồng ý để shop kiểm hàng, báo giá chính thức.",
+    "terms": "Xem điều khoản"
   }
 }

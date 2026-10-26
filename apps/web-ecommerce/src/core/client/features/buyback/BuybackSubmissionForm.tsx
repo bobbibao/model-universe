@@ -3,31 +3,29 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Api from '@/core/client/api/Api';
-import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import {
-  BUYBACK_ISSUE_TYPES,
   B17_RULE_VERSION,
   BUYBACK_RATE_PERCENT,
   BUYBACK_RULE_VERSION,
   buybackMargin,
   buybackRateBps,
-  MAX_ISSUE_QUANTITY,
   type BuybackEstimate,
-  type BuybackIssue,
 } from '@/shared/buyback-pricing';
 import type { ProductSummary } from '@/shared/types/product';
-import { COLLECTIBLE_ASSET_FIELDS } from './CollectibleSubmissionForm';
 import CatalogCombobox from './CatalogCombobox';
+import ConditionFields, {
+  NameField,
+  NEW_CONDITION_VALUE,
+  useConditionPayload,
+  type ConditionValue,
+} from './ConditionFields';
+import EvidenceUploader, { type UploadedEvidence } from './EvidenceUploader';
 
-const CONFIRMATIONS = ['honest', 'issues', 'media', 'estimate', 'inspection', 'decision'] as const;
-const MAX_FILES = 12;
-
-// "Sell to Model Universe": choose the catalog model, declare its condition issue by issue, see the expected price
-// (the shop's real selling price S minus its margin of 30% / 20% / 17% of S, at least 100,000 VND, only for a matched
-// model the shop sells new declared without issues; anything else is priced by an admin), on the trade page choose the
-// shop item to trade for, upload photos and a video, confirm the terms, send.
-// The server recomputes the estimate and checks the media.
+// "Sell to Model Universe" in one short form: the catalogue model (or its name), its condition as choices with one note
+// when it is not new, the shop item on the trade page, real photos and a video, one confirmation. The expected price is
+// the shop's real selling price S minus its margin (30% / 20% / 17% of S, at least 100,000 VND), only for a model the
+// shop sells declared new; anything else is priced by an admin. The server recomputes the estimate and checks the media.
 // `initialReference` / `initialTradeItem`: the catalogue model and the shop item chosen in QuickValuation.
 export default function BuybackSubmissionForm({
   onCreated,
@@ -41,51 +39,34 @@ export default function BuybackSubmissionForm({
   initialReference?: ProductSummary | null;
   initialTradeItem?: ProductSummary | null;
 }) {
-  const t = useTranslations('buyback'),
-    v2 = useTranslations('buybackV2'),
-    catalog = useTranslations('catalog'),
+  const v2 = useTranslations('buybackV2'),
+    form = useTranslations('itemCondition'),
     common = useTranslations('common');
-  const [reference,setReference] = useState<ProductSummary | null>(initialReference);
+  const [reference, setReference] = useState<ProductSummary | null>(initialReference);
   const [tradeItem, setTradeItem] = useState<ProductSummary | null>(initialTradeItem);
-  const [issues, setIssues] = useState<BuybackIssue[]>([]);
-  const [seriousDamage, setSeriousDamage] = useState(false);
+  const [condition, setCondition] = useState<ConditionValue>(NEW_CONDITION_VALUE);
   const [estimate, setEstimate] = useState<BuybackEstimate>();
-  const [files, setFiles] = useState<{ id: number; name: string; video: boolean }[]>([]);
-  const [confirmed, setConfirmed] = useState<string[]>([]);
-  const [progress, setProgress] = useState('');
+  const [files, setFiles] = useState<UploadedEvidence[]>([]);
+  const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
   const pending = useRef<{ digest: string; key: string } | undefined>(undefined);
+  const payload = useConditionPayload();
+  const { asset, issues, seriousDamage } = payload(condition, reference);
+  const issueKey = JSON.stringify([issues, seriousDamage]);
 
   useEffect(() => {
+    const [declaredIssues, serious] = JSON.parse(issueKey);
     const timer = setTimeout(() => {
-      void Api.post('/buyback/estimate', { referenceProductId: reference?.id ?? null, declaredIssues: issues, seriousDamage })
+      void Api.post('/buyback/estimate', {
+        referenceProductId: reference?.id ?? null,
+        declaredIssues,
+        seriousDamage: serious,
+      })
         .then((response) => setEstimate(response.data.estimate))
         .catch(() => undefined);
     }, 200);
     return () => clearTimeout(timer);
-  }, [reference, issues, seriousDamage]);
-
-  const upload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const input = event.target,
-      chosen = Array.from(input.files || []).slice(0, MAX_FILES - files.length);
-    setBusy(true);
-    try {
-      for (let index = 0; index < chosen.length; index++) {
-        setProgress(t('uploadProgress', { current: index + 1, total: chosen.length }));
-        const form = new FormData();
-        form.append('file', chosen[index]);
-        form.append('purpose', 'buyback');
-        const file = (await Api.post('/evidence', form, { headers: { 'Content-Type': 'multipart/form-data' } })).data;
-        setFiles((current) => [...current, { id: file.id, name: chosen[index].name, video: chosen[index].type.startsWith('video/') }]);
-      }
-    } catch {
-      /* Successful uploads stay for a retry. */
-    } finally {
-      setBusy(false);
-      setProgress('');
-      input.value = '';
-    }
-  };
+  }, [reference, issueKey]);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -93,9 +74,8 @@ export default function BuybackSubmissionForm({
       event.currentTarget.reportValidity();
       return;
     }
-    const form = new FormData(event.currentTarget);
     const data = {
-      asset: Object.fromEntries(COLLECTIBLE_ASSET_FIELDS.map((key) => [key, form.get(key)])),
+      asset,
       evidenceIds: files.map((file) => file.id),
       declaredIssues: issues,
       referenceProductId: reference?.id ?? null,
@@ -116,128 +96,41 @@ export default function BuybackSubmissionForm({
     }
   };
 
-  const photos = files.filter((file) => !file.video).length,
-    videos = files.length - photos;
-  const ready = photos >= 3 && confirmed.length === CONFIRMATIONS.length && (!trade || !!tradeItem);
+  const photos = files.filter((file) => !file.video).length;
+  const ready = photos >= 3 && agreed && (!trade || !!tradeItem);
   return (
-    <form noValidate onSubmit={(event) => void submit(event)} className="mu-panel studio-intake mb-8 space-y-6 p-6">
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold">{v2('step1')}</h2>
+    <form noValidate onSubmit={(event) => void submit(event)} className="service-form">
+      <section className="service-form-section">
         <CatalogCombobox label={v2('catalogSearch')} value={reference} onChange={setReference} />
-        {!reference && <p className="mu-note">{v2('catalogHint')}</p>}
-        <div className="grid gap-4 md:grid-cols-2">
-          {COLLECTIBLE_ASSET_FIELDS.map((key) => (
-            <label className="mu-field" key={key}>
-              {t(`asset.${key}`)}
-              {key === 'assemblyState' ? (
-                <select name={key} required>
-                  {ASSEMBLY_STATES.map((state) => (
-                    <option key={state} value={state}>
-                      {catalog(state)}
-                    </option>
-                  ))}
-                </select>
-              ) : ['accessories', 'defects', 'repairHistory'].includes(key) ? (
-                <textarea name={key} maxLength={1500} required />
-              ) : (
-                <input name={key} maxLength={key === 'name' ? 255 : 1500} required defaultValue={key === 'name' ? reference?.name : undefined} key={`${key}-${reference?.id ?? 0}`} />
-              )}
-            </label>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold">{v2('step2')}</h2>
-        <p className="mu-note">{v2('issuesNote')}</p>
-        {issues.map((issue, index) => (
-          <div key={index} className="grid gap-2 sm:grid-cols-[1.2fr_.5fr_2fr_auto]">
-            <select
-              aria-label={v2('issueType')}
-              value={issue.type}
-              onChange={(event) => setIssues(issues.map((row, at) => (at === index ? { ...row, type: event.target.value as BuybackIssue['type'] } : row)))}
-            >
-              {BUYBACK_ISSUE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {v2(`issueTypes.${type}`)}
-                </option>
-              ))}
-            </select>
-            <input
-              aria-label={v2('quantity')}
-              type="number"
-              min={1}
-              max={MAX_ISSUE_QUANTITY}
-              value={issue.quantity}
-              onChange={(event) => setIssues(issues.map((row, at) => (at === index ? { ...row, quantity: Math.max(1, Math.min(MAX_ISSUE_QUANTITY, Number(event.target.value) || 1)) } : row)))}
-            />
-            <input
-              aria-label={v2('issueDescription')}
-              placeholder={v2('issueDescription')}
-              maxLength={500}
-              required={issue.type === 'other'}
-              value={issue.description}
-              onChange={(event) => setIssues(issues.map((row, at) => (at === index ? { ...row, description: event.target.value } : row)))}
-            />
-            <button type="button" className="underline" onClick={() => setIssues(issues.filter((_, at) => at !== index))}>
-              {v2('removeIssue')}
-            </button>
-          </div>
-        ))}
-        <button type="button" className="mu-button-secondary" onClick={() => setIssues([...issues, { type: 'broken_part', quantity: 1, description: '' }])}>
-          {v2('addIssue')}
-        </button>
-        <label className="flex items-start gap-2 text-sm">
-          <input className="mt-1" type="checkbox" checked={seriousDamage} onChange={(event) => setSeriousDamage(event.target.checked)} />
-          {v2('seriousDamage')}
-        </label>
-        {estimate && <EstimateCard estimate={estimate} />}
-      </section>
-
-      {trade && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-bold">{v2('trade.title')}</h2>
-          <p className="mu-note">{v2('trade.hint')}</p>
+        {!reference && <p className="service-form-hint">{v2('catalogHint')}</p>}
+        {!reference && <NameField value={condition} onChange={setCondition} />}
+        {trade && (
           <CatalogCombobox label={v2('trade.search')} value={tradeItem} onChange={setTradeItem} showPrice inStockOnly />
-          {tradeItem && <p className="mu-note">{v2('trade.note')}</p>}
-        </section>
-      )}
-
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold">{v2('step3')}</h2>
-        <label className="mu-field">
-          {v2('media')}
-          <input type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" disabled={busy || files.length >= MAX_FILES} onChange={(event) => void upload(event)} />
-        </label>
-        <p className="mu-note">{v2('mediaNote')}</p>
-        <p className="mu-note">{v2('mediaCount', { photos, videos })}</p>
-        {progress && <p role="status" className="mu-note">{progress}</p>}
-        <ul className="space-y-1 text-sm">
-          {files.map((file) => (
-            <li key={file.id} className="flex justify-between gap-3">
-              <span className="break-all">{file.name}</span>
-              <button type="button" className="underline" onClick={() => setFiles(files.filter((row) => row.id !== file.id))}>
-                {t('removePhoto')}
-              </button>
-            </li>
-          ))}
-        </ul>
+        )}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold">{v2('step4')}</h2>
-        <p className="rounded-md border border-dashed border-brand-hover p-3 text-sm">{v2('warning')}</p>
-        {CONFIRMATIONS.map((item) => (
-          <label key={item} className="flex items-start gap-2 text-sm">
-            <input
-              className="mt-1"
-              type="checkbox"
-              checked={confirmed.includes(item)}
-              onChange={(event) => setConfirmed(event.target.checked ? [...confirmed, item] : confirmed.filter((value) => value !== item))}
-            />
-            {v2(`confirm.${item}`)}
+      <section className="service-form-section">
+        <h3>{form('conditionTitle')}</h3>
+        <ConditionFields value={condition} onChange={setCondition} reference={reference} />
+        {estimate && estimate.estimateVnd !== null && !estimate.manualReview && <EstimateCard estimate={estimate} />}
+      </section>
+
+      <section className="service-form-section">
+        <EvidenceUploader purpose="buyback" files={files} onFiles={setFiles} allowVideo onBusy={setBusy} />
+      </section>
+
+      <section className="service-form-section service-form-submit">
+        <div className="service-form-agree">
+          <label>
+            <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
+            <span>{form('agree')}</span>
           </label>
-        ))}
+          <details>
+            <summary>{form('terms')}</summary>
+            <p>{v2('warning')}</p>
+            {trade && <p>{v2('trade.note')}</p>}
+          </details>
+        </div>
         <button type="submit" className="mu-button" disabled={busy || !ready}>
           {common('submit')}
         </button>
@@ -278,8 +171,12 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
         </>
       )}
       <dt className="font-bold">{v2('estimate.total')}</dt>
-      <dd className="text-lg font-bold">{estimate.estimateVnd !== null && !estimate.manualReview ? money(estimate.estimateVnd) : v2('estimate.manual')}</dd>
-      {estimate.manualReview && <dd className="mu-note sm:col-span-2">{v2(`estimate.reasons.${estimate.manualReview}`)}</dd>}
+      <dd className="text-lg font-bold">
+        {estimate.estimateVnd !== null && !estimate.manualReview ? money(estimate.estimateVnd) : v2('estimate.manual')}
+      </dd>
+      {estimate.manualReview && (
+        <dd className="mu-note sm:col-span-2">{v2(`estimate.reasons.${estimate.manualReview}`)}</dd>
+      )}
       <dd className="mu-note sm:col-span-2">{v2('estimate.note')}</dd>
     </dl>
   );

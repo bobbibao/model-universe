@@ -102,7 +102,7 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
         else { setRequest(next); setRequestCount(count => count + 1); }
       }} />}
       {!admin && request && <ServiceRequestPanel revision={String(requestCount)} onClose={() => setRequest(null)}>
-        <CollectibleSubmissionForm key={`${user.id}:${requestCount}`} purpose="pawn" reference={request.kind === 'pawn' ? { id: request.product.id, name: request.product.name, modelCode: request.product.modelCode } : null} onCreated={async id => { await open(id); setRequest(null); await load(); }} />
+        <CollectibleSubmissionForm key={`${user.id}:${requestCount}`} purpose="pawn" initialReference={request.kind === 'pawn' ? request.product : null} onCreated={async id => { await open(id); setRequest(null); await load(); }} />
       </ServiceRequestPanel>}
       {!admin && notifications.map(notification => <button key={notification.id} className="mu-panel mb-3 block w-full p-4 text-left" onClick={() => void open(notification.entityId)}>{t(notification.kind === 'pawn_overdue' ? 'overdueReminder' : 'dueReminder', { id: notification.entityId, days: notification.details.days, date: new Date(notification.details.dueAt).toLocaleString(locale) })}</button>)}
       {!failed && !rows.length && <ServiceEmpty>{t('empty')}</ServiceEmpty>}

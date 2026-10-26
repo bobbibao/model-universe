@@ -4,7 +4,8 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 
 // The request form of a service page, revealed below the quick valuation: it fades in, scrolls smoothly into view and
-// focuses its first field, so the customer sees where to continue. `revision` changes with each new request.
+// focuses the model name when it must be typed, so the customer sees where to continue. `revision` changes with each
+// new request.
 export default function ServiceRequestPanel({
   revision,
   onClose,
@@ -22,9 +23,7 @@ export default function ServiceRequestPanel({
     const frame = requestAnimationFrame(() => {
       const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       panel.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
-      panel
-        .querySelector<HTMLElement>('input[name]:not([type=hidden]):not([disabled]), textarea[name], select[name]')
-        ?.focus({ preventScroll: true });
+      panel.querySelector<HTMLElement>('input[name="name"]')?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
   }, [revision]);
