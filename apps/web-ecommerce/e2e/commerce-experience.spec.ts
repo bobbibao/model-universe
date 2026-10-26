@@ -260,6 +260,7 @@ for (const locale of ['vi', 'en'] as const) {
         discountPercent: index === 1 ? 12 : 0,
         discountEndsAt: index === 1 ? new Date(Date.now() + 3600000).toISOString() : null,
         partnerId: index === 2 ? 9 : null,
+        salesChannel: index === 2 ? 'outlet' : 'web',
         condition: index === 2 ? otherCondition : 'new',
         stock: index === 0 || index === 3 ? 0 : 1,
         groupStock: index === 0 ? 0 : index === 3 ? 2 : 1,
@@ -299,15 +300,18 @@ for (const locale of ['vi', 'en'] as const) {
         '2hand',
       ]);
       await expect(cards.locator('.product-tile-body .condition-chip')).toHaveCount(0);
+      await expect(cards.nth(2).locator('.product-tile-tags')).toContainText('Outlet');
+      await expect(cards.locator('.mu-product-photo .tile-outlet')).toHaveCount(0);
       for (const card of await cards.all()) {
         const photo = (await card.locator('.mu-product-photo').boundingBox())!;
         const badge = (await card.locator('.tile-condition').boundingBox())!;
-        expect(badge.y - photo.y).toBeGreaterThanOrEqual(10);
-        expect(badge.y - photo.y).toBeLessThanOrEqual(14);
+        expect(badge.y - photo.y).toBeGreaterThanOrEqual(7);
+        expect(badge.y - photo.y).toBeLessThanOrEqual(9);
         expect(badge.x + badge.width).toBeLessThan(photo.x + photo.width);
         for (const status of await card.locator('.tile-soldout, .tile-ribbon').all()) {
           const rect = (await status.boundingBox())!;
-          expect(rect.y).toBeGreaterThanOrEqual(badge.y + badge.height + 4);
+          expect(Math.abs(rect.y - badge.y)).toBeLessThan(1);
+          expect(rect.x).toBeGreaterThanOrEqual(badge.x + badge.width + 6);
         }
       }
 
