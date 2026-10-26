@@ -143,6 +143,19 @@ export const lines = (value: string) =>
 export const conditionRules = (types: readonly ProductConditionType[], key: string) =>
   types.find((type) => type.key === key) ?? BUILT_IN_CONDITIONS.find((type) => type.key === key);
 
+type PhotoInput = { url?: string; file?: File };
+// Validate before uploading/saving, so the editor can open the image tab and keep the draft intact.
+export const validateProductImages = (
+  values: ProductFormValues,
+  mainImage: PhotoInput | null,
+  types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
+): ProductFormErrors => {
+  if (!mainImage) return { mainImage: 'mainImageRequired' };
+  if (!conditionRules(types, values.condition)?.uniqueUnit) return {};
+  if (!mainImage.file && !mainImage.url?.startsWith('/uploads/')) return { mainImage: 'actualPhotosRequired' };
+  return {};
+};
+
 // What makes a unit incomplete or defective is shown to customers, so it must be written down.
 export const validateCondition = (
   values: ProductFormValues,

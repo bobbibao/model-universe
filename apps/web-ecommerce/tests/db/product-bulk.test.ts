@@ -98,6 +98,27 @@ describe('atomic admin bulk edits', () => {
     });
     expect(await child.reload()).toMatchObject({ condition: 'defective', isFeatured: false });
   });
+  it('edits New to 2hand with a single uploaded main photo, preserving S, R and stock', async () => {
+    const row = await create({ pricingReferenceMemberVnd: 1100000, price: 1222222 });
+    const catalog = new ProductService();
+    const body = await catalog.getAdminById(row.id);
+    await catalog.update(row.id, { ...body, condition: 'preowned', images: [] }, adminId);
+    expect(await row.reload()).toMatchObject({
+      condition: 'preowned',
+      stock: 1,
+      price: 1222222,
+      pricingReferenceMemberVnd: 1100000,
+    });
+    expect(await ProductImageModel.count({ where: { productId: row.id } })).toBe(0);
+    const bulkRow = await create();
+    await service.update(adminId, input([bulkRow], { condition: 'preowned' }));
+    expect((await bulkRow.reload()).condition).toBe('preowned');
+    const placeholder = await create({ imageUrl: '/images/product-placeholder.svg' });
+    await expect(service.update(adminId, input([placeholder], { condition: 'preowned' }))).rejects.toMatchObject({
+      code: 'BULK_PRODUCT_CONDITION_INVALID',
+    });
+    expect((await placeholder.reload()).condition).toBe('new');
+  });
   it('rolls back the entire batch if any unit lacks second-hand photos or has too much stock', async () => {
     const good = await create();
     await photos(good);

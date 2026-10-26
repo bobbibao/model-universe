@@ -13,7 +13,7 @@ Mỗi trường phải được đánh dấu trước khi chọn giá trị; tr�
 
 ## Quy tắc khi đổi tình trạng
 
-Áp dụng các quy tắc hiện có của trang sửa từng sản phẩm. Loại một chiếc (2hand) cần tồn kho tối đa 1 và ít nhất ba ảnh thật đã tải lên. Không đổi loại một chiếc sang loại khác để tránh làm mất định danh của món đã kiểm định. Thiếu phụ kiện cần danh sách phụ kiện thiếu; hàng lỗi cần mô tả lỗi. Chức năng không tự tạo mô tả hoặc tự điều chỉnh tồn kho/giá.
+Áp dụng các quy tắc hiện có của trang sửa từng sản phẩm. Loại một chiếc (2hand) cần tồn kho tối đa 1 và ảnh chính là ảnh thật đã tải lên. Không đổi loại một chiếc sang loại khác để tránh làm mất định danh của món đã kiểm định. Thiếu phụ kiện cần danh sách phụ kiện thiếu; hàng lỗi cần mô tả lỗi. Chức năng không tự tạo mô tả hoặc tự điều chỉnh tồn kho/giá.
 
 Nếu có món không đáp ứng điều kiện, toàn bộ lô không được lưu. Hộp thoại giữ nguyên lựa chọn và nêu mã sản phẩm, lý do, liên kết mở trang sửa trong tab mới. Sau khi bổ sung dữ liệu, tải lại và chọn lại sản phẩm để nhận phiên bản mới.
 
@@ -31,4 +31,4 @@ Các bộ kiểm thử riêng: `tests/unit/product-bulk.test.ts` (allowlist, d�
 
 Kết quả: 17 unit, 12 database và 5 browser case cho tính năng đã qua. Thêm 10 browser case hồi quy cho bảng admin (trạng thái không xuống dòng, ẩn/hiện cột, mật độ dòng, giữ tùy chọn sau reload, điều hướng bàn phím). Fixture editor cũ được bổ sung giá S nội bộ, vì API public không trả trường này và validation giá hiện tại yêu cầu S. Scoped ESLint, type check server và build Next.js production với kiểm tra kiểu đã qua; build dùng `--no-lint` do giới hạn lint toàn repo đã được ghi nhận ở tài liệu UI/UX. Kiểm tra preview thật xác nhận danh sách có `updatedAt` và khách chưa đăng nhập nhận 401; không sửa dữ liệu shop.
 
-Bản preview trong worktree riêng sử dụng cổng 6053; API mới chạy trên 6075 chỉ phục vụ danh sách admin và cập nhật hàng loạt, không chạy migration, seed hay job. Các API còn lại tiếp tục đi qua server hiện có. Hạ tầng preview là công cụ local, không phải cấu hình triển khai production.
+Bản preview trong worktree riêng sử dụng cổng 6053; API catalog chạy trên 6075 phục vụ danh sách public và controller quản lý sản phẩm (gồm tạo/sửa, SKU tình trạng và bulk update), không chạy migration, seed hay job. Các API còn lại tiếp tục đi qua server hiện có. Hạ tầng preview là công cụ local, không phải cấu hình triển khai production.

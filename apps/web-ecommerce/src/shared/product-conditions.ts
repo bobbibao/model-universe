@@ -1,8 +1,9 @@
 // The conditions a unit can be sold in (Admin > Products > Conditions). The shop starts with the four built-in ones and
 // the owner adds more over time; each condition carries the rules a unit in it must meet, so the code never checks a
 // condition by name:
-// - uniqueUnit: every unit is one of a kind (like second hand): one piece per listing, at least three real uploaded
-//   photos, and stock only through its inspected intake (buy-back, pawn) or a verified return;
+// - uniqueUnit: every unit is one of a kind (like second hand): one piece per listing, an uploaded actual-item main
+//   photo in the shop catalog, and stock only through its inspected intake or a verified return. Partner and intake
+//   workflows keep their own evidence requirements;
 // - requiresMissingAccessories: the listing must say which accessories are missing;
 // - requiresDefects: the listing must describe each defect.
 // Built-in conditions can be renamed, reordered and described, but not removed or have their rules changed: buy-back

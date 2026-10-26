@@ -30,6 +30,7 @@ import {
   emptyProductForm,
   toFormValues,
   validateProductForm,
+  validateProductImages,
 } from '../components/productForm';
 
 const tabForError = (key: string) => {
@@ -97,7 +98,7 @@ const ProductEdit = () => {
   const save = async () => {
     const formErrors: ProductFormErrors = validateProductForm(values, conditions.all);
     if (uniqueUnit && Number(values.stock) > (product?.stock ?? 0)) formErrors.stock = 'stockChangeRestricted';
-    if (!mainImage) formErrors.mainImage = 'mainImageRequired';
+    Object.assign(formErrors, validateProductImages(values, mainImage, conditions.all));
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0 || !mainImage) {
       setActiveTab(tabForError(Object.keys(formErrors)[0]));

@@ -114,3 +114,11 @@ URL và API dùng query parameter lặp, ví dụ `?brand=Bandai&brand=MOSHOW&co
 Dropdown dùng chung được áp dụng cả trong `.admin-modal-overlay` vì modal nằm ngoài `.admin-workspace`. Bulk update bỏ style riêng của select để sử dụng token, picker, focus và disabled state toàn hệ thống. Tab danh sách/thống kê kho bỏ padding ngang thừa của thanh tab; padding của nút vẫn giữ để bảo đảm vùng bấm.
 
 Kiểm chứng: 8 unit test cho parser, 3 database test cho OR/AND theo cùng SKU và API query lặp; 17 browser test cho đa lựa chọn, đóng/mở/keyboard, chip, URL/reload/Back, badge/card, dropdown global và bulk update. Đã kiểm tra tiếng Việt/Anh, desktop/mobile, giao diện sáng/tối; không có tràn ngang trang. Scoped ESLint, server type check và build production có kiểm tra kiểu đã qua (build dùng `--no-lint` theo giới hạn lint toàn repo đã ghi ở trên). Đối chiếu API local thật xác nhận chọn hai hãng trả đúng hợp của hai kết quả riêng; chỉ đọc dữ liệu shop. Preview giữ worktree riêng, không khởi động lại server 6070 của Claude.
+
+## Sửa cột tình trạng và ảnh 2hand (27/10/2026)
+
+Cột tình trạng của danh sách Admin chỉ hiển thị badge; bỏ toàn bộ giá trong `catalog-condition-summary`. Giá vẫn ở cột giá bán, không sửa công thức S/R hay giá đã lưu.
+
+Theo yêu cầu mới của chủ shop, catalog shop cho lưu 2hand với tồn kho tối đa 1 và **một ảnh chính là ảnh thật đã tải lên**; ảnh phụ không bắt buộc. Quy tắc dùng chung cho tạo, sửa, thêm SKU tình trạng và bulk update. Form kiểm tra trước khi gửi, giữ dữ liệu đang nhập, mở tab ảnh và focus nút thay ảnh khi thiếu ảnh thật. Không tự thêm ảnh, sửa tồn kho hoặc đổi dữ liệu sản phẩm #285 khi kiểm thử. Quy tắc chứng cứ của đối tác/thu mua/cầm đồ là các luồng riêng.
+
+Kiểm chứng: 13 unit case về form, 18 database case trên database dùng một lần và 21 browser case qua tiếng Việt/Anh, desktop/mobile đã qua. Bao gồm đổi New → 2hand một ảnh/không ảnh phụ, giữ nguyên giá S/R và tồn kho, chặn ảnh placeholder, giữ quy tắc định danh/tồn kho hàng một chiếc, bulk update và cột tình trạng không chứa giá. Scoped ESLint, server type check và build production đã qua. Dữ liệu thật #285 được kiểm tra bằng kết nối chỉ đọc; dữ liệu hợp lệ theo quy tắc mới, không có thao tác lưu thử vào sản phẩm thật. Preview 6053 dùng controller sản phẩm mới trên 6075 để thao tác sửa cũng áp dụng quy tắc này, không khởi động lại server 6070.

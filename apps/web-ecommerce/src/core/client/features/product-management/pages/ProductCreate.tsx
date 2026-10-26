@@ -20,6 +20,7 @@ import {
   validateBasics,
   validateInventory,
   validatePricing,
+  validateProductImages,
 } from '../components/productForm';
 
 const ProductCreate = () => {
@@ -52,7 +53,7 @@ const ProductCreate = () => {
 
   const validateStep = (index: number): ProductFormErrors => {
     if (index === 0) return validateBasics(values, conditions.all);
-    if (index === 1) return mainImage ? {} : { mainImage: 'mainImageRequired' };
+    if (index === 1) return validateProductImages(values, mainImage, conditions.all);
     if (index === 2) return validatePricing(values);
     if (index === 3) return validateInventory(values, conditions.all);
     return {};

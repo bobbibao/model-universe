@@ -56,10 +56,13 @@ describe('unique collectible and marketplace checkout integrity', () => {
     // Owner rule of 2026-10-26: R = ROUND(S / 0.9) is the price; buyback = S − margin (30% of S, at least 100,000).
     expect(await used.reload()).toMatchObject({ price: 210000, buybackPriceVnd: 89000, listPriceVerified: true });
   });
-  it('checks distinct actual view URLs on both creates and updates with omitted condition', async () => {
+  it('requires an uploaded main photo even with omitted condition, allowing a single shop photo', async () => {
     const catalog = new ProductService(), body = await catalog.getAdminById(used.id);
-    await expect(catalog.update(used.id, { ...body, condition: undefined, images: [photos[0], photos[0]] })).rejects.toMatchObject({ statusCode: 400 });
-    await expect(catalog.create({ ...body, sku: 'INTEGRITY-DUPLICATE-PHOTOS', images: [photos[0], photos[0]] })).rejects.toMatchObject({ statusCode: 400 });
+    await expect(catalog.update(used.id, { ...body, condition: undefined, imageUrl: '/images/placeholder.svg', images: photos })).rejects.toMatchObject({ statusCode: 400 });
+    await expect(catalog.create({ ...body, sku: 'INTEGRITY-NO-ACTUAL-PHOTO', imageUrl: '/images/placeholder.svg', images: [] })).rejects.toMatchObject({ statusCode: 400 });
+    const single = await catalog.create({ ...body, sku: 'INTEGRITY-ONE-PHOTO', images: [] });
+    expect(single.condition).toBe('preowned');
+    expect(single.imageUrl).toBe(photos[0]);
     expect((await catalog.getAdminById(used.id)).images).toEqual(photos.slice(1));
   });
   it('does not route accidentally published partner stock through shop COD or consume shop vouchers', async () => {

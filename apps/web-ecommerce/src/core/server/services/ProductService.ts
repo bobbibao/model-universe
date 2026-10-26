@@ -491,8 +491,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     if (!imageUrl || !isImageUrl(imageUrl)) errors.push('Vui lòng chọn ảnh chính cho sản phẩm.');
     if (images.length > MAX_GALLERY_IMAGES) errors.push(`Tối đa ${MAX_GALLERY_IMAGES} ảnh phụ.`);
     if (images.some((url) => !isImageUrl(url))) errors.push('Đường dẫn ảnh phụ không hợp lệ.');
-    if (data.condition !== undefined && conditionType?.uniqueUnit && uniquePhotosMissing(stock, imageUrl, images)) {
-      errors.push('Each one-of-a-kind collectible requires unique inventory and at least three uploaded actual-item photos.');
+    if (data.condition !== undefined && conditionType?.uniqueUnit && uniquePhotosMissing(stock, imageUrl)) {
+      errors.push('Hàng 2hand cần tồn kho tối đa 1 và ảnh chính là ảnh thật đã tải lên.');
     }
     if (isNaN(productionDate.getTime())) errors.push('Ngày nhập không hợp lệ.');
     if (inventoryStatus !== undefined && !INVENTORY_STATUSES.includes(inventoryStatus)) {
@@ -634,8 +634,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         const next = await this.conditions.get(data.condition || product.condition, transaction);
         if (was?.uniqueUnit && (data.condition !== undefined && data.condition !== product.condition || values.stock > product.stock))
           throw HttpError.conflict('Retain this unique collectible identity; use its inspected intake or verified return workflow for stock.', 'UNIQUE_ITEM_INTAKE_REQUIRED');
-        if (next?.uniqueUnit && uniquePhotosMissing(values.stock, values.imageUrl, images))
-          throw HttpError.badRequest('Each one-of-a-kind collectible requires unique inventory and at least three distinct uploaded actual-item photos.');
+        if (next?.uniqueUnit && uniquePhotosMissing(values.stock, values.imageUrl))
+          throw HttpError.badRequest('Hàng 2hand cần tồn kho tối đa 1 và ảnh chính là ảnh thật đã tải lên.');
         if (values.stock !== product.stock && data.expectedStock !== product.stock) throw HttpError.conflict('Available stock changed. Reload before recording an inventory correction.','STOCK_CHANGED');
         const oldPricing = { listPriceVnd: product.price, actualCostVnd: product.importPrice, referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd, issues: product.pricingIssueCount };
         if (values.price !== product.price && data.expectedPrice !== product.price)

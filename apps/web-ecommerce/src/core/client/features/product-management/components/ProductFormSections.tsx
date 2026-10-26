@@ -159,7 +159,13 @@ export const ConditionFields = ({
           label={catalog('condition')}
           name="condition"
           disabled={lockedCondition}
-          hint={lockedCondition ? t('fieldGuide.conditionLocked') : conditions.description(values.condition)}
+          hint={
+            lockedCondition
+              ? t('fieldGuide.conditionLocked')
+              : rules?.uniqueUnit
+                ? t('validation.actualPhotosRequired')
+                : conditions.description(values.condition)
+          }
           options={choices.map((type) => ({ value: type.key, label: conditions.label(type.key) }))}
           value={values.condition}
           onChange={(event) => onChange('condition', event.target.value as ProductFormValues['condition'])}
