@@ -562,7 +562,7 @@ for (const locale of ['vi', 'en'] as const) {
       await capture(page, `polish-filters-${locale}-${width}`);
 
       await page.goto(`/${locale}/san-pham/${model.slug}`);
-      const information = page.locator('.product-information');
+      const information = page.locator('.product-information:visible');
       await information.getByRole('tab').last().click();
       const count = information.locator('.workspace-tab-count');
       await expect(count).toHaveText('(0)');
