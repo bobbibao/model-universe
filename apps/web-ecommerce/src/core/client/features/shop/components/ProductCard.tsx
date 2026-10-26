@@ -57,11 +57,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         <div className="product-tile-badges">
           <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>{isNew ? t('new') : '2hand'}</span>
           {groupStock <= 0 && <span className="tile-soldout">{t('soldOut')}</span>}
-          {product.stock > 0 && onSale && (
-            <span className="tile-ribbon">
-              <small>{product.managedSale ? 'SALE' : en ? 'SAVE' : 'GIẢM'}</small>-{product.discountPercent}%
-            </span>
-          )}
+          {product.stock > 0 && onSale && <span className="tile-ribbon">-{product.discountPercent}%</span>}
         </div>
         {product.stock > 0 && freeship && (
           <span className="tile-freeship">
@@ -69,10 +65,12 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
             {en ? 'Free shipping' : 'Freeship'}
           </span>
         )}
-        {product.salesChannel === 'outlet' && <span className="tile-outlet">Outlet</span>}
       </Link>
       <div className="product-tile-body">
-        <div className="product-tile-tags">{product.scale && <span>{product.scale}</span>}</div>
+        <div className="product-tile-tags">
+          {product.scale && <span>{product.scale}</span>}
+          {product.salesChannel === 'outlet' && <span>Outlet</span>}
+        </div>
         <Link href={href} className="product-tile-name">
           {product.name}
         </Link>
