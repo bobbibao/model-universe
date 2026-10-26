@@ -94,6 +94,7 @@ export type ProductDetail = ProductSummary & {
 };
 
 export type AdminProductListItem = ProductSummary & {
+  updatedAt?: string;
   sku: string;
   sold: number;
   importPrice: number;

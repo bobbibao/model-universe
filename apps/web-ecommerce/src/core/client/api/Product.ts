@@ -1,6 +1,8 @@
 'use client';
 
 import Api from './Api';
+import axios from 'axios';
+import type { ProductBulkRequest, ProductBulkResponse, ProductBulkIssue } from '@/shared/product-bulk';
 import type { ProductRecommendation } from '@/shared/product-recommendations';
 import { ADMIN_PRODUCT_API, PRODUCT_API } from './endpoint';
 import type { PaginatedResult } from '@/shared/types/pagination';
@@ -88,6 +90,28 @@ export default class ProductApi {
       return response.data?.payload;
     } catch (error) {
       return undefined;
+    }
+  }
+
+  static async bulkUpdate(input: ProductBulkRequest): Promise<ProductBulkResponse> {
+    try {
+      return { ok: true, result: (await Api.post('/admin/products/bulk', input)).data };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        try {
+          const raw = JSON.parse(error.response?.data?.errorParams?.blockedProducts || 'null');
+          if (Array.isArray(raw)) {
+            const reasons = ['retired', 'uniqueIdentity', 'photos', 'missingAccessories', 'defects'];
+            const issues = raw.filter(
+              (item) => item && Number.isSafeInteger(item.id) && reasons.includes(item.reason),
+            ) as ProductBulkIssue[];
+            return { ok: false, issues };
+          }
+        } catch {
+          /* Non-structured failures keep the generic retry state. */
+        }
+      }
+      return { ok: false };
     }
   }
 

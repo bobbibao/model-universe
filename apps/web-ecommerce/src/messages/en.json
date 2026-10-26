@@ -3727,6 +3727,45 @@
       "problems": "Problems, latest day"
     }
   },
+  "productBulk": {
+    "selected": "{count} products selected",
+    "clearSelection": "Clear selection",
+    "edit": "Bulk edit",
+    "title": "Update {count} products",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "apply": "Apply to {count} products",
+    "hint": "Only checked fields change. Condition applies to each selected main SKU; other condition options stay unchanged.",
+    "reviewSelection": "Review selected products",
+    "failed": "The update was not confirmed. Retry, or reload the list if the data has changed.",
+    "reload": "Reload and select again",
+    "chooseFields": "Choose fields to change",
+    "value": "New value: {field}",
+    "chooseValue": "Choose a new value",
+    "featuredOn": "Feature products",
+    "featuredOff": "Remove featured status",
+    "done": "Processed {count} products.",
+    "protectedFields": "Prices, stock, SKU, images, condition disclosures and publication status stay unchanged. Missing requirements or conflicts stop the entire batch.",
+    "limit": "Select up to {count} products per batch.",
+    "selectPage": "Select shop products on this page",
+    "selectProduct": "Select product: {name}",
+    "fields": {
+      "isFeatured": "Featured",
+      "condition": "Item condition"
+    },
+    "issues": {
+      "retired": "Condition unavailable. Reload the list.",
+      "uniqueIdentity": "A unique collectible cannot be reclassified through bulk edit.",
+      "photos": "Unique items need stock at most one and at least three distinct uploaded photos.",
+      "missingAccessories": "List missing accessories in the product editor first.",
+      "defects": "Describe defects in the product editor first."
+    },
+    "requirements": {
+      "photos": "Unique items need stock at most one and at least three distinct uploaded photos.",
+      "missingAccessories": "List missing accessories in the product editor first.",
+      "defects": "Describe defects in the product editor first."
+    }
+  },
   "commerceUX": {
     "appliedFilters": "Applied filters",
     "removeFilter": "Remove filter: {name}",

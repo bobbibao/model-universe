@@ -1,6 +1,9 @@
 {
   "AUTH_REQUIRED": "Đăng nhập để tiếp tục.",
   "MEMBER_CUSTOMER_ACCOUNT_REQUIRED": "Mã thành viên chỉ dành cho tài khoản khách hàng. Hãy đăng nhập bằng tài khoản khách hàng để nhận mã; tài khoản quản trị không được cấp mã này.",
+  "BULK_PRODUCT_INVALID": "Chỉ chọn tối đa 50 sản phẩm và các trường được hỗ trợ để cập nhật hàng loạt.",
+  "BULK_PRODUCT_CONDITION_INVALID": "Một số SKU chưa đáp ứng điều kiện của tình trạng đã chọn. Toàn bộ lô chưa thay đổi; xem danh sách cần bổ sung.",
+  "BULK_PRODUCT_CHANGED": "Sản phẩm hoặc thông tin liên quan đã thay đổi hay không đủ điều kiện. Toàn bộ lô chưa được cập nhật; hãy tải lại và chọn lại.",
   "FORBIDDEN": "Bạn không có quyền thực hiện thao tác này.",
   "NOT_FOUND": "Dữ liệu không còn khả dụng hoặc không thuộc tài khoản của bạn.",
   "POLICY_APPROVAL_REQUIRED": "Cửa hàng cần phê duyệt điều khoản trước khi kích hoạt dịch vụ này. Vui lòng liên hệ nhân viên.",

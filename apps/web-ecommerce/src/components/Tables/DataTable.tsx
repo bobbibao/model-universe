@@ -13,6 +13,7 @@ export interface DataTableColumn<T> {
   sortable?: boolean;
   className?: string;
   essential?: boolean;
+  selection?: boolean;
   render?: (row: T) => React.ReactNode;
 }
 
@@ -116,23 +117,25 @@ function DataTable<T>({
             </summary>
             <fieldset>
               <legend className="sr-only">{ux('columns')}</legend>
-              {columns.map((column, index) => (
-                <label key={column.key}>
-                  <input
-                    type="checkbox"
-                    checked={index === 0 || column.essential || !hiddenKeys.includes(column.key)}
-                    disabled={index === 0 || column.essential}
-                    onChange={(event) =>
-                      setHidden(
-                        event.target.checked
-                          ? hiddenKeys.filter((key) => key !== column.key)
-                          : [...hiddenKeys, column.key],
-                      )
-                    }
-                  />
-                  <span>{column.header}</span>
-                </label>
-              ))}
+              {columns
+                .filter((column) => !column.selection)
+                .map((column, index) => (
+                  <label key={column.key}>
+                    <input
+                      type="checkbox"
+                      checked={index === 0 || column.essential || !hiddenKeys.includes(column.key)}
+                      disabled={index === 0 || column.essential}
+                      onChange={(event) =>
+                        setHidden(
+                          event.target.checked
+                            ? hiddenKeys.filter((key) => key !== column.key)
+                            : [...hiddenKeys, column.key],
+                        )
+                      }
+                    />
+                    <span>{column.header}</span>
+                  </label>
+                ))}
               <button type="button" onClick={() => setHidden([])}>
                 {ux('restoreColumns')}
               </button>
@@ -219,7 +222,7 @@ function DataTable<T>({
                       key={column.key}
                       className={`px-4 py-4 text-black dark:text-bodydark1 ${column.className || ''}`}
                     >
-                      {onRowClick && index === 0 ? (
+                      {onRowClick && index === visibleColumns.findIndex((item) => !item.selection) ? (
                         <button
                           type="button"
                           aria-label={t('openRecord', { id: String(rowKey(row)) })}

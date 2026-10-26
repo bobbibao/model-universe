@@ -1,3 +1,4 @@
+import { uniquePhotosMissing } from './catalog/ProductConditionValidation';
 import { rankRelatedProducts } from '../../../shared/product-recommendations';
 import type { ProductDetail, ProductSummary } from '../../../shared/types/product';
 import PromotionAuditModel from '../database/client/models/PromotionAudit.Model';
@@ -100,13 +101,6 @@ const rankOf = (types: readonly ProductConditionType[]) => (condition: string) =
   const index = types.findIndex((type) => type.key === condition);
   return index < 0 ? types.length : index;
 };
-// A unit in a one-of-a-kind condition (e.g. second hand): one piece, at least three distinct uploaded photos.
-const uniquePhotosMissing = (stock: number, imageUrl: string, images: string[]) =>
-  stock > 1 ||
-  !imageUrl.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`) ||
-  new Set([imageUrl, ...images]).size < 3 ||
-  images.some((url) => !url.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`));
-
 const categoryInclude = { model: CategoryModel, as: 'category', attributes: ['id', 'name', 'slug'] };
 const imagesInclude = { model: ProductImageModel, as: 'images', attributes: ['id', 'url', 'sortOrder'] };
 
@@ -360,7 +354,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const ids = await this.matchingListingIds(this.buildWhere(query));
     const column = query.sortKey && ADMIN_SORTABLE_COLUMNS.includes(query.sortKey) ? query.sortKey : 'id';
     const { rows, count } = await ProductModel.findAndCountAll({
-      attributes: [...LIST_ATTRIBUTES, 'sku', 'importPrice', 'pricingReferenceMemberVnd', 'isArchived', 'inventoryStatus', 'createdAt', 'productionDate'],
+      attributes: [...LIST_ATTRIBUTES, 'sku', 'importPrice', 'pricingReferenceMemberVnd', 'isArchived', 'inventoryStatus', 'createdAt', 'updatedAt', 'productionDate'],
       where: { [Op.and]: [...status, { id: ids, parentProductId: null }] },
       include: [categoryInclude],
       order: [[column, query.sortDirection === 'desc' ? 'DESC' : 'ASC']],
