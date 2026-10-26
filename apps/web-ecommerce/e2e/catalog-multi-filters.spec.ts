@@ -62,31 +62,40 @@ for (const locale of ['vi', 'en'] as const)
       const brand = filters.locator('.filter-multi').nth(1);
       const trigger = brand.getByRole('button').first();
       await trigger.click();
-      await brand.getByRole('checkbox', { name: "A&B's Lab", exact: true }).check();
+      await expect(brand.locator('.filter-multi-options input')).toHaveCount(0);
+      const firstOption = brand.getByRole('button', { name: "A&B's Lab", exact: true });
+      const row = (await firstOption.boundingBox())!;
+      // The far edge and padding toggle the option, not only its text or icon.
+      await firstOption.click({ position: { x: row.width - 3, y: row.height / 2 } });
+      await expect(firstOption).toHaveAttribute('aria-pressed', 'true');
+      await expect(firstOption.locator('svg')).toBeVisible();
       await expect(page).toHaveURL(/brand=/);
       await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-      await brand.getByRole('checkbox', { name: 'Bandai', exact: true }).check();
+      await brand.getByRole('button', { name: 'Bandai', exact: true }).click();
       await expect.poll(() => new URL(page.url()).searchParams.getAll('brand')).toEqual(["A&B's Lab", 'Bandai']);
       await expect(trigger).toHaveAttribute('aria-expanded', 'true');
       await page.screenshot({ path: `../../.artifacts/model-universe/catalog-multi-${locale}-${width}.png` });
       await brand.getByRole('button', { name: m.common.close, exact: true }).click();
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
       await trigger.click();
-      await expect(brand.getByRole('checkbox', { name: 'Bandai', exact: true })).toBeChecked();
+      await expect(brand.getByRole('button', { name: 'Bandai', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await page.keyboard.press('Escape');
       await expect(trigger).toBeFocused();
       const condition = filters.locator('.filter-multi').first();
       await condition.getByRole('button').first().click();
-      await condition.getByRole('checkbox', { name: m.catalog.new, exact: true }).check();
-      await condition.getByRole('checkbox', { name: '2hand', exact: true }).check();
+      await condition.getByRole('button', { name: m.catalog.new, exact: true }).click();
+      await condition.getByRole('button', { name: '2hand', exact: true }).click();
       await expect.poll(() => new URL(page.url()).searchParams.getAll('condition')).toEqual(['new', 'preowned']);
       await page.getByRole('heading', { level: 1 }).click();
       await expect(condition.getByRole('button').first()).toHaveAttribute('aria-expanded', 'false');
       await page.reload();
       if (width === 390) await sidebar.locator('summary').click();
       await trigger.click();
-      await expect(brand.getByRole('checkbox', { name: "A&B's Lab", exact: true })).toBeChecked();
-      await expect(brand.getByRole('checkbox', { name: 'Bandai', exact: true })).toBeChecked();
+      await expect(brand.getByRole('button', { name: "A&B's Lab", exact: true })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      await expect(brand.getByRole('button', { name: 'Bandai', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await page.keyboard.press('Escape');
       await page
         .getByRole('button', { name: m.commerceUX.removeFilter.replace('{name}', "A&B's Lab"), exact: true })

@@ -67,26 +67,38 @@
   overscroll-behavior: contain;
   padding: 5px;
 }
-.filter-multi-options label {
+.filter-multi-options button {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
-  padding: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
   border-radius: 7px;
   cursor: pointer;
   font-size: 13px;
   overflow-wrap: anywhere;
+  text-align: left;
 }
-.filter-multi-options label:hover,
-.filter-multi-options label:has(input:checked) {
+.filter-multi-options button:hover,
+.filter-multi-options button[aria-pressed="true"] {
   background: var(--control-soft);
 }
-.filter-multi-options input {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--control-accent);
+.filter-multi-options button > span {
+  flex: 1;
+  min-width: 0;
+}
+.filter-multi-options svg {
+  color: var(--control-accent);
   flex-shrink: 0;
+  visibility: hidden;
+}
+.filter-multi-options button[aria-pressed="true"] svg {
+  visibility: visible;
+}
+.filter-multi-options button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
 }
 .filter-multi-footer {
   display: flex;
