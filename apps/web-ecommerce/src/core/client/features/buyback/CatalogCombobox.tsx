@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
+import Api from '@/core/client/api/Api';
 import ProductApi from '@/core/client/api/Product';
 import ProductImage from '@/components/ProductImage';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -18,6 +19,7 @@ export default function CatalogCombobox({
   placeholder,
   showPrice = false,
   inStockOnly = false,
+  familyMode = false,
 }: {
   label: string;
   value: ProductSummary | null;
@@ -25,6 +27,7 @@ export default function CatalogCombobox({
   placeholder?: string;
   showPrice?: boolean;
   inStockOnly?: boolean;
+  familyMode?: boolean;
 }) {
   const locale = useLocale(),
     en = locale === 'en';
@@ -42,10 +45,11 @@ export default function CatalogCombobox({
     setLoading(true);
     const timer = setTimeout(
       () => {
-        void ProductApi.getProducts({
+        const pending = familyMode ? Api.get('/product-condition-tree/families', { params: { q: query.trim() } }).then(response => ({ data: response.data.map((family: { id: number; name: string; brandName: string; modelCode: string | null; scale: string | null; imageUrl: string }) => ({ ...family, modelFamilyId: family.id, price: 0, salePrice: 0, stock: 0, discountPercent: 0, discountEndsAt: null, rating: 0, reviewCount: 0, isFeatured: false, salesChannel: 'web' as const })) as ProductSummary[] })) : ProductApi.getProducts({
           ...(query.trim() ? { q: query.trim() } : { sort: 'best_selling' }),
           per_page: 20,
-        })
+        });
+        void pending
           .then((page) => {
             if (!alive) return;
             setItems((page?.data || []).filter((row) => !row.partnerId && (!inStockOnly || row.stock > 0)));
@@ -59,7 +63,7 @@ export default function CatalogCombobox({
       alive = false;
       clearTimeout(timer);
     };
-  }, [open, query, inStockOnly]);
+  }, [open, query, inStockOnly, familyMode]);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {

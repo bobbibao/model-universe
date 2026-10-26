@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import ServiceConditionCaseService from '../../core/server/services/catalog/ServiceConditionCaseService';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
 import { Get, Post } from '../../shared/server/decorators/router.decorator';
 import ApiBaseController from './ApiBase.Controller';
@@ -8,6 +9,11 @@ import HttpError from '../../shared/server/utils/HttpError';
 
 @Controller('/admin/pawn')
 export default class AdminPawnController extends ApiBaseController {
+  @Post('/:id/condition-case')
+  async conditionCase(req: Request, res: Response) {
+    try { await new ServiceConditionCaseService().resolve('pawn', Number(req.params.id), this.user(req), req.body ?? {}); return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req), true)); }
+    catch (error) { return this.handleError(res, error, 'Resolve pawn condition'); }
+  }
   private service = new PawnService();
   private user(req: Request) { if (!req.user) throw HttpError.unauthorized(); return req.user.id; }
   @Get('/')
@@ -39,6 +45,11 @@ export default class AdminPawnController extends ApiBaseController {
   async intake(req: Request, res: Response) {
     try { return this.sendSuccess(res, await this.service.intake(Number(req.params.id), this.user(req), req.body || {})); }
     catch (error) { return this.handleError(res, error, 'Pawn contractual source intake'); }
+  }
+  @Post('/:id/publish')
+  async publish(req: Request, res: Response) {
+    try { return this.sendSuccess(res, await this.service.publish(Number(req.params.id), this.user(req), req.body || {})); }
+    catch (error) { return this.handleError(res, error, 'Publish disposed pawn inventory'); }
   }
   @Post('/:id/disposal/offer')
   async disposalOffer(req: Request, res: Response) {

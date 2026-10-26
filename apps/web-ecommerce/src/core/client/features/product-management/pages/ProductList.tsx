@@ -14,6 +14,7 @@ import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
 import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
+import ProductFamilyList from '../components/ProductFamilyList';
 import ProductApi, { AdminProductListParams } from '@/core/client/api/Product';
 import CategoryApi from '@/core/client/api/Category';
 import InventoryStats from '../components/InventoryStats';
@@ -175,17 +176,18 @@ const ProductList = () => {
               </span>
             </div>
           ))}
+          {!!product.conditionLabels?.length && <span className="catalog-combination-label" title={product.conditionLabels.join(' · ')}>{product.conditionLabels.join(' · ')}</span>}
         </div>
       ),
     },
     {
       key: 'price',
-      header: t('price'),
+      header: locale === 'en' ? 'Real price S' : 'Giá bán thực S',
       className: 'catalog-price-cell',
       sortable: true,
       render: (product) => (
         <div className="catalog-price-summary">
-          <p>{formatVND(product.salePrice, locale)}</p>
+          <p>{formatVND(product.pricingReferenceMemberVnd ?? product.salePrice, locale)}</p>
           {product.discountPercent > 0 && (
             <p className="text-xs text-body">
               <span className="line-through">{formatVND(product.price, locale)}</span> -
@@ -351,6 +353,7 @@ const ProductList = () => {
               </div>
             ),
           },
+          { id: 'families', label: locale === 'en' ? 'Group by model' : 'Nhóm theo mẫu', content: <ProductFamilyList /> },
           { id: 'inventory', label: t('stats.title'), content: <InventoryStats expanded /> },
         ]}
       />

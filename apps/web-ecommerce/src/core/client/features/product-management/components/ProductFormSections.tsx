@@ -1,4 +1,5 @@
 'use client';
+import ConditionTreePicker from '@/components/Store/ConditionTreePicker';
 
 import { catalogPricing } from '@/shared/sale-pricing';
 import { buybackRateBps } from '@/shared/buyback-pricing';
@@ -130,71 +131,38 @@ export const ConditionFields = ({
   onChange,
   lockedCondition = false,
 }: SectionProps & { lockedCondition?: boolean }) => {
-  const catalog = useTranslations('catalog'),
-    t = useTranslations('adminProducts');
-  const conditions = useProductConditions();
-  const rules = conditionRules(conditions.all, values.condition);
-  // The active conditions, plus the unit's own if it was retired since.
-  const choices = conditions.all.filter((type) => type.isActive || type.key === values.condition);
-  const listField = (field: 'includedAccessories' | 'missingAccessories' | 'defects', label: string) => (
-    <TextAreaField
-      key={field}
-      className="md:col-span-2"
-      label={label}
-      name={field}
-      hint={t('fieldGuide.listLines')}
-      value={values[field]}
-      required={
-        (field === 'missingAccessories' && !!rules?.requiresMissingAccessories) ||
-        (field === 'defects' && !!rules?.requiresDefects)
-      }
-      error={errors[field] ? t(`validation.${errors[field]}`) : undefined}
-      onChange={(event) => onChange(field, event.target.value)}
-    />
-  );
+  const en = useLocale() === 'en';
   return (
     <>
-      <div>
-        <SelectField
-          label={catalog('condition')}
-          name="condition"
-          disabled={lockedCondition}
-          hint={
-            lockedCondition
-              ? t('fieldGuide.conditionLocked')
-              : rules?.uniqueUnit
-                ? t('validation.actualPhotosRequired')
-                : conditions.description(values.condition)
-          }
-          options={choices.map((type) => ({ value: type.key, label: conditions.label(type.key) }))}
-          value={values.condition}
-          onChange={(event) => onChange('condition', event.target.value as ProductFormValues['condition'])}
-        />
-      </div>
       <SelectField
-        label={catalog('assembly')}
-        name="assemblyState"
-        options={ASSEMBLY_STATES.map((value) => ({ value, label: catalog(value) }))}
-        value={values.assemblyState}
-        onChange={(event) => onChange('assemblyState', event.target.value as ProductFormValues['assemblyState'])}
-      />
-      <TextField
-        label={catalog('box')}
-        name="boxCondition"
-        value={values.boxCondition}
-        onChange={(event) => onChange('boxCondition', event.target.value)}
+        label={en ? 'Item type' : 'Loại hàng'}
+        name="itemTypeKey"
+        disabled={lockedCondition}
+        options={[
+          { value: 'new', label: 'New' },
+          { value: 'preowned', label: '2hand' },
+        ]}
+        value={values.condition === 'new' ? 'new' : 'preowned'}
+        onChange={(event) => {
+          onChange('condition', event.target.value);
+          onChange('conditionNodeIds', []);
+        }}
       />
       <TextAreaField
         rows={2}
-        label={t('conditionNote')}
+        label={en ? 'Additional notes (not part of SKU identity)' : 'Ghi chú bổ sung (không tạo tổ hợp mới)'}
         name="conditionNote"
         value={values.conditionNote}
         onChange={(event) => onChange('conditionNote', event.target.value)}
       />
-      {(rules?.requiresMissingAccessories || values.missingAccessories.trim() !== '') &&
-        listField('missingAccessories', t('missingAccessories'))}
-      {(rules?.requiresDefects || values.defects.trim() !== '') && listField('defects', t('defectsList'))}
-      {listField('includedAccessories', t('includedAccessories'))}
+      <div className="md:col-span-2">
+        <ConditionTreePicker
+          value={values.conditionNodeIds}
+          itemType={values.condition === 'new' ? 'new' : 'preowned'}
+          disabled={lockedCondition}
+          onChange={(ids) => onChange('conditionNodeIds', ids)}
+        />
+      </div>
     </>
   );
 };
@@ -213,8 +181,6 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
     }
   }
   const target = result?.referenceMemberVnd;
-  const preowned = Number(values.pricingReferencePreownedVnd) || 0;
-  const preownedResult = preowned > 0 && (!target || preowned < target) ? catalogPricing(preowned) : undefined;
   const rate = target ? buybackRateBps(target) / 100 : null;
   // Owner rule of 2026-10-26: staff enter only S; R, B and C50 follow it and cannot be typed.
   const outputs: { label: string; value: number | undefined; note: string }[] = [
@@ -233,7 +199,7 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
     {
       label: en ? 'Buyback price = S − B' : 'Giá thu = S − B',
       value: result?.buybackPriceVnd,
-      note: en ? 'Paid for a new unit of this model' : 'Trả khách cho hàng mới đúng mẫu',
+      note: en ? 'For this exact approved combination' : 'Cho đúng tổ hợp đã duyệt này',
     },
     {
       label: en ? 'Pawn amount C50 = 50% × S' : 'Giá cầm C50 = 50% × S',
@@ -261,27 +227,11 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
         placeholder="1100000"
         onChange={(e) => onChange('pricingReferenceMemberVnd', e.target.value)}
       />
-      <TextField
-        label={en ? 'Real selling price S 2hand (VND)' : 'Giá bán thực S 2hand (đ)'}
-        name="pricingReferencePreownedVnd"
-        type="number"
-        min={1}
-        step={1}
-        inputMode="numeric"
-        hint={
-          en
-            ? 'Optional, below S: prices a customer’s 2hand unit in buyback, trade and pawn. Empty: the shop quotes it.'
-            : 'Không bắt buộc, thấp hơn S: dùng định giá hàng 2hand của khách khi thu, trade, cầm. Để trống: shop tự báo giá.'
-        }
-        error={
-          errors.pricingReferencePreownedVnd ? t(`validation.${errors.pricingReferencePreownedVnd}`) : undefined
-        }
-        value={values.pricingReferencePreownedVnd}
-        onChange={(e) => onChange('pricingReferencePreownedVnd', e.target.value)}
-      />
+
       <TextField
         label={en ? 'Actual cost H · from the purchase / intake record' : 'Giá vốn thực tế H · theo chứng từ nhập/thu'}
         name="importPrice"
+        readOnly
         type="number"
         min={0}
         step={1}
@@ -308,14 +258,6 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
             </div>
           ))}
         </dl>
-        {preownedResult && (
-          <p className="mt-3 text-xs text-body">
-            {en ? '2hand: buyback ' : '2hand: giá thu '}
-            <b>{formatVND(preownedResult.buybackPriceVnd, locale)}</b>
-            {en ? ' · pawn ' : ' · giá cầm '}
-            <b>{formatVND(preownedResult.pawnPriceVnd, locale)}</b>
-          </p>
-        )}
         {formulaError && (
           <p role="alert" className="mt-2 text-sm text-danger">
             {formulaError}
@@ -356,12 +298,12 @@ export const InventoryFields = ({
             name="stock"
             type="number"
             min={0}
-            max={maxStock ?? (conditionRules(conditions.all, values.condition)?.uniqueUnit ? 1 : undefined)}
+            readOnly
             step={1}
             required
             inputMode="numeric"
             value={values.stock}
-            hint={maxStock !== undefined ? t('fieldGuide.uniqueStock') : t('fieldGuide.stock')}
+            hint={t('fieldGuide.stock')}
             onChange={(event) => onChange('stock', event.target.value)}
             error={errors.stock ? t(`validation.${errors.stock}`) : undefined}
           />
@@ -482,8 +424,20 @@ export const SupplierField = ({
 
 export const StatusFields = ({ values, onChange }: Omit<SectionProps, 'errors'>) => {
   const t = useTranslations('adminProducts');
+  const en = useLocale() === 'en';
   return (
     <div className="flex flex-col gap-4">
+      <label className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          className="mt-1 h-5 w-5 accent-brand-hover"
+          checked={values.serviceReferenceEnabled}
+          onChange={(event) => onChange('serviceReferenceEnabled', event.target.checked)}
+        />
+        <span>
+          {en ? 'Use approved S for buyback / trade / pawn estimates' : 'Dùng S đã duyệt để báo giá thu / trade / cầm'}
+        </span>
+      </label>
       <SelectField
         label={t('inventoryStatus')}
         name="inventoryStatus"

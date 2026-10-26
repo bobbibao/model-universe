@@ -107,10 +107,10 @@ export default function BuybackPricingSections({
           )}
         </p>
       )}
-      <div>
+      {!selected.conditionCase && <div>
         <h3 className="font-bold">{v2('declaredIssues')}</h3>
         <IssueList issues={selected.declaredIssues || []} />
-      </div>
+      </div>}
       {selected.evidenceRequest && ['need_more_evidence', 'submitted'].includes(selected.status) && (
         <p className="rounded-md border border-dashed border-brand-hover p-3 text-sm whitespace-pre-line">
           {v2('evidenceRequested')}: {selected.evidenceRequest}
@@ -236,7 +236,8 @@ export default function BuybackPricingSections({
             void post('actions', {
               action: 'final_offer',
               details: body.details,
-              inspectedIssues: inspected,
+              inspectedIssues: selected.conditionCase ? [] : inspected,
+              conditionMatchesApproved: body.conditionMatchesApproved === 'on',
               inspectionEvidenceIds: inspectionIds,
               seriousDamage: body.seriousDamage === 'on',
               ...(body.amountVnd ? { amountVnd: Number(body.amountVnd) } : {}),
@@ -264,6 +265,7 @@ export default function BuybackPricingSections({
           <p className="mu-note">
             {v2('inspectionUploaded', { count: inspectionIds.length + (selected.inspectionEvidence?.length || 0) })}
           </p>
+          {selected.conditionCase ? <label className="flex items-start gap-3 text-sm"><input name="conditionMatchesApproved" type="checkbox" required /><span>{locale === 'en' ? 'The actual inspected item matches the approved condition combination above. Resolve any differences before quoting.' : 'Hàng kiểm thực tế khớp tổ hợp tình trạng đã duyệt ở trên. Nếu khác, đối chiếu và duyệt lại tổ hợp trước khi báo giá.'}</span></label> : <>
           <h4 className="font-semibold">{v2('inspectedIssues')}</h4>
           {inspected.map((issue, index) => (
             <div key={index} className="grid gap-2 sm:grid-cols-[1.2fr_.5fr_2fr_auto]">
@@ -322,6 +324,7 @@ export default function BuybackPricingSections({
           >
             {v2('addIssue')}
           </button>
+          </>}
           <label className="flex items-start gap-2 text-sm">
             <input className="mt-1" name="seriousDamage" type="checkbox" />
             {v2('seriousDamage')}

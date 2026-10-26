@@ -1,3 +1,6 @@
+import { effectiveItemType } from '../../../shared/condition-tree';
+import CatalogTreeService from './catalog/CatalogTreeService';
+import { conditionPath, type ConditionSelection } from '../../../shared/condition-tree';
 import { Op, Transaction } from 'sequelize';
 import ProductModel, { isSellable } from '../database/client/models/Product.Model';
 import ProductDiscountService, { ProductPricing, toPricing } from './ProductDiscountService';
@@ -22,7 +25,7 @@ export interface CartLine {
   lineTotal: number;
   // `price` is the list price; `salePrice` (after any running discount) is what the line is charged at.
   product:
-    (Pick<ProductModel, 'id' | 'name' | 'brandName' | 'imageUrl' | 'price' | 'partnerId'> & ProductPricing) | null;
+    (Pick<ProductModel, 'id' | 'name' | 'brandName' | 'imageUrl' | 'price' | 'partnerId'> & ProductPricing & ConditionSelection) | null;
 }
 
 const MAX_CART_LINES = 100;
@@ -65,6 +68,7 @@ export default class CartService {
       : [];
     const productById = new Map(products.map((product) => [product.id, product]));
     const discounts = await this.discountService.getActive(ids, { transaction: options.transaction });
+    const conditionTree = await new CatalogTreeService().nodes(options.transaction);
     const summarize = (product: ProductModel) => ({
       id: product.id,
       partnerId: product.partnerId,
@@ -73,7 +77,7 @@ export default class CartService {
       imageUrl: product.imageUrl,
       price: product.price,
       // The condition the unit is sold in (a model can be in the cart new and pre-owned at once).
-      condition: product.condition,
+      condition: product.condition, modelFamilyId: product.modelFamilyId, itemTypeKey: effectiveItemType(product), conditionNodeIds: product.conditionNodeIds, conditionLabels: (product.conditionNodeIds ?? []).map(id => conditionPath(id, conditionTree)),
       ...toPricing(product.price, discounts.get(product.id)),
     });
 

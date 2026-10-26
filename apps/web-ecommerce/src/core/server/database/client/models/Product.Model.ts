@@ -15,13 +15,17 @@ export const INVENTORY_STATUSES: InventoryStatus[] = ['available', 'quarantine',
 export const SALES_CHANNELS: SalesChannel[] = ['web', 'outlet'];
 
 // Storefront visibility, shared by every public query: not discontinued and not held back by an adjustment.
-export const STOREFRONT_VISIBLE = { isArchived: false, inventoryStatus: 'available', listingStatus: 'published' } as const;
+export const STOREFRONT_VISIBLE = { isArchived: false, inventoryStatus: 'available', listingStatus: 'published', catalogCanonicalId: null } as const;
 
-export const isSellable = (product: Pick<ProductModel, 'isArchived' | 'inventoryStatus'> & Partial<Pick<ProductModel,'partnerId'|'listingStatus'>>): boolean =>
-  !product.isArchived && product.inventoryStatus === 'available' && (product.listingStatus === 'published' || (!product.partnerId && product.listingStatus === undefined));
+export const isSellable = (product: Pick<ProductModel, 'isArchived' | 'inventoryStatus'> & Partial<Pick<ProductModel,'partnerId'|'listingStatus'|'catalogCanonicalId'>>): boolean =>
+  !product.catalogCanonicalId && !product.isArchived && product.inventoryStatus === 'available' && (product.listingStatus === 'published' || (!product.partnerId && product.listingStatus === undefined));
 
 @Table({
   tableName: 'product',
+  indexes: [
+    { name: 'product_family_lookup', fields: ['modelFamilyId', 'partnerId'] },
+    { name: 'product_condition_nodes_gin', using: 'gin', fields: ['conditionNodeIds'] },
+  ],
 })
 export default class ProductModel extends Model {
   @Column(DataType.INTEGER)
@@ -99,6 +103,31 @@ export default class ProductModel extends Model {
   @Column(DataType.INTEGER)
   parentProductId!: number | null;
 
+  @Column({ type: DataType.INTEGER, references: { model: 'model_family', key: 'id' }, onDelete: 'RESTRICT' })
+  modelFamilyId!: number | null;
+
+  @Column({ type: DataType.STRING(16), allowNull: false, defaultValue: 'new' })
+  itemTypeKey!: 'new' | 'preowned';
+
+  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] })
+  conditionNodeIds!: number[];
+
+  // Null only for legacy rows awaiting an explicit migration decision. Does not include price or notes.
+  @Column({ type: DataType.STRING(150), unique: true })
+  combinationKey!: string | null;
+
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  catalogReviewRequired!: boolean;
+
+  @Column({ type: DataType.INTEGER, references: { model: 'product', key: 'id' }, onDelete: 'RESTRICT' })
+  catalogCanonicalId!: number | null;
+
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
+  serviceReferenceEnabled!: boolean;
+
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  publicationRequiresIntake!: boolean;
+
   @Column(DataType.TEXT)
   descriptionEn?: string;
 
@@ -115,12 +144,10 @@ export default class ProductModel extends Model {
   // S: the shop's target selling price (owner rule of 2026-10-25), approved by an admin (`targetPriceApprovedAt`).
   @Column(DataType.INTEGER) pricingReferenceMemberVnd!: number | null;
   @Column(DataType.DATE) targetPriceApprovedAt!: Date | null;
-  // S 2hand: the real selling price of a pre-owned unit of this model (owner request of 2026-10-26), entered by staff
-  // next to S and approved with it. The services price a customer's 2hand unit from it; null means the shop quotes it.
+  // Legacy secondary price retained for migration/reconciliation only. Each canonical SKU now has one S.
   @Column(DataType.INTEGER) pricingReferencePreownedVnd!: number | null;
   @Column(DataType.INTEGER) targetPriceApprovedByUserId!: number | null;
-  // Whether `price` is a real published list price R approved with its proof. Until then the shop sells at S, with no
-  // member or voucher code on top (codes apply to a real R only; R is never derived from S).
+  // Legacy verification flag retained for existing orders. Canonical SKU pricing derives R from its own approved S.
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   listPriceVerified!: boolean;
   @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 }) pricingIssueCount!: number;

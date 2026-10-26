@@ -1,3 +1,6 @@
+import { effectiveItemType } from '../../../shared/condition-tree';
+import CatalogTreeService from './catalog/CatalogTreeService';
+import { conditionPath } from '../../../shared/condition-tree';
 import { createHash } from 'crypto';
 import { Op, col, fn, where } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
@@ -46,7 +49,7 @@ export default class DirectSaleService {
       name: product.name,
       sku: product.sku,
       imageUrl: product.imageUrl,
-      condition: product.condition,
+      condition: product.condition, modelFamilyId: product.modelFamilyId, itemTypeKey: effectiveItemType(product), conditionNodeIds: product.conditionNodeIds,
       conditionNote: product.conditionNote,
       stock: product.stock,
       salePrice: lines.find((line) => line.productId === product.id)?.product?.salePrice ?? product.price,
@@ -148,6 +151,7 @@ export default class DirectSaleService {
         },
         { transaction },
       );
+      const conditionTree = await new CatalogTreeService().nodes(transaction);
       for (const line of lines) {
         const product = products.get(line.productId)!;
         await OrderItemModel.create(
@@ -160,7 +164,7 @@ export default class DirectSaleService {
             unitPrice: line.product!.salePrice,
             modelSnapshot: {
               sku: product.sku,
-              condition: product.condition,
+              condition: product.condition, modelFamilyId: product.modelFamilyId, itemTypeKey: effectiveItemType(product), conditionNodeIds: product.conditionNodeIds, conditionLabels: (product.conditionNodeIds ?? []).map(id => conditionPath(id, conditionTree)),
               conditionNote: product.conditionNote,
               assemblyState: product.assemblyState,
               boxCondition: product.boxCondition,

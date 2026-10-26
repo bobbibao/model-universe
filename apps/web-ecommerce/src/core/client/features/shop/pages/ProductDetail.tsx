@@ -159,18 +159,12 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const units = useMemo(() => (product ? unitsOf(product) : []), [product]);
   // The chosen unit: what is priced, pictured, put in the cart, saved or reserved.
   const unit = units.find((item) => item.id === unitId) ?? units[0];
-  const unitPath = product
-    ? `${productPath(product)}${unit && !unit.isMain ? `?${CONDITION_PARAM}=${unit.id}` : ''}`
-    : '';
-
+  const unitPath = unit ? productPath(unit) : product ? productPath(product) : '';
   const chooseUnit = (id: number) => {
-    setUnitId(id);
-    setQuantity(1);
-    const chosen = units.find((item) => item.id === id);
-    const url = new URL(window.location.href);
-    if (chosen && !chosen.isMain) url.searchParams.set(CONDITION_PARAM, String(id));
-    else url.searchParams.delete(CONDITION_PARAM);
-    window.history.replaceState(window.history.state, '', url);
+    const chosen = units.find(item => item.id === id);
+    if (!chosen || chosen.id === unitId) return;
+    setUnitId(id); setQuantity(1);
+    router.push(productPath(chosen), { scroll: false });
   };
 
   const wishlistItem = wishlist.find((item) => item.productId === unit?.id);
@@ -264,8 +258,8 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             {product.brandName} <span> / {product.scale || product.modelCode || 'MODEL UNIVERSE'}</span>
           </p>
           <h1 className="text-3xl font-bold">{product.name}</h1>
-          <ConditionPicker shopOwned={!product.partnerId} units={units} selected={unit} onSelect={chooseUnit} />
           <OfferPanel product={offer} />
+          <ConditionPicker shopOwned={!product.partnerId} units={units} selected={unit} onSelect={chooseUnit} />
           {product.partnerId && (
             <Link className="text-sm underline" href={`/sellers/${product.partnerId}`}>
               {seller('view')}
@@ -534,6 +528,7 @@ const ConditionPicker = ({
   const conditionTypes = useProductConditions();
   const locale = useLocale();
   const facts = [
+    ...(selected.conditionLabels ?? []),
     selected.conditionNote,
     selected.missingAccessories.length > 0 && `${t('missingAccessories')}: ${selected.missingAccessories.join(', ')}`,
     selected.condition !== 'new' && selected.defects.length > 0 && `${t('defects')}: ${selected.defects.join(', ')}`,
@@ -541,8 +536,8 @@ const ConditionPicker = ({
   return (
     <section className="condition-picker" aria-labelledby="condition-picker-title">
       <div className="condition-picker-head">
-        <h2 id="condition-picker-title">{units.length > 1 ? t('chooseCondition') : t('condition')}</h2>
-        {units.length > 1 && <p>{t('conditionHint')}</p>}
+        <h2 id="condition-picker-title">{units.length > 1 ? (locale === 'en' ? 'Other conditions of this model' : 'Các tình trạng khác của mẫu này') : t('condition')}</h2>
+        {units.length > 1 && <span className="condition-options-count">{units.length} {locale === 'en' ? 'options' : 'lựa chọn'}</span>}
       </div>
       {units.length > 1 && (
         <div className="condition-options" role="radiogroup" aria-labelledby="condition-picker-title">
@@ -563,12 +558,11 @@ const ConditionPicker = ({
                 <span className="condition-option-description">
                   <span className={`condition-chip is-${unit.condition}`}>{conditionTypes.label(unit.condition)}</span>
                   <span className="condition-option-note">
-                    {unit.conditionNote || conditionTypes.description(unit.condition)}
+                    {unit.conditionLabels?.join(' · ') || unit.conditionNote || (locale === 'en' ? 'No issues recorded' : 'Không ghi nhận lỗi')}
                   </span>
                 </span>
                 <span className="condition-option-price">
                   <strong>{formatVND(unitPays(unit, shopOwned), locale)}</strong>
-                  {unitPays(unit, shopOwned) < unit.price && <s>{formatVND(unit.price, locale)}</s>}
                   <small className={unit.stock > 0 ? 'is-available' : ''}>
                     {unit.stock > 0 ? t('conditionStock', { count: unit.stock }) : t('conditionSoldOut')}
                   </small>
@@ -578,19 +572,8 @@ const ConditionPicker = ({
           ))}
         </div>
       )}
-      <div className={`condition-details is-${selected.condition}`} aria-live="polite">
-        {units.length === 1 && (
-          <span className={`condition-chip is-${selected.condition}`}>{conditionTypes.label(selected.condition)}</span>
-        )}
-        <p>{conditionTypes.description(selected.condition)}</p>
-        {facts.length > 0 && (
-          <ul>
-            {facts.map((fact) => (
-              <li key={fact}>{fact}</li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {facts.length > 0 ? <details className={`condition-details is-${selected.condition}`}><summary>{locale === 'en' ? 'View the selected condition details' : 'Xem chi tiết tình trạng đã chọn'}</summary><ul>{facts.map(fact => <li key={fact}>{fact}</li>)}</ul></details> : units.length === 1 ? <div className={`condition-details is-${selected.condition}`}><span className={`condition-chip is-${selected.condition}`}>{conditionTypes.label(selected.condition)}</span><p>{locale === 'en' ? 'No issues recorded' : 'Không ghi nhận lỗi'}</p></div> : null}
+
     </section>
   );
 };

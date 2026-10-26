@@ -19,6 +19,7 @@ export type StockImport = {
 };
 
 export type StockImportInput = {
+  requestKey?: string;
   supplierId: number;
   note: string;
   items: { productId: number; quantity: number; importPrice: number }[];

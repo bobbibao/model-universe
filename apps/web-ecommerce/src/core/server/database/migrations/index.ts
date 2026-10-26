@@ -14,6 +14,11 @@ import BuybackEventModel from '../client/models/BuybackEvent.Model';
 import BuybackPayoutModel from '../client/models/BuybackPayout.Model';
 import ListingQcReviewModel from '../client/models/ListingQcReview.Model';
 import ProductConditionTypeModel from '../client/models/ProductConditionType.Model';
+import ModelFamilyModel from '../client/models/ModelFamily.Model';
+import ConditionNodeModel from '../client/models/ConditionNode.Model';
+import ConditionUsageModel from '../client/models/ConditionUsage.Model';
+import CatalogIntakeModel from '../client/models/CatalogIntake.Model';
+import CatalogTreeService from '../../services/catalog/CatalogTreeService';
 import PawnContractModel from '../client/models/PawnContract.Model';
 import PawnEventModel from '../client/models/PawnEvent.Model';
 import PawnPaymentModel from '../client/models/PawnPayment.Model';
@@ -1384,6 +1389,39 @@ export const MIGRATIONS: Migration[] = [
           );
         }
       });
+    },
+  },
+  {
+    name: '2026-10-27-54-product-condition-tree',
+    up: async ({ context }) => {
+      const qi = context.sequelize.getQueryInterface();
+      await ensureTables(ModelFamilyModel, ConditionNodeModel, ConditionUsageModel);
+      await ensureColumns(qi, ProductModel, ['modelFamilyId', 'itemTypeKey', 'conditionNodeIds', 'combinationKey', 'catalogReviewRequired', 'catalogCanonicalId', 'serviceReferenceEnabled', 'publicationRequiresIntake']);
+      await ensureTables(CatalogIntakeModel);
+      await ensureColumns(qi, BuybackRequestModel, ['conditionCase', 'conditionCaseStatus', 'conditionCaseReviewNote']);
+      await ensureColumns(qi, PawnContractModel, ['conditionCase', 'conditionCaseStatus', 'conditionCaseReviewNote']);
+      // Product IDs are intentionally many-to-one now. Idempotency lives on the source receipt, not productId.
+      for (const table of ['buyback_request', 'pawn_contract']) {
+        const indexes = await qi.showIndex(table) as { name: string; unique: boolean; fields: { attribute: string }[] }[];
+        for (const index of indexes) if (index.unique && index.fields.length === 1 && index.fields[0].attribute === 'productId') {
+          await context.sequelize.query(`ALTER TABLE "${table}" DROP CONSTRAINT IF EXISTS "${index.name.replace(/"/g, '""')}"`);
+          await qi.removeIndex(table, index.name).catch(() => undefined);
+        }
+      }
+      await new CatalogTreeService().seed();
+      // No catalog/stock rewrite on server startup. The reviewed, opt-in migration command handles legacy rows.
+    },
+  },
+  {
+    name: '2026-10-27-55-condition-case-review-and-publication',
+    up: async ({ context }) => {
+      const qi = context.sequelize.getQueryInterface();
+      await ensureColumns(qi, ProductModel, ['publicationRequiresIntake']);
+      await ensureColumns(qi, BuybackRequestModel, ['conditionCaseReviewNote']);
+      await ensureColumns(qi, PawnContractModel, ['conditionCaseReviewNote']);
+      const indexes = await qi.showIndex('product') as { name: string }[];
+      if (!indexes.some(index => index.name === 'product_family_lookup')) await qi.addIndex('product', ['modelFamilyId', 'partnerId'], { name: 'product_family_lookup' });
+      if (!indexes.some(index => index.name === 'product_condition_nodes_gin')) await qi.addIndex('product', ['conditionNodeIds'], { name: 'product_condition_nodes_gin', using: 'gin' });
     },
   },
 ];

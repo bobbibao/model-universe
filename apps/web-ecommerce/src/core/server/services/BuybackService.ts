@@ -1,3 +1,5 @@
+import CatalogTreeService from './catalog/CatalogTreeService';
+import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
 import crypto from 'crypto';
 import { memberPrice } from '../../../shared/pricing';
 import { isReferenceCondition, referencePrice, type ReferenceCondition } from '../../../shared/sale-pricing';
@@ -19,7 +21,7 @@ import EvidenceModel from '../database/client/models/Evidence.Model';
 import { isVideo } from './EvidenceService';
 import NotificationDispatchService from './NotificationDispatchService';
 import { emailBuybackQuote, emailBuybackReceived } from './delivery/Messages';
-import ListingQcService, { listingDigest, listingPhotos, plainReview } from './ListingQcService';
+import ListingQcService, { listingDigest, plainReview } from './ListingQcService';
 import {
   compareInspection,
   estimateBuyback,
@@ -55,9 +57,7 @@ export const parseIssues = (raw: unknown, field = 'issues'): BuybackIssue[] => {
   });
 };
 
-// The reference is the real selling price of the same catalogue model (owner rules of 2026-10-26), never the web price
-// R: S for a unit the customer declares new, S 2hand for a 2hand one. Only the shop's new catalogue SKU carries them;
-// any other unit is priced by an admin.
+// Legacy request fallback only. Tree-based requests resolve an exact approved combination snapshot below.
 const referenceFor = (product: ProductModel | null, condition: ReferenceCondition = 'new') => ({
   reference: product && product.condition === 'new' ? referencePrice(product, condition) : null,
   approved: !!product?.targetPriceApprovedAt,
@@ -252,6 +252,7 @@ export default class BuybackService {
       .update(
         JSON.stringify({
           asset,
+          modelFamilyId: data.modelFamilyId, itemTypeKey: data.itemTypeKey, conditionNodeIds: data.conditionNodeIds, otherCondition: data.otherCondition,
           evidenceIds: data.evidenceIds,
           declaredIssues,
           referenceProductId,
@@ -278,8 +279,9 @@ export default class BuybackService {
         ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction })
         : null;
       if (referenceProductId && !product) throw HttpError.notFound('Catalog model not found.');
-      const { reference, approved } = referenceFor(product, referenceCondition);
-      const estimate = estimateBuyback(reference, declaredIssues, { seriousDamage, approved });
+      const conditionCase = await new CatalogTreeService().snapshot(data, transaction);
+      const resolved = conditionCase.salePriceVnd !== null;
+      const estimate = estimateBuyback(conditionCase.salePriceVnd, declaredIssues, { seriousDamage, approved: resolved, conditionMatched: resolved });
       // A trade starts INCOMPLETE: D is known only once the buy-back price is final.
       const item = tradeProductId === null ? null : await tradeItem(tradeProductId, transaction);
       const tradeQuote: TradeQuote | null = item
@@ -298,8 +300,9 @@ export default class BuybackService {
           requestKey,
           requestDigest,
           asset,
-          referenceProductId,
-          referenceCondition,
+          referenceProductId: conditionCase.productId,
+          referenceCondition: conditionCase.itemTypeKey,
+          conditionCase, conditionCaseStatus: resolved ? 'resolved' : 'pending',
           declaredIssues,
           estimate,
           tradeProductId: item?.id ?? null,
@@ -307,6 +310,8 @@ export default class BuybackService {
         },
         { transaction },
       );
+      if (!resolved) await this.notices.alertAdmins({ kind: 'service_condition_proposal', orderId: null, dedupeKey: `buyback:${row.id}:condition:submitted`, title: 'Đề xuất tình trạng thu/trade mới', content: `Yêu cầu #${row.id}: ${asset.name}. ${conditionCase.labels.join('; ')}. ${conditionCase.otherCondition}. Xem /admin/buyback` }, transaction);
+      await new CatalogTreeService().remember(conditionCase.conditionNodeIds, 'buyback', row.id, transaction);
       const bound = await this.evidence.bind(data.evidenceIds, userId, 'buyback', row.id, transaction);
       const files = await EvidenceModel.findAll({ where: { id: bound.map((file) => file.id) }, transaction });
       const photos = files.filter((file) => !isVideo(file.mimeType));
@@ -322,7 +327,7 @@ export default class BuybackService {
         row,
         userId,
         'submitted',
-        { asset, declaredIssues, estimate, missingEvidence: missing, tradeQuote },
+        { asset, conditionCase, declaredIssues, estimate, missingEvidence: missing, tradeQuote },
         transaction,
       );
       return row.id;
@@ -346,6 +351,7 @@ export default class BuybackService {
       const row = await this.locked(id, userId, admin, transaction);
       this.current(row, data.expectedVersion);
       const details: Record<string, unknown> = {};
+      if (['preliminary_offer', 'final_offer', 'accept'].includes(action) && row.conditionCase && row.conditionCaseStatus !== 'resolved') throw HttpError.conflict('Duyệt tổ hợp và giá S trước khi báo giá.', 'CONDITION_CASE_PENDING');
       switch (action) {
         case 'request_evidence': {
           if (!['submitted', 'need_more_evidence'].includes(row.status))
@@ -368,10 +374,11 @@ export default class BuybackService {
           break;
         }
         case 'add_evidence': {
-          if (row.status !== 'need_more_evidence')
+          if (row.status !== 'need_more_evidence' && row.conditionCaseStatus !== 'needs_evidence')
             throw HttpError.conflict('The shop has not asked for more evidence.');
           const bound = await this.evidence.bind(data.evidenceIds, row.userId, 'buyback', row.id, transaction);
-          await row.update({ status: 'submitted' }, { transaction });
+          if (!bound.length) throw HttpError.badRequest('Chọn bằng chứng bổ sung.');
+          await row.update({ status: row.inspection ? 'inspecting' : 'submitted', ...(row.conditionCase ? { conditionCaseStatus: 'pending' } : {}) }, { transaction });
           details.evidenceIds = bound.map((file) => file.id);
           details.note = typeof data.details === 'string' ? data.details.slice(0, 1500) : undefined;
           break;
@@ -453,6 +460,7 @@ export default class BuybackService {
           break;
         }
         case 'final_offer': {
+          if (row.conditionCase && data.conditionMatchesApproved !== true) throw HttpError.badRequest('Xác nhận hàng kiểm thực tế khớp tổ hợp đã duyệt; nếu khác, đối chiếu và duyệt lại tổ hợp trước.');
           if (!['inspecting', 'awaiting_acceptance', 'reinspection_requested'].includes(row.status) || !row.inspection)
             throw HttpError.conflict('Inspect the actual model before offering final terms.');
           // Every inspection is recorded on video/photos kept as evidence (§25-§27).
@@ -469,7 +477,7 @@ export default class BuybackService {
             inspectedIssues,
             row.estimate?.deductionPerIssueVnd ?? 0,
           );
-          const reference = row.estimate?.referencePriceVnd ?? null;
+          const reference = row.conditionCase?.salePriceVnd ?? row.estimate?.referencePriceVnd ?? null;
           // The quoted S: approved when quoted, or approved since at the same amount. A request quoted under the former
           // tier rule keeps its quoted deduction.
           const product = row.referenceProductId
@@ -481,7 +489,7 @@ export default class BuybackService {
           const formulaEstimate = estimateBuyback(reference, inspectedIssues, {
             seriousDamage: data.seriousDamage === true,
             approved,
-            quoted: row.estimate,
+            quoted: row.estimate, conditionMatched: !!row.conditionCase && row.conditionCaseStatus === 'resolved',
           });
           const formula = formulaEstimate.manualReview ? null : formulaEstimate.estimateVnd;
           const amountVnd = data.amountVnd === undefined || data.amountVnd === null ? formula : amount(data.amountVnd);
@@ -735,27 +743,23 @@ export default class BuybackService {
       if (
         !product ||
         product.partnerId ||
-        product.condition !== 'preowned' ||
+        !product.combinationKey ||
         product.modelCode !== row.asset.modelCode
       )
-        throw HttpError.conflict('Use a shop-owned preowned draft with the inspected model code.');
+        throw HttpError.conflict('Chọn SKU thuộc đúng mẫu và tổ hợp đã kiểm hàng.');
+      if (row.conditionCase && (row.conditionCase.productId !== product.id || row.conditionCaseStatus !== 'resolved')) throw HttpError.conflict('SKU không khớp tổ hợp đã duyệt của yêu cầu.');
       if (row.productId && row.productId !== product.id)
         throw HttpError.conflict('The model already has a source-linked inventory intake.');
       const [inspectionFiles, accepted] = await Promise.all([
         EvidenceModel.count({ where: { purpose: 'buyback_inspection', entityId: row.id }, transaction }),
         BuybackEventModel.count({ where: { buybackRequestId: row.id, action: 'accept' }, transaction }),
       ]);
-      const unused = row.productId
-        ? product.stock === 1
-        : product.isArchived &&
-          product.stock === 0 &&
-          product.sold === 0 &&
-          !(await BuybackRequestModel.count({ where: { productId: product.id }, transaction }));
+      const unused = !(await CatalogIntakeModel.count({ where: { sourceType: 'buyback', sourceId: String(row.id) }, transaction }));
       const verified: Partial<ListingQcChecks> = {
         QC01: !!row.inspection,
         QC02: inspectionFiles > 0,
         QC06: !!row.finalOffer && accepted > 0,
-        QC07: !!row.ownershipTransferredAt,
+        QC07: !!row.ownershipTransferredAt && (await BuybackPayoutModel.count({ where: { buybackRequestId: row.id }, transaction })) > 0,
         QC08: unused,
         QC10: !!product.pricingReferenceMemberVnd && !!product.targetPriceApprovedAt,
         QC16: true,
@@ -792,6 +796,7 @@ export default class BuybackService {
       if (row.status !== 'completed' || !row.ownershipTransferredAt || !row.finalOffer)
         throw HttpError.conflict('Confirmed payout and ownership must precede sellable stock.');
       const draft = await ProductModel.findByPk(productId, { transaction, lock: transaction.LOCK.UPDATE });
+      if (row.conditionCase && (row.conditionCase.productId !== productId || row.conditionCaseStatus !== 'resolved')) throw HttpError.conflict('SKU không khớp tổ hợp được duyệt.');
       if (!draft || !(await this.qc.valid(row.id, draft, transaction)))
         throw HttpError.conflict('Pass the pre-listing QC of this exact listing first.', 'QC_REQUIRED');
       // The cost of a trade unit is its accepted buy-back price, as for a cash buy-back.
@@ -800,7 +805,7 @@ export default class BuybackService {
         row.asset.modelCode,
         row.finalOffer.amountVnd,
         transaction,
-        { publish: false },
+        { publish: false, sourceType: 'buyback', sourceId: row.id, actorUserId: userId },
       );
       await row.update({ productId, version: row.version + 1 }, { transaction });
       await this.event(
@@ -814,7 +819,7 @@ export default class BuybackService {
     return this.detail(id, userId, true);
   }
   // The publisher's final check (§13, §20): the QC still holds for this exact listing, S is approved, the price is set,
-  // one unit is in stock with at least three photos. Only then the listing goes ACTIVE (visible on the storefront).
+  // sellable stock exists with an uploaded representative photo. Source inspection evidence remains separate.
   async publish(id: number, userId: number, data: Record<string, unknown>) {
     await DatabaseProvider.getInstance().transaction(async (transaction) => {
       const row = await this.locked(id, userId, true, transaction);
@@ -828,11 +833,11 @@ export default class BuybackService {
       if (!(await this.qc.valid(row.id, product, transaction))) problems.push('QC');
       if (!product.pricingReferenceMemberVnd || !product.targetPriceApprovedAt) problems.push('S');
       if (!(product.price > 0)) problems.push('price');
-      if (product.stock !== 1 || product.inventoryStatus !== 'available') problems.push('stock');
-      if (new Set(await listingPhotos(product, transaction)).size < 3) problems.push('photos');
+      if (product.stock < 1 || product.inventoryStatus !== 'available') problems.push('stock');
+      if (!product.imageUrl.startsWith('/uploads/')) problems.push('photos');
       if (problems.length)
         throw HttpError.conflict(`The listing cannot be published yet: ${problems.join(', ')}.`, 'PUBLISH_BLOCKED');
-      await product.update({ isArchived: false }, { transaction });
+      await product.update({ isArchived: false, listingStatus: 'published', publicationRequiresIntake: false }, { transaction });
       await row.update({ version: row.version + 1 }, { transaction });
       await this.event(row, userId, 'published', { productId: product.id, sku: product.sku }, transaction);
     });
@@ -842,18 +847,10 @@ export default class BuybackService {
 
 // Customer estimate before submitting (POST /buyback/estimate): the same arithmetic the server stores.
 export const estimateFor = async (data: Record<string, unknown>) => {
+  const conditionCase = await new CatalogTreeService().snapshot(data);
   const issues = parseIssues(data.declaredIssues, 'declared issues');
-  const id =
-    data.referenceProductId === undefined || data.referenceProductId === null ? null : Number(data.referenceProductId);
-  const product =
-    id && Number.isSafeInteger(id) ? await ProductModel.findOne({ where: { id, partnerId: null } }) : null;
-  return {
-    referenceProduct: product
-      ? { id: product.id, name: product.name, sku: product.sku, priceVnd: product.pricingReferenceMemberVnd }
-      : null,
-    estimate: estimateBuyback(referenceFor(product, conditionOf(data.referenceCondition)).reference, issues, {
-      seriousDamage: data.seriousDamage === true,
-      approved: referenceFor(product).approved,
-    }),
-  };
+  const product = conditionCase.productId ? await ProductModel.findByPk(conditionCase.productId) : null;
+  return { conditionCase,
+    referenceProduct: product ? { id: product.id, name: product.name, sku: product.sku, priceVnd: conditionCase.salePriceVnd } : null,
+    estimate: estimateBuyback(conditionCase.salePriceVnd, issues, { seriousDamage: data.seriousDamage === true, approved: !!conditionCase.approvedAt, conditionMatched: !!conditionCase.approvedAt }) };
 };

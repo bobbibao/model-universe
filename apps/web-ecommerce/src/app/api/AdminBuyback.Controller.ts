@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import ServiceConditionCaseService from '../../core/server/services/catalog/ServiceConditionCaseService';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
 import { Get, Post } from '../../shared/server/decorators/router.decorator';
 import ApiBaseController from './ApiBase.Controller';
@@ -7,6 +8,11 @@ import HttpError from '../../shared/server/utils/HttpError';
 
 @Controller('/admin/buyback')
 export default class AdminBuybackController extends ApiBaseController {
+  @Post('/:id/condition-case')
+  async conditionCase(req: Request, res: Response) {
+    try { await new ServiceConditionCaseService().resolve('buyback', Number(req.params.id), this.user(req), req.body ?? {}); return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req), true)); }
+    catch (error) { return this.handleError(res, error, 'Resolve buyback condition'); }
+  }
   private service = new BuybackService();
   private user(req: Request) { if (!req.user) throw HttpError.unauthorized(); return req.user.id; }
   @Get('/')

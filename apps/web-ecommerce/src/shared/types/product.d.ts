@@ -1,3 +1,4 @@
+import type { ConditionSelection } from '../condition-tree';
 import type { GunplaAttributes, ModelCondition } from '../gunpla';
 import type { ProductPackaging } from '../packing/rules';
 
@@ -30,7 +31,7 @@ export type ConditionSummary = {
 };
 
 // Product card data returned by the storefront listing: one card per model (its main listing).
-export type ProductSummary = ProductPricing & GunplaAttributes & {
+export type ProductSummary = ProductPricing & GunplaAttributes & ConditionSelection & {
   partnerId?: number | null;
   id: number;
   // Public identifier and SEO path segment (/san-pham/<slug>).
@@ -56,7 +57,7 @@ export type ProductSummary = ProductPricing & GunplaAttributes & {
 
 // One unit a customer can choose on the product page: the main listing or one of its condition options. Its id is the
 // product to put in the cart.
-export type ProductConditionOption = ProductPricing & {
+export type ProductConditionOption = ProductPricing & ConditionSelection & {
   id: number;
   uuid: string;
   slug: string;
@@ -106,7 +107,7 @@ export type AdminProductListItem = ProductSummary & {
 };
 
 // One unit of a model in Admin: the main listing or a condition option, with its price, cost and stock.
-export type AdminProductUnit = ProductPricing & {
+export type AdminProductUnit = ProductPricing & ConditionSelection & {
   id: number;
   sku: string;
   name: string;
@@ -129,10 +130,14 @@ export type AdminProduct = Omit<ProductDetail, 'ratingDistribution' | 'condition
   productionDate?: string | null;
   // Set on a condition option: the main listing it belongs to.
   parentProductId?: number | null;
+  identityLocked?: boolean;
+  catalogCanonicalId?: number | null;
+  stockReceipts?: { id: number; sourceType: string; sourceId: string; quantity: number; unitCostVnd: number; createdAt: string }[];
   listing?: { id: number; name: string; sku: string } | null;
   units?: AdminProductUnit[];
   pricingReferenceMemberVnd?: number | null;
   pricingReferencePreownedVnd?: number | null;
+  serviceReferenceEnabled?: boolean;
   pricingIssueCount?: number;
   buybackPriceVnd?: number | null;
   // S approved by an admin; `listPriceVerified`: `price` is an approved real list price R (else the shop sells at S).
@@ -169,6 +174,8 @@ export type ProductQuery = {
   assemblyState?: string | string[];
   scale?: string | string[];
   condition?: string | string[];
+  itemTypeKey?: string | string[];
+  conditionNodeIds?: number[];
   q?: string;
   category?: string;
   brand?: string | string[];
@@ -195,9 +202,10 @@ export type Supplier = {
 };
 
 // Payload of the admin create/update product endpoints.
-export type ProductPayload = GunplaAttributes & {
+export type ProductPayload = GunplaAttributes & ConditionSelection & {
   pricingReferenceMemberVnd?: number;
   pricingReferencePreownedVnd?: number | null;
+  serviceReferenceEnabled?: boolean;
   pricingIssueCount?: number;
   buybackPriceVnd?: number | null;
   expectedStock?: number;
@@ -246,7 +254,7 @@ export type InventoryStats = {
 };
 
 // A new condition option of a listing (Admin): the model comes from the listing.
-export type ConditionOptionPayload = Pick<
+export type ConditionOptionPayload = ConditionSelection & Pick<
   ProductPayload,
   | 'condition'
   | 'conditionNote'

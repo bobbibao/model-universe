@@ -90,8 +90,8 @@ const ProductEdit = () => {
     return current && !suppliers.some((supplier) => supplier.id === current.id) ? [current, ...suppliers] : suppliers;
   }, [product, suppliers]);
 
-  // A one-of-a-kind unit (e.g. second hand) keeps its condition and gets stock only through its intake.
-  const uniqueUnit = !!product && !!conditions.all.find((type) => type.key === product.condition)?.uniqueUnit;
+  // Historical SKU identity is locked; quantities change through recorded stock operations.
+  const uniqueUnit = product?.identityLocked === true;
   const onChange = <K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) =>
     setValues((current) => ({ ...current, [key]: value }));
 
@@ -151,8 +151,10 @@ const ProductEdit = () => {
     );
   }
 
+  if (product.catalogCanonicalId) return <div className="catalog-inline-notice"><p>{t('name')}: {product.name} · SKU {product.sku}</p><Link href={`/admin/products/${product.catalogCanonicalId}`}>Đã gộp vào sản phẩm #{product.catalogCanonicalId} →</Link></div>;
+
   // A condition option: its model (name, brand, code, descriptions, box) is edited on the main listing.
-  const option = Boolean(product.parentProductId);
+  const option = false;
 
   return (
     <div className="compact-admin-product-page">
