@@ -1,6 +1,7 @@
 'use client';
 
 import Api from './Api';
+import type { ProductRecommendation } from '@/shared/product-recommendations';
 import { ADMIN_PRODUCT_API, PRODUCT_API } from './endpoint';
 import type { PaginatedResult } from '@/shared/types/pagination';
 import type {
@@ -39,6 +40,22 @@ export default class ProductApi {
       return response.data?.payload;
     } catch (error) {
       return undefined;
+    }
+  }
+
+  // Optional merchandising must not trigger the shared API's blocking error toasts or auth redirects.
+  static async getRecommendations(productId: number, signal: AbortSignal): Promise<ProductRecommendation[]> {
+    try {
+      const response = await fetch(`/api/products/${productId}/recommendations`, {
+        signal,
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+      if (!response.ok) return [];
+      const rows = await response.json();
+      return Array.isArray(rows) ? rows : [];
+    } catch {
+      return [];
     }
   }
 
