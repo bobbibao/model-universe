@@ -1,5 +1,6 @@
 {
   "AUTH_REQUIRED": "Sign in to continue.",
+  "MEMBER_CUSTOMER_ACCOUNT_REQUIRED": "Member vouchers are for customer accounts. Sign in with a customer account to claim one; administrator accounts are not eligible.",
   "FORBIDDEN": "You do not have permission to perform this action.",
   "NOT_FOUND": "This record is unavailable or does not belong to your account.",
   "POLICY_APPROVAL_REQUIRED": "The shop must approve the business terms before activating this service. Please contact staff.",

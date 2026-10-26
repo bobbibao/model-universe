@@ -145,7 +145,8 @@ export default class VoucherService {
   async wallet(userId: number) {
     const user = await UserModel.findByPk(userId);
     if (!user?.isActive) throw HttpError.forbidden();
-    const template = await this.activeTemplate();
+    // Match issuance eligibility: staff can browse the storefront without receiving customer-only codes.
+    const template = user.role === 'USER' ? await this.activeTemplate() : null;
     const monthCode = template ? `M${vnMonthKey(this.now())}-${userId}` : null;
     const claimed = monthCode ? await CouponModel.findOne({ where: { code: monthCode } }) : null;
     const coupons = await this.usable(userId);
@@ -173,7 +174,8 @@ export default class VoucherService {
   async claimMonthly(userId: number) {
     await DatabaseProvider.getInstance().transaction(async (transaction) => {
       const user = await UserModel.findByPk(userId, { transaction, lock: transaction.LOCK.UPDATE });
-      if (!user?.isActive || user.role !== 'USER') throw HttpError.forbidden('Only customer accounts receive member vouchers.');
+      if (!user?.isActive) throw HttpError.forbidden();
+      if (user.role !== 'USER') throw new HttpError(403, 'Use a customer account to receive member vouchers.', undefined, 'MEMBER_CUSTOMER_ACCOUNT_REQUIRED');
       const template = await this.activeTemplate(transaction);
       if (!template) throw HttpError.conflict('No member voucher is offered this month.', 'MEMBER_VOUCHER_UNAVAILABLE');
       const now = this.now(), code = `M${vnMonthKey(now)}-${userId}`;

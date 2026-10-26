@@ -73,7 +73,7 @@ export default function VoucherSection({
       }
       setOptions(evaluation.data.options);
       setBest({ discount: evaluation.data.best?.code ?? null, freeship: evaluation.data.bestFreeship?.code ?? null });
-      setMonthly(wallet.data.monthly ?? null);
+      setMonthly(user?.role === 'USER' ? (wallet.data.monthly ?? null) : null);
     } catch {
       /* Optional help: the cart quote and checkout validate any code again. */
     }
@@ -207,10 +207,11 @@ export default function VoucherSection({
         initialTab={open ?? 'discount'}
         options={options}
         best={best}
-        monthly={monthly}
+        monthly={user?.role === 'USER' ? monthly : null}
         selected={{ discount: coupon?.code ?? null, freeship: freeship?.code ?? null }}
         onClose={() => setOpen(null)}
         onClaimMonthly={async () => {
+          if (user?.role !== 'USER') return;
           await Api.post('/vouchers/monthly');
           await load();
         }}
