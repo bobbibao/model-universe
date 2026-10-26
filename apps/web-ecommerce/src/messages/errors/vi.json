@@ -1,5 +1,6 @@
 {
   "AUTH_REQUIRED": "Đăng nhập để tiếp tục.",
+  "MEMBER_CUSTOMER_ACCOUNT_REQUIRED": "Mã thành viên chỉ dành cho tài khoản khách hàng. Hãy đăng nhập bằng tài khoản khách hàng để nhận mã; tài khoản quản trị không được cấp mã này.",
   "FORBIDDEN": "Bạn không có quyền thực hiện thao tác này.",
   "NOT_FOUND": "Dữ liệu không còn khả dụng hoặc không thuộc tài khoản của bạn.",
   "POLICY_APPROVAL_REQUIRED": "Cửa hàng cần phê duyệt điều khoản trước khi kích hoạt dịch vụ này. Vui lòng liên hệ nhân viên.",

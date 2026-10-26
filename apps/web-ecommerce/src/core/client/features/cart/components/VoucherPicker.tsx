@@ -172,6 +172,8 @@ export default function VoucherPicker({
               setBusy(true);
               try {
                 await onClaimMonthly();
+              } catch {
+                // The API reports the failure; keep the picker open without an unhandled promise rejection.
               } finally {
                 setBusy(false);
               }
