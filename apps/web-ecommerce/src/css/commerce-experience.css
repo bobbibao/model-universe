@@ -909,7 +909,7 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-height: 50px;
+  min-height: 70px;
 }
 .product-tile-price > :is(.price-tag, .tile-from-price) {
   width: 100%;
@@ -917,6 +917,7 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
 .product-tile .price-tag-list {
   max-width: 100%;
   min-width: 0;
+  white-space: nowrap;
 }
 .product-tile .price-tag-was,
 .product-tile .tile-from-price small {
@@ -1024,7 +1025,7 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
     clip-path: inset(50%);
   }
   .product-tile-price {
-    min-height: 68px;
+    min-height: 88px;
   }
   .product-tile .price-tag-row,
   .product-tile .tile-from-price strong {

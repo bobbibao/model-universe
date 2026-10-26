@@ -286,47 +286,80 @@
   font-size: 16px;
 }
 
-/* The member price (S): the price the eye lands on, with a member pill; the struck web price (R) sits below it. */
-.price-tag.is-member .price-tag-now {
-  color: var(--p-price-deep);
-}
-.price-tag-member-badge {
-  padding: 3px 7px;
-  border-radius: 999px;
+/* A deal (member price or sale): a label, the paid price in red with a solid saving pill, the struck list price. */
+.price-tag-label {
   font-size: 11px;
   font-weight: 800;
-  line-height: 1.2;
-  color: #fff;
-  background: var(--p-accent);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--p-price-deep);
 }
-.price-tag.is-detail .price-tag-member-badge {
-  padding: 5px 11px;
+.price-tag.is-deal .price-tag-now {
+  color: var(--p-price-deep);
+}
+.price-tag.is-deal .price-tag-off {
+  padding: 3px 7px;
+  border-radius: 7px;
   font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: #fff;
+  background: linear-gradient(135deg, #ff5a3c 0%, #e0102f 100%);
+  box-shadow: 0 4px 10px -4px rgb(224 16 47 / 0.7);
 }
-/* The struck list price R, large and dark enough to be read: the gap to the member price is the point (owner request
-   of 2026-10-26), with a red strike line. */
 .price-tag-list {
   display: inline-flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 5px;
+  min-width: 0;
 }
 .price-tag-list small {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--p-faint);
+  color: var(--p-muted);
 }
-.price-tag.is-member .price-tag-was,
-.price-tag.is-sale .price-tag-was {
+.price-tag.is-deal .price-tag-was {
   font-size: 14px;
   font-weight: 600;
-  color: #5f5870;
+  color: #4d4759;
   text-decoration: line-through;
-  text-decoration-color: #e11d48;
+  text-decoration-color: rgb(224 16 47 / 0.85);
   text-decoration-thickness: 1.5px;
 }
-.price-tag.is-detail.is-member .price-tag-was,
-.price-tag.is-detail.is-sale .price-tag-was {
-  font-size: 20px;
+.price-tag-save {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #b4231f;
+  background: #ffe4e0;
+}
+
+/* The detail page: the deal in a tinted panel. */
+.price-tag.is-detail.is-deal {
+  gap: 8px;
+  padding: 14px 18px 16px;
+  border: 1px solid #ffd2cb;
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgb(255 90 60 / 0.14) 0%, transparent 60%),
+    linear-gradient(180deg, #fff6f4 0%, #fff 100%);
+}
+.price-tag.is-detail .price-tag-label {
+  font-size: 12.5px;
+}
+.price-tag.is-detail.is-deal .price-tag-off {
+  padding: 6px 11px;
+  border-radius: 10px;
+  font-size: 18px;
+}
+.price-tag.is-detail .price-tag-list small {
+  font-size: 14px;
+}
+.price-tag.is-detail.is-deal .price-tag-was {
+  font-size: 18px;
   text-decoration-thickness: 2px;
 }
 
