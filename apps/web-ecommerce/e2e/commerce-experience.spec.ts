@@ -482,7 +482,7 @@ for (const locale of ['vi', 'en'] as const) {
       if (width > 1024)
         expect((await filters.boundingBox())!.y + (await filters.boundingBox())!.height).toBeLessThan(768);
       await filters.locator('.filter-multi-trigger').first().click();
-      await filters.getByRole('checkbox', { name: m.catalog.preowned, exact: true }).check();
+      await filters.getByRole('button', { name: m.catalog.preowned, exact: true }).click();
       await expect(page).toHaveURL(/condition=preowned/);
       await filters.getByRole('button', { name: m.common.close, exact: true }).click();
       await page.locator('.catalog-clear').click();
