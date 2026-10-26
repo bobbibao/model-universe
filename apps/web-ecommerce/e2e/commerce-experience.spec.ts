@@ -166,6 +166,83 @@ async function capture(page: Page, name: string) {
 
 for (const locale of ['vi', 'en'] as const) {
   for (const width of [1366, 390]) {
+    test(`${locale} ${width}: related models and compact secondary actions preserve purchase flow`, async ({
+      page,
+    }) => {
+      await fixture(page, false, true);
+      const m = locale === 'vi' ? vi : en;
+      await page.setViewportSize({ width, height: 900 });
+      let calls = 0;
+      await page.route(`**/api/products/${model.id}/recommendations`, (route) => {
+        calls++;
+        return route.fulfill({
+          json: Array.from({ length: 4 }, (_, index) => ({
+            product: {
+              ...model,
+              id: model.id + 800000 + index,
+              slug: `related-${index}`,
+              name: `Related collector model ${index}`,
+              stock: 2,
+              groupStock: 2,
+              imageUrl: '/images/store/product-placeholder.svg',
+            },
+            reason: ['category', 'brand', 'scale', 'price'][index],
+          })),
+        });
+      });
+      await page.goto(`/${locale}/san-pham/${model.slug}`);
+      const actions = page.locator('.product-secondary-actions:visible');
+      await expect(actions).toHaveCount(1);
+      await expect(actions.getByRole('button', { name: m.catalog.askAssistant, exact: true })).toBeEnabled();
+      await expect(actions.getByRole('button', { name: m.catalog.reserve, exact: true })).toBeEnabled();
+      expect((await actions.boundingBox())!.height).toBeLessThanOrEqual(width === 390 ? 92 : 48);
+      const related = page.locator('.product-recommendations');
+      await related.scrollIntoViewIfNeeded();
+      await expect(related).toHaveAttribute('aria-busy', 'false');
+      await expect(related.getByRole('heading', { name: m.commerceUX.relatedProducts })).toBeVisible();
+      await expect(related.locator('.product-tile')).toHaveCount(4);
+      await expect(related.locator('.product-recommendation-reason').nth(1)).toHaveText(
+        m.commerceUX.relatedReason.brand,
+      );
+      expect(calls).toBe(1);
+      await expect(related.locator('.product-tile-name').first()).toHaveAttribute(
+        'href',
+        `/${locale}/san-pham/related-0`,
+      );
+      const track = related.locator('.product-recommendations-track');
+      if (width === 390) {
+        expect(await track.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+        await track.evaluate((el) => {
+          el.scrollLeft = el.scrollWidth;
+        });
+        await expect(related.locator('.product-tile-name').last()).toBeInViewport();
+      }
+      await capture(page, `related-models-${locale}-${width}`);
+      await actions.getByRole('button', { name: m.catalog.reserve, exact: true }).click();
+      await expect(page).toHaveURL(/auth\/signin\?redirect=/);
+    });
+  }
+}
+for (const outcome of ['empty', 'failure'] as const) {
+  test(`related models ${outcome}: optional section fails quietly without blocking purchases`, async ({ page }) => {
+    await fixture(page);
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.route(`**/api/products/${model.id}/recommendations`, (route) =>
+      route.fulfill({ status: outcome === 'failure' ? 503 : 200, json: [] }),
+    );
+    await page.goto(`/vi/san-pham/${model.slug}`);
+    const related = page.locator('.product-recommendations');
+    await related.scrollIntoViewIfNeeded();
+    await expect(related).toHaveCount(0);
+    await expect(
+      page.locator('.product-purchase-actions').getByRole('button', { name: vi.catalog.addToCart, exact: true }),
+    ).toBeEnabled();
+    await expect(page.locator('.Toastify__toast--error')).toHaveCount(0);
+  });
+}
+
+for (const locale of ['vi', 'en'] as const) {
+  for (const width of [1366, 390]) {
     test(`${locale} ${width}: product card rhythm and detail services stay compact`, async ({ page }) => {
       await fixture(page);
       const m = locale === 'vi' ? vi : en;
@@ -260,7 +337,7 @@ for (const locale of ['vi', 'en'] as const) {
 
 for (const locale of ['vi', 'en'] as const) {
   for (const width of [1440, 1024, 390]) {
-    test(`${locale} ${width}: admin product cells keep stock adjacent and status text on one line`, async ({
+    test(`${locale} ${width}: admin product cells omit condition stock clutter and keep status text on one line`, async ({
       page,
       context,
     }) => {
@@ -315,15 +392,11 @@ for (const locale of ['vi', 'en'] as const) {
       await expect(table).toHaveCount(1);
       await expect(table).toHaveAttribute('aria-busy', 'false');
       await expect(table.locator('tbody .catalog-stock-cell')).toHaveCount(3);
-      await expect(table.locator('.catalog-condition-stock').first()).toHaveAttribute(
-        'aria-label',
-        `${m.adminProducts.stock}: 2`,
-      );
-      await expect(table.locator('.catalog-condition-stock').first()).toHaveText('× 2');
-      const row = table.locator('.catalog-condition-summary > div').first();
-      const chip = (await row.locator('.condition-chip').boundingBox())!;
-      const count = (await row.locator('.catalog-condition-stock').boundingBox())!;
-      expect(count.x - chip.x - chip.width).toBeLessThan(24);
+      await expect(table.locator('.catalog-condition-stock')).toHaveCount(0);
+      const conditionText = (await table.locator('.catalog-condition-summary').allTextContents()).join(' ');
+      expect(conditionText).not.toContain('×');
+      expect(conditionText).not.toContain(m.catalog.conditionSoldOut);
+      await expect(table.locator('.catalog-condition-summary .condition-chip')).toHaveCount(9);
       const assertLines = async () => {
         const lines = await table
           .locator('.catalog-status-badges > span, .catalog-condition-summary small')

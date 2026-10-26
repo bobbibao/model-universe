@@ -75,6 +75,16 @@ export default class ProductController extends ApiBaseController {
     }
   }
 
+  @Get('/:id/recommendations')
+  async getRecommendations(req: Request, res: Response) {
+    try {
+      const service = await this.requireService<ProductService>();
+      return res.json(await service.getRecommendations(parseKey(req.params.id)));
+    } catch (error) {
+      return this.handleError(res, error, "ProductController's getRecommendations");
+    }
+  }
+
   @Get('/:id/reviews')
   async getReviews(req: Request, res: Response) {
     try {

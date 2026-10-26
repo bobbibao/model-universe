@@ -1,7 +1,9 @@
+import { rankRelatedProducts } from '../../../shared/product-recommendations';
+import type { ProductDetail, ProductSummary } from '../../../shared/types/product';
 import PromotionAuditModel from '../database/client/models/PromotionAudit.Model';
 import { catalogPricing } from '../../../shared/sale-pricing';
 import { UUID_PATTERN } from '../../../shared/slug';
-import { FindOptions, Op, Order, QueryTypes, Transaction, UniqueConstraintError, WhereOptions, col, fn } from 'sequelize';
+import { FindOptions, Op, Order, QueryTypes, Transaction, UniqueConstraintError, WhereOptions, col, fn, literal } from 'sequelize';
 import ProductModel, {
   INVENTORY_STATUSES,
   InventoryStatus,
@@ -315,6 +317,29 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       conditionOptions: [unit(product, true), ...optionUnits],
       selectedOptionId: found.id,
     };
+  }
+
+  // A bounded public candidate pool, reranked with current condition prices/stock. No admin fields or user data.
+  async getRecommendations(key: number | string) {
+    const source = await this.getPublicById(key) as unknown as ProductDetail;
+    const availableIds = await this.matchingListingIds({ ...STOREFRONT_VISIBLE, stock: { [Op.gt]: 0 } });
+    if (!availableIds.length) return [];
+    const sequelize = ProductModel.sequelize!;
+    const affinity = [
+      source.categoryId ? `CASE WHEN "ProductModel"."categoryId" = ${sequelize.escape(source.categoryId)} THEN 40 ELSE 0 END` : '0',
+      source.brandName ? `CASE WHEN "ProductModel"."brandName" = ${sequelize.escape(source.brandName)} THEN 25 ELSE 0 END` : '0',
+      source.scale ? `CASE WHEN "ProductModel"."scale" = ${sequelize.escape(source.scale)} THEN 18 ELSE 0 END` : '0',
+    ].join(' + ');
+    const rows = await ProductModel.findAll({
+      attributes: LIST_ATTRIBUTES,
+      where: { ...STOREFRONT_VISIBLE, parentProductId: null, [Op.and]: [{ id: availableIds }, { id: { [Op.ne]: source.id } }] },
+      include: [categoryInclude],
+      order: [[literal(`(${affinity})`), 'DESC'], ['sold', 'DESC'], ['id', 'ASC']],
+      limit: 72,
+    });
+    const candidates = await this.withConditions(await this.discountService.withPricing(rows));
+    const active = source.conditionOptions?.filter((unit) => unit.stock > 0) ?? [];
+    return rankRelatedProducts({ ...source, salePrice: active.length ? Math.min(...active.map((unit) => unit.salePrice)) : source.salePrice }, candidates as unknown as ProductSummary[]);
   }
 
   async getReviews(productId: number, limit: number, offset: number) {

@@ -27,7 +27,6 @@ const ProductList = () => {
   const router = useRouter();
   const [catalogTab, setCatalogTab] = useState('catalog');
   const t = useTranslations('adminProducts'),
-    catalog = useTranslations('catalog'),
     locale = useLocale();
   const conditionTypes = useProductConditions();
   const [products, setProducts] = useState<AdminProductListItem[]>([]);
@@ -113,7 +112,7 @@ const ProductList = () => {
       ),
     },
     {
-      // Every condition the model is stocked in (main listing and condition options), with its units.
+      // Every condition the model is stocked in (main listing and condition options), with a price only when available.
       key: 'conditions',
       header: t('conditionColumn'),
       render: (product) => (
@@ -126,17 +125,7 @@ const ProductList = () => {
               >
                 {conditionTypes.label(summary.condition)}
               </span>
-              <span
-                className={`catalog-condition-stock${summary.stock === 0 ? ' is-empty' : ''}`}
-                aria-label={`${t('stock')}: ${summary.stock}`}
-              >
-                × {summary.stock}
-              </span>
-              <small>
-                {summary.stock > 0
-                  ? catalog('fromPrice', { price: formatVND(summary.minSalePrice, locale) })
-                  : catalog('conditionSoldOut')}
-              </small>
+              {summary.stock > 0 && <small>{formatVND(summary.minSalePrice, locale)}</small>}
             </div>
           ))}
         </div>
