@@ -23,6 +23,8 @@ export interface ProductFormValues {
   categoryId: string;
   price: string;
   pricingReferenceMemberVnd: string;
+  // S 2hand: optional, below S; the services price a customer's 2hand unit from it.
+  pricingReferencePreownedVnd: string;
   // Read only here: an admin approves S and the real list price R on the pricing approvals page.
   targetPriceApproved: boolean;
   listPriceVerified: boolean;
@@ -65,6 +67,7 @@ export const emptyProductForm: ProductFormValues = {
   categoryId: '',
   price: '',
   pricingReferenceMemberVnd: '',
+  pricingReferencePreownedVnd: '',
   targetPriceApproved: false,
   listPriceVerified: false,
   importPrice: '',
@@ -106,6 +109,7 @@ export const toFormValues = (product: AdminProduct): ProductFormValues => ({
   categoryId: product.categoryId ? String(product.categoryId) : '',
   price: String(product.price),
   pricingReferenceMemberVnd: product.pricingReferenceMemberVnd ? String(product.pricingReferenceMemberVnd) : '',
+  pricingReferencePreownedVnd: product.pricingReferencePreownedVnd ? String(product.pricingReferencePreownedVnd) : '',
   targetPriceApproved: !!product.targetPriceApprovedAt,
   listPriceVerified: product.listPriceVerified ?? false,
   importPrice: String(product.importPrice),
@@ -172,6 +176,12 @@ export const validatePricing = (values: ProductFormValues): ProductFormErrors =>
     } catch {
       errors.price = 'priceInvalid';
     }
+  if (
+    values.pricingReferencePreownedVnd &&
+    (!isWholeNumber(values.pricingReferencePreownedVnd, 1) ||
+      Number(values.pricingReferencePreownedVnd) >= Number(values.pricingReferenceMemberVnd))
+  )
+    errors.pricingReferencePreownedVnd = 'preownedPriceInvalid';
   if (values.importPrice && !isWholeNumber(values.importPrice, 0)) errors.importPrice = 'importPriceInvalid';
   return errors;
 };
@@ -243,6 +253,7 @@ export const buildProductPayload = (values: ProductFormValues, imageUrl: string,
   categoryId: values.categoryId ? Number(values.categoryId) : null,
   supplierId: values.supplierId ? Number(values.supplierId) : null,
   ...pricingPayload(values),
+  pricingReferencePreownedVnd: values.pricingReferencePreownedVnd ? Number(values.pricingReferencePreownedVnd) : null,
   importPrice: values.importPrice ? Number(values.importPrice) : 0,
   stock: Number(values.stock),
   weight: values.weight.trim(),

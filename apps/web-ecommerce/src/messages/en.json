@@ -1924,7 +1924,8 @@
       "packagingSideInvalid": "Enter a whole number from 1 to 200 cm. Complete all four measurements or leave all empty.",
       "packagingWeightInvalid": "Enter whole grams from 1 to 50,000. Complete all four measurements or leave all empty.",
       "issueCountInvalid": "Issue count must be a whole number from 0 to 100.",
-      "receivedDateInvalid": "Enter a valid date as YYYY-MM-DD, or leave empty."
+      "receivedDateInvalid": "Enter a valid date as YYYY-MM-DD, or leave empty.",
+      "preownedPriceInvalid": "S 2hand must be a whole VND amount above 0 and below S."
     },
     "created": "Product created.",
     "updated": "Product updated.",
@@ -3955,6 +3956,69 @@
     "remove": "Remove",
     "uploading": "Uploading {current}/{total}",
     "agree": "I confirm the information is true and agree to the shop inspecting the unit and sending the official price.",
-    "terms": "Read the terms"
+    "terms": "Read the terms",
+    "expected": "Expected buyback price",
+    "shopQuotes": "The shop quotes it from the photos."
+  },
+  "serviceBasket": {
+    "sell": {
+      "kicker": "Buyback",
+      "title": "Sell your models to the shop",
+      "total": "Expected buyback total",
+      "action": "Request the buyback",
+      "note": "Final after the shop inspects the actual units.",
+      "terms": "Online prices are NOT FINAL. On arrival the shop records the unboxing, inspects the model and accessories and sends the official price. You can accept, ask for a re-inspection, or decline and get the unit back."
+    },
+    "trade": {
+      "kicker": "Trade",
+      "title": "Trade your models for the shop's",
+      "total": "Difference",
+      "action": "Request the trade",
+      "note": "Shop items at member price. Final after inspection; trade value earns no points.",
+      "terms": "Difference = the items at member price − the buyback price of your models, final after inspection. You pay a positive difference; the shop pays back a negative one once an admin approves. Trade value earns no points."
+    },
+    "pawn": {
+      "kicker": "Pawn",
+      "title": "Pawn your models with the shop",
+      "total": "Expected pawn total",
+      "action": "Request the pawn",
+      "note": "The 0.3% a day interest is only simulated, not charged yet. Final after inspection.",
+      "terms": "The pawn amount is 50% of the shop's real selling price for that condition, final after inspection. The shop keeps the model until you redeem it under the contract both sides sign."
+    },
+    "intro": "Add one or more models and choose New or 2hand to see the price now. Anything more complicated: choose \"Other\" and the shop quotes it.",
+    "models": "Your models",
+    "yourModels": "Models you give",
+    "shopItems": "Items you want",
+    "condition": "Condition",
+    "conditions": {
+      "new": "New",
+      "preowned": "2hand",
+      "other": "Other"
+    },
+    "otherModel": "A model the shop does not sell",
+    "otherModelNote": "Quoted from the photos",
+    "shopQuotes": "Shop quotes",
+    "remove": "Remove",
+    "addFirst": "Choose a model",
+    "addAnother": "Add another model",
+    "addOther": "+ A model the shop does not sell",
+    "addItem": "Add an item you want",
+    "memberPrice": "Member price",
+    "oneItemPerModel": "Each item is traded for one of your models: add a model to choose another item.",
+    "empty": "Choose a model to see the price.",
+    "afterQuote": "Set after the quote",
+    "even": "Even",
+    "youPay": "you pay the shop",
+    "shopPays": "the shop pays you",
+    "count": "{count} models",
+    "quotedCount": "{count} quoted by the shop",
+    "chooseItem": "Choose the item you want to continue.",
+    "help": "Need advice before sending?",
+    "contact": "Contact the shop",
+    "failed": "This model was not sent. Check its photos and send again.",
+    "agree": "I confirm the information is true and agree to the shop inspecting the units and sending the official price.",
+    "terms": "Read the terms",
+    "sending": "Sending…",
+    "send": "Send {count} models"
   }
 }

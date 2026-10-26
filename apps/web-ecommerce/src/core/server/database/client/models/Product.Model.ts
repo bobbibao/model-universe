@@ -115,6 +115,9 @@ export default class ProductModel extends Model {
   // S: the shop's target selling price (owner rule of 2026-10-25), approved by an admin (`targetPriceApprovedAt`).
   @Column(DataType.INTEGER) pricingReferenceMemberVnd!: number | null;
   @Column(DataType.DATE) targetPriceApprovedAt!: Date | null;
+  // S 2hand: the real selling price of a pre-owned unit of this model (owner request of 2026-10-26), entered by staff
+  // next to S and approved with it. The services price a customer's 2hand unit from it; null means the shop quotes it.
+  @Column(DataType.INTEGER) pricingReferencePreownedVnd!: number | null;
   @Column(DataType.INTEGER) targetPriceApprovedByUserId!: number | null;
   // Whether `price` is a real published list price R approved with its proof. Until then the shop sells at S, with no
   // member or voucher code on top (codes apply to a real R only; R is never derived from S).

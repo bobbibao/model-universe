@@ -115,6 +115,7 @@ export default function CatalogCombobox({
           value={query}
           placeholder={placeholder ?? (en ? 'Choose a model or type to search…' : 'Chọn mẫu hoặc gõ để tìm…')}
           onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);

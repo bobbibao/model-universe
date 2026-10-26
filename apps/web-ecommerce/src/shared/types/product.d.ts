@@ -131,6 +131,7 @@ export type AdminProduct = Omit<ProductDetail, 'ratingDistribution' | 'condition
   listing?: { id: number; name: string; sku: string } | null;
   units?: AdminProductUnit[];
   pricingReferenceMemberVnd?: number | null;
+  pricingReferencePreownedVnd?: number | null;
   pricingIssueCount?: number;
   buybackPriceVnd?: number | null;
   // S approved by an admin; `listPriceVerified`: `price` is an approved real list price R (else the shop sells at S).
@@ -195,6 +196,7 @@ export type Supplier = {
 // Payload of the admin create/update product endpoints.
 export type ProductPayload = GunplaAttributes & {
   pricingReferenceMemberVnd?: number;
+  pricingReferencePreownedVnd?: number | null;
   pricingIssueCount?: number;
   buybackPriceVnd?: number | null;
   expectedStock?: number;

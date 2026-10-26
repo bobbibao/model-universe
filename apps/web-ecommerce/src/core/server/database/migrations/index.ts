@@ -73,7 +73,7 @@ import { loadOwnerCatalog, ownerCatalogSeeded, syncOwnerCatalog } from '../clien
 import { CATEGORIES } from '../client/seeders/Category.Seeder';
 import { RETURN_REASONS } from '../../../../shared/return-rules';
 import { b17 } from '../../../../shared/buyback-pricing';
-import { catalogPricing } from '../../../../shared/sale-pricing';
+import { catalogPricing, placeholderPreownedReference } from '../../../../shared/sale-pricing';
 import Logger from '../../../../shared/server/utils/logger';
 import { purgeRows } from './purge';
 import { QueryTypes } from 'sequelize';
@@ -1341,6 +1341,44 @@ export const MIGRATIONS: Migration[] = [
               action: 'buyback_margin_rule',
               oldValue,
               newValue: { referenceMemberVnd: target, buybackPriceVnd },
+            },
+            { transaction },
+          );
+        }
+      });
+    },
+  },
+  {
+    name: '2026-10-26-53-preowned-reference-and-service-condition',
+    up: async ({ context }) => {
+      // S 2hand next to S, and the condition (new or 2hand) a buyback or pawn request was priced in. Shop products get a
+      // placeholder S 2hand (70% of S) until staff enter real ones, each recorded in the pricing audit. Running it again
+      // changes nothing: a product that has an S 2hand keeps it.
+      const { sequelize } = context;
+      const queryInterface = sequelize.getQueryInterface();
+      await ensureColumns(queryInterface, ProductModel, ['pricingReferencePreownedVnd']);
+      await ensureColumns(queryInterface, BuybackRequestModel, ['referenceCondition']);
+      await ensureColumns(queryInterface, PawnContractModel, ['referenceCondition']);
+      await sequelize.transaction(async (transaction) => {
+        const products = await ProductModel.findAll({
+          attributes: ['id', 'pricingReferenceMemberVnd', 'pricingReferencePreownedVnd'],
+          where: { partnerId: null, condition: 'new' },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        for (const product of products) {
+          const target = product.pricingReferenceMemberVnd;
+          if (!target || target <= 10_000 || product.pricingReferencePreownedVnd) continue;
+          const pricingReferencePreownedVnd = placeholderPreownedReference(target);
+          await product.update({ pricingReferencePreownedVnd }, { transaction });
+          await PromotionAuditModel.create(
+            {
+              actorUserId: null,
+              entityType: 'product_pricing',
+              entityId: product.id,
+              action: 'preowned_reference_placeholder',
+              oldValue: { preownedReferenceVnd: null },
+              newValue: { referenceMemberVnd: target, preownedReferenceVnd: pricingReferencePreownedVnd },
             },
             { transaction },
           );

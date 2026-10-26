@@ -4,9 +4,18 @@ import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Api from '@/core/client/api/Api';
 import { formatVND } from '@/shared/server/utils/utils';
-import { BUYBACK_ISSUE_TYPES, MAX_ISSUE_QUANTITY, type BuybackIssue } from '@/shared/buyback-pricing';
+import {
+  B17_RULE_VERSION,
+  BUYBACK_ISSUE_TYPES,
+  BUYBACK_RATE_PERCENT,
+  BUYBACK_RULE_VERSION,
+  buybackMargin,
+  buybackRateBps,
+  MAX_ISSUE_QUANTITY,
+  type BuybackEstimate,
+  type BuybackIssue,
+} from '@/shared/buyback-pricing';
 import type { BuybackEvidenceFile, BuybackRequest } from '@/shared/types/buyback';
-import { EstimateCard } from './BuybackSubmissionForm';
 
 type Post = (endpoint: string, data: Record<string, unknown>) => Promise<void>;
 
@@ -50,8 +59,19 @@ const uploadEvidence = async (input: HTMLInputElement, purpose: 'buyback' | 'buy
 
 // The pricing details of one request: the estimate (three rates of S) and declared issues, missing evidence, the inspection
 // comparison and inspection recordings, and the actions (request/add evidence, formula offers, inspected issues, review).
-export default function BuybackPricingSections({ selected, admin, busy, post }: { selected: BuybackRequest; admin: boolean; busy: boolean; post: Post }) {
+export default function BuybackPricingSections({
+  selected,
+  admin,
+  busy,
+  post,
+}: {
+  selected: BuybackRequest;
+  admin: boolean;
+  busy: boolean;
+  post: Post;
+}) {
   const v2 = useTranslations('buybackV2'),
+    condition = useTranslations('itemCondition'),
     t = useTranslations('buyback'),
     locale = useLocale();
   const money = (amount: number) => formatVND(amount, locale);
@@ -65,10 +85,28 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
   };
   return (
     <div className="space-y-5">
-      {selected.referenceProduct && (
-        <p className="mu-note">{v2('referenceProduct', { name: selected.referenceProduct.name, sku: selected.referenceProduct.sku, price: money(selected.referenceProduct.priceVnd) })}</p>
+      {/* Staff see how the estimate was worked out; the customer sees only the expected price (owner request). */}
+      {admin && selected.referenceProduct && (
+        <p className="mu-note">
+          {v2('referenceProduct', {
+            name: selected.referenceProduct.name,
+            sku: selected.referenceProduct.sku,
+            price: money(selected.referenceProduct.priceVnd),
+          })}
+        </p>
       )}
-      {selected.estimate && <EstimateCard estimate={selected.estimate} />}
+      {admin && selected.estimate && <EstimateCard estimate={selected.estimate} />}
+      {!admin && selected.estimate && (
+        <p className="text-sm">
+          {selected.estimate.estimateVnd !== null && !selected.estimate.manualReview ? (
+            <>
+              {condition('expected')}: <b>{money(selected.estimate.estimateVnd)}</b>
+            </>
+          ) : (
+            condition('shopQuotes')
+          )}
+        </p>
+      )}
       <div>
         <h3 className="font-bold">{v2('declaredIssues')}</h3>
         <IssueList issues={selected.declaredIssues || []} />
@@ -95,7 +133,12 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
         >
           <label className="mu-field">
             {v2('addEvidence')}
-            <input type="file" multiple required accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" />
+            <input
+              type="file"
+              multiple
+              required
+              accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+            />
           </label>
           <button className="mu-button" disabled={busy || uploading}>
             {v2('sendEvidence')}
@@ -103,7 +146,10 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
         </form>
       )}
       {admin && ['submitted', 'need_more_evidence'].includes(selected.status) && (
-        <form className="space-y-3" onSubmit={(event) => void post('actions', { action: 'request_evidence', details: form(event).details })}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => void post('actions', { action: 'request_evidence', details: form(event).details })}
+        >
           <label className="mu-field">
             {v2('requestEvidence')}
             <textarea name="details" required maxLength={1500} />
@@ -116,7 +162,12 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
       {comparison && (
         <div className="rounded-md border border-stroke p-4 text-sm dark:border-store-card">
           <h3 className="font-bold">{v2('comparison.title')}</h3>
-          <p>{v2('comparison.counts', { declared: comparison.declaredIssueCount, inspected: comparison.inspectedIssueCount })}</p>
+          <p>
+            {v2('comparison.counts', {
+              declared: comparison.declaredIssueCount,
+              inspected: comparison.inspectedIssueCount,
+            })}
+          </p>
           <p>{v2('comparison.changes', { added: comparison.newIssueCount, removed: comparison.resolvedIssueCount })}</p>
           <p>{v2('comparison.difference', { amount: money(comparison.deductionDifferenceVnd) })}</p>
           <h4 className="mt-2 font-semibold">{v2('inspectedIssues')}</h4>
@@ -131,7 +182,10 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
       )}
       {selected.reviewRequest && <p className="mu-note">{v2('reviewRequested', { reason: selected.reviewRequest })}</p>}
       {!admin && selected.status === 'awaiting_acceptance' && (
-        <form className="space-y-3" onSubmit={(event) => void post('actions', { action: 'request_review', details: form(event).details })}>
+        <form
+          className="space-y-3"
+          onSubmit={(event) => void post('actions', { action: 'request_review', details: form(event).details })}
+        >
           <label className="mu-field">
             {v2('requestReview')}
             <textarea name="details" required maxLength={1500} />
@@ -146,13 +200,23 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
           className="space-y-3"
           onSubmit={(event) => {
             const body = form(event);
-            void post('actions', { action: 'preliminary_offer', details: body.details, ...(body.amountVnd ? { amountVnd: Number(body.amountVnd) } : {}) });
+            void post('actions', {
+              action: 'preliminary_offer',
+              details: body.details,
+              ...(body.amountVnd ? { amountVnd: Number(body.amountVnd) } : {}),
+            });
           }}
         >
           <h3 className="font-bold">{t('preliminaryOffer')}</h3>
           <label className="mu-field">
             {v2('manualAmount')}
-            <input name="amountVnd" type="number" min={1} step={1} placeholder={selected.estimate?.estimateVnd ? String(selected.estimate.estimateVnd) : ''} />
+            <input
+              name="amountVnd"
+              type="number"
+              min={1}
+              step={1}
+              placeholder={selected.estimate?.estimateVnd ? String(selected.estimate.estimateVnd) : ''}
+            />
           </label>
           <p className="mu-note">{v2('formulaNote')}</p>
           <label className="mu-field">
@@ -197,25 +261,65 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
               }}
             />
           </label>
-          <p className="mu-note">{v2('inspectionUploaded', { count: inspectionIds.length + (selected.inspectionEvidence?.length || 0) })}</p>
+          <p className="mu-note">
+            {v2('inspectionUploaded', { count: inspectionIds.length + (selected.inspectionEvidence?.length || 0) })}
+          </p>
           <h4 className="font-semibold">{v2('inspectedIssues')}</h4>
           {inspected.map((issue, index) => (
             <div key={index} className="grid gap-2 sm:grid-cols-[1.2fr_.5fr_2fr_auto]">
-              <select value={issue.type} onChange={(event) => setInspected(inspected.map((row, at) => (at === index ? { ...row, type: event.target.value as BuybackIssue['type'] } : row)))}>
+              <select
+                value={issue.type}
+                onChange={(event) =>
+                  setInspected(
+                    inspected.map((row, at) =>
+                      at === index ? { ...row, type: event.target.value as BuybackIssue['type'] } : row,
+                    ),
+                  )
+                }
+              >
                 {BUYBACK_ISSUE_TYPES.map((type) => (
                   <option key={type} value={type}>
                     {v2(`issueTypes.${type}`)}
                   </option>
                 ))}
               </select>
-              <input type="number" min={1} max={MAX_ISSUE_QUANTITY} value={issue.quantity} onChange={(event) => setInspected(inspected.map((row, at) => (at === index ? { ...row, quantity: Math.max(1, Number(event.target.value) || 1) } : row)))} />
-              <input maxLength={500} placeholder={v2('issueDescription')} value={issue.description} onChange={(event) => setInspected(inspected.map((row, at) => (at === index ? { ...row, description: event.target.value } : row)))} />
-              <button type="button" className="underline" onClick={() => setInspected(inspected.filter((_, at) => at !== index))}>
+              <input
+                type="number"
+                min={1}
+                max={MAX_ISSUE_QUANTITY}
+                value={issue.quantity}
+                onChange={(event) =>
+                  setInspected(
+                    inspected.map((row, at) =>
+                      at === index ? { ...row, quantity: Math.max(1, Number(event.target.value) || 1) } : row,
+                    ),
+                  )
+                }
+              />
+              <input
+                maxLength={500}
+                placeholder={v2('issueDescription')}
+                value={issue.description}
+                onChange={(event) =>
+                  setInspected(
+                    inspected.map((row, at) => (at === index ? { ...row, description: event.target.value } : row)),
+                  )
+                }
+              />
+              <button
+                type="button"
+                className="underline"
+                onClick={() => setInspected(inspected.filter((_, at) => at !== index))}
+              >
                 {v2('removeIssue')}
               </button>
             </div>
           ))}
-          <button type="button" className="mu-button-secondary" onClick={() => setInspected([...inspected, { type: 'broken_part', quantity: 1, description: '' }])}>
+          <button
+            type="button"
+            className="mu-button-secondary"
+            onClick={() => setInspected([...inspected, { type: 'broken_part', quantity: 1, description: '' }])}
+          >
             {v2('addIssue')}
           </button>
           <label className="flex items-start gap-2 text-sm">
@@ -237,5 +341,48 @@ export default function BuybackPricingSections({ selected, admin, busy, post }: 
         </form>
       )}
     </div>
+  );
+}
+
+// A request shows S and the shop's margin B (30% / 20% / 17% of S, at least 100,000) taken off it; one quoted under B17
+// shows the 17% of S it is bought at, and one quoted under the former tier table keeps its deduction lines.
+export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
+  const v2 = useTranslations('buybackV2'),
+    locale = useLocale();
+  const money = (amount: number) => formatVND(amount, locale);
+  const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION && estimate.ruleVersion !== B17_RULE_VERSION;
+  const reference = estimate.referencePriceVnd;
+  const rate =
+    estimate.ruleVersion === B17_RULE_VERSION
+      ? `${BUYBACK_RATE_PERCENT}% × S`
+      : reference
+        ? `${buybackRateBps(reference) / 100}% × S: −${money(buybackMargin(reference))}`
+        : '—';
+  return (
+    <dl className="grid gap-1 rounded-md bg-gray-2 p-4 text-sm dark:bg-store-panel sm:grid-cols-2">
+      <dt>{v2(legacy ? 'estimate.legacyReference' : 'estimate.reference')}</dt>
+      <dd>{estimate.referencePriceVnd !== null ? money(estimate.referencePriceVnd) : '—'}</dd>
+      {legacy ? (
+        <>
+          <dt>{v2('estimate.base')}</dt>
+          <dd>{estimate.baseDeductionVnd !== null ? `−${money(estimate.baseDeductionVnd)}` : '—'}</dd>
+          <dt>{v2('estimate.issues', { count: estimate.issueCount, each: money(estimate.deductionPerIssueVnd) })}</dt>
+          <dd>−{money(estimate.issueDeductionVnd)}</dd>
+        </>
+      ) : (
+        <>
+          <dt>{v2(estimate.ruleVersion === B17_RULE_VERSION ? 'estimate.b17Rate' : 'estimate.rate')}</dt>
+          <dd>{rate}</dd>
+        </>
+      )}
+      <dt className="font-bold">{v2('estimate.total')}</dt>
+      <dd className="text-lg font-bold">
+        {estimate.estimateVnd !== null && !estimate.manualReview ? money(estimate.estimateVnd) : v2('estimate.manual')}
+      </dd>
+      {estimate.manualReview && (
+        <dd className="mu-note sm:col-span-2">{v2(`estimate.reasons.${estimate.manualReview}`)}</dd>
+      )}
+      <dd className="mu-note sm:col-span-2">{v2('estimate.note')}</dd>
+    </dl>
   );
 }

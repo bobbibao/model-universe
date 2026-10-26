@@ -1924,7 +1924,8 @@
       "packagingSideInvalid": "Nhập số nguyên từ 1 đến 200 cm. Cần đủ cả bốn thông số hoặc để trống tất cả.",
       "packagingWeightInvalid": "Nhập số nguyên từ 1 đến 50.000 g. Cần đủ cả bốn thông số hoặc để trống tất cả.",
       "issueCountInvalid": "Số lỗi phải là số nguyên từ 0 đến 100.",
-      "receivedDateInvalid": "Nhập ngày hợp lệ theo YYYY-MM-DD, hoặc để trống."
+      "receivedDateInvalid": "Nhập ngày hợp lệ theo YYYY-MM-DD, hoặc để trống.",
+      "preownedPriceInvalid": "Giá S 2hand phải là số nguyên VND lớn hơn 0 và thấp hơn S."
     },
     "created": "Đã tạo sản phẩm.",
     "updated": "Đã cập nhật sản phẩm.",
@@ -3955,6 +3956,69 @@
     "remove": "Bỏ",
     "uploading": "Đang tải {current}/{total}",
     "agree": "Tôi xác nhận thông tin trung thực và đồng ý để shop kiểm hàng, báo giá chính thức.",
-    "terms": "Xem điều khoản"
+    "terms": "Xem điều khoản",
+    "expected": "Giá thu dự kiến",
+    "shopQuotes": "Shop sẽ báo giá sau khi xem ảnh."
+  },
+  "serviceBasket": {
+    "sell": {
+      "kicker": "Thu mua",
+      "title": "Bán mô hình cho shop",
+      "total": "Tổng giá thu dự kiến",
+      "action": "Gửi yêu cầu thu mua",
+      "note": "Giá chốt sau khi shop kiểm tra hàng thực tế.",
+      "terms": "Giá trên web là giá dự kiến CHƯA CHỐT. Khi nhận hàng, shop quay video mở kiện, kiểm tra mô hình và phụ kiện rồi gửi giá chính thức. Bạn có quyền đồng ý, yêu cầu kiểm tra lại hoặc từ chối và nhận lại hàng."
+    },
+    "trade": {
+      "kicker": "Trade",
+      "title": "Đổi mô hình lấy món của shop",
+      "total": "Chênh lệch",
+      "action": "Gửi yêu cầu đổi hàng",
+      "note": "Món của shop tính theo giá thành viên. Chốt sau khi shop kiểm tra hàng; giá trị đổi hàng không tích điểm.",
+      "terms": "Chênh lệch = giá thành viên của món nhận − giá thu mô hình của bạn, chốt sau khi shop kiểm tra hàng. Bạn trả thêm nếu dương; shop trả lại nếu âm, sau khi Admin duyệt. Giá trị đổi hàng không tích điểm."
+    },
+    "pawn": {
+      "kicker": "Cầm cố",
+      "title": "Cầm mô hình tại shop",
+      "total": "Tổng giá cầm dự kiến",
+      "action": "Gửi yêu cầu cầm",
+      "note": "Lãi 0,3%/ngày hiện chỉ mô phỏng, chưa áp dụng. Chốt sau khi shop kiểm tra hàng.",
+      "terms": "Giá cầm bằng 50% giá bán thực của shop cho đúng tình trạng, chốt sau khi kiểm hàng. Shop giữ mô hình đến khi bạn chuộc lại theo hợp đồng ký hai bên."
+    },
+    "intro": "Thêm một hoặc nhiều mô hình, chọn tình trạng Mới hoặc 2hand để xem giá ngay. Tình trạng phức tạp hơn chọn \"Khác\" để shop báo giá.",
+    "models": "Mô hình của bạn",
+    "yourModels": "Mô hình bạn đưa",
+    "shopItems": "Món bạn muốn nhận",
+    "condition": "Tình trạng",
+    "conditions": {
+      "new": "Mới",
+      "preowned": "2hand",
+      "other": "Khác"
+    },
+    "otherModel": "Mẫu shop không bán",
+    "otherModelNote": "Shop báo giá sau khi xem ảnh",
+    "shopQuotes": "Shop báo giá",
+    "remove": "Bỏ",
+    "addFirst": "Chọn mô hình",
+    "addAnother": "Thêm mô hình khác",
+    "addOther": "+ Mẫu không có trong shop",
+    "addItem": "Thêm món muốn nhận",
+    "memberPrice": "Giá thành viên",
+    "oneItemPerModel": "Mỗi món nhận đổi với một mô hình của bạn: thêm mô hình để chọn thêm món.",
+    "empty": "Chọn mô hình để xem giá.",
+    "afterQuote": "Chốt sau báo giá",
+    "even": "Ngang giá",
+    "youPay": "bạn trả thêm",
+    "shopPays": "shop trả lại bạn",
+    "count": "{count} mô hình",
+    "quotedCount": "{count} mẫu shop báo giá",
+    "chooseItem": "Chọn món bạn muốn nhận để tiếp tục.",
+    "help": "Cần tư vấn trước khi gửi?",
+    "contact": "Liên hệ shop",
+    "failed": "Chưa gửi được mô hình này. Kiểm tra ảnh rồi gửi lại.",
+    "agree": "Tôi xác nhận thông tin trung thực và đồng ý để shop kiểm hàng, báo giá chính thức.",
+    "terms": "Xem điều khoản",
+    "sending": "Đang gửi…",
+    "send": "Gửi {count} mô hình"
   }
 }

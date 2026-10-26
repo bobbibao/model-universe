@@ -6,6 +6,7 @@ import EvidenceModel from '../../src/core/server/database/client/models/Evidence
 import UserModel from '../../src/core/server/database/internal/models/User.Model';
 import ValuationService from '../../src/core/server/services/ValuationService';
 import PawnService from '../../src/core/server/services/PawnService';
+import { estimateFor } from '../../src/core/server/services/BuybackService';
 
 // The quick valuation of the services (owner rule of 2026-10-26): a model the shop sells new gets its buyback price B,
 // its pawn amount C50 with a simulated interest table, and a pawn request keeps the C50 quote for staff.
@@ -36,6 +37,31 @@ describe('quick valuation and the pawn web quote', () => {
     expect(used.pawn.amountVnd).toBeNull();
     await product.update({ condition: 'new' });
     await expect(valuation.forProduct(0)).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it('values a 2hand unit from S 2hand, and sends it to the shop when there is none', async () => {
+    const product = (await ProductModel.findOne({
+      where: { partnerId: null, isArchived: false, condition: 'new', parentProductId: null },
+    }))!;
+    await product.update({ pricingReferenceMemberVnd: 2_500_000, pricingReferencePreownedVnd: 1_800_000 });
+    const result = await valuation.forProduct(product.id);
+    expect(result.conditions.new.buyback.estimateVnd).toBe(2_075_000);
+    // 1,800,000 − 17% margin 306,000; C50 = 900,000.
+    expect(result.conditions.preowned.buyback).toMatchObject({ estimateVnd: 1_494_000, manualReview: null });
+    expect(result.conditions.preowned.pawn).toMatchObject({ amountVnd: 900_000 });
+    expect(
+      (await estimateFor({ referenceProductId: product.id, referenceCondition: 'preowned' })).estimate.estimateVnd,
+    ).toBe(1_494_000);
+    await expect(estimateFor({ referenceProductId: product.id, referenceCondition: 'used' })).rejects.toMatchObject({
+      statusCode: 400,
+    });
+
+    await product.update({ pricingReferencePreownedVnd: null });
+    expect((await valuation.forProduct(product.id)).conditions.preowned.buyback).toMatchObject({
+      estimateVnd: null,
+      manualReview: 'no_reference_price',
+    });
+    await product.update({ pricingReferencePreownedVnd: 1_800_000 });
   });
 
   it('keeps the C50 quote of the chosen model on a pawn request', async () => {
@@ -77,5 +103,28 @@ describe('quick valuation and the pawn web quote', () => {
       referenceProductId: product.id,
       webQuote: { amountVnd: 1_250_000, referencePriceVnd: 2_500_000, legalReviewRequired: true },
     });
+    const used = await new PawnService().create(userId, {
+      requestKey: 'pawn-web-quote-2hand',
+      asset,
+      evidenceIds: await Promise.all(
+        [0, 1, 2].map(
+          async (index) =>
+            (
+              await EvidenceModel.create({
+                ownerUserId: userId,
+                purpose: 'pawn',
+                diskKey: `${crypto.randomUUID()}.webp`,
+                originalName: `pawn-2hand-${index}.webp`,
+                mimeType: 'image/webp',
+                sizeBytes: 100,
+                sha256: crypto.createHash('sha256').update(`pawn-2hand:${index}`).digest('hex'),
+              })
+            ).id,
+        ),
+      ),
+      referenceProductId: product.id,
+      referenceCondition: 'preowned',
+    });
+    expect(used).toMatchObject({ referenceCondition: 'preowned', webQuote: { amountVnd: 900_000 } });
   });
 });

@@ -207,6 +207,8 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
     }
   }
   const target = result?.referenceMemberVnd;
+  const preowned = Number(values.pricingReferencePreownedVnd) || 0;
+  const preownedResult = preowned > 0 && (!target || preowned < target) ? catalogPricing(preowned) : undefined;
   const rate = target ? buybackRateBps(target) / 100 : null;
   // Owner rule of 2026-10-26: staff enter only S; R, B and C50 follow it and cannot be typed.
   const outputs: { label: string; value: number | undefined; note: string }[] = [
@@ -254,6 +256,24 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
         onChange={(e) => onChange('pricingReferenceMemberVnd', e.target.value)}
       />
       <TextField
+        label={en ? 'Real selling price S 2hand (VND)' : 'Giá bán thực S 2hand (đ)'}
+        name="pricingReferencePreownedVnd"
+        type="number"
+        min={1}
+        step={1}
+        inputMode="numeric"
+        hint={
+          en
+            ? 'Optional, below S: prices a customer’s 2hand unit in buyback, trade and pawn. Empty: the shop quotes it.'
+            : 'Không bắt buộc, thấp hơn S: dùng định giá hàng 2hand của khách khi thu, trade, cầm. Để trống: shop tự báo giá.'
+        }
+        error={
+          errors.pricingReferencePreownedVnd ? t(`validation.${errors.pricingReferencePreownedVnd}`) : undefined
+        }
+        value={values.pricingReferencePreownedVnd}
+        onChange={(e) => onChange('pricingReferencePreownedVnd', e.target.value)}
+      />
+      <TextField
         label={en ? 'Actual cost H · from the purchase / intake record' : 'Giá vốn thực tế H · theo chứng từ nhập/thu'}
         name="importPrice"
         type="number"
@@ -282,6 +302,14 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
             </div>
           ))}
         </dl>
+        {preownedResult && (
+          <p className="mt-3 text-xs text-body">
+            {en ? '2hand: buyback ' : '2hand: giá thu '}
+            <b>{formatVND(preownedResult.buybackPriceVnd, locale)}</b>
+            {en ? ' · pawn ' : ' · giá cầm '}
+            <b>{formatVND(preownedResult.pawnPriceVnd, locale)}</b>
+          </p>
+        )}
         {formulaError && (
           <p role="alert" className="mt-2 text-sm text-danger">
             {formulaError}

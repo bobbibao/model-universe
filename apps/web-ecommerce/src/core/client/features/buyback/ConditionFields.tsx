@@ -5,7 +5,6 @@ import {
   ITEM_CONDITION_CHOICES,
   NEW_ITEM_CONDITION,
   conditionIssues,
-  isNewCondition,
   type ItemCondition,
 } from '@/shared/item-condition';
 import type { BuybackAsset } from '@/shared/types/buyback';
@@ -23,8 +22,19 @@ export const NEW_CONDITION_VALUE: ConditionValue = { name: '', condition: NEW_IT
 
 type Group = keyof typeof ITEM_CONDITION_CHOICES;
 
-// The condition of the customer's unit as choices (chips) and one short note that is required only when the unit is
-// not new. Replaces the free-text condition fields and the issue list.
+// The asset fields a buyback or pawn request records, in the order staff read them.
+export const COLLECTIBLE_ASSET_FIELDS = [
+  'name',
+  'modelCode',
+  'version',
+  'assemblyState',
+  'boxCondition',
+  'accessories',
+  'defects',
+  'repairHistory',
+] as const;
+
+// The condition of a unit that is neither new nor a plain 2hand ("Khác"): choices (chips) and one required note.
 export default function ConditionFields({
   value,
   onChange,
@@ -36,7 +46,6 @@ export default function ConditionFields({
 }) {
   const t = useTranslations('itemCondition'),
     catalog = useTranslations('catalog');
-  const fresh = isNewCondition(value.condition);
   const groups: Group[] = reference
     ? ['assemblyState', 'box', 'accessories', 'defects', 'history']
     : ['version', 'assemblyState', 'box', 'accessories', 'defects', 'history'];
@@ -64,14 +73,13 @@ export default function ConditionFields({
           </fieldset>
         ))}
       </div>
-      <p className={`item-condition-verdict${fresh ? ' is-new' : ''}`}>{t(fresh ? 'newVerdict' : 'reviewVerdict')}</p>
       <label className="mu-field">
-        {t(fresh ? 'note' : 'noteRequired')}
+        {t('noteRequired')}
         <textarea
           name="note"
           rows={2}
           maxLength={1000}
-          required={!fresh}
+          required
           value={value.note}
           placeholder={t('notePlaceholder')}
           onChange={(event) => onChange({ ...value, note: event.target.value })}
@@ -107,7 +115,10 @@ export function useConditionPayload() {
       const text = group === 'assembly' ? catalog(choice) : t(`options.history.${choice}`);
       return (note ? `${text}. ${note}` : text).slice(0, 500);
     });
-    return { asset, issues, seriousDamage: condition.defects === 'serious', isNew: isNewCondition(condition) };
+    // A unit described here is always priced by the shop: with no issue among the choices, the note is the issue.
+    if (!issues.length && condition.defects !== 'serious')
+      issues.push({ type: 'other', quantity: 1, description: (note || t('noteRequired')).slice(0, 500) });
+    return { asset, issues, seriousDamage: condition.defects === 'serious' };
   };
 }
 

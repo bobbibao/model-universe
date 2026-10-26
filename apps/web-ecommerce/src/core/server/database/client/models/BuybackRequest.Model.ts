@@ -1,6 +1,7 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 import type { BuybackAsset, BuybackOffer, BuybackStatus, TradeQuote } from '../../../../../shared/types/buyback';
 import type { BuybackEstimate, BuybackIssue, InspectionComparison } from '../../../../../shared/buyback-pricing';
+import type { ReferenceCondition } from '../../../../../shared/sale-pricing';
 
 @Table({
   tableName: 'buyback_request',
@@ -23,6 +24,8 @@ export default class BuybackRequestModel extends Model {
   // Buyback pricing 2.0: the catalog product used as the reference price, the customer's declared issues and the
   // estimate computed from them, then the inspected issues and the two-way comparison.
   @Column(DataType.INTEGER) referenceProductId!: number | null;
+  // The condition the customer chose for it: 'new' (priced from S) or 'preowned' (priced from S 2hand).
+  @Column({ type: DataType.STRING(16), allowNull: false, defaultValue: 'new' }) referenceCondition!: ReferenceCondition;
   @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] }) declaredIssues!: BuybackIssue[];
   @Column(DataType.JSONB) estimate!: BuybackEstimate | null;
   @Column(DataType.JSONB) inspectedIssues!: BuybackIssue[] | null;

@@ -6,11 +6,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import Api from '@/core/client/api/Api';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
-import { COLLECTIBLE_ASSET_FIELDS as ASSET_FIELDS } from './CollectibleSubmissionForm';
-import BuybackSubmissionForm from './BuybackSubmissionForm';
-import QuickValuation, { type ValuationRequest } from './QuickValuation';
-import ServiceRequestPanel from './ServiceRequestPanel';
-import { useRouter } from '@/i18n/navigation';
+import { COLLECTIBLE_ASSET_FIELDS as ASSET_FIELDS } from './ConditionFields';
+import ServiceBasket from './ServiceBasket';
 import { useSearchParams } from 'next/navigation';
 import BuybackPricingSections from './BuybackPricingSections';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -34,11 +31,8 @@ export default function BuybackWorkspace({
   const [rows, setRows] = useState<BuybackRequest[]>([]),
     [selected, setSelected] = useState<BuybackRequest | null>(null);
   const [busy, setBusy] = useState(false),
-    [failed, setFailed] = useState(false),
-    [request, setRequest] = useState<ValuationRequest | null>(null),
-    [requestCount, setRequestCount] = useState(0);
+    [failed, setFailed] = useState(false);
   const root = admin ? '/admin/buyback' : '/buyback';
-  const router = useRouter();
   const chosenModel = Number(useSearchParams().get('mau')) || null;
   const load = useCallback(async () => {
     if (!user) return;
@@ -146,34 +140,7 @@ export default function BuybackWorkspace({
               {common('retry')}
             </button>
           )}
-          {!admin && (
-            <QuickValuation
-              focus={mode}
-              initialProductId={chosenModel}
-              onRequest={(next) => {
-                if (next.kind === 'pawn') router.push(`/services/pawn?mau=${next.product.id}`);
-                else {
-                  setRequest(next);
-                  setRequestCount((count) => count + 1);
-                }
-              }}
-            />
-          )}
-          {!admin && request && (
-            <ServiceRequestPanel revision={String(requestCount)} onClose={() => setRequest(null)}>
-              <BuybackSubmissionForm
-                key={`${user.id}:${requestCount}`}
-                trade={mode === 'trade'}
-                initialReference={request.kind === 'manual' ? null : request.product}
-                initialTradeItem={request.kind === 'trade' ? request.tradeItem : null}
-                onCreated={async (id) => {
-                  await open(id);
-                  setRequest(null);
-                  await load();
-                }}
-              />
-            </ServiceRequestPanel>
-          )}
+          {!admin && <ServiceBasket key={user.id} kind={mode} initialProductId={chosenModel} onSent={load} />}
           {!failed && !rows.length && (
             <ServiceEmpty>{t(mode === 'trade' && !admin ? 'tradeEmpty' : 'empty')}</ServiceEmpty>
           )}

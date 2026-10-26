@@ -41,15 +41,26 @@ approval step (the workbook marks every row "CHỜ DUYỆT").
 ## Quick valuation and estimates
 
 The service tabs are Buyback (`/services/sell`), Trade (`/services/trade`), Pawn (`/services/pawn`) and Become a
-partner; reserve is no longer offered. Each of the first three opens with its own quick valuation (`QuickValuation`,
-`GET /api/valuation/:id`, signed-in): the customer chooses a model the shop sells from a list that opens with popular
-models and filters as they type (`CatalogCombobox`), confirms the unit is new, the same model and version, with its box
-and accessories and without defects, and sees that page's figure only: the buyback price S − B, the pawn amount C50 with
-the interest simulation, or the trade difference against a shop item at its member price. The request form then opens
-below the valuation. The buyback price is offered only for a catalogue model in the "new" condition with an approved
-S, no declared issue, S > 100,000 and B < S; otherwise `manualReview` (`no_reference_price`, `reference_not_approved`,
-`price_too_low`, `issues_declared`, `serious_damage`) and an admin prices it. Any other unit (used, incomplete, faulty,
-or a model the shop does not sell) is sent with photos and a video for the shop to quote. Any amount other than S − B is
+partner; reserve is no longer offered. Each of the first three opens with a basket (`ServiceBasket`,
+`GET /api/valuation/:id`, signed-in): the customer adds one or more models the shop sells (`CatalogCombobox`: a list
+that opens with popular models and filters as they type) and chooses a condition for each:
+
+- **New** (sealed or opened, complete, no defect): priced from S.
+- **2hand** (used and assembled, boxed, complete, no defect or repair): priced from **S 2hand**
+  (`product.pricingReferencePreownedVnd`), entered by staff next to S, optional and below S. Without S 2hand the
+  shop quotes it. Migration 53 filled a placeholder S 2hand of 70% of S rounded down to 10,000 for every shop product
+  (owner request of 2026-10-26: mock values until staff enter real ones), each recorded in the pricing audit
+  (`preowned_reference_placeholder`).
+- **Other** (anything more complicated) or a model the shop does not sell: the customer describes it with choices and
+  one note, and an admin quotes it from the photos.
+
+The customer sees each model's price and the total, not how it is worked out: the buyback price S − B, the pawn amount
+C50 (the interest only simulated), or for a trade the shop items at member price minus the buyback prices. Each shop
+item in a trade is paired with one of the customer's models. Sending creates one request per model
+(`referenceCondition` = `new` or `preowned`), each with at least three photos (and a video for a buyback). The buyback
+price is offered only for a catalogue model with an approved S (or S 2hand), no declared issue, S > 100,000 and B < S;
+otherwise `manualReview` (`no_reference_price`, `reference_not_approved`, `price_too_low`, `issues_declared`,
+`serious_damage`) and an admin prices it. Staff see the breakdown on the request; any amount other than the formula is
 a manual price with its reason, which the customer must accept.
 
 Requests quoted under an earlier rule keep it to the end (no retroactive change): B17 (`buyback-17`) or the v5.0 tier

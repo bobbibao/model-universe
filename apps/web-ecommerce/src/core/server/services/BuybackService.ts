@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { memberPrice } from '../../../shared/pricing';
+import { isReferenceCondition, referencePrice, type ReferenceCondition } from '../../../shared/sale-pricing';
 import { Transaction } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
 import BuybackRequestModel from '../database/client/models/BuybackRequest.Model';
@@ -54,12 +55,20 @@ export const parseIssues = (raw: unknown, field = 'issues'): BuybackIssue[] => {
   });
 };
 
-// The reference is the real selling price S of the same catalogue SKU (owner rule of 2026-10-26), never the web price R.
-// The web quotes only models the shop sells new: a catalogue unit in another condition is priced by an admin.
-const referenceFor = (product: ProductModel | null) => ({
-  reference: product && product.condition === 'new' ? product.pricingReferenceMemberVnd : null,
+// The reference is the real selling price of the same catalogue model (owner rules of 2026-10-26), never the web price
+// R: S for a unit the customer declares new, S 2hand for a 2hand one. Only the shop's new catalogue SKU carries them;
+// any other unit is priced by an admin.
+const referenceFor = (product: ProductModel | null, condition: ReferenceCondition = 'new') => ({
+  reference: product && product.condition === 'new' ? referencePrice(product, condition) : null,
   approved: !!product?.targetPriceApprovedAt,
 });
+
+// The condition a request is priced in: new unless the customer chose 2hand.
+const conditionOf = (value: unknown): ReferenceCondition => {
+  if (value === undefined || value === null) return 'new';
+  if (!isReferenceCondition(value)) throw HttpError.badRequest('Choose new or 2hand.');
+  return value;
+};
 
 // The price of a shop item in a trade: what a member pays for it, R with MEMBER10 (D is computed on it, §15).
 const tradeItemPrice = (item: ProductModel) => memberPrice(item.price);
@@ -155,7 +164,7 @@ export default class BuybackService {
       BuybackPayoutModel.findOne({ where: { buybackRequestId: id } }),
       row.referenceProductId
         ? ProductModel.findByPk(row.referenceProductId, {
-            attributes: ['id', 'name', 'sku', 'pricingReferenceMemberVnd'],
+            attributes: ['id', 'name', 'sku', 'pricingReferenceMemberVnd', 'pricingReferencePreownedVnd'],
           })
         : null,
       row.tradeProductId
@@ -235,6 +244,7 @@ export default class BuybackService {
     if (referenceProductId !== null && (!Number.isSafeInteger(referenceProductId) || referenceProductId < 1))
       throw HttpError.badRequest('Choose a catalog model or leave it empty.');
     const seriousDamage = data.seriousDamage === true;
+    const referenceCondition = conditionOf(data.referenceCondition);
     const tradeProductId =
       data.tradeProductId === undefined || data.tradeProductId === null ? null : Number(data.tradeProductId);
     const requestDigest = crypto
@@ -246,6 +256,7 @@ export default class BuybackService {
           declaredIssues,
           referenceProductId,
           seriousDamage,
+          ...(referenceCondition === 'new' ? {} : { referenceCondition }),
           ...(tradeProductId === null ? {} : { tradeProductId }),
         }),
       )
@@ -267,7 +278,7 @@ export default class BuybackService {
         ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction })
         : null;
       if (referenceProductId && !product) throw HttpError.notFound('Catalog model not found.');
-      const { reference, approved } = referenceFor(product);
+      const { reference, approved } = referenceFor(product, referenceCondition);
       const estimate = estimateBuyback(reference, declaredIssues, { seriousDamage, approved });
       // A trade starts INCOMPLETE: D is known only once the buy-back price is final.
       const item = tradeProductId === null ? null : await tradeItem(tradeProductId, transaction);
@@ -288,6 +299,7 @@ export default class BuybackService {
           requestDigest,
           asset,
           referenceProductId,
+          referenceCondition,
           declaredIssues,
           estimate,
           tradeProductId: item?.id ?? null,
@@ -465,7 +477,7 @@ export default class BuybackService {
             : null;
           const approved =
             (!!row.estimate && row.estimate.manualReview !== 'reference_not_approved') ||
-            (!!product?.targetPriceApprovedAt && product.pricingReferenceMemberVnd === reference);
+            (!!product?.targetPriceApprovedAt && referenceFor(product, row.referenceCondition).reference === reference);
           const formulaEstimate = estimateBuyback(reference, inspectedIssues, {
             seriousDamage: data.seriousDamage === true,
             approved,
@@ -839,7 +851,7 @@ export const estimateFor = async (data: Record<string, unknown>) => {
     referenceProduct: product
       ? { id: product.id, name: product.name, sku: product.sku, priceVnd: product.pricingReferenceMemberVnd }
       : null,
-    estimate: estimateBuyback(referenceFor(product).reference, issues, {
+    estimate: estimateBuyback(referenceFor(product, conditionOf(data.referenceCondition)).reference, issues, {
       seriousDamage: data.seriousDamage === true,
       approved: referenceFor(product).approved,
     }),

@@ -230,6 +230,8 @@ describe('pricing guard: approved prices and costs, voucher policy, signed quote
       price: undefined,
       buybackPriceVnd: null,
       pricingReferenceMemberVnd: 1_050_000,
+      // S 2hand must stay below S: the placeholder of a higher S is cleared with it.
+      pricingReferencePreownedVnd: null,
       expectedPrice: body.price,
       expectedStock: body.stock,
     });

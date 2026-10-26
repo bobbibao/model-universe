@@ -3,6 +3,7 @@ import type { BuybackAsset } from '../../../../../shared/types/buyback';
 import type { PawnStatus, PawnTerms } from '../../../../../shared/types/pawn';
 import type { PawnDisposalStatement } from '../../../../../shared/types/pawn-disposal';
 import type { PawnEstimate } from '../../../../../shared/pawn-rules';
+import type { ReferenceCondition } from '../../../../../shared/sale-pricing';
 
 @Table({ tableName: 'pawn_contract', indexes: [{ unique: true, fields: ['userId', 'requestKey'] }, { fields: ['userId', 'createdAt'] }, { fields: ['status', 'dueAt'] }] })
 export default class PawnContractModel extends Model {
@@ -28,6 +29,8 @@ export default class PawnContractModel extends Model {
   @Column(DataType.JSONB) extensionRequest!: { proposedDueAt: string; reason: string } | null;
   // The catalogue model the customer chose and the web quote C50 computed from its S (pawn-rules.ts, 2026-10-26).
   @Column(DataType.INTEGER) referenceProductId!: number | null;
+  // The condition the customer chose for it: 'new' (C50 of S) or 'preowned' (C50 of S 2hand).
+  @Column({ type: DataType.STRING(16), allowNull: false, defaultValue: 'new' }) referenceCondition!: ReferenceCondition;
   @Column(DataType.JSONB) webQuote!: PawnEstimate | null;
   public static async seedData(): Promise<void> {}
 }

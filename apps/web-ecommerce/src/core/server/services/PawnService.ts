@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { isReferenceCondition, referencePrice } from '../../../shared/sale-pricing';
 import { Transaction, UniqueConstraintError } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
 import PawnContractModel from '../database/client/models/PawnContract.Model';
@@ -97,7 +98,10 @@ export default class PawnService {
     const referenceProductId = data.referenceProductId == null ? null : Number(data.referenceProductId);
     if (referenceProductId !== null && (!Number.isSafeInteger(referenceProductId) || referenceProductId < 1)) throw HttpError.badRequest('Choose a catalogue model or leave it empty.');
     const issuesDeclared = data.issuesDeclared === true;
-    const requestDigest = crypto.createHash('sha256').update(JSON.stringify({ asset, evidenceIds: data.evidenceIds, ...(referenceProductId ? { referenceProductId, issuesDeclared } : {}) })).digest('hex');
+    // The condition the customer chose: new (C50 of S) or 2hand (C50 of S 2hand).
+    const referenceCondition = data.referenceCondition == null ? 'new' : data.referenceCondition;
+    if (!isReferenceCondition(referenceCondition)) throw HttpError.badRequest('Choose new or 2hand.');
+    const requestDigest = crypto.createHash('sha256').update(JSON.stringify({ asset, evidenceIds: data.evidenceIds, ...(referenceProductId ? { referenceProductId, issuesDeclared, ...(referenceCondition === 'new' ? {} : { referenceCondition }) } : {}) })).digest('hex');
     const id = await DatabaseProvider.getInstance().transaction(async transaction => {
       await this.actor(userId, false, transaction);
       await DatabaseProvider.getInstance().query('SELECT pg_advisory_xact_lock(836211, hashtext(:key))', { replacements: { key: `${userId}:${requestKey}` }, transaction });
@@ -108,8 +112,8 @@ export default class PawnService {
       }
       const product = referenceProductId ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction }) : null;
       if (referenceProductId && !product) throw HttpError.notFound('Catalogue model not found.');
-      const webQuote = product ? estimatePawn(product.condition === 'new' ? product.pricingReferenceMemberVnd : null, { approved: !!product.targetPriceApprovedAt, issuesDeclared }) : null;
-      const row = await PawnContractModel.create({ userId, requestKey, requestDigest, asset, referenceProductId: product?.id ?? null, webQuote }, { transaction });
+      const webQuote = product ? estimatePawn(product.condition === 'new' ? referencePrice(product, referenceCondition) : null, { approved: !!product.targetPriceApprovedAt, issuesDeclared }) : null;
+      const row = await PawnContractModel.create({ userId, requestKey, requestDigest, asset, referenceProductId: product?.id ?? null, referenceCondition, webQuote }, { transaction });
       const evidence = await this.evidence.bind(data.evidenceIds, userId, 'pawn', row.id, transaction);
       if (new Set(evidence.map(file => file.sha256)).size < 3) throw HttpError.badRequest('Provide three distinct model views.');
       await this.event(row, userId, 'submitted', { asset, webQuote }, transaction);

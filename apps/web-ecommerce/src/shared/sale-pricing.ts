@@ -39,6 +39,24 @@ export function catalogPricing(targetPriceVnd: number) {
   };
 }
 
+// The condition a customer's unit is priced in by the services (owner request of 2026-10-26): new from S, 2hand
+// ('preowned') from S 2hand. Anything more complicated is quoted by staff from the photos.
+export const REFERENCE_CONDITIONS = ['new', 'preowned'] as const;
+export type ReferenceCondition = (typeof REFERENCE_CONDITIONS)[number];
+export const isReferenceCondition = (value: unknown): value is ReferenceCondition =>
+  REFERENCE_CONDITIONS.includes(value as ReferenceCondition);
+
+// The S a service prices a catalogue model in a condition with: S for new, S 2hand for 2hand (null when not entered).
+export const referencePrice = (
+  product: { pricingReferenceMemberVnd: number | null; pricingReferencePreownedVnd?: number | null },
+  condition: ReferenceCondition,
+) => (condition === 'new' ? product.pricingReferenceMemberVnd : (product.pricingReferencePreownedVnd ?? null));
+
+// Placeholder S 2hand until staff enter real ones (owner request of 2026-10-26: "mock data that makes sense"): 70% of
+// S rounded down to 10,000, kept below S. Used once by migration 53, never in place of a value staff entered.
+export const placeholderPreownedReference = (sellingPriceVnd: number) =>
+  Math.max(10_000, Math.floor((sellingPriceVnd * 7) / 100_000) * 10_000);
+
 export function safeSalePercent(price: number, cost: number, requested: number): boolean {
   if (!Number.isInteger(requested) || requested < 1 || requested > 25) return false;
   return evaluateVoucher({ discountPercent: requested, profitGuard: true }, [

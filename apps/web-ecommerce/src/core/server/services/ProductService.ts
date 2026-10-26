@@ -88,7 +88,7 @@ const LIST_ATTRIBUTES = [
 ];
 
 // Staff-only columns: never sent to the storefront (the received date included).
-const PRIVATE_ATTRIBUTES = ['importPrice', 'pricingReferenceMemberVnd', 'pricingIssueCount', 'buybackPriceVnd', 'supplierId', 'isArchived', 'inventoryStatus', 'listingRequestKey', 'listingRequestDigest', 'productionDate', 'parentProductId', 'targetPriceApprovedAt', 'targetPriceApprovedByUserId'];
+const PRIVATE_ATTRIBUTES = ['importPrice', 'pricingReferenceMemberVnd', 'pricingReferencePreownedVnd', 'pricingIssueCount', 'buybackPriceVnd', 'supplierId', 'isArchived', 'inventoryStatus', 'listingRequestKey', 'listingRequestDigest', 'productionDate', 'parentProductId', 'targetPriceApprovedAt', 'targetPriceApprovedByUserId'];
 
 // What a condition option shares with its main listing: the model itself. Staff edit it on the main listing only.
 const IDENTITY_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'description', 'descriptionEn', 'descriptionVi', 'categoryId', 'supplierId', 'weight', 'dimensions', 'packaging'] as const;
@@ -438,6 +438,13 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     // A new or changed S is approved by the admin saving it.
     const targetChanged =
       !!formula && (formula.referenceMemberVnd !== current?.pricingReferenceMemberVnd || !current?.targetPriceApprovedAt);
+    // S 2hand (owner request of 2026-10-26): optional, below S, approved with it; an empty value clears it.
+    let preowned: number | null | undefined;
+    if (!options.sellerPrice && data.pricingReferencePreownedVnd !== undefined) {
+      preowned = data.pricingReferencePreownedVnd === null || data.pricingReferencePreownedVnd === '' ? null : toInteger(data.pricingReferencePreownedVnd);
+      if (preowned !== null && (!preowned || preowned < 1 || (target && preowned >= target)))
+        throw HttpError.badRequest('Giá bán thực S 2hand phải là số nguyên dương và thấp hơn S.');
+    }
     const importPrice = toInteger(data.importPrice) ?? 0;
     const stock = toInteger(data.stock) ?? 0;
     const categoryId = toInteger(data.categoryId);
@@ -519,6 +526,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
               pricingIssueCount: 0,
               buybackPriceVnd: formula.buybackPriceVnd,
               listPriceVerified: true,
+              ...(preowned !== undefined ? { pricingReferencePreownedVnd: preowned } : {}),
               ...(targetChanged ? { targetPriceApprovedAt: new Date(), targetPriceApprovedByUserId: null } : {}),
             }
           : {}),
