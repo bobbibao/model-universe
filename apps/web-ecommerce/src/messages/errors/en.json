@@ -1,6 +1,9 @@
 {
   "AUTH_REQUIRED": "Sign in to continue.",
   "MEMBER_CUSTOMER_ACCOUNT_REQUIRED": "Member vouchers are for customer accounts. Sign in with a customer account to claim one; administrator accounts are not eligible.",
+  "BULK_PRODUCT_INVALID": "Select up to 50 products and supported fields for a bulk update.",
+  "BULK_PRODUCT_CONDITION_INVALID": "Some SKUs do not meet the selected condition requirements. No products were changed; review the listed items.",
+  "BULK_PRODUCT_CHANGED": "Products or related records changed or are not eligible. This batch was not updated; reload and select again.",
   "FORBIDDEN": "You do not have permission to perform this action.",
   "NOT_FOUND": "This record is unavailable or does not belong to your account.",
   "POLICY_APPROVAL_REQUIRED": "The shop must approve the business terms before activating this service. Please contact staff.",

@@ -98,3 +98,7 @@ Input-audit verification completed: all 12 unit cases and all 48 browser cases p
 Admin → Đơn hàng có nút **Tạo đơn bán trực tiếp** và bộ lọc nguồn Website / Tại shop / Chat–điện thoại. Desktop rộng dùng ba vùng chọn hàng, khách hàng/giao nhận và thanh toán; mobile xếp theo thứ tự thao tác. Tên/SĐT tùy chọn khi nhận ngay, bắt buộc cùng địa chỉ khi giao hàng. Giá là dữ liệu server; số lượng bị giới hạn theo từng SKU. Tải lại cập nhật cả giá/tồn của hàng đã chọn và yêu cầu xác nhận lại tiền thực nhận.
 
 Khoản thu tiền mặt dùng nhãn phiếu thu; khoản thu trước và hoàn tiền không gắn nhãn chuyển khoản cho giao dịch tiền mặt. Không hiển thị cảnh báo COD chưa thu cho đơn đã thanh toán. Đặc tả, schema, giới hạn và kiểm chứng: [Bán trực tiếp và đơn chốt ngoài website](../business/direct-sales.md).
+
+## Cập nhật sản phẩm hàng loạt (26/10/2026)
+
+Admin có checkbox chọn từng dòng/chọn trang và thanh thao tác chỉ xuất hiện khi đã chọn sản phẩm. Hộp cập nhật chỉ có **Nổi bật** và **Tình trạng hàng**, dùng checkbox bật trường rồi select giá trị mới; tối đa 50 sản phẩm, giữ lựa chọn qua phân trang. Giá, tồn kho và SKU giữ nguyên. Kiểm tra dữ liệu bắt buộc theo tình trạng, chống ghi đè phiên bản và lưu toàn bộ lô trong một transaction. Hướng dẫn, quy tắc và kiểm chứng: [Cập nhật sản phẩm hàng loạt](product-bulk-edit.md).
