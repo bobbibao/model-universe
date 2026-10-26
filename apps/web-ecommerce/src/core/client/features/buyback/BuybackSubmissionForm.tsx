@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Api from '@/core/client/api/Api';
-import ProductApi from '@/core/client/api/Product';
 import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import {
@@ -11,6 +10,7 @@ import {
   B17_RULE_VERSION,
   BUYBACK_RATE_PERCENT,
   BUYBACK_RULE_VERSION,
+  buybackMargin,
   buybackRateBps,
   MAX_ISSUE_QUANTITY,
   type BuybackEstimate,
@@ -18,36 +18,34 @@ import {
 } from '@/shared/buyback-pricing';
 import type { ProductSummary } from '@/shared/types/product';
 import { COLLECTIBLE_ASSET_FIELDS } from './CollectibleSubmissionForm';
+import CatalogCombobox from './CatalogCombobox';
 
 const CONFIRMATIONS = ['honest', 'issues', 'media', 'estimate', 'inspection', 'decision'] as const;
 const MAX_FILES = 12;
 
 // "Sell to Model Universe": choose the catalog model, declare its condition issue by issue, see the expected price
-// (30% / 20% / 17% of the shop's real selling price S, at least 100,000 VND, only for a matched model the shop sells new
-// declared without issues; anything else is priced by an admin), optionally choose a shop item to trade for, upload
-// photos and a video, confirm the terms, send.
+// (the shop's real selling price S minus its margin of 30% / 20% / 17% of S, at least 100,000 VND, only for a matched
+// model the shop sells new declared without issues; anything else is priced by an admin), on the trade page choose the
+// shop item to trade for, upload photos and a video, confirm the terms, send.
 // The server recomputes the estimate and checks the media.
 // `initialReference` / `initialTradeItem`: the catalogue model and the shop item chosen in QuickValuation.
 export default function BuybackSubmissionForm({
   onCreated,
   initialReference = null,
   initialTradeItem = null,
+  trade = false,
 }: {
   onCreated: (id: number) => Promise<void>;
+  // The trade page: the shop item to trade for is part of the request.
+  trade?: boolean;
   initialReference?: ProductSummary | null;
   initialTradeItem?: ProductSummary | null;
 }) {
   const t = useTranslations('buyback'),
     v2 = useTranslations('buybackV2'),
     catalog = useTranslations('catalog'),
-    common = useTranslations('common'),
-    locale = useLocale();
-  const money = (amount: number) => formatVND(amount, locale);
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<ProductSummary[]>([]);
-  const [reference, setReference] = useState<ProductSummary | null>(initialReference);
-  const [tradeQuery, setTradeQuery] = useState('');
-  const [tradeResults, setTradeResults] = useState<ProductSummary[]>([]);
+    common = useTranslations('common');
+  const [reference,setReference] = useState<ProductSummary | null>(initialReference);
   const [tradeItem, setTradeItem] = useState<ProductSummary | null>(initialTradeItem);
   const [issues, setIssues] = useState<BuybackIssue[]>([]);
   const [seriousDamage, setSeriousDamage] = useState(false);
@@ -57,30 +55,6 @@ export default function BuybackSubmissionForm({
   const [progress, setProgress] = useState('');
   const [busy, setBusy] = useState(false);
   const pending = useRef<{ digest: string; key: string } | undefined>(undefined);
-
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const timer = setTimeout(() => {
-      void ProductApi.getProducts({ q: query.trim(), per_page: 8 }).then((page) => setResults((page?.data || []).filter((row) => !row.partnerId)));
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  useEffect(() => {
-    if (tradeQuery.trim().length < 2) {
-      setTradeResults([]);
-      return;
-    }
-    const timer = setTimeout(() => {
-      void ProductApi.getProducts({ q: tradeQuery.trim(), per_page: 8 }).then((page) =>
-        setTradeResults((page?.data || []).filter((row) => !row.partnerId && row.stock > 0)),
-      );
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [tradeQuery]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -126,7 +100,7 @@ export default function BuybackSubmissionForm({
       declaredIssues: issues,
       referenceProductId: reference?.id ?? null,
       seriousDamage,
-      ...(tradeItem ? { tradeProductId: tradeItem.id } : {}),
+      ...(trade && tradeItem ? { tradeProductId: tradeItem.id } : {}),
       confirmations: true,
     };
     const digest = JSON.stringify(data);
@@ -144,43 +118,13 @@ export default function BuybackSubmissionForm({
 
   const photos = files.filter((file) => !file.video).length,
     videos = files.length - photos;
-  const ready = photos >= 3 && confirmed.length === CONFIRMATIONS.length;
+  const ready = photos >= 3 && confirmed.length === CONFIRMATIONS.length && (!trade || !!tradeItem);
   return (
     <form noValidate onSubmit={(event) => void submit(event)} className="mu-panel studio-intake mb-8 space-y-6 p-6">
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{v2('step1')}</h2>
-        <label className="mu-field">
-          {v2('catalogSearch')}
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={v2('catalogPlaceholder')} />
-        </label>
-        {reference ? (
-          <p className="text-sm">
-            {v2('catalogChosen', { name: reference.name, price: money(reference.price) })}{' '}
-            <button type="button" className="underline" onClick={() => setReference(null)}>
-              {v2('catalogClear')}
-            </button>
-          </p>
-        ) : (
-          <p className="mu-note">{v2('catalogHint')}</p>
-        )}
-        {!reference && results.length > 0 && (
-          <ul className="space-y-1 text-sm">
-            {results.map((row) => (
-              <li key={row.id}>
-                <button
-                  type="button"
-                  className="underline"
-                  onClick={() => {
-                    setReference(row);
-                    setQuery('');
-                  }}
-                >
-                  {row.name} · {money(row.price)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <CatalogCombobox label={v2('catalogSearch')} value={reference} onChange={setReference} />
+        {!reference && <p className="mu-note">{v2('catalogHint')}</p>}
         <div className="grid gap-4 md:grid-cols-2">
           {COLLECTIBLE_ASSET_FIELDS.map((key) => (
             <label className="mu-field" key={key}>
@@ -250,44 +194,14 @@ export default function BuybackSubmissionForm({
         {estimate && <EstimateCard estimate={estimate} />}
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold">{v2('trade.title')}</h2>
-        <p className="mu-note">{v2('trade.hint')}</p>
-        {tradeItem ? (
-          <p className="text-sm">
-            {v2('trade.chosen', { name: tradeItem.name, price: money(tradeItem.price) })}{' '}
-            <button type="button" className="underline" onClick={() => setTradeItem(null)}>
-              {v2('catalogClear')}
-            </button>
-          </p>
-        ) : (
-          <>
-            <label className="mu-field">
-              {v2('trade.search')}
-              <input value={tradeQuery} onChange={(event) => setTradeQuery(event.target.value)} />
-            </label>
-            {tradeResults.length > 0 && (
-              <ul className="space-y-1 text-sm">
-                {tradeResults.map((row) => (
-                  <li key={row.id}>
-                    <button
-                      type="button"
-                      className="underline"
-                      onClick={() => {
-                        setTradeItem(row);
-                        setTradeQuery('');
-                      }}
-                    >
-                      {row.name} · {money(row.price)}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        )}
-        {tradeItem && <p className="mu-note">{v2('trade.note')}</p>}
-      </section>
+      {trade && (
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold">{v2('trade.title')}</h2>
+          <p className="mu-note">{v2('trade.hint')}</p>
+          <CatalogCombobox label={v2('trade.search')} value={tradeItem} onChange={setTradeItem} showPrice inStockOnly />
+          {tradeItem && <p className="mu-note">{v2('trade.note')}</p>}
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-xl font-bold">{v2('step3')}</h2>
@@ -332,19 +246,20 @@ export default function BuybackSubmissionForm({
   );
 }
 
-// A request shows S and the rate of S it is bought at (30% / 20% / 17%, or 17% for one quoted under B17); a request
-// quoted under the former tier table keeps its deduction lines.
+// A request shows S and the shop's margin B (30% / 20% / 17% of S, at least 100,000) taken off it; one quoted under B17
+// shows the 17% of S it is bought at, and one quoted under the former tier table keeps its deduction lines.
 export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
   const v2 = useTranslations('buybackV2'),
     locale = useLocale();
   const money = (amount: number) => formatVND(amount, locale);
   const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION && estimate.ruleVersion !== B17_RULE_VERSION;
-  const ratePercent =
+  const reference = estimate.referencePriceVnd;
+  const rate =
     estimate.ruleVersion === B17_RULE_VERSION
-      ? BUYBACK_RATE_PERCENT
-      : estimate.referencePriceVnd
-        ? buybackRateBps(estimate.referencePriceVnd) / 100
-        : null;
+      ? `${BUYBACK_RATE_PERCENT}% × S`
+      : reference
+        ? `${buybackRateBps(reference) / 100}% × S: −${money(buybackMargin(reference))}`
+        : '—';
   return (
     <dl className="grid gap-1 rounded-md bg-gray-2 p-4 text-sm dark:bg-store-panel sm:grid-cols-2">
       <dt>{v2(legacy ? 'estimate.legacyReference' : 'estimate.reference')}</dt>
@@ -358,8 +273,8 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
         </>
       ) : (
         <>
-          <dt>{v2('estimate.rate')}</dt>
-          <dd>{ratePercent !== null ? `${ratePercent}% × S` : '—'}</dd>
+          <dt>{v2(estimate.ruleVersion === B17_RULE_VERSION ? 'estimate.b17Rate' : 'estimate.rate')}</dt>
+          <dd>{rate}</dd>
         </>
       )}
       <dt className="font-bold">{v2('estimate.total')}</dt>

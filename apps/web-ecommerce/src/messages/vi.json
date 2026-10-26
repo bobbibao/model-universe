@@ -245,8 +245,8 @@
     "title": "Dịch vụ sưu tầm",
     "subtitle": "Một nơi cho chương tiếp theo của bộ sưu tập.",
     "reservations": "Giữ hàng",
-    "buyback": "Bán cho shop",
-    "pawn": "Cầm mô hình",
+    "buyback": "Thu mua",
+    "pawn": "Cầm cố",
     "loyalty": "Thành viên",
     "partner": "Trở thành đối tác",
     "workspace": "Không gian sưu tầm của tôi",
@@ -254,11 +254,13 @@
     "openService": "Khám phá dịch vụ",
     "descriptions": {
       "reservations": "Giữ mô hình đã chọn theo thỏa thuận đặt cọc và nhận hàng. Theo dõi khoản thanh toán đã xác nhận và bàn giao trong khu vực giữ hàng.",
-      "buyback": "Chọn mẫu shop đang bán để xem giá thu và đổi hàng ngay trên web; hàng khác tình trạng mới gửi ảnh để shop báo giá.",
+      "buyback": "Chọn mẫu shop đang bán để xem giá thu ngay trên web; hàng khác tình trạng mới gửi ảnh để shop báo giá.",
       "pawn": "Xem giá cầm dự kiến (50% giá bán thực) cho mẫu shop đang bán; theo dõi thỏa thuận, lưu giữ và chuộc lại mô hình.",
       "loyalty": "Theo dõi điểm từ giao dịch đã xác nhận và hạng thành viên. Xem voucher, quà có tồn kho thật và yêu cầu ghi nhận giao dịch cũ.",
-      "partner": "Đăng ký với danh tính người bán và tài khoản ngân hàng tương ứng. Theo dõi xác minh, yêu cầu bổ sung và hạn mức bán đã xét duyệt."
-    }
+      "partner": "Đăng ký với danh tính người bán và tài khoản ngân hàng tương ứng. Theo dõi xác minh, yêu cầu bổ sung và hạn mức bán đã xét duyệt.",
+      "trade": "Đổi mô hình của bạn lấy món đang bán: chênh lệch = giá thành viên của món − giá thu mô hình của bạn."
+    },
+    "trade": "Trade (đổi hàng)"
   },
   "metadata": {
     "home": "Model Universe — Khám phá vũ trụ mô hình",
@@ -680,7 +682,8 @@
       "voucher": "Mã {code}",
       "rank": "Ưu đãi hạng {tier}",
       "shipDiscount": "Giảm phí vận chuyển",
-      "points": "Tích {points} điểm sau khi đơn hoàn tất và hết thời gian đổi trả"
+      "points": "Tích {points} điểm sau khi đơn hoàn tất và hết thời gian đổi trả",
+      "member": "Giá thành viên (−10%)"
     },
     "thanks": {
       "title": "Đặt hàng thành công!",
@@ -721,7 +724,8 @@
       "freeshipTerms": "Freeship tới {amount} · đơn từ {minimum}",
       "remove": "Bỏ",
       "hunt": "Săn thêm mã giảm giá & freeship",
-      "rank": "Ưu đãi hạng {tier}"
+      "rank": "Ưu đãi hạng {tier}",
+      "member": "Giá thành viên (−10%)"
     },
     "orderBenefits": {
       "voucher": "Mã giảm {code}",
@@ -731,7 +735,29 @@
       "upfront": "Cần chuyển khoản trước"
     },
     "savedLine": "Tiết kiệm {amount}",
-    "pointsLine": "tích {points} điểm"
+    "pointsLine": "tích {points} điểm",
+    "memberPrice": "Giá thành viên",
+    "listPrice": "Giá niêm yết",
+    "listSubtotal": "Tạm tính (giá niêm yết)",
+    "memberNotice": {
+      "applied": {
+        "title": "Bạn đang mua với giá thành viên",
+        "body": "Đã giảm {amount} so với giá niêm yết."
+      },
+      "pending": {
+        "title": "Đang áp dụng giá thành viên…",
+        "body": "Mã thành viên tháng này đang được áp vào đơn của bạn."
+      },
+      "other": {
+        "title": "Giá thành viên: tiết kiệm {amount}",
+        "body": "Chọn mã thành viên tháng này ở mục mã giảm giá để thanh toán theo giá thành viên."
+      },
+      "guest": {
+        "title": "Đăng nhập để mua với giá thành viên",
+        "body": "Thành viên được giảm 10%, tiết kiệm {amount} cho giỏ hàng này. Miễn phí đăng ký.",
+        "action": "Đăng nhập hoặc đăng ký"
+      }
+    }
   },
   "loyalty": {
     "title": "Tích lũy bộ sưu tập. Nhận thêm ưu đãi.",
@@ -1186,7 +1212,11 @@
     "historyDetails": "Xem báo giá và quyết định đã lưu",
     "paidByCustomer": "Đã nhận khoản chênh lệch",
     "tradeSettlementNote": "Ghi nhận khoản chênh lệch D đúng số đã chấp nhận (0 nếu ngang giá) và bàn giao món đổi; món đổi được trừ khỏi kho.",
-    "backToValuation": "Quay lại định giá nhanh"
+    "backToValuation": "Quay lại định giá nhanh",
+    "tradeTitle": "Đổi mô hình, nhận ngay món bạn muốn.",
+    "tradeEmpty": "Các yêu cầu đổi hàng của bạn sẽ xuất hiện tại đây.",
+    "requestTitle": "Thông tin mô hình gửi shop",
+    "requestClose": "Đóng"
   },
   "pawn": {
     "title": "Giữ bộ sưu tập. Mở giá trị mô hình.",
@@ -2261,17 +2291,19 @@
     "operations": "Điều hành dịch vụ",
     "serviceNames": {
       "reserve": "Giữ hàng",
-      "sell": "Bán cho shop",
-      "pawn": "Cầm & lưu giữ",
+      "sell": "Thu mua",
+      "pawn": "Cầm cố",
       "loyalty": "Hội sưu tập",
-      "partner": "Trở thành đối tác"
+      "partner": "Trở thành đối tác",
+      "trade": "Trade"
     },
     "serviceSummary": {
       "reserve": "Chọn mô hình. Theo dõi tiền đã xác nhận. Hẹn giao hoặc nhận hàng.",
-      "sell": "Chọn mẫu, xem ngay giá thu và chênh lệch đổi hàng cho hàng mới.",
+      "sell": "Chọn mẫu bạn có, xem ngay giá shop thu cho hàng mới.",
       "pawn": "Chọn mẫu, xem giá cầm dự kiến bằng 50% giá bán thực.",
       "loyalty": "Bộ sưu tập, điểm thưởng của bạn. Khám phá những phần quà đủ điều kiện.",
-      "partner": "Đưa mô hình của bạn lên marketplace. Bắt đầu với hồ sơ được xác minh."
+      "partner": "Đưa mô hình của bạn lên marketplace. Bắt đầu với hồ sơ được xác minh.",
+      "trade": "Đổi mô hình của bạn lấy món đang bán, xem ngay phần chênh lệch theo giá thành viên."
     },
     "serviceTerms": "Cách hoạt động · điều kiện & lưu ý quan trọng",
     "emptyTitle": "Sẵn sàng cho hành trình mới?",
@@ -2936,9 +2968,10 @@
         "issues_declared": "Có lỗi hoặc thiếu phụ kiện: Admin xem và báo giá riêng, không trừ tự động.",
         "price_too_low": "Giá bán thực từ 100.000đ trở xuống hoặc giá thu tối thiểu không thấp hơn giá bán: Admin định giá."
       },
-      "note": "Giá dự kiến CHƯA CHỐT theo 3 mức (30% đến 500.000đ, 20% đến 1.150.000đ, 17% trên đó, tối thiểu 100.000đ). Giá chính thức chỉ có sau khi shop kiểm tra hàng thực tế.",
+      "note": "Giá thu dự kiến CHƯA CHỐT = giá bán thực S − tiền lời của shop B (30% S đến 500.000đ, 20% đến 1.150.000đ, 17% trên đó, tối thiểu 100.000đ). Giá chính thức chỉ có sau khi shop kiểm tra hàng thực tế.",
       "legacyReference": "Giá bán thực tham chiếu (giá thành viên)",
-      "rate": "Tỷ lệ thu"
+      "rate": "Tiền lời của shop (B)",
+      "b17Rate": "Tỷ lệ thu (B17)"
     },
     "issueTypes": {
       "missing_box": "Thiếu hộp gốc",

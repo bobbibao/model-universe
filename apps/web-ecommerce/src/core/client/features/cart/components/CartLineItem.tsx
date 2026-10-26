@@ -7,6 +7,7 @@ import ProductImage from '@/components/ProductImage';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { CartEntry, useCart } from '@/shared/client/providers/CartProvider';
 import { formatVND } from '@/shared/server/utils/utils';
+import { memberPrice } from '@/shared/pricing';
 
 const CartLineItem = ({ entry }: { entry: CartEntry }) => {
   const t = useTranslations('checkout'),
@@ -19,6 +20,9 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
   const name = product?.name || item.name;
   // The server quote's effective price (after any running discount); the stored snapshot until it arrives.
   const price = product?.salePrice ?? item.price;
+  // A shop item outside a sale shows its member price S (R with the member code) first, R struck (owner rule of
+  // 2026-10-26); the code itself is applied in the summary.
+  const member = !!product && !product.partnerId && !(product.discountPercent > 0 && product.salePrice < product.price);
   const status = line?.status;
   const unavailable = status === 'UNAVAILABLE' || status === 'OUT_OF_STOCK';
   const maxQuantity = line && line.availableStock > 0 ? line.availableStock : item.quantity;
@@ -79,9 +83,20 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
           </button>
         </div>
       </div>
-      <div className="cart-line-total">
-        <p className={unavailable ? 'line-through' : ''}>{formatVND(price * item.quantity, locale)}</p>
-        <span>{t('unitPrice', { price: formatVND(price, locale) })}</span>
+      <div className={`cart-line-total${member ? ' is-member' : ''}`}>
+        {member ? (
+          <>
+            <span className="cart-line-member-badge">{t('memberPrice')}</span>
+            <p className={unavailable ? 'line-through' : ''}>{formatVND(memberPrice(price) * item.quantity, locale)}</p>
+            <s aria-label={t('listPrice')}>{formatVND(price * item.quantity, locale)}</s>
+            <span>{t('unitPrice', { price: formatVND(memberPrice(price), locale) })}</span>
+          </>
+        ) : (
+          <>
+            <p className={unavailable ? 'line-through' : ''}>{formatVND(price * item.quantity, locale)}</p>
+            <span>{t('unitPrice', { price: formatVND(price, locale) })}</span>
+          </>
+        )}
       </div>
     </article>
   );

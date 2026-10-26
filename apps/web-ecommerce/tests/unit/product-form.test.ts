@@ -100,7 +100,7 @@ describe('product form numeric and inherited data contracts', () => {
       '/uploads/model.webp',
       [],
     );
-    expect(payload).toMatchObject({ pricingReferenceMemberVnd: 1_100_000, buybackPriceVnd: 220_000 });
+    expect(payload).toMatchObject({ pricingReferenceMemberVnd: 1_100_000, buybackPriceVnd: 880_000 });
     expect(payload).not.toHaveProperty('price');
     expect(payload).not.toHaveProperty('pricingIssueCount');
   });

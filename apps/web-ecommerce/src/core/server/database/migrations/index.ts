@@ -1312,4 +1312,40 @@ export const MIGRATIONS: Migration[] = [
       await ensureColumns(context.sequelize.getQueryInterface(), PawnContractModel, ['referenceProductId', 'webQuote']);
     },
   },
+  {
+    name: '2026-10-26-52-buyback-price-is-s-minus-margin',
+    up: async ({ context }) => {
+      // The workbook's "Giá lời B" (30% / 20% / 17% of S, at least 100,000) is the shop's margin, not the price paid:
+      // the buyback price is S − B (its column H). Migration 50 stored B as the buyback price; this stores S − B.
+      // Running it again changes nothing.
+      const { sequelize } = context;
+      await sequelize.transaction(async (transaction) => {
+        const products = await ProductModel.findAll({
+          attributes: ['id', 'pricingReferenceMemberVnd', 'buybackPriceVnd'],
+          where: { partnerId: null },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        for (const product of products) {
+          const target = product.pricingReferenceMemberVnd;
+          if (!target || target < 1) continue;
+          const buybackPriceVnd = catalogPricing(target).buybackPriceVnd;
+          if (product.buybackPriceVnd === buybackPriceVnd) continue;
+          const oldValue = { buybackPriceVnd: product.buybackPriceVnd };
+          await product.update({ buybackPriceVnd }, { transaction });
+          await PromotionAuditModel.create(
+            {
+              actorUserId: null,
+              entityType: 'product_pricing',
+              entityId: product.id,
+              action: 'buyback_margin_rule',
+              oldValue,
+              newValue: { referenceMemberVnd: target, buybackPriceVnd },
+            },
+            { transaction },
+          );
+        }
+      });
+    },
+  },
 ];

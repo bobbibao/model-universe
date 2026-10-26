@@ -5,7 +5,7 @@ import {
   weeklySalePercent,
   vietnamWeekStart,
 } from '../../src/shared/sale-pricing';
-import { memberPrice } from '../../src/shared/pricing';
+import { isMemberCode, memberPrice } from '../../src/shared/pricing';
 import { couponDiscount } from '../../src/core/server/services/CouponService';
 import { applyDiscount } from '../../src/core/server/services/ProductDiscountService';
 
@@ -34,13 +34,15 @@ describe('shop sale and catalog pricing', () => {
     expect(catalogPricing(1_100_000)).toEqual({
       referenceMemberVnd: 1_100_000,
       listPriceVnd: 1_222_222,
-      buybackPriceVnd: 220_000,
+      buybackMarginVnd: 220_000,
+      buybackPriceVnd: 880_000,
       pawnPriceVnd: 550_000,
     });
     expect(catalogPricing(2_500_000)).toEqual({
       referenceMemberVnd: 2_500_000,
       listPriceVnd: 2_777_778,
-      buybackPriceVnd: 425_000,
+      buybackMarginVnd: 425_000,
+      buybackPriceVnd: 2_075_000,
       pawnPriceVnd: 1_250_000,
     });
     expect(catalogPricing(500_001).pawnPriceVnd).toBe(250_001);
@@ -81,5 +83,13 @@ describe('shop sale and catalog pricing', () => {
     expect(couponDiscount(member, [line])).toBe(85_000);
     expect(() => couponDiscount(member, [{ ...line, salePrice: 750_000 }])).toThrow();
     expect(() => couponDiscount({ source: 'admin', discountPercent: 25 }, [line])).toThrow();
+  });
+});
+
+describe('member code', () => {
+  it("recognises a member's monthly code only", () => {
+    expect(isMemberCode('M2610-12')).toBe(true);
+    for (const code of ['MEMBER-MONTHLY', 'FREESHIP30', 'M261-12', 'XM2610-12', '', null, undefined])
+      expect(isMemberCode(code)).toBe(false);
   });
 });

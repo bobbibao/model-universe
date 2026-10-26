@@ -1,21 +1,24 @@
-// Buyback pricing (owner rule of 2026-10-26, docs/business/source/vi/three-prices-specification.md): the expected buyback
-// price B of one unit follows the shop's real selling price S of the same SKU and version by three rates,
-// B = MAX(100,000, ROUND(S × r)) with r = 30% for S ≤ 500,000, 20% for 500,000 < S ≤ 1,150,000 and 17% above. The steps
-// at 500,001 and 1,150,001 (B drops although S rises) are the owner's choice, not smoothed. B is offered only for a
-// matched SKU with an approved S, an item declared new without any issue, S above 100,000 and B below S; anything else
-// goes to an admin, who prices it (no deduction per issue). Shared by the server (it recomputes every amount) and the
-// client (it shows the estimate). Whole VND integers only.
+// Buyback pricing (owner rule of 2026-10-26, docs/business/source/vi/three-prices-specification.md and the workbook
+// "Danh mục 6 hãng", columns H/I/J): the shop keeps a margin of the real selling price S of the same SKU and version,
+// "Giá lời B" = MAX(100,000, ROUND(S × r)) with r = 30% for S ≤ 500,000, 20% for 500,000 < S ≤ 1,150,000 and 17% above,
+// and pays the customer the rest: the buyback price = S − margin (the workbook's H = S − B). The steps at 500,001 and
+// 1,150,001 are the owner's choice, not smoothed. The price is offered only for a matched SKU with an approved S, an
+// item declared new without any issue, S above 100,000 and a margin below S; anything else goes to an admin, who prices
+// it (no deduction per issue). Shared by the server (it recomputes every amount) and the client (it shows the
+// estimate). Whole VND integers only.
 //
 // Requests quoted earlier keep the rule they were quoted with: B17 (17% of S, 2026-10-25) or the tier table of the
-// unified rules v5.0.
+// unified rules v5.0. A request quoted on 2026-10-26 under "buyback-tiers" (the margin shown as the price by mistake)
+// is quoted again under this rule.
 
-export const BUYBACK_RULE_VERSION = 'buyback-tiers-2026-10-26';
+export const BUYBACK_RULE_VERSION = 'buyback-margin-2026-10-26';
+export const MISREAD_BUYBACK_RULE_VERSION = 'buyback-tiers-2026-10-26';
 export const BUYBACK_TIERS_BPS: readonly { maxTargetVnd: number; bps: number }[] = [
   { maxTargetVnd: 500_000, bps: 3000 },
   { maxTargetVnd: 1_150_000, bps: 2000 },
   { maxTargetVnd: Number.MAX_SAFE_INTEGER, bps: 1700 },
 ];
-export const MIN_BUYBACK_VND = 100_000;
+export const MIN_MARGIN_VND = 100_000;
 // The rule of 2026-10-25: 17% of S. Only for requests quoted under it.
 export const B17_RULE_VERSION = 'buyback-17';
 export const BUYBACK_RATE_PERCENT = 17;
@@ -23,13 +26,16 @@ export const BUYBACK_RATE_PERCENT = 17;
 export const LEGACY_BUYBACK_RULE_VERSION = 'buyback-5.0';
 export const DEDUCTION_PER_ISSUE_VND = 50_000;
 
-// The rate of S paid for a unit, in basis points (3000 = 30%).
+// The shop's margin rate of S, in basis points (3000 = 30%).
 export const buybackRateBps = (targetPriceVnd: number): number =>
   BUYBACK_TIERS_BPS.find((tier) => targetPriceVnd <= tier.maxTargetVnd)!.bps;
 
-// B = MAX(100,000, ROUND(S × r)), half up on integers: S 500,000 gives 150,000; S 500,001 gives 100,000.
-export const tierBuyback = (targetPriceVnd: number): number =>
-  Math.max(MIN_BUYBACK_VND, Math.floor((targetPriceVnd * buybackRateBps(targetPriceVnd) * 2 + 10_000) / 20_000));
+// The shop's margin "Giá lời B" = MAX(100,000, ROUND(S × r)), half up: S 500,000 gives 150,000; 500,001 gives 100,000.
+export const buybackMargin = (targetPriceVnd: number): number =>
+  Math.max(MIN_MARGIN_VND, Math.floor((targetPriceVnd * buybackRateBps(targetPriceVnd) * 2 + 10_000) / 20_000));
+
+// The buyback price paid to the customer: S − margin (S 2,500,000 gives 2,075,000; S 500,001 gives 400,001).
+export const tierBuyback = (targetPriceVnd: number): number => targetPriceVnd - buybackMargin(targetPriceVnd);
 
 // B17 = ROUND(0.17 × S): the rule of 2026-10-25, for requests quoted under it.
 export const b17 = (targetPriceVnd: number): number =>
@@ -122,7 +128,11 @@ export const estimateBuyback = (
   } = {},
 ): BuybackEstimate => {
   if (options.quoted?.ruleVersion === B17_RULE_VERSION) return estimateB17(referencePriceVnd, issues, options);
-  if (options.quoted?.ruleVersion && options.quoted.ruleVersion !== BUYBACK_RULE_VERSION)
+  if (
+    options.quoted?.ruleVersion &&
+    options.quoted.ruleVersion !== BUYBACK_RULE_VERSION &&
+    options.quoted.ruleVersion !== MISREAD_BUYBACK_RULE_VERSION
+  )
     return estimateLegacyBuyback(referencePriceVnd, issues, options);
   const issueCount = countIssues(issues);
   const common = {
@@ -137,10 +147,10 @@ export const estimateBuyback = (
   if (!options.approved) return { ...common, estimateVnd: null, manualReview: 'reference_not_approved' };
   if (options.seriousDamage) return { ...common, estimateVnd: null, manualReview: 'serious_damage' };
   if (issueCount > 0) return { ...common, estimateVnd: null, manualReview: 'issues_declared' };
-  const estimateVnd = tierBuyback(common.referencePriceVnd);
-  // S ≤ 100,000 or B ≥ S: the minimum price would pay as much as the shop sells for.
-  if (common.referencePriceVnd <= MIN_BUYBACK_VND || estimateVnd >= common.referencePriceVnd)
+  // S ≤ 100,000 or a margin ≥ S: nothing would be left to pay.
+  if (common.referencePriceVnd <= MIN_MARGIN_VND || buybackMargin(common.referencePriceVnd) >= common.referencePriceVnd)
     return { ...common, estimateVnd: null, manualReview: 'price_too_low' };
+  const estimateVnd = tierBuyback(common.referencePriceVnd);
   return { ...common, estimateVnd, manualReview: null };
 };
 
@@ -252,18 +262,19 @@ export const tradeDifference = (itemPriceVnd: number, buybackVnd: number | null)
     ? { differenceVnd: null, status: 'incomplete' as const }
     : { differenceVnd: itemPriceVnd - buybackVnd, status: 'ready' as const };
 
-// The selling prices S whose buyback price is a known B: in each rate band, the smallest S of that band with
-// tierBuyback(S) = B (B above the 100,000 minimum only), lowest first. A proposal for staff: S is still approved on its
-// own merits (cost, market, margin).
+// The real selling prices S whose buyback price is a known amount: in each rate band, the smallest S of that band with
+// tierBuyback(S) = amount, lowest first. A proposal for staff: S is still approved on its own merits.
 export const resaleCandidates = (buybackVnd: number): { sellingPriceVnd: number; baseDeductionVnd: number }[] => {
-  if (!Number.isSafeInteger(buybackVnd) || buybackVnd <= MIN_BUYBACK_VND) return [];
+  if (!Number.isSafeInteger(buybackVnd) || buybackVnd < 1) return [];
   const candidates: { sellingPriceVnd: number; baseDeductionVnd: number }[] = [];
   let lower = 0;
   for (const tier of BUYBACK_TIERS_BPS) {
-    // ROUND(S × r) ≥ B exactly when S × r ≥ B − 0.5.
-    const selling = Math.max(lower + 1, Math.ceil(((buybackVnd * 2 - 1) * 10_000) / (tier.bps * 2)));
-    if (selling <= tier.maxTargetVnd && tierBuyback(selling) === buybackVnd)
-      candidates.push({ sellingPriceVnd: selling, baseDeductionVnd: selling - buybackVnd });
+    // S − ROUND(S × r) = amount near S = amount / (1 − r); with the 100,000 minimum, S = amount + 100,000.
+    const near = Math.floor((buybackVnd * 10_000) / (10_000 - tier.bps));
+    const guesses = [buybackVnd + MIN_MARGIN_VND, ...[-2, -1, 0, 1, 2].map((delta) => near + delta)]
+      .filter((selling) => selling > lower && selling <= tier.maxTargetVnd && tierBuyback(selling) === buybackVnd)
+      .sort((a, b) => a - b);
+    if (guesses.length) candidates.push({ sellingPriceVnd: guesses[0], baseDeductionVnd: guesses[0] - buybackVnd });
     lower = tier.maxTargetVnd;
   }
   return candidates;

@@ -20,15 +20,19 @@ shop records the unboxing, inspects, and the customer accepts, asks for a re-ins
   member code MEMBER10 takes 10% off R and gives back exactly S (`memberPrice(R) = S` for every whole S, tested). Every
   product shows R struck through and S highlighted as the member price; signed-in customers get this month's member code
   claimed and applied in their cart.
-- **B** – the buyback price, `B = MAX(100,000, ROUND(S × r))` with r = 30% for S ≤ 500,000, 20% for
-  500,000 < S ≤ 1,150,000 and 17% above (`tierBuyback`, `src/shared/buyback-pricing.ts`). The steps at 500,001 and
-  1,150,001 (B drops although S rises) are the owner's choice. Examples: 500,000 → 150,000; 500,001 → 100,000;
-  1,150,000 → 230,000; 1,150,001 → 195,500; 2,000,000 → 340,000; 2,500,000 → 425,000; 5,000,000 → 850,000.
+- **B** – the shop's margin on a buyback (the workbook's "Giá lời B"), `B = MAX(100,000, ROUND(S × r))` with r = 30%
+  for S ≤ 500,000, 20% for 500,000 < S ≤ 1,150,000 and 17% above (`buybackMargin`, `src/shared/buyback-pricing.ts`).
+- **Buyback price** = `S − B` (the workbook's column H; `tierBuyback`). The steps at 500,001 and 1,150,001 (B drops
+  although S rises, so the price jumps) are the owner's choice. Examples (S → B → price): 500,000 → 150,000 → 350,000;
+  500,001 → 100,000 → 400,001; 1,150,000 → 230,000 → 920,000; 1,150,001 → 195,500 → 954,501; 2,000,000 → 340,000 →
+  1,660,000; 2,500,000 → 425,000 → 2,075,000; 5,000,000 → 850,000 → 4,150,000. The web showed B as the price until
+  2026-10-26 (rule `buyback-tiers-2026-10-26`, a misreading of the workbook); requests quoted under it are quoted again
+  under `buyback-margin-2026-10-26`, and migration 52 recomputed the stored buyback prices.
 - **C50** – the pawn amount, `C50 = ROUND(S × 50%)` (`pawnC50`, `src/shared/pawn-rules.ts`), no minimum
   (500,001 → 250,001). The 0.3% a day compound interest is shown only as a simulation (`simulatePawnOwed`); nothing is
   charged until legal review (LEGAL_REVIEW_REQUIRED).
 - **H** – the recorded buy-in, reconciled with receipts before it counts as cost. It is never recalculated from B or S
-  (the workbook of 26/10 shows H = S − B; those values were not imported).
+  (the workbook of 26/10 fills H with the buyback price S − B; those values were not imported as cost).
 
 Deviation from the specification, by the owner's instruction of 2026-10-26 ("the owner only enters S; everything else
 follows by formula"): S counts as approved when entered, so web prices and quotes are public without a separate
@@ -36,17 +40,20 @@ approval step (the workbook marks every row "CHỜ DUYỆT").
 
 ## Quick valuation and estimates
 
-The services pages (sell/trade and pawn) open with a quick valuation (`QuickValuation`, `GET /api/valuation/:id`,
-signed-in): the customer picks a model the shop sells and confirms the unit is new, the same model and version, with its
-box and accessories and without defects; they see B, C50 with the interest simulation, and for a trade the difference
-against any shop item. B is offered only for a catalogue model in the "new" condition with an approved S, no declared
-issue, S > 100,000 and B < S; otherwise `manualReview` (`no_reference_price`, `reference_not_approved`,
+The service tabs are Buyback (`/services/sell`), Trade (`/services/trade`), Pawn (`/services/pawn`) and Become a
+partner; reserve is no longer offered. Each of the first three opens with its own quick valuation (`QuickValuation`,
+`GET /api/valuation/:id`, signed-in): the customer chooses a model the shop sells from a list that opens with popular
+models and filters as they type (`CatalogCombobox`), confirms the unit is new, the same model and version, with its box
+and accessories and without defects, and sees that page's figure only: the buyback price S − B, the pawn amount C50 with
+the interest simulation, or the trade difference against a shop item at its member price. The request form then opens
+below the valuation. The buyback price is offered only for a catalogue model in the "new" condition with an approved
+S, no declared issue, S > 100,000 and B < S; otherwise `manualReview` (`no_reference_price`, `reference_not_approved`,
 `price_too_low`, `issues_declared`, `serious_damage`) and an admin prices it. Any other unit (used, incomplete, faulty,
-or a model the shop does not sell) is sent with photos and a video for the shop to quote. Any amount other than B is a
-manual price with its reason, which the customer must accept.
+or a model the shop does not sell) is sent with photos and a video for the shop to quote. Any amount other than S − B is
+a manual price with its reason, which the customer must accept.
 
 Requests quoted under an earlier rule keep it to the end (no retroactive change): B17 (`buyback-17`) or the v5.0 tier
-table. Code: `src/shared/buyback-pricing.ts` (`BUYBACK_RULE_VERSION = buyback-tiers-2026-10-26`),
+table. Code: `src/shared/buyback-pricing.ts` (`BUYBACK_RULE_VERSION = buyback-margin-2026-10-26`),
 `src/shared/sale-pricing.ts` (`catalogPricing(S)`), `src/core/server/services/ValuationService.ts`; tests
 `tests/unit/buyback-pricing.test.ts`, `tests/unit/pawn-quote.test.ts`, `tests/unit/sale-pricing.test.ts`,
 `tests/db/valuation.test.ts`, `tests/db/buyback.test.ts`.
@@ -101,7 +108,7 @@ A bought-back unit is listed only after the sixteen checks QC01–QC16 of the sp
 
 ## Not implemented / open
 
-- The rate (17%) and rounding are code constants, not an admin-editable `pricing_rules` table; changing them is a code
+- The margin rates (30% / 20% / 17%), the 100,000 minimum and rounding are code constants, not an admin-editable `pricing_rules` table; changing them is a code
   change with tests.
 - Staff permissions are the single ADMIN role; the specification's separate inspector, publisher and cashier roles are
   not modelled (the second-admin rule applies to R approvals only).

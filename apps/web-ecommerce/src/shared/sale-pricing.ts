@@ -1,5 +1,5 @@
 import { evaluateVoucher, memberPrice, listPriceForMemberPrice, webListPrice } from './pricing';
-import { baseDeduction, DEDUCTION_PER_ISSUE_VND, tierBuyback } from './buyback-pricing';
+import { baseDeduction, buybackMargin, DEDUCTION_PER_ISSUE_VND, tierBuyback } from './buyback-pricing';
 import { pawnC50 } from './pawn-rules';
 
 // The former catalogue formula (v5.0): B = S − tier deduction − 50,000 × issues, R = S ÷ 0.9. Superseded on 2026-10-25;
@@ -24,7 +24,7 @@ export function legacyCatalogFormula(referenceMemberVnd: number, ordinaryIssueCo
 // Catalogue prices (owner rule of 2026-10-26, docs/business/source/vi/three-prices-specification.md): the shop enters only
 // the real selling price S; everything else follows it:
 // - R = ROUND(S / 0.9), the web list price; the member code MEMBER10 takes 10% off R and gives back exactly S;
-// - B = the buyback price by the three rates (buyback-pricing.ts);
+// - the shop's margin "Giá lời B" by the three rates and the buyback price S − B (buyback-pricing.ts);
 // - C50 = ROUND(S × 50%), the expected pawn amount (pawn-rules.ts).
 export const CATALOG_MAX_REFERENCE_VND = 1_000_000_000;
 export function catalogPricing(targetPriceVnd: number) {
@@ -33,6 +33,7 @@ export function catalogPricing(targetPriceVnd: number) {
   return {
     referenceMemberVnd: targetPriceVnd,
     listPriceVnd: webListPrice(targetPriceVnd),
+    buybackMarginVnd: buybackMargin(targetPriceVnd),
     buybackPriceVnd: tierBuyback(targetPriceVnd),
     pawnPriceVnd: pawnC50(targetPriceVnd),
   };

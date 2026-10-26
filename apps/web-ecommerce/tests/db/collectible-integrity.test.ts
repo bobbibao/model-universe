@@ -53,8 +53,8 @@ describe('unique collectible and marketplace checkout integrity', () => {
       pricingIssueCount: 0,
       expectedPrice: body.price,
     });
-    // Owner rule of 2026-10-26: R = ROUND(S / 0.9) is the price; B = 30% of S (S ≤ 500,000), at least 100,000.
-    expect(await used.reload()).toMatchObject({ price: 210000, buybackPriceVnd: 100000, listPriceVerified: true });
+    // Owner rule of 2026-10-26: R = ROUND(S / 0.9) is the price; buyback = S − margin (30% of S, at least 100,000).
+    expect(await used.reload()).toMatchObject({ price: 210000, buybackPriceVnd: 89000, listPriceVerified: true });
   });
   it('checks distinct actual view URLs on both creates and updates with omitted condition', async () => {
     const catalog = new ProductService(), body = await catalog.getAdminById(used.id);

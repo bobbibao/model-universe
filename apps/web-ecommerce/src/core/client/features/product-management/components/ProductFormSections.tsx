@@ -216,11 +216,16 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
       note: en ? 'Shown struck through; members pay S with MEMBER10' : 'Hiện gạch ngang; thành viên trả S với MEMBER10',
     },
     {
-      label: en ? `Buyback price B${rate ? ` = ${rate}% × S` : ''}` : `Giá thu B${rate ? ` = ${rate}% × S` : ''}`,
-      value: result?.buybackPriceVnd,
+      label: en ? `Shop margin B${rate ? ` = ${rate}% × S` : ''}` : `Giá lời B${rate ? ` = ${rate}% × S` : ''}`,
+      value: result?.buybackMarginVnd,
       note: en
         ? '30% to 500k, 20% to 1.15M, 17% above; at least 100k'
         : '30% đến 500k, 20% đến 1,15tr, 17% trên đó; tối thiểu 100k',
+    },
+    {
+      label: en ? 'Buyback price = S − B' : 'Giá thu = S − B',
+      value: result?.buybackPriceVnd,
+      note: en ? 'Paid for a new unit of this model' : 'Trả khách cho hàng mới đúng mẫu',
     },
     {
       label: en ? 'Pawn amount C50 = 50% × S' : 'Giá cầm C50 = 50% × S',
@@ -268,7 +273,7 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
         <p className="text-sm font-semibold">
           {en ? 'Calculated from S · cannot be edited' : 'Tự tính từ S · không nhập đè'}
         </p>
-        <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {outputs.map((output) => (
             <div key={output.label}>
               <dt className="text-xs text-body">{output.label}</dt>

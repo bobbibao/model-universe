@@ -25,6 +25,10 @@ const ceilDiv = (numerator: number, denominator: number) => Math.floor((numerato
 export const memberPrice = (listPriceVnd: number, percent = STANDARD_MEMBER_PERCENT): number =>
   listPriceVnd - roundDiv(listPriceVnd * percent, 100);
 
+// This month's member code of one member (`M<yymm>-<user id>`, VoucherService.claimMonthly): the code that gives the
+// member price, so the cart and checkout can name it as such.
+export const isMemberCode = (code: string | null | undefined): boolean => !!code && /^M\d{4}-\d+$/.test(code);
+
 // The web list price R = ROUND(S / 0.9) of a real selling price S (owner rule of 2026-10-26). Its member price is
 // exactly S for every whole S (memberPrice(webListPrice(S)) === S).
 export const webListPrice = (sellingPriceVnd: number): number => roundDiv(sellingPriceVnd * 10, 9);

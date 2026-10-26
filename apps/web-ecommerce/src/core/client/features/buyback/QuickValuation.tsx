@@ -4,17 +4,26 @@ import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
 import Api from '@/core/client/api/Api';
-import ProductApi from '@/core/client/api/Product';
-import ProductImage from '@/components/ProductImage';
 import { formatVND } from '@/shared/server/utils/utils';
 import { memberPrice } from '@/shared/pricing';
 import type { BuybackEstimate } from '@/shared/buyback-pricing';
 import type { PawnEstimate } from '@/shared/pawn-rules';
 import type { ProductSummary } from '@/shared/types/product';
+import CatalogCombobox from './CatalogCombobox';
 import './quick-valuation.css';
 
+export type ValuationFocus = 'sell' | 'trade' | 'pawn';
+
 interface Valuation {
-  product: { id: number; name: string; sku: string; imageUrl: string; brandName: string; memberPriceVnd: number };
+  product: {
+    id: number;
+    name: string;
+    sku: string;
+    imageUrl: string;
+    brandName: string;
+    listPriceVnd: number;
+    memberPriceVnd: number;
+  };
   buyback: BuybackEstimate;
   pawn: PawnEstimate & { simulation: { days: number; owedVnd: number }[] };
 }
@@ -24,72 +33,18 @@ export type ValuationRequest =
   | { kind: 'trade'; product: ProductSummary; tradeItem: ProductSummary }
   | { kind: 'manual' };
 
-// Search the shop's own catalogue (main listings the shop sells).
-function CatalogSearch({ label, onPick }: { label: string; onPick: (product: ProductSummary) => void }) {
-  const en = useLocale() === 'en';
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<ProductSummary[]>([]);
-  useEffect(() => {
-    if (query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const timer = setTimeout(() => {
-      void ProductApi.getProducts({ q: query.trim(), per_page: 8 }).then((page) =>
-        setResults((page?.data || []).filter((row) => !row.partnerId)),
-      );
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [query]);
-  return (
-    <div className="qv-search">
-      <label className="mu-field">
-        {label}
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={en ? 'Kit code, name or brand…' : 'Mã kit, tên mẫu hoặc hãng…'}
-        />
-      </label>
-      {results.length > 0 && (
-        <ul className="qv-results">
-          {results.map((row) => (
-            <li key={row.id}>
-              <button
-                type="button"
-                onClick={() => {
-                  onPick(row);
-                  setQuery('');
-                }}
-              >
-                <span className="qv-thumb">
-                  <ProductImage src={row.imageUrl} alt="" sizes="48px" className="object-contain" />
-                </span>
-                <span>
-                  <strong>{row.name}</strong>
-                  <small>{row.brandName}</small>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-// The quick valuation of the services (owner rule of 2026-10-26): the customer picks a model the shop sells, confirms
-// their unit is new like the shop's, and sees the buyback price B, the pawn amount C50 (interest only simulated until
-// legal review) and, for a trade, the difference D against a shop item at its member price. Anything else (another
-// condition, a model the shop does not sell) is sent with photos for the shop to price.
+// The quick valuation of one service page (owner rule of 2026-10-26): the customer chooses a model the shop sells,
+// confirms their unit is new like the shop's, and sees this page's price only: the buyback price (S minus the shop's
+// margin), the pawn amount C50 (interest only simulated until legal review) or the trade difference against a shop item
+// at its member price. Anything else (another condition, a model the shop does not sell) is sent with photos.
 export default function QuickValuation({
   focus,
   onRequest,
   initialProductId = null,
 }: {
-  focus: 'sell' | 'pawn';
+  focus: ValuationFocus;
   onRequest: (request: ValuationRequest) => void;
-  // A model chosen on the other service page (?mau=<id>).
+  // A model chosen on another service page (?mau=<id>).
   initialProductId?: number | null;
 }) {
   const locale = useLocale(),
@@ -105,7 +60,7 @@ export default function QuickValuation({
     if (!initialProductId) return;
     let active = true;
     Api.get(`/valuation/${initialProductId}`)
-      .then(({ data }: { data: Valuation & { product: { listPriceVnd: number } } }) => {
+      .then(({ data }: { data: Valuation }) => {
         if (active)
           setProduct({
             id: data.product.id,
@@ -140,182 +95,200 @@ export default function QuickValuation({
   // As the server quotes it: the shop item at its member price (R with MEMBER10).
   const tradePrice = tradeItem ? memberPrice(tradeItem.price) : null;
   const difference = tradePrice !== null && buyback !== null ? tradePrice - buyback : null;
-  const reviewText = en
-    ? 'This model needs the shop to look at it: send its photos and the shop will quote it.'
-    : 'Mẫu này cần shop xem trực tiếp: gửi ảnh để shop báo giá.';
+  const amount = focus === 'pawn' ? pawn : focus === 'sell' ? buyback : difference;
+  const needsShop = !!valuation && (focus === 'pawn' ? pawn === null : buyback === null);
+  const ready = !!valuation && confirmedNew && amount !== null;
+
+  const copy = {
+    sell: {
+      kicker: en ? 'Buyback · quick valuation' : 'Thu mua · định giá nhanh',
+      title: en ? 'What will the shop pay for your model?' : 'Shop thu mô hình của bạn giá bao nhiêu?',
+      result: en ? 'Expected buyback price' : 'Giá thu dự kiến',
+      action: en ? 'Request the buyback' : 'Gửi yêu cầu thu mua',
+    },
+    trade: {
+      kicker: en ? 'Trade · quick valuation' : 'Trade · định giá nhanh',
+      title: en ? 'Trade your model for one from the shop' : 'Đổi mô hình của bạn lấy món của shop',
+      result: en ? 'Difference' : 'Chênh lệch',
+      action: en ? 'Request this trade' : 'Gửi yêu cầu đổi hàng',
+    },
+    pawn: {
+      kicker: en ? 'Pawn · quick valuation' : 'Cầm cố · định giá nhanh',
+      title: en ? 'How much can you pawn your model for?' : 'Mô hình của bạn cầm được bao nhiêu?',
+      result: en ? 'Expected pawn amount' : 'Giá cầm dự kiến',
+      action: en ? 'Request a pawn' : 'Gửi yêu cầu cầm',
+    },
+  }[focus];
+
+  const emptyText = !valuation
+    ? failed
+      ? en
+        ? 'The valuation could not be loaded. Sign in and try again.'
+        : 'Chưa tải được định giá. Hãy đăng nhập rồi thử lại.'
+      : en
+        ? 'Choose your model to see the price.'
+        : 'Chọn mô hình để xem giá.'
+    : needsShop
+      ? en
+        ? 'This model needs the shop to look at it: send its photos below.'
+        : 'Mẫu này cần shop xem trực tiếp: gửi ảnh ở bên dưới.'
+      : focus === 'trade' && !tradeItem
+        ? en
+          ? 'Choose the item you want from the shop.'
+          : 'Chọn món bạn muốn nhận từ shop.'
+        : null;
 
   return (
-    <section className="qv mu-panel" aria-label={en ? 'Quick valuation' : 'Định giá nhanh'}>
+    <section className={`qv is-${focus}`} aria-label={copy.title}>
       <header className="qv-head">
-        <span className="mu-eyebrow">{en ? 'QUICK VALUATION' : 'ĐỊNH GIÁ NHANH'}</span>
-        <h2>
-          {focus === 'pawn'
-            ? en
-              ? 'How much can I pawn my model for?'
-              : 'Mô hình của tôi cầm được bao nhiêu?'
-            : en
-              ? 'How much will the shop pay for my model?'
-              : 'Shop thu mô hình của tôi giá bao nhiêu?'}
-        </h2>
-        <p className="mu-note">
+        <span className="qv-kicker">{copy.kicker}</span>
+        <h2>{copy.title}</h2>
+        <p>
           {en
-            ? 'Choose the same model in the shop. The web price applies to a new unit, the same model and version, with its box and accessories and without defects.'
-            : 'Chọn đúng mẫu đang có trong cửa hàng. Giá trên web áp dụng cho hàng mới, đúng mẫu và phiên bản, đủ hộp và phụ kiện, không lỗi.'}
+            ? 'Online prices apply to a new unit of a model the shop sells: the same model and version, boxed, complete and without defects.'
+            : 'Giá trên web áp dụng cho hàng mới của mẫu shop đang bán: đúng mẫu và phiên bản, còn hộp, đủ phụ kiện, không lỗi.'}
         </p>
       </header>
 
-      <CatalogSearch
-        label={en ? 'Your model in the shop catalogue' : 'Mẫu của bạn trong cửa hàng'}
-        onPick={setProduct}
-      />
-
-      {product && (
-        <div className="qv-chosen">
-          <span className="qv-thumb is-large">
-            <ProductImage src={product.imageUrl} alt={product.name} sizes="96px" className="object-contain" />
-          </span>
-          <div>
-            <strong>{product.name}</strong>
-            <small>{product.brandName}</small>
-            <button type="button" className="underline" onClick={() => setProduct(null)}>
-              {en ? 'Choose another model' : 'Chọn mẫu khác'}
-            </button>
-          </div>
-        </div>
-      )}
-      {failed && (
-        <p role="alert" className="mu-note">
-          {en
-            ? 'The valuation could not be loaded. Sign in and try again.'
-            : 'Chưa tải được định giá. Hãy đăng nhập rồi thử lại.'}
-        </p>
-      )}
-
-      {valuation && (
-        <>
-          <label className="qv-confirm">
-            <input type="checkbox" checked={confirmedNew} onChange={(event) => setConfirmedNew(event.target.checked)} />
-            <span>
-              {en
-                ? 'My unit is new and the same model and version, with its box and every accessory, and without defects.'
-                : 'Mô hình của tôi còn mới, đúng mẫu và phiên bản, đủ hộp và phụ kiện, không lỗi.'}
+      <div className="qv-grid">
+        <ol className="qv-steps">
+          <li className="qv-step">
+            <span className="qv-step-number" aria-hidden="true">
+              1
             </span>
-          </label>
+            <CatalogCombobox label={en ? 'Your model' : 'Mô hình của bạn'} value={product} onChange={setProduct} />
+          </li>
+          {focus === 'trade' && (
+            <li className="qv-step">
+              <span className="qv-step-number" aria-hidden="true">
+                2
+              </span>
+              <CatalogCombobox
+                label={en ? 'The item you want from the shop' : 'Món bạn muốn nhận từ shop'}
+                value={tradeItem}
+                onChange={setTradeItem}
+                showPrice
+              />
+            </li>
+          )}
+          <li className="qv-step">
+            <span className="qv-step-number" aria-hidden="true">
+              {focus === 'trade' ? 3 : 2}
+            </span>
+            <label className={`qv-confirm${valuation ? '' : ' is-disabled'}`}>
+              <input
+                type="checkbox"
+                disabled={!valuation}
+                checked={confirmedNew}
+                onChange={(event) => setConfirmedNew(event.target.checked)}
+              />
+              <span>
+                {en
+                  ? 'My unit is new: the same model and version, boxed, with every accessory and without defects.'
+                  : 'Mô hình của tôi còn mới: đúng mẫu và phiên bản, còn hộp, đủ phụ kiện, không lỗi.'}
+              </span>
+            </label>
+          </li>
+        </ol>
 
-          <div className={`qv-prices${confirmedNew ? '' : ' is-muted'}`}>
-            <article className={focus === 'sell' ? 'is-focus' : ''}>
-              <h3>{en ? 'Shop buys it for' : 'Giá thu dự kiến'}</h3>
-              {buyback !== null ? <strong>{money(buyback)}</strong> : <p className="mu-note">{reviewText}</p>}
-              <small>
-                {en ? 'Confirmed after the shop inspects the unit.' : 'Chốt sau khi shop kiểm tra hàng thực tế.'}
-              </small>
-              <button
-                type="button"
-                className="mu-button"
-                disabled={!confirmedNew || buyback === null}
-                onClick={() => onRequest({ kind: 'buyback', product: product! })}
-              >
-                {en ? 'Sell at this price' : 'Gửi yêu cầu thu mua'}
-              </button>
-            </article>
-
-            <article className={focus === 'pawn' ? 'is-focus' : ''}>
-              <h3>{en ? 'Pawn amount' : 'Giá cầm dự kiến'}</h3>
-              {pawn !== null ? <strong>{money(pawn)}</strong> : <p className="mu-note">{reviewText}</p>}
-              {pawn !== null && valuation.pawn.simulation.length > 0 && (
-                <table className="qv-simulation">
-                  <caption>
-                    {en
-                      ? 'Simulated 0.3% a day compound interest: not charged until legal review'
-                      : 'Mô phỏng lãi kép 0,3%/ngày: chưa áp dụng, chờ thẩm định pháp lý'}
-                  </caption>
-                  <tbody>
-                    {valuation.pawn.simulation.map((row) => (
-                      <tr key={row.days}>
-                        <th>{en ? `${row.days} days` : `${row.days} ngày`}</th>
-                        <td>{money(row.owedVnd)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        <aside className={`qv-result${ready ? ' is-ready' : ''}`} aria-live="polite">
+          <span className="qv-result-label">{copy.result}</span>
+          {emptyText ? (
+            <p className="qv-result-empty" role={failed ? 'alert' : undefined}>
+              {emptyText}
+            </p>
+          ) : (
+            <>
+              <strong className="qv-amount">
+                {focus === 'trade' && difference === 0 ? (en ? 'Even' : 'Ngang giá') : money(Math.abs(amount ?? 0))}
+              </strong>
+              {focus === 'trade' && difference !== null && difference !== 0 && (
+                <span className="qv-direction">
+                  {difference > 0
+                    ? en
+                      ? 'you pay the shop'
+                      : 'bạn trả thêm'
+                    : en
+                      ? 'the shop pays you'
+                      : 'shop trả lại bạn'}
+                </span>
               )}
-              <button
-                type="button"
-                className="mu-button"
-                disabled={!confirmedNew || pawn === null}
-                onClick={() => onRequest({ kind: 'pawn', product: product! })}
-              >
-                {en ? 'Request a pawn' : 'Gửi yêu cầu cầm'}
-              </button>
-            </article>
-
-            {focus === 'sell' && (
-              <article>
-                <h3>{en ? 'Trade it for a shop item' : 'Đổi lấy món của shop'}</h3>
-                {tradeItem ? (
-                  <div className="qv-trade">
-                    <p>
-                      {tradeItem.name} · {en ? 'member price' : 'giá thành viên'} {money(tradePrice!)}
-                    </p>
-                    {difference === null ? (
-                      <p className="mu-note">{reviewText}</p>
-                    ) : (
-                      <strong>
-                        {difference > 0
-                          ? en
-                            ? `You pay ${money(difference)}`
-                            : `Bạn trả thêm ${money(difference)}`
-                          : difference < 0
-                            ? en
-                              ? `The shop pays you ${money(-difference)}`
-                              : `Shop trả lại ${money(-difference)}`
-                            : en
-                              ? 'Even trade'
-                              : 'Ngang giá'}
-                      </strong>
-                    )}
-                    <button type="button" className="underline" onClick={() => setTradeItem(null)}>
-                      {en ? 'Choose another item' : 'Chọn món khác'}
-                    </button>
-                  </div>
-                ) : (
-                  <CatalogSearch label={en ? 'Item you want' : 'Món bạn muốn nhận'} onPick={setTradeItem} />
-                )}
-                <small>
-                  {en
-                    ? 'D = the item at its member price − the final buyback price. Trade value earns no points.'
-                    : 'Chênh lệch = giá món shop sau ưu đãi − giá thu cuối. Giá trị đổi hàng không tích điểm.'}
-                </small>
-                <button
-                  type="button"
-                  className="mu-button"
-                  disabled={!confirmedNew || !tradeItem || buyback === null}
-                  onClick={() => onRequest({ kind: 'trade', product: product!, tradeItem: tradeItem! })}
-                >
-                  {en ? 'Request this trade' : 'Gửi yêu cầu đổi hàng'}
-                </button>
-              </article>
-            )}
-          </div>
-        </>
-      )}
+              {(focus === 'trade' || focus === 'pawn') && (
+                <dl className="qv-breakdown">
+                  {focus === 'trade' && (
+                    <>
+                      <div>
+                        <dt>{en ? 'Shop item at member price' : 'Món của shop (giá thành viên)'}</dt>
+                        <dd>{money(tradePrice!)}</dd>
+                      </div>
+                      <div>
+                        <dt>{en ? 'Buyback price of your model' : 'Giá thu mô hình của bạn'}</dt>
+                        <dd>− {money(buyback!)}</dd>
+                      </div>
+                    </>
+                  )}
+                  {focus === 'pawn' &&
+                    valuation!.pawn.simulation.map((row) => (
+                      <div key={row.days}>
+                        <dt>{en ? `To redeem after ${row.days} days*` : `Chuộc sau ${row.days} ngày*`}</dt>
+                        <dd>{money(row.owedVnd)}</dd>
+                      </div>
+                    ))}
+                </dl>
+              )}
+              <p className="qv-fineprint">
+                {focus === 'pawn'
+                  ? en
+                    ? '* Simulated 0.3% a day compound interest: not charged until legal review. Confirmed after inspection.'
+                    : '* Mô phỏng lãi kép 0,3%/ngày: chưa áp dụng, chờ thẩm định pháp lý. Chốt sau khi kiểm hàng.'
+                  : focus === 'trade'
+                    ? en
+                      ? 'Final after the shop inspects your model. Trade value earns no points.'
+                      : 'Chốt sau khi shop kiểm tra hàng. Giá trị đổi hàng không tích điểm.'
+                    : en
+                      ? 'Final after the shop inspects the actual unit.'
+                      : 'Giá chốt sau khi shop kiểm tra hàng thực tế.'}
+              </p>
+            </>
+          )}
+          <button
+            type="button"
+            className="qv-cta"
+            disabled={!ready}
+            onClick={() =>
+              focus === 'trade'
+                ? onRequest({ kind: 'trade', product: product!, tradeItem: tradeItem! })
+                : onRequest({ kind: focus === 'pawn' ? 'pawn' : 'buyback', product: product! })
+            }
+          >
+            {copy.action}
+          </button>
+          {valuation && !confirmedNew && !needsShop && (
+            <small className="qv-cta-hint">
+              {en ? 'Confirm the condition to continue.' : 'Xác nhận tình trạng hàng để tiếp tục.'}
+            </small>
+          )}
+        </aside>
+      </div>
 
       <aside className="qv-manual">
-        <strong>
-          {en
-            ? 'Used, missing accessories, faulty, or not in the shop?'
-            : 'Hàng đã qua sử dụng, thiếu phụ kiện, có lỗi hoặc không có trong cửa hàng?'}
-        </strong>
-        <p className="mu-note">
-          {en
-            ? 'The web only prices new units of models the shop sells. Send your model with real photos, a video and its condition, and the shop will quote it.'
-            : 'Web chỉ định giá hàng mới của mẫu shop đang bán. Gửi thông tin mô hình kèm ảnh, video thật và tình trạng để shop báo giá.'}
-        </p>
+        <div>
+          <strong>
+            {en
+              ? 'Used, missing accessories, faulty, or a model the shop does not sell?'
+              : 'Hàng đã qua sử dụng, thiếu phụ kiện, có lỗi hoặc mẫu shop không bán?'}
+          </strong>
+          <p>
+            {en
+              ? 'Send its real photos, a video and its condition: the shop will quote it.'
+              : 'Gửi ảnh, video thật và tình trạng: shop sẽ báo giá cho bạn.'}
+          </p>
+        </div>
         <div className="qv-manual-actions">
-          <button type="button" className="mu-button-secondary" onClick={() => onRequest({ kind: 'manual' })}>
+          <button type="button" className="qv-secondary" onClick={() => onRequest({ kind: 'manual' })}>
             {en ? 'Send my model for a quote' : 'Gửi thông tin để shop định giá'}
           </button>
-          <Link href="/contact" className="underline">
+          <Link href="/contact" className="qv-link">
             {en ? 'Contact the shop' : 'Liên hệ cửa hàng'}
           </Link>
         </div>

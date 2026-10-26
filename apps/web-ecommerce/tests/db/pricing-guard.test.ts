@@ -233,9 +233,9 @@ describe('pricing guard: approved prices and costs, voucher policy, signed quote
       expectedPrice: body.price,
       expectedStock: body.stock,
     });
-    // R = ROUND(1,050,000 / 0.9) = 1,166,667; B = 20% of S (500,000 < S ≤ 1,150,000).
+    // R = ROUND(1,050,000 / 0.9) = 1,166,667; buyback price = S − 20% of S (500,000 < S ≤ 1,150,000).
     const saved = await product.reload();
-    expect(saved).toMatchObject({ price: 1_166_667, pricingReferenceMemberVnd: 1_050_000, buybackPriceVnd: 210_000 });
+    expect(saved).toMatchObject({ price: 1_166_667, pricingReferenceMemberVnd: 1_050_000, buybackPriceVnd: 840_000 });
     expect(saved.targetPriceApprovedAt).toBeTruthy();
     await expect(catalog.update(product.id, { ...body, price: 999_999, expectedPrice: saved.price })).rejects.toMatchObject({
       statusCode: 400,

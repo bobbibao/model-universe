@@ -245,8 +245,8 @@
     "title": "Collector services",
     "subtitle": "One place for the next chapter of your collection.",
     "reservations": "Reservations",
-    "buyback": "Sell to us",
-    "pawn": "Pawn models",
+    "buyback": "Buyback",
+    "pawn": "Pawn",
     "loyalty": "Membership",
     "partner": "Become a partner",
     "workspace": "My collector workspace",
@@ -254,11 +254,13 @@
     "openService": "Explore this service",
     "descriptions": {
       "reservations": "Keep your chosen model with agreed deposit and collection terms. Follow confirmed payments and handover in your reservation workspace.",
-      "buyback": "Choose a model the shop sells to see the buyback and trade prices on the web; send photos of other units for a quote.",
+      "buyback": "Choose a model the shop sells to see its buyback price online; units in another condition are quoted from their photos.",
       "pawn": "See the expected pawn amount (50% of the real selling price) of a model the shop sells; follow the agreement, custody and redemption.",
       "loyalty": "Follow your verified purchase points and membership progress. Review available vouchers, real-stock gifts and historical purchase claims.",
-      "partner": "Apply with your seller identity and matching bank account. Follow verification, requested changes and your reviewed selling limits."
-    }
+      "partner": "Apply with your seller identity and matching bank account. Follow verification, requested changes and your reviewed selling limits.",
+      "trade": "Trade your model for an item on sale: the difference is the item at member price minus the buyback price of your model."
+    },
+    "trade": "Trade"
   },
   "metadata": {
     "home": "Model Universe — Build your next universe",
@@ -680,7 +682,8 @@
       "voucher": "Code {code}",
       "rank": "{tier} rank benefit",
       "shipDiscount": "Shipping discount",
-      "points": "Earns {points} points once the order is completed and the return period ends"
+      "points": "Earns {points} points once the order is completed and the return period ends",
+      "member": "Member price (−10%)"
     },
     "thanks": {
       "title": "Order placed!",
@@ -721,7 +724,8 @@
       "freeshipTerms": "Free shipping up to {amount} · orders from {minimum}",
       "remove": "Remove",
       "hunt": "Hunt more discount & free-shipping codes",
-      "rank": "{tier} rank benefit"
+      "rank": "{tier} rank benefit",
+      "member": "Member price (−10%)"
     },
     "orderBenefits": {
       "voucher": "Code {code}",
@@ -731,7 +735,29 @@
       "upfront": "To transfer first"
     },
     "savedLine": "You save {amount}",
-    "pointsLine": "earns {points} points"
+    "pointsLine": "earns {points} points",
+    "memberPrice": "Member price",
+    "listPrice": "List price",
+    "listSubtotal": "Subtotal (list price)",
+    "memberNotice": {
+      "applied": {
+        "title": "You are buying at the member price",
+        "body": "{amount} off the list price."
+      },
+      "pending": {
+        "title": "Applying the member price…",
+        "body": "This month's member code is being applied to your order."
+      },
+      "other": {
+        "title": "Member price: save {amount}",
+        "body": "Choose this month's member code under vouchers to pay the member price."
+      },
+      "guest": {
+        "title": "Sign in to buy at the member price",
+        "body": "Members get 10% off: {amount} on this cart. Joining is free.",
+        "action": "Sign in or join"
+      }
+    }
   },
   "loyalty": {
     "title": "Build your collection. Grow your rewards.",
@@ -1186,7 +1212,11 @@
     "historyDetails": "View the recorded quote and decision",
     "paidByCustomer": "Difference received",
     "tradeSettlementNote": "Record the accepted difference D exactly (0 when even) and the handover of the traded item; the item leaves stock.",
-    "backToValuation": "Back to the quick valuation"
+    "backToValuation": "Back to the quick valuation",
+    "tradeTitle": "Trade your model for the one you want.",
+    "tradeEmpty": "Your trade requests will appear here.",
+    "requestTitle": "Your model for the shop",
+    "requestClose": "Close"
   },
   "pawn": {
     "title": "Keep your collection. Unlock its value.",
@@ -2261,17 +2291,19 @@
     "operations": "Service operations",
     "serviceNames": {
       "reserve": "Reserve",
-      "sell": "Sell to us",
-      "pawn": "Pawn & custody",
+      "sell": "Buyback",
+      "pawn": "Pawn",
       "loyalty": "Collector club",
-      "partner": "Become a partner"
+      "partner": "Become a partner",
+      "trade": "Trade"
     },
     "serviceSummary": {
       "reserve": "Pick your model. Follow confirmed payments. Arrange your handover.",
-      "sell": "Choose your model and see the buyback price and a trade difference for a new unit.",
+      "sell": "Choose your model and see what the shop pays for a new unit right away.",
       "pawn": "Choose your model and see the pawn amount: 50% of the real selling price.",
       "loyalty": "Your collection, your points. See eligible rewards in one place.",
-      "partner": "Bring your models to our marketplace. Start with a verified profile."
+      "partner": "Bring your models to our marketplace. Start with a verified profile.",
+      "trade": "Trade your model for an item on sale and see the difference at member price right away."
     },
     "serviceTerms": "How it works · terms & important details",
     "emptyTitle": "Ready for your next chapter?",
@@ -2936,9 +2968,10 @@
         "issues_declared": "Issues or missing accessories: an admin reviews and quotes it, with no automatic deduction.",
         "price_too_low": "A selling price of 100,000 VND or less, or a minimum buyback price not below the selling price: priced by an admin."
       },
-      "note": "A NOT-FINAL estimate by three rates (30% up to 500,000, 20% up to 1,150,000, 17% above, at least 100,000). The official price comes only after the shop inspects the actual model.",
+      "note": "A NOT-FINAL estimate = the real selling price S − the shop's margin B (30% of S up to 500,000, 20% up to 1,150,000, 17% above, at least 100,000). The official price comes only after the shop inspects the actual model.",
       "legacyReference": "Reference selling price (member price)",
-      "rate": "Buyback rate"
+      "rate": "The shop's margin (B)",
+      "b17Rate": "Buyback rate (B17)"
     },
     "issueTypes": {
       "missing_box": "Missing original box",

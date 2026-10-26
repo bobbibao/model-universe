@@ -21,6 +21,7 @@ import { useCart } from '@/shared/client/providers/CartProvider';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCheckoutDraft } from '@/shared/client/providers/CheckoutDraftProvider';
 import { formatVND } from '@/shared/server/utils/utils';
+import { isMemberCode, memberPrice } from '@/shared/pricing';
 import CartLineItem from '../components/CartLineItem';
 import { ShippingErrors, validateShipping } from '../components/CheckoutForm';
 import MeetingSection, { type Showroom } from '../components/MeetingSection';
@@ -88,6 +89,35 @@ function PendingCheckoutBar({
   );
 }
 
+// The member price, explained where the customer pays: applied (with what it saves), being applied, or how to get it.
+function MemberPriceNotice({
+  state,
+  savingVnd,
+}: {
+  state: 'guest' | 'applied' | 'pending' | 'other';
+  savingVnd: number;
+}) {
+  const t = useTranslations('checkout.memberNotice'),
+    locale = useLocale();
+  const amount = formatVND(savingVnd, locale);
+  return (
+    <div className={`cart-member-notice is-${state}`} role="status">
+      <span className="cart-member-notice-icon" aria-hidden="true">
+        <AdminIcon name={state === 'applied' ? 'check' : 'spark'} size={16} />
+      </span>
+      <div>
+        <strong>{t(`${state}.title`, { amount })}</strong>
+        <p>{t(`${state}.body`, { amount })}</p>
+        {state === 'guest' && (
+          <Link href="/auth/signin?redirect=/cart" className="cart-member-notice-link">
+            {t('guest.action')}
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const SummaryRow = ({ label, value, saving }: { label: string; value: string; saving?: boolean }) => (
   <div className={`cart-summary-row${saving ? ' is-saving' : ''}`}>
     <span>{label}</span>
@@ -106,6 +136,18 @@ const Cart = () => {
     .filter((entry) => entry.line?.status === 'OK' && !entry.line.product?.partnerId)
     .reduce((sum, entry) => sum + (entry.line?.lineTotal || 0), 0);
   const hasPartnerItems = entries.some((entry) => !!entry.line?.product?.partnerId);
+  // What the member price saves on the shop's items outside a sale: R − S per unit (the member code, 10% of R).
+  const memberSavingVnd = entries.reduce((sum, { item, line }) => {
+    const product = line?.product;
+    if (
+      line?.status !== 'OK' ||
+      !product ||
+      product.partnerId ||
+      (product.discountPercent > 0 && product.salePrice < product.price)
+    )
+      return sum;
+    return sum + (product.price - memberPrice(product.price)) * item.quantity;
+  }, 0);
   const {
     setPaymentPlan,
     coupon,
@@ -540,8 +582,24 @@ const Cart = () => {
               onFreeship={setFreeship}
               quote={checkedQuote}
             />
+            {memberSavingVnd > 0 && (
+              <MemberPriceNotice
+                state={
+                  !user
+                    ? 'guest'
+                    : isMemberCode(checkedQuote?.couponCode) && (checkedQuote?.voucherDiscountVnd ?? 0) > 0
+                      ? 'applied'
+                      : couponPending || quoting
+                        ? 'pending'
+                        : 'other'
+                }
+                savingVnd={
+                  isMemberCode(checkedQuote?.couponCode) ? (checkedQuote?.voucherDiscountVnd ?? 0) : memberSavingVnd
+                }
+              />
+            )}
             <div className="cart-summary-lines">
-              <SummaryRow label={t('subtotal')} value={money(subtotal)} />
+              <SummaryRow label={t('listSubtotal')} value={money(subtotal)} />
               {hasPartnerItems && (
                 <p className="cart-summary-note">{t('shopBenefitsOnly', { amount: money(benefitSubtotalVnd) })}</p>
               )}
@@ -557,7 +615,11 @@ const Cart = () => {
               />
               {(checkedQuote?.voucherDiscountVnd ?? 0) > 0 && (
                 <SummaryRow
-                  label={t('benefits.voucher')}
+                  label={
+                    isMemberCode(checkedQuote?.couponCode)
+                      ? t('benefits.member')
+                      : `${t('benefits.voucher')} ${checkedQuote?.couponCode ?? ''}`.trim()
+                  }
                   value={`-${money(checkedQuote!.voucherDiscountVnd!)}`}
                   saving
                 />

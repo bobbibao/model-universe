@@ -176,8 +176,8 @@ describe('store sale campaigns', () => {
     };
     const catalog = new ProductService();
     const validated = await catalog.validateCatalogInput(data);
-    // The web price R = ROUND(S / 0.9) and the buyback price B = 20% of S (500,000 < S ≤ 1,150,000) follow S.
-    expect(validated.values).toMatchObject({ price: 1_222_222, listPriceVerified: true, buybackPriceVnd: 220_000 });
+    // The web price R = ROUND(S / 0.9) and the buyback price S − 20% of S (500,000 < S ≤ 1,150,000) follow S.
+    expect(validated.values).toMatchObject({ price: 1_222_222, listPriceVerified: true, buybackPriceVnd: 880_000 });
     await expect(catalog.validateCatalogInput({ ...data, price: 999_999 })).rejects.toThrow();
     await expect(catalog.validateCatalogInput({ ...data, buybackPriceVnd: 1 })).rejects.toThrow();
     await expect(

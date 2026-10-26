@@ -26,7 +26,7 @@ describe('quick valuation and the pawn web quote', () => {
     await product.update({ pricingReferenceMemberVnd: 2_500_000, price: 2_777_778, targetPriceApprovedAt: new Date() });
     const result = await valuation.forProduct(product.id);
     expect(result.product).toMatchObject({ listPriceVnd: 2_777_778, memberPriceVnd: 2_500_000 });
-    expect(result.buyback).toMatchObject({ estimateVnd: 425_000, manualReview: null });
+    expect(result.buyback).toMatchObject({ estimateVnd: 2_075_000, manualReview: null });
     expect(result.pawn).toMatchObject({ amountVnd: 1_250_000, manualReview: null, legalReviewRequired: true });
     expect(result.pawn.simulation.map((row) => row.days)).toEqual([7, 15, 30]);
 

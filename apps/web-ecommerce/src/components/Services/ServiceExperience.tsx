@@ -5,14 +5,18 @@ import type { ReactNode } from 'react';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
 
-export type CollectorService = 'reserve' | 'sell' | 'pawn' | 'loyalty' | 'partner';
-export const collectorServices: { key: CollectorService; icon: string; route: string }[] = [
-  { key: 'reserve', icon: 'calendar', route: '/services/reserve' },
-  { key: 'sell', icon: 'exchange', route: '/services/sell' },
+export type CollectorService = 'sell' | 'trade' | 'pawn' | 'partner' | 'reserve' | 'loyalty';
+const services: { key: CollectorService; icon: string; route: string }[] = [
+  { key: 'sell', icon: 'bag', route: '/services/sell' },
+  { key: 'trade', icon: 'exchange', route: '/services/trade' },
   { key: 'pawn', icon: 'shield', route: '/services/pawn' },
-  { key: 'loyalty', icon: 'spark', route: '/services/loyalty' },
   { key: 'partner', icon: 'users', route: '/services/partner' },
+  { key: 'reserve', icon: 'calendar', route: '/services/reserve' },
+  { key: 'loyalty', icon: 'spark', route: '/services/loyalty' },
 ];
+// The service tabs (owner request of 2026-10-26: buyback, trade, pawn and partner; reserve is no longer offered and
+// loyalty lives under membership, but both pages keep their header).
+export const collectorServices = services.slice(0, 4);
 
 export function ServiceHeader({
   service,
@@ -24,7 +28,7 @@ export function ServiceHeader({
   admin?: boolean;
 }) {
   const t = useTranslations('experience');
-  const item = collectorServices.find((item) => item.key === service)!;
+  const item = services.find((item) => item.key === service)!;
   return (
     <header className={`service-experience-header service-${service} ${admin ? 'is-operations' : ''}`}>
       <div className="service-header-copy">

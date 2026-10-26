@@ -50,19 +50,19 @@ describe("owner's catalogue workbook", () => {
 
   // Owner rule of 2026-10-25: the sheet's price is S awaiting approval and its R column is empty, so the shop sells at S.
   // Owner rule of 2026-10-26: the sheet's S is entered; the web price R = ROUND(S / 0.9) and B by three rates follow it.
-  it('prices from S: the web price R = S ÷ 0.9 and the buyback price by three rates', () => {
+  it('prices from S: the web price R = S ÷ 0.9 and the buyback price S − margin', () => {
     const kit = ownerProductValues(rows.find((row) => row.name.startsWith('MNP-XH01 - '))!);
     expect(kit).toMatchObject({
       price: 722_222,
       listPriceVerified: true,
       importPrice: 450_000,
       pricingReferenceMemberVnd: 650_000,
-      buybackPriceVnd: 130_000,
+      buybackPriceVnd: 520_000,
       scale: '1/100',
       stock: 1,
     });
     const starColor = ownerProductValues(rows.find((row) => row.name.startsWith('MNQ-XH05CX'))!);
-    expect(starColor).toMatchObject({ price: 44_444_444, buybackPriceVnd: 6_800_000 });
+    expect(starColor).toMatchObject({ price: 44_444_444, buybackPriceVnd: 33_200_000 });
   });
 
   it('takes the box, received date and condition from the sheet and leaves the category empty', () => {

@@ -471,7 +471,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
       }),
     ).rejects.toMatchObject({ statusCode: 409 });
   });
-  it('offers B by three rates of an approved S only for a model the shop sells new, declared without issues', async () => {
+  it('offers S minus the margin B of an approved S only for a model the shop sells new, declared without issues', async () => {
     const product = (await ProductModel.findOne({
       where: { partnerId: null, isArchived: false, condition: 'new' },
       order: [['id', 'ASC']],
@@ -486,7 +486,7 @@ describe('buyback inspection, agreement, payout and source intake', () => {
     expect(row.estimate).toMatchObject({
       estimateVnd: null,
       manualReview: 'reference_not_approved',
-      ruleVersion: 'buyback-tiers-2026-10-26',
+      ruleVersion: 'buyback-margin-2026-10-26',
     });
     await product.update({ targetPriceApprovedAt: new Date() });
     // Declared issues: no automatic deduction, an admin prices it.
@@ -505,16 +505,16 @@ describe('buyback inspection, agreement, payout and source intake', () => {
         true,
       ),
     ).rejects.toMatchObject({ code: 'MANUAL_PRICE_REQUIRED' });
-    // No issue: B = 17% of S = 340,000 for S = 2,000,000 (above 1,150,000), offered as the formula price.
+    // No issue: S − 17% of S = 1,660,000 for S = 2,000,000 (above 1,150,000), offered as the formula price.
     ({ row } = await create({ referenceProductId: product.id }));
-    expect(row.estimate).toMatchObject({ estimateVnd: 340_000, manualReview: null, baseDeductionVnd: null });
+    expect(row.estimate).toMatchObject({ estimateVnd: 1_660_000, manualReview: null, baseDeductionVnd: null });
     row = await service.act(
       row.id,
       adminId,
       { expectedVersion: row.version, action: 'preliminary_offer', details: 'Formula quote' },
       true,
     );
-    expect(row.preliminaryOffer).toMatchObject({ amountVnd: 340_000, basis: 'formula' });
+    expect(row.preliminaryOffer).toMatchObject({ amountVnd: 1_660_000, basis: 'formula' });
     row = await service.act(row.id, userId, {
       expectedVersion: row.version,
       action: 'send_item',

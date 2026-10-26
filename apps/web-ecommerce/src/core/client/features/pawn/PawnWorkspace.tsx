@@ -15,6 +15,7 @@ import CollectibleSubmissionForm, { COLLECTIBLE_ASSET_FIELDS } from '@/core/clie
 import ProductPicker, { type PickedProduct } from '@/core/client/features/inventory/components/ProductPicker';
 import PawnDisposalPanel from './PawnDisposalPanel';
 import QuickValuation, { type ValuationRequest } from '@/core/client/features/buyback/QuickValuation';
+import ServiceRequestPanel from '@/core/client/features/buyback/ServiceRequestPanel';
 import { useRouter } from '@/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 
@@ -23,7 +24,7 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
   const { user } = useCurrentUser();
   const [rows, setRows] = useState<PawnContract[]>([]), [selected, setSelected] = useState<PawnContract | null>(null);
   const [notifications, setNotifications] = useState<{ id: number; entityId: number; kind: 'pawn_due' | 'pawn_overdue'; details: { dueAt: string; days: number } }[]>([]);
-  const [busy, setBusy] = useState(false), [failed, setFailed] = useState(false), [request, setRequest] = useState<ValuationRequest | null>(null);
+  const [busy, setBusy] = useState(false), [failed, setFailed] = useState(false), [request, setRequest] = useState<ValuationRequest | null>(null), [requestCount, setRequestCount] = useState(0);
   const [contractUploads, setContractUploads] = useState<{ id: number; name: string }[]>([]), [product, setProduct] = useState<PickedProduct | null>(null);
   const root = admin ? '/admin/pawn' : '/pawn';
   const router = useRouter();
@@ -95,14 +96,14 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
     <ServiceTerms><p>{t('intro')}</p><p className="font-bold">{t('custodyNote')}</p><p>{t('capNote')}</p></ServiceTerms>
     {!user ? <Link className="mu-button" href="/auth/signin?redirect=/services/pawn">{t('signIn')}</Link> : <>
       {failed && <button className="mu-button mb-5" onClick={() => void load()}>{common('retry')}</button>}
-      {!admin && !request && <QuickValuation focus="pawn" initialProductId={chosenModel} onRequest={next => {
-        if (next.kind === 'buyback' || next.kind === 'trade') router.push(`/services/sell?mau=${next.product.id}`);
-        else setRequest(next);
+      {!admin && <QuickValuation focus="pawn" initialProductId={chosenModel} onRequest={next => {
+        if (next.kind === 'buyback') router.push(`/services/sell?mau=${next.product.id}`);
+        else if (next.kind === 'trade') router.push(`/services/trade?mau=${next.product.id}`);
+        else { setRequest(next); setRequestCount(count => count + 1); }
       }} />}
-      {!admin && request && <>
-        <button className="mb-4 text-sm underline" onClick={() => setRequest(null)}>← {assetLabels('backToValuation')}</button>
-        <CollectibleSubmissionForm key={`${user.id}:${request.kind}`} purpose="pawn" reference={request.kind === 'pawn' ? { id: request.product.id, name: request.product.name, modelCode: request.product.modelCode } : null} onCreated={async id => { await open(id); setRequest(null); await load(); }} />
-      </>}
+      {!admin && request && <ServiceRequestPanel revision={String(requestCount)} onClose={() => setRequest(null)}>
+        <CollectibleSubmissionForm key={`${user.id}:${requestCount}`} purpose="pawn" reference={request.kind === 'pawn' ? { id: request.product.id, name: request.product.name, modelCode: request.product.modelCode } : null} onCreated={async id => { await open(id); setRequest(null); await load(); }} />
+      </ServiceRequestPanel>}
       {!admin && notifications.map(notification => <button key={notification.id} className="mu-panel mb-3 block w-full p-4 text-left" onClick={() => void open(notification.entityId)}>{t(notification.kind === 'pawn_overdue' ? 'overdueReminder' : 'dueReminder', { id: notification.entityId, days: notification.details.days, date: new Date(notification.details.dueAt).toLocaleString(locale) })}</button>)}
       {!failed && !rows.length && <ServiceEmpty>{t('empty')}</ServiceEmpty>}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">

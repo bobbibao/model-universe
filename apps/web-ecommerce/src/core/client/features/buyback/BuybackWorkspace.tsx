@@ -9,6 +9,7 @@ import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { COLLECTIBLE_ASSET_FIELDS as ASSET_FIELDS } from './CollectibleSubmissionForm';
 import BuybackSubmissionForm from './BuybackSubmissionForm';
 import QuickValuation, { type ValuationRequest } from './QuickValuation';
+import ServiceRequestPanel from './ServiceRequestPanel';
 import { useRouter } from '@/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 import BuybackPricingSections from './BuybackPricingSections';
@@ -16,7 +17,15 @@ import { formatVND } from '@/shared/server/utils/utils';
 import type { BuybackRequest } from '@/shared/types/buyback';
 import { ListingSteps, TradeQuotePanel } from './BuybackListingSections';
 
-export default function BuybackWorkspace({ admin = false }: { admin?: boolean }) {
+// The buyback page (`sell`) and the trade page (`trade`) share the buyback request; a customer sees on each page only
+// its own requests (a trade request carries the shop item), an admin sees them all.
+export default function BuybackWorkspace({
+  admin = false,
+  mode = 'sell',
+}: {
+  admin?: boolean;
+  mode?: 'sell' | 'trade';
+}) {
   const t = useTranslations('buyback'),
     common = useTranslations('common'),
     catalog = useTranslations('catalog'),
@@ -26,19 +35,21 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
     [selected, setSelected] = useState<BuybackRequest | null>(null);
   const [busy, setBusy] = useState(false),
     [failed, setFailed] = useState(false),
-    [request, setRequest] = useState<ValuationRequest | null>(null);
+    [request, setRequest] = useState<ValuationRequest | null>(null),
+    [requestCount, setRequestCount] = useState(0);
   const root = admin ? '/admin/buyback' : '/buyback';
   const router = useRouter();
   const chosenModel = Number(useSearchParams().get('mau')) || null;
   const load = useCallback(async () => {
     if (!user) return;
     try {
-      setRows((await Api.get(root)).data);
+      const all: BuybackRequest[] = (await Api.get(root)).data;
+      setRows(admin ? all : all.filter((row) => (row.tradeProductId !== null) === (mode === 'trade')));
       setFailed(false);
     } catch {
       setFailed(true);
     }
-  }, [root, user]);
+  }, [admin, mode, root, user]);
   useEffect(() => {
     setRows([]);
     setSelected(null);
@@ -106,7 +117,11 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
   );
   return (
     <section className={`service-workspace ${admin ? 'py-6' : 'mu-wrap py-12'}`}>
-      <ServiceHeader service="sell" admin={admin} title={t(admin ? 'adminTitle' : 'title')} />
+      <ServiceHeader
+        service={admin ? 'sell' : mode}
+        admin={admin}
+        title={t(admin ? 'adminTitle' : mode === 'trade' ? 'tradeTitle' : 'title')}
+      />
       <ol className="my-8 grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label={t('process')}>
         {['submit', 'inspect', 'agree', 'getPaid'].map((step, index) => (
           <li className="mu-panel p-4" key={step}>
@@ -121,7 +136,7 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
         <p>{t('codNote')}</p>
       </ServiceTerms>
       {!user ? (
-        <Link className="mu-button" href="/auth/signin?redirect=/services/sell">
+        <Link className="mu-button" href={`/auth/signin?redirect=/services/${mode}`}>
           {t('signIn')}
         </Link>
       ) : (
@@ -131,23 +146,24 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
               {common('retry')}
             </button>
           )}
-          {!admin && !request && (
+          {!admin && (
             <QuickValuation
-              focus="sell"
+              focus={mode}
               initialProductId={chosenModel}
               onRequest={(next) => {
                 if (next.kind === 'pawn') router.push(`/services/pawn?mau=${next.product.id}`);
-                else setRequest(next);
+                else {
+                  setRequest(next);
+                  setRequestCount((count) => count + 1);
+                }
               }}
             />
           )}
           {!admin && request && (
-            <>
-              <button className="mb-4 text-sm underline" onClick={() => setRequest(null)}>
-                ← {t('backToValuation')}
-              </button>
+            <ServiceRequestPanel revision={String(requestCount)} onClose={() => setRequest(null)}>
               <BuybackSubmissionForm
-                key={`${user.id}:${request.kind}`}
+                key={`${user.id}:${requestCount}`}
+                trade={mode === 'trade'}
                 initialReference={request.kind === 'manual' ? null : request.product}
                 initialTradeItem={request.kind === 'trade' ? request.tradeItem : null}
                 onCreated={async (id) => {
@@ -156,9 +172,11 @@ export default function BuybackWorkspace({ admin = false }: { admin?: boolean })
                   await load();
                 }}
               />
-            </>
+            </ServiceRequestPanel>
           )}
-          {!failed && !rows.length && <ServiceEmpty>{t('empty')}</ServiceEmpty>}
+          {!failed && !rows.length && (
+            <ServiceEmpty>{t(mode === 'trade' && !admin ? 'tradeEmpty' : 'empty')}</ServiceEmpty>
+          )}
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
             <div className="space-y-3">
               {rows.map((row) => (

@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import ProductImage from '@/components/ProductImage';
 import { formatVND } from '@/shared/server/utils/utils';
+import { isMemberCode } from '@/shared/pricing';
 
 interface Item {
   key: string;
@@ -105,7 +106,11 @@ export default function OrderConfirmSummary({
             </div>
             {benefits.voucherVnd > 0 && (
               <div className="is-detail is-saving">
-                <dt>{t('voucher', { code: benefits.voucherCode ?? '' })}</dt>
+                <dt>
+                  {isMemberCode(benefits.voucherCode)
+                    ? t('member')
+                    : t('voucher', { code: benefits.voucherCode ?? '' })}
+                </dt>
                 <dd>-{money(benefits.voucherVnd)}</dd>
               </div>
             )}
