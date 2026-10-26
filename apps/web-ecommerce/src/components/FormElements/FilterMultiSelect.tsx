@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-// Checkbox menus deliberately stay open after selection, including while URL filters refresh.
+// Toggle rows deliberately stay open after selection, including while URL filters refresh.
 export default function FilterMultiSelect({
   label,
   options,
@@ -74,21 +74,24 @@ export default function FilterMultiSelect({
                 .filter((value) => !options.some((option) => option.value === value))
                 .map((value) => ({ value, label: value })),
             ].map((option) => (
-              <label key={option.value}>
-                <input
-                  type="checkbox"
-                  checked={values.includes(option.value)}
-                  disabled={values.length >= 50 && !values.includes(option.value)}
-                  onChange={(event) =>
-                    onChange(
-                      event.target.checked
-                        ? [...values, option.value]
-                        : values.filter((value) => value !== option.value),
-                    )
-                  }
-                />
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={values.includes(option.value)}
+                disabled={values.length >= 50 && !values.includes(option.value)}
+                onClick={() =>
+                  onChange(
+                    values.includes(option.value)
+                      ? values.filter((value) => value !== option.value)
+                      : [...values, option.value],
+                  )
+                }
+              >
                 <span>{option.label}</span>
-              </label>
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path d="m4 10 4 4 8-8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             ))}
           </div>
           <div className="filter-multi-footer">
