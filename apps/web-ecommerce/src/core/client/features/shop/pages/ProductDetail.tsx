@@ -23,6 +23,7 @@ import type { ProductConditionOption, ProductDetail as ProductDetailType } from 
 import ProductGallery from '../components/ProductGallery';
 import ProductReviews from '../components/ProductReviews';
 import PromoIcon from '@/components/PromoIcon';
+import ProductRecommendations from '../components/ProductRecommendations';
 import RestockAlert from '../components/RestockAlert';
 import { trackAddToCart, trackViewContent } from '@/shared/client/utils/tracking';
 import AdminIcon from '@/components/Admin/AdminIcon';
@@ -357,47 +358,48 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             ))}
           </ul>
 
-          <button
-            onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
-            className="flex items-center justify-between gap-3 rounded-xl border border-brand-hover/25 bg-brand/10 px-4 py-4 text-left hover:bg-brand/20"
-          >
-            <span>
-              <strong className="block text-sm">✦ {t('askAssistant')}</strong>
-              <span className="mt-1 block text-xs text-body dark:text-store-muted">{t('assistantNote')}</span>
-            </span>
-            <span aria-hidden="true">↗</span>
-          </button>
-
-          {product.modelCode && !product.partnerId && (
+          <div className="product-secondary-actions">
             <button
-              disabled={!inStock || reserveBusy}
-              className="mu-button mu-button-secondary w-full disabled:opacity-50"
-              onClick={async () => {
-                if (!user) {
-                  router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
-                  return;
-                }
-                if (reservationRequest.current?.quantity !== quantity)
-                  reservationRequest.current = { key: crypto.randomUUID(), quantity };
-                setReserveBusy(true);
-                try {
-                  await Api.post('/reservations', {
-                    productId: unit.id,
-                    quantity,
-                    expectedTotal: unit.salePrice * quantity,
-                    requestKey: reservationRequest.current.key,
-                  });
-                  router.push('/reservations');
-                } catch {
-                  /* The shared API reports policy gates and stale quotes. */
-                } finally {
-                  setReserveBusy(false);
-                }
-              }}
+              type="button"
+              onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
+              className="product-secondary-action"
             >
-              {t('reserve')}
+              <PromoIcon name="star" size={16} />
+              {t('askAssistant')}
             </button>
-          )}
+
+            {product.modelCode && !product.partnerId && (
+              <button
+                disabled={!inStock || reserveBusy}
+                className="product-secondary-action"
+                onClick={async () => {
+                  if (!user) {
+                    router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
+                    return;
+                  }
+                  if (reservationRequest.current?.quantity !== quantity)
+                    reservationRequest.current = { key: crypto.randomUUID(), quantity };
+                  setReserveBusy(true);
+                  try {
+                    await Api.post('/reservations', {
+                      productId: unit.id,
+                      quantity,
+                      expectedTotal: unit.salePrice * quantity,
+                      requestKey: reservationRequest.current.key,
+                    });
+                    router.push('/reservations');
+                  } catch {
+                    /* The shared API reports policy gates and stale quotes. */
+                  } finally {
+                    setReserveBusy(false);
+                  }
+                }}
+              >
+                <PromoIcon name="calendar" size={16} />
+                {t('reserve')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -479,6 +481,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
           },
         ]}
       />
+      <ProductRecommendations key={product.id} productId={product.id} />
       {!purchaseVisible && (
         <div className="product-dock" aria-label={ux('purchaseActions')}>
           <div>

@@ -1039,3 +1039,106 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
     padding-inline: 8px;
   }
 }
+
+.product-secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+}
+.product-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  min-height: 44px;
+  color: var(--commerce-accent);
+  font-size: 12px;
+  font-weight: 650;
+  text-align: left;
+}
+.product-secondary-action:hover:not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.product-secondary-action:disabled {
+  color: var(--studio-muted);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.product-recommendations {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--commerce-line);
+  min-width: 0;
+}
+.product-recommendations > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.product-recommendations h2 {
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+}
+.product-recommendations header p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--studio-muted);
+  margin-top: 4px;
+}
+.product-recommendations header > a {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--commerce-accent);
+}
+.product-recommendations-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 48px) / 4);
+  gap: 16px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
+}
+.product-recommendation {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.product-recommendation > .product-tile {
+  flex: 1;
+}
+.product-recommendation-reason {
+  margin-bottom: 8px;
+  font-size: 11px;
+  line-height: 18px;
+  color: var(--studio-muted);
+}
+.product-recommendation-skeleton {
+  height: 360px;
+  border-radius: 16px;
+  background: var(--commerce-soft);
+}
+@media (max-width: 1023px) {
+  .product-recommendations-track {
+    grid-auto-columns: calc((100% - 32px) / 3);
+  }
+}
+@media (max-width: 640px) {
+  .product-recommendations-track {
+    grid-auto-columns: 78%;
+  }
+  .product-recommendations > header {
+    align-items: flex-start;
+  }
+  .product-recommendations header > a {
+    text-align: right;
+  }
+}
