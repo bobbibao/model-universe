@@ -1,7 +1,6 @@
 'use client';
 
 import '@/core/client/features/sales/sales.css';
-import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import Link from '@/i18n/navigation';
 import ProductStage from '@/components/ProductStage';
 import PriceTag, { compactCount, useCountdown } from '@/components/PriceTag';
@@ -15,11 +14,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import { formatVND } from '@/shared/server/utils/utils';
 
 // A product tile: the photo with at most one offer badge (the sale percentage) and a quiet free-shipping tag, then the
-// name, the conditions it is offered in, the price the customer pays and the member price, and a countdown when a sale
+// name, the scale, the price the customer pays and the member price, and a countdown when a sale
 // ends within three days. A model sold out new but in stock in another condition shows that condition's lowest price.
 const ProductCard = ({ product }: { product: ProductSummary }) => {
   const t = useTranslations('catalog');
-  const conditionTypes = useProductConditions();
   const ux = useTranslations('commerceUX');
   const locale = useLocale();
   const en = locale === 'en';
@@ -32,6 +30,11 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
     : conditions;
   const otherConditionOnly = product.stock <= 0 && groupStock > 0;
   const fromPrice = otherConditionOnly ? Math.min(...shown.map((summary) => summary.minSalePrice)) : null;
+  // Match the badge to the listing whose price the card shows; detailed condition disclosure stays on the PDP.
+  const pricedCondition = otherConditionOnly
+    ? shown.find((summary) => summary.minSalePrice === fromPrice)?.condition
+    : (product.condition ?? conditions[0]?.condition);
+  const isNew = (pricedCondition ?? 'new') === 'new';
   const href = productPath(product);
   const shopOwned = !product.partnerId;
   const onSale = product.discountPercent > 0 && product.salePrice < product.price;
@@ -51,34 +54,25 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
           sizes="(min-width: 1440px) 320px, (min-width: 1024px) 28vw, (min-width: 640px) 33vw, 50vw"
           className="studio-card-stage"
         />
-        {product.stock > 0 && onSale && (
-          <span className="tile-ribbon">
-            <small>{product.managedSale ? 'SALE' : en ? 'SAVE' : 'GIẢM'}</small>-{product.discountPercent}%
-          </span>
-        )}
+        <div className="product-tile-badges">
+          <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>{isNew ? t('new') : '2hand'}</span>
+          {groupStock <= 0 && <span className="tile-soldout">{t('soldOut')}</span>}
+          {product.stock > 0 && onSale && (
+            <span className="tile-ribbon">
+              <small>{product.managedSale ? 'SALE' : en ? 'SAVE' : 'GIẢM'}</small>-{product.discountPercent}%
+            </span>
+          )}
+        </div>
         {product.stock > 0 && freeship && (
           <span className="tile-freeship">
             <PromoIcon name="truck" size={14} />
             {en ? 'Free shipping' : 'Freeship'}
           </span>
         )}
-        {groupStock <= 0 && <span className="tile-soldout">{t('soldOut')}</span>}
         {product.salesChannel === 'outlet' && <span className="tile-outlet">Outlet</span>}
       </Link>
       <div className="product-tile-body">
-        <div
-          className="product-tile-tags"
-          title={[product.scale, ...shown.map((summary) => conditionTypes.label(summary.condition))]
-            .filter(Boolean)
-            .join(' · ')}
-        >
-          {product.scale && <span>{product.scale}</span>}
-          {shown.map((summary) => (
-            <span key={summary.condition} className={`condition-chip is-${summary.condition}`}>
-              {conditionTypes.label(summary.condition)}
-            </span>
-          ))}
-        </div>
+        <div className="product-tile-tags">{product.scale && <span>{product.scale}</span>}</div>
         <Link href={href} className="product-tile-name">
           {product.name}
         </Link>

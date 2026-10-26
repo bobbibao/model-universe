@@ -232,6 +232,7 @@ for (const outcome of ['empty', 'failure'] as const) {
     );
     await page.goto(`/vi/san-pham/${model.slug}`);
     const related = page.locator('.product-recommendations');
+    await expect(related).toHaveCount(1);
     await related.scrollIntoViewIfNeeded();
     await expect(related).toHaveCount(0);
     await expect(
@@ -247,6 +248,7 @@ for (const locale of ['vi', 'en'] as const) {
       await fixture(page);
       const m = locale === 'vi' ? vi : en;
       await page.setViewportSize({ width, height: 900 });
+      const otherCondition = locale === 'vi' ? (width === 1366 ? 'incomplete' : 'defective') : 'display-piece';
       const products = [0, 1, 2, 3].map((index) => ({
         ...model,
         id: model.id + index,
@@ -258,13 +260,19 @@ for (const locale of ['vi', 'en'] as const) {
         discountPercent: index === 1 ? 12 : 0,
         discountEndsAt: index === 1 ? new Date(Date.now() + 3600000).toISOString() : null,
         partnerId: index === 2 ? 9 : null,
+        condition: index === 2 ? otherCondition : 'new',
         stock: index === 0 || index === 3 ? 0 : 1,
         groupStock: index === 0 ? 0 : index === 3 ? 2 : 1,
         sold: index === 1 ? 240 : 0,
         reviewCount: index === 1 ? 12 : 0,
         rating: 4.5,
         conditions: [
-          { condition: index === 3 ? 'preowned' : 'new', stock: index === 0 ? 0 : 2, units: 1, minSalePrice: 650000 },
+          {
+            condition: index === 3 ? 'preowned' : index === 2 ? otherCondition : 'new',
+            stock: index === 0 ? 0 : 2,
+            units: 1,
+            minSalePrice: 650000,
+          },
         ],
       }));
       await page.route('**/api/sales/2', (route) =>
@@ -284,6 +292,25 @@ for (const locale of ['vi', 'en'] as const) {
       const cards = page.locator('.sale-products .product-tile:visible');
       await expect(cards).toHaveCount(4);
       await expect(cards.locator('.tile-countdown')).toHaveCount(1);
+      await expect(cards.locator('.mu-product-photo .tile-condition')).toHaveText([
+        m.catalog.new,
+        m.catalog.new,
+        '2hand',
+        '2hand',
+      ]);
+      await expect(cards.locator('.product-tile-body .condition-chip')).toHaveCount(0);
+      for (const card of await cards.all()) {
+        const photo = (await card.locator('.mu-product-photo').boundingBox())!;
+        const badge = (await card.locator('.tile-condition').boundingBox())!;
+        expect(badge.y - photo.y).toBeGreaterThanOrEqual(10);
+        expect(badge.y - photo.y).toBeLessThanOrEqual(14);
+        expect(badge.x + badge.width).toBeLessThan(photo.x + photo.width);
+        for (const status of await card.locator('.tile-soldout, .tile-ribbon').all()) {
+          const rect = (await status.boundingBox())!;
+          expect(rect.y).toBeGreaterThanOrEqual(badge.y + badge.height + 4);
+        }
+      }
+
       if (width === 390) await expect(cards.locator('.product-tile-rating')).toBeHidden();
       const geometry = await cards.evaluateAll((elements) =>
         elements.map((card) => {
