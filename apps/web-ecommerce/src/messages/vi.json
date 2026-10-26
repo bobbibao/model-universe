@@ -1916,6 +1916,7 @@
       "stockInvalid": "Tồn kho phải là số nguyên không âm.",
       "skuRequired": "Vui lòng nhập SKU.",
       "mainImageRequired": "Vui lòng chọn ảnh chính.",
+      "actualPhotosRequired": "Hàng 2hand cần ảnh chính là ảnh thật của sản phẩm đã tải lên.",
       "packagingInvalid": "Nhập đủ dài, rộng, cao (cm) và cân nặng (g) bằng số nguyên dương, hoặc để trống cả bốn.",
       "missingAccessoriesRequired": "Liệt kê phụ kiện còn thiếu.",
       "defectsRequired": "Mô tả ít nhất một lỗi.",
@@ -3756,12 +3757,12 @@
     "issues": {
       "retired": "Tình trạng không còn được chọn. Hãy tải lại danh sách.",
       "uniqueIdentity": "Hàng một chiếc không được đổi sang loại khác; cần dùng luồng kiểm định riêng.",
-      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ít nhất 3 ảnh thật đã tải lên.",
+      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ảnh chính là ảnh thật đã tải lên.",
       "missingAccessories": "Chưa liệt kê phụ kiện còn thiếu. Hãy bổ sung trong trang sửa sản phẩm.",
       "defects": "Chưa mô tả lỗi. Hãy bổ sung trong trang sửa sản phẩm."
     },
     "requirements": {
-      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ít nhất 3 ảnh thật đã tải lên.",
+      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ảnh chính là ảnh thật đã tải lên.",
       "missingAccessories": "Mỗi sản phẩm phải có danh sách phụ kiện còn thiếu trước khi đổi tình trạng.",
       "defects": "Mỗi sản phẩm phải có mô tả lỗi trước khi đổi tình trạng."
     }

@@ -1916,6 +1916,7 @@
       "stockInvalid": "Stock must be a non-negative whole number.",
       "skuRequired": "Enter a SKU.",
       "mainImageRequired": "Choose a main image.",
+      "actualPhotosRequired": "2hand requires an uploaded photo of the actual item as its main image.",
       "packagingInvalid": "Enter length, width, height (cm) and weight (g) as whole positive numbers, or leave all four empty.",
       "missingAccessoriesRequired": "List the missing accessories.",
       "defectsRequired": "Describe at least one defect.",
@@ -3756,12 +3757,12 @@
     "issues": {
       "retired": "Condition unavailable. Reload the list.",
       "uniqueIdentity": "A unique collectible cannot be reclassified through bulk edit.",
-      "photos": "Unique items need stock at most one and at least three distinct uploaded photos.",
+      "photos": "Unique items need stock at most one and an uploaded actual-item main photo.",
       "missingAccessories": "List missing accessories in the product editor first.",
       "defects": "Describe defects in the product editor first."
     },
     "requirements": {
-      "photos": "Unique items need stock at most one and at least three distinct uploaded photos.",
+      "photos": "Unique items need stock at most one and an uploaded actual-item main photo.",
       "missingAccessories": "List missing accessories in the product editor first.",
       "defects": "Describe defects in the product editor first."
     }

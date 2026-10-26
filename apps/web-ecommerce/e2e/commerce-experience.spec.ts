@@ -368,6 +368,72 @@ for (const locale of ['vi', 'en'] as const) {
 }
 
 for (const locale of ['vi', 'en'] as const) {
+  for (const width of [1366, 390]) {
+    test(`${locale} ${width}: New to 2hand accepts one actual photo and guides missing-photo corrections`, async ({
+      page,
+      context,
+    }) => {
+      await fixture(page, true);
+      const m = locale === 'vi' ? vi : en;
+      await context.addCookies([
+        { name: 'access_token', value: await signSessionToken(900001, 'ADMIN'), url: previewUrl, httpOnly: true },
+      ]);
+      await page.setViewportSize({ width, height: 900 });
+      let product = {
+        ...model,
+        condition: 'new',
+        stock: 1,
+        price: 1222222,
+        salePrice: 1222222,
+        pricingReferenceMemberVnd: 1100000,
+        importPrice: 500000,
+        images: [] as string[],
+        imageUrl: '/uploads/products/actual-front.jpg',
+        isArchived: false,
+        inventoryStatus: 'available',
+        units: [],
+      };
+      const updates: Record<string, unknown>[] = [];
+      await page.route(`**/api/admin/products/${model.id}`, async (route) => {
+        if (route.request().method() === 'PUT') {
+          const body = route.request().postDataJSON();
+          updates.push(body);
+          product = { ...product, ...body };
+          return route.fulfill({ json: { data: product } });
+        }
+        return route.fulfill({ json: product });
+      });
+      await page.goto(`/${locale}/admin/products/${model.id}`);
+      const editor = page.locator('.compact-admin-editor');
+      await editor.getByRole('tab', { name: m.adminProducts.conditionSection, exact: true }).click();
+      await editor.locator('#condition-fields select[name="condition"]').selectOption('preowned');
+      await editor.getByRole('button', { name: m.adminProducts.save, exact: true }).click();
+      await expect.poll(() => updates.length).toBe(1);
+      expect(updates[0]).toMatchObject({
+        condition: 'preowned',
+        stock: 1,
+        imageUrl: '/uploads/products/actual-front.jpg',
+        images: [],
+        pricingReferenceMemberVnd: 1100000,
+        expectedPrice: 1222222,
+      });
+      expect(updates[0]).not.toHaveProperty('price');
+      await expect(editor.locator('#condition-fields select[name="condition"]')).toBeDisabled();
+      product = { ...product, condition: 'new', imageUrl: '/images/store/product-placeholder.svg' };
+      await page.reload();
+      await editor.getByRole('tab', { name: m.adminProducts.conditionSection, exact: true }).click();
+      await editor.locator('#condition-fields select[name="condition"]').selectOption('preowned');
+      await editor.getByRole('button', { name: m.adminProducts.save, exact: true }).click();
+      await expect(editor.getByRole('tab', { name: new RegExp(m.adminProducts.images) })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await expect(editor.getByRole('tabpanel').getByText(m.adminProducts.validation.actualPhotosRequired, { exact: true })).toBeVisible();
+      await expect(editor.getByLabel(m.adminProducts.changeImage, { exact: true })).toBeFocused();
+      expect(updates).toHaveLength(1);
+      await capture(page, `photo-policy-${locale}-${width}`);
+    });
+  }
   for (const width of [1440, 1024, 390]) {
     test(`${locale} ${width}: admin product cells omit condition stock clutter and keep status text on one line`, async ({
       page,
@@ -426,6 +492,12 @@ for (const locale of ['vi', 'en'] as const) {
       await expect(table.locator('tbody .catalog-stock-cell')).toHaveCount(3);
       await expect(table.locator('.catalog-condition-stock')).toHaveCount(0);
       const conditionText = (await table.locator('.catalog-condition-summary').allTextContents()).join(' ');
+      expect(conditionText).not.toContain('6.666.667');
+      expect(conditionText).not.toMatch(/\d[.,]\d{3}/);
+      await expect(table.locator('.catalog-condition-summary small')).toHaveCount(0);
+      await expect(table.locator('.catalog-price-cell').last()).toContainText(
+        locale === 'vi' ? '6.666.667' : '6,666,667',
+      );
       expect(conditionText).not.toContain('×');
       expect(conditionText).not.toContain(m.catalog.conditionSoldOut);
       await expect(table.locator('.catalog-condition-summary .condition-chip')).toHaveCount(9);

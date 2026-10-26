@@ -173,7 +173,6 @@ const ProductList = () => {
               >
                 {conditionTypes.label(summary.condition)}
               </span>
-              {summary.stock > 0 && <small>{formatVND(summary.minSalePrice, locale)}</small>}
             </div>
           ))}
         </div>

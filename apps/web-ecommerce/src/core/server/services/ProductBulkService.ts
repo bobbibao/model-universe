@@ -1,7 +1,6 @@
 import { createHash } from 'crypto';
 import DatabaseProvider from '../database/Database.Provider';
 import ProductModel from '../database/client/models/Product.Model';
-import ProductImageModel from '../database/client/models/ProductImage.Model';
 import ProductConditionTypeModel from '../database/client/models/ProductConditionType.Model';
 import ProductConditionService from './ProductConditionService';
 import { uniquePhotosMissing } from './catalog/ProductConditionValidation';
@@ -65,7 +64,6 @@ export default class ProductBulkService {
           throw conflict();
       }
       if (changes.condition !== undefined) {
-        const images = await ProductImageModel.findAll({ where: { productId: ids }, transaction });
         const next = types.find((type) => type.key === changes.condition);
         const issues: ProductBulkIssue[] = [];
         for (const product of parents) {
@@ -76,14 +74,7 @@ export default class ProductBulkService {
           }
           if (was?.uniqueUnit && product.condition !== next.key)
             issues.push({ id: product.id, reason: 'uniqueIdentity' });
-          if (
-            next.uniqueUnit &&
-            uniquePhotosMissing(
-              product.stock,
-              product.imageUrl,
-              images.filter((image) => image.productId === product.id).map((image) => image.url),
-            )
-          )
+          if (next.uniqueUnit && uniquePhotosMissing(product.stock, product.imageUrl))
             issues.push({ id: product.id, reason: 'photos' });
           if (next.requiresMissingAccessories && !product.missingAccessories?.length)
             issues.push({ id: product.id, reason: 'missingAccessories' });

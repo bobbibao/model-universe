@@ -3,6 +3,7 @@ import {
   emptyProductForm,
   validateInventory,
   validatePricing,
+  validateProductImages,
 } from '../../src/core/client/features/product-management/components/productForm';
 import { parseProductPackaging } from '../../src/shared/packing/rules';
 
@@ -10,6 +11,16 @@ const inventory = { ...emptyProductForm, sku: 'MODEL-001' };
 const packaging = { packLengthCm: '30', packWidthCm: '15', packHeightCm: '10', packWeightGram: '3000' };
 
 describe('product form numeric and inherited data contracts', () => {
+  test('2hand accepts one uploaded main photo; placeholders are caught before save', () => {
+    const used = { ...inventory, condition: 'preowned' };
+    expect(validateProductImages(used, { url: '/uploads/products/actual.jpg' })).toEqual({});
+    expect(validateProductImages(used, { url: '/images/product-placeholder.svg' })).toEqual({
+      mainImage: 'actualPhotosRequired',
+    });
+    expect(validateProductImages(used, null)).toEqual({ mainImage: 'mainImageRequired' });
+    expect(validateProductImages(used, { file: {} as File })).toEqual({});
+    expect(validateProductImages(inventory, { url: '/images/product-placeholder.svg' })).toEqual({});
+  });
   test('an empty package keeps the shop default and preserves descriptive text separately', () => {
     const values = { ...inventory, weight: '3 kg', dimensions: '30 × 15 × 10 cm' };
     expect(validateInventory(values)).toEqual({});

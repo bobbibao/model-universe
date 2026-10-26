@@ -119,6 +119,8 @@ const ProductImagesField = ({
                 type="file"
                 accept={ACCEPT}
                 aria-label={t('changeImage')}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? errorId : undefined}
                 className="sr-only"
                 onChange={handleMainImage}
               />

@@ -23,6 +23,7 @@ import {
   validateCondition,
   validatePricing,
   validateReceivedDate,
+  validateProductImages,
 } from './productForm';
 
 // The model's units in Admin: the main listing and each condition option with its own SKU, price, stock and status,
@@ -37,7 +38,6 @@ const ProductConditions = ({
   onEditCurrent: () => void;
 }) => {
   const t = useTranslations('adminProducts'),
-    catalog = useTranslations('catalog'),
     locale = useLocale();
   const conditions = useProductConditions();
   const listingId = product.listing?.id ?? product.id;
@@ -79,6 +79,8 @@ const ProductConditions = ({
     if (!/^\d+$/.test(values.stock.trim())) formErrors.stock = 'stockInvalid';
     else if (conditionRules(conditions.all, values.condition)?.uniqueUnit && Number(values.stock) > 1)
       formErrors.stock = 'preownedStockInvalid';
+    if (conditionRules(conditions.all, values.condition)?.uniqueUnit)
+      Object.assign(formErrors, validateProductImages(values, mainImage, conditions.all));
     setErrors(formErrors);
     if (Object.keys(formErrors).length > 0) return;
     setSaving(true);
@@ -294,13 +296,20 @@ const ProductConditions = ({
           </div>
           <div>
             <p className="mb-1 font-medium text-black dark:text-white">{t('optionImages')}</p>
-            <p className="mb-3 text-sm text-body">{t('optionImagesHint')}</p>
+            <p className="mb-3 text-sm text-body">
+              {t(
+                conditionRules(conditions.all, values.condition)?.uniqueUnit
+                  ? 'validation.actualPhotosRequired'
+                  : 'optionImagesHint',
+              )}
+            </p>
             <ProductImagesField
-              required={false}
+              required={!!conditionRules(conditions.all, values.condition)?.uniqueUnit}
               mainImage={mainImage}
               gallery={gallery}
               onMainImageChange={setMainImage}
               onGalleryChange={setGallery}
+              error={errors.mainImage ? t(`validation.${errors.mainImage}`) : undefined}
             />
           </div>
         </fieldset>
