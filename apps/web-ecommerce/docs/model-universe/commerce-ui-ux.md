@@ -102,3 +102,15 @@ Khoản thu tiền mặt dùng nhãn phiếu thu; khoản thu trước và hoàn
 ## Cập nhật sản phẩm hàng loạt (26/10/2026)
 
 Admin có checkbox chọn từng dòng/chọn trang và thanh thao tác chỉ xuất hiện khi đã chọn sản phẩm. Hộp cập nhật chỉ có **Nổi bật** và **Tình trạng hàng**, dùng checkbox bật trường rồi select giá trị mới; tối đa 50 sản phẩm, giữ lựa chọn qua phân trang. Giá, tồn kho và SKU giữ nguyên. Kiểm tra dữ liệu bắt buộc theo tình trạng, chống ghi đè phiên bản và lưu toàn bộ lô trong một transaction. Hướng dẫn, quy tắc và kiểm chứng: [Cập nhật sản phẩm hàng loạt](product-bulk-edit.md).
+
+## Badge và bộ lọc chọn nhiều (26/10/2026)
+
+Card dùng nhãn tình trạng nền đặc, chữ trắng: xanh cho **Mới**, nâu cam cho **2hand**; mọi tình trạng khác Mới được gom vào 2hand trên card, giữ nguyên mô tả chi tiết ở trang sản phẩm. Nhãn cao 26–28px, cùng một hàng với hết hàng/giảm giá ở góc đối diện, không xếp chồng. Tình trạng khớp với SKU đang được dùng để hiển thị giá.
+
+Hãng, tỉ lệ, tình trạng hàng và trạng thái lắp ráp dùng dropdown checkbox chọn nhiều. Chọn một mục không đóng menu; khách đóng bằng nút Đóng, bấm lại nút mở, Escape, click ra ngoài hoặc chuyển focus ra ngoài. Menu hiển thị tên đã chọn và số lượng; danh sách dài cuộn bên trong menu, sidebar không có vùng cuộn riêng. Mỗi chip bỏ đúng một lựa chọn. Sort vẫn chọn một giá trị.
+
+URL và API dùng query parameter lặp, ví dụ `?brand=Bandai&brand=MOSHOW&condition=new&condition=preowned`. Các giá trị trong một nhóm được OR, các nhóm được AND trên cùng SKU đang được phép bán; SKU tình trạng được quy về mô hình chính. Link cũ có một giá trị vẫn dùng được. Backend kiểm tra kiểu dữ liệu, tối đa 50 giá trị/nhóm và 200 ký tự/giá trị; không tách chuỗi theo dấu phẩy để giữ đúng tên hãng. Reload/Back/Forward khôi phục lựa chọn.
+
+Dropdown dùng chung được áp dụng cả trong `.admin-modal-overlay` vì modal nằm ngoài `.admin-workspace`. Bulk update bỏ style riêng của select để sử dụng token, picker, focus và disabled state toàn hệ thống. Tab danh sách/thống kê kho bỏ padding ngang thừa của thanh tab; padding của nút vẫn giữ để bảo đảm vùng bấm.
+
+Kiểm chứng: 8 unit test cho parser, 3 database test cho OR/AND theo cùng SKU và API query lặp; 17 browser test cho đa lựa chọn, đóng/mở/keyboard, chip, URL/reload/Back, badge/card, dropdown global và bulk update. Đã kiểm tra tiếng Việt/Anh, desktop/mobile, giao diện sáng/tối; không có tràn ngang trang. Scoped ESLint, server type check và build production có kiểm tra kiểu đã qua (build dùng `--no-lint` theo giới hạn lint toàn repo đã ghi ở trên). Đối chiếu API local thật xác nhận chọn hai hãng trả đúng hợp của hai kết quả riêng; chỉ đọc dữ liệu shop. Preview giữ worktree riêng, không khởi động lại server 6070 của Claude.

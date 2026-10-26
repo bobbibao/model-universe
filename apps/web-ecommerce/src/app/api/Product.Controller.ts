@@ -6,6 +6,7 @@ import ApiBaseController from './ApiBase.Controller';
 import type { Request, Response } from 'express';
 import type ProductService from '../../core/server/services/ProductService';
 import HttpError from '../../shared/server/utils/HttpError';
+import { parseFilterChoices } from '../../core/server/services/catalog/ProductFilterInput';
 import { parsePagination, toPaginatedPayload } from '../../shared/server/utils/PaginationUtils';
 import { toInteger } from '../../shared/server/utils/ValidationUtils';
 
@@ -33,12 +34,12 @@ export default class ProductController extends ApiBaseController {
       const service = await this.requireService<ProductService>();
       const { page, perPage, limit, offset } = parsePagination(req, DEFAULT_PAGE_SIZE);
       const { rows, count } = await service.listPublic({
-        scale: req.query.scale as string | undefined,
-        condition: req.query.condition as string | undefined,
-        assemblyState: req.query.assemblyState as string | undefined,
+        scale: parseFilterChoices(req.query.scale),
+        condition: parseFilterChoices(req.query.condition),
+        assemblyState: parseFilterChoices(req.query.assemblyState),
         q: req.query.q as string | undefined,
         category: req.query.category as string | undefined,
-        brand: req.query.brand as string | undefined,
+        brand: parseFilterChoices(req.query.brand),
         minPrice: toInteger(req.query.minPrice),
         maxPrice: toInteger(req.query.maxPrice),
         inStock: req.query.inStock === 'true',

@@ -100,6 +100,8 @@ for (const locale of ['vi', 'en'] as const) {
       await page.goto(`/${locale}/admin/products`);
       const table = page.locator('.admin-table:visible');
       await expect(table).toHaveAttribute('aria-busy', 'false');
+      await expect(page.locator('.compact-catalog-tabs > .workspace-tablist')).toHaveCSS('padding-left', '0px');
+      await expect(page.locator('.compact-catalog-tabs > .workspace-tablist')).toHaveCSS('padding-right', '0px');
       await expect(
         table.getByRole('checkbox', { name: t.selectProduct.replace('{name}', 'Bulk model 103'), exact: true }),
       ).toBeDisabled();
@@ -120,6 +122,11 @@ for (const locale of ['vi', 'en'] as const) {
       await page.getByRole('button', { name: t.edit, exact: true }).click();
       const dialog = page.getByRole('dialog');
       await expect(dialog.getByRole('combobox')).toHaveCount(2);
+      for (const combo of await dialog.getByRole('combobox').all()) {
+        expect(await combo.evaluate((element) => getComputedStyle(element).appearance)).toBe(
+          (await page.evaluate(() => CSS.supports('appearance', 'base-select'))) ? 'base-select' : 'none',
+        );
+      }
       for (const combo of await dialog.getByRole('combobox').all()) await expect(combo).toBeDisabled();
       const apply = dialog.getByRole('button', { name: t.apply.replace('{count}', '3'), exact: true });
       await expect(apply).toBeDisabled();

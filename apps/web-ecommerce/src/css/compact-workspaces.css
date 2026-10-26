@@ -81,7 +81,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   background: var(--admin-surface);
 }
 .compact-catalog-tabs > .workspace-tablist {
-  padding-inline: 12px;
+  padding: 0;
 }
 .compact-catalog-tabs > .workspace-tabpanels > .workspace-tab-panel {
   padding: 0;

@@ -5,13 +5,14 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Category, ProductSort } from '@/shared/types/product';
+import FilterMultiSelect from '@/components/FormElements/FilterMultiSelect';
 export interface ProductFilterValues {
-  assemblyState?: string;
+  assemblyState: string[];
   q: string;
   category: string;
-  scale: string;
-  condition: string;
-  brand: string;
+  scale: string[];
+  condition: string[];
+  brand: string[];
   minPrice: number;
   maxPrice?: number;
   inStock: boolean;
@@ -75,24 +76,13 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
     field: 'condition' | 'scale' | 'brand' | 'assemblyState',
     options: { value: string; label: string }[],
   ) => (
-    <div key={field}>
-      <label className="mu-field" htmlFor={`filter-${field}`}>
-        {t(field === 'assemblyState' ? 'assembly' : field)}
-      </label>
-      <select
-        className="mu-input"
-        id={`filter-${field}`}
-        value={values[field] || ''}
-        onChange={(event) => update(field, event.target.value)}
-      >
-        <option value="">{t('all')}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
+    <FilterMultiSelect
+      key={field}
+      label={t(field === 'assemblyState' ? 'assembly' : field)}
+      options={options}
+      values={values[field]}
+      onChange={(next) => update(field, next)}
+    />
   );
   return (
     <div className="mu-filter catalog-filters" role="group" aria-label={t('filters')}>
