@@ -1,3 +1,6 @@
+import { effectiveItemType } from '../../../shared/condition-tree';
+import CatalogTreeService from './catalog/CatalogTreeService';
+import { conditionPath } from '../../../shared/condition-tree';
 import LoyaltyService from './LoyaltyService';
 import Logger from '../../../shared/server/utils/logger';
 import MoneyReferenceService from './MoneyReferenceService';
@@ -448,6 +451,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
           { transaction },
         );
         await new PromotionService().apply(order, benefits, transaction);
+        const conditionTree = await new CatalogTreeService().nodes(transaction);
         const orderItems = await OrderItemModel.bulkCreate(
           lines.map((line) => ({
             orderId: order.id,
@@ -464,7 +468,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
                 shopBenefitEligible: !product.partnerId,
                 scale: product.scale,
                 modelCode: product.modelCode,
-                condition: product.condition,
+                condition: product.condition, modelFamilyId: product.modelFamilyId, itemTypeKey: effectiveItemType(product), conditionNodeIds: product.conditionNodeIds, conditionLabels: (product.conditionNodeIds ?? []).map(id => conditionPath(id, conditionTree)),
                 conditionNote: product.conditionNote ?? null,
                 assemblyState: product.assemblyState,
                 boxCondition: product.boxCondition,
@@ -630,7 +634,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     });
     if (shipments.some((shipment) => PICKED_UP_STATUSES.includes(shipment.status))) return false;
     if (shipments.length) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
       const { default: FulfillmentService } = require('./FulfillmentService') as typeof import('./FulfillmentService');
       for (const shipment of shipments)
         await new FulfillmentService().cancelShipment(null, shipment.id, {
@@ -851,7 +855,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
   // whether it applies). Runs after the commit; a failure only raises an admin alert.
   static afterUpfrontPayment(orderId: number) {
     // Required lazily: FulfillmentService itself depends on OrderService.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
     const { default: FulfillmentService } = require('./FulfillmentService') as typeof import('./FulfillmentService');
     void new FulfillmentService()
       .autoCreateShipment(orderId)
@@ -1235,7 +1239,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
           'ORDER_IN_TRANSIT',
         );
       // Required lazily: FulfillmentService itself depends on OrderService.
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
       const { default: FulfillmentService } = require('./FulfillmentService') as typeof import('./FulfillmentService');
       for (const shipment of shipments)
         await new FulfillmentService().cancelShipment(actorUserId, shipment.id, {

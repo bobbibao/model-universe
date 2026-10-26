@@ -133,8 +133,10 @@ app
             );
         });
       });
-    void remind();
-    setInterval(() => void remind(), 60_000).unref();
+    if (process.env.DISABLE_BACKGROUND_JOBS !== 'true') {
+      void remind();
+      setInterval(() => void remind(), 60_000).unref();
+    }
 
     // Start the server
     const port = process.env.PORT || 3000;

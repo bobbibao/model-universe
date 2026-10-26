@@ -1,3 +1,4 @@
+import type { ConditionCaseSnapshot } from '../condition-tree';
 import type { BuybackEstimate, BuybackIssue, InspectionComparison } from '../buyback-pricing';
 import type { ListingQcCheck, ListingQcChecks } from '../listing-qc';
 
@@ -62,6 +63,9 @@ export interface BuybackEvidenceFile {
   purpose: string;
 }
 export interface BuybackRequest {
+  conditionCase?: ConditionCaseSnapshot | null;
+  conditionCaseReviewNote?: string | null;
+  conditionCaseStatus?: 'pending' | 'resolved' | 'needs_evidence' | 'rejected' | null;
   id: number;
   userId: number;
   status: BuybackStatus;

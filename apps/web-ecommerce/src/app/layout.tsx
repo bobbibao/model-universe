@@ -16,6 +16,7 @@ import '@/css/commerce-experience.css';
 import '@/css/compact-workspaces.css';
 import '@/css/product-forms.css';
 import '@/css/direct-sales.css';
+import '@/css/condition-tree.css';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import AppProviders from '@/components/AppProviders';

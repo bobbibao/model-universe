@@ -82,6 +82,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
             </span>
           )}
         </p>
+<p className="product-tile-condition-details" title={product.conditionLabels?.join(' · ')}>{product.conditionLabels?.join(' · ') || ''}</p>
         <div className="product-tile-pricing">
           <div className="product-tile-price">
             {fromPrice !== null ? (

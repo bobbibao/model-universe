@@ -9,6 +9,7 @@ import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { COLLECTIBLE_ASSET_FIELDS as ASSET_FIELDS } from './ConditionFields';
 import ServiceBasket from './ServiceBasket';
 import { useSearchParams } from 'next/navigation';
+import ServiceConditionCasePanel from './ServiceConditionCasePanel';
 import BuybackPricingSections from './BuybackPricingSections';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { BuybackRequest } from '@/shared/types/buyback';
@@ -187,6 +188,7 @@ export default function BuybackWorkspace({
                     </div>
                   ))}
                 </dl>
+                <ServiceConditionCasePanel kind="buyback" reviewNote={selected.conditionCaseReviewNote} key={selected.id} snapshot={selected.conditionCase} status={selected.conditionCaseStatus} admin={admin} editable={['submitted', 'need_more_evidence', 'quoted', 'awaiting_item', 'inspecting', 'reinspection_requested'].includes(selected.status)} busy={busy} post={post} />
                 <BuybackPricingSections
                   key={`${selected.id}:${selected.version}`}
                   selected={selected}

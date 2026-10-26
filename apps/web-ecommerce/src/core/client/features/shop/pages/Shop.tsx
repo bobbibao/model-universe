@@ -61,6 +61,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
       category: categorySlug || searchParams.get('category') || '',
       scale: [...new Set(searchParams.getAll('scale').filter(Boolean))],
       condition: [...new Set(searchParams.getAll('condition').filter(Boolean))],
+      conditionNodeIds: [...new Set(searchParams.getAll('conditionNodeIds').filter(value => /^[1-9]\d*$/.test(value)))],
       assemblyState: [...new Set(searchParams.getAll('assemblyState').filter(Boolean))],
       brand: [...new Set(searchParams.getAll('brand').filter(Boolean))],
       minPrice,
@@ -122,6 +123,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
         category: applied.category,
         scale: applied.scale,
         condition: applied.condition,
+        conditionNodeIds: applied.conditionNodeIds?.map(Number),
         assemblyState: applied.assemblyState,
         brand: applied.brand,
         minPrice: applied.minPrice,
@@ -147,7 +149,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   const navigate = (values: Partial<ProductFilterValues> & { page?: number }) => {
     const params = new URLSearchParams();
     if (values.q?.trim()) params.set('q', values.q.trim());
-    for (const field of ['scale', 'condition', 'assemblyState', 'brand'] as const) {
+    for (const field of ['scale', 'condition', 'assemblyState', 'brand', 'conditionNodeIds'] as const) {
       for (const value of values[field] ?? []) params.append(field, value);
     }
     if (values.minPrice && values.minPrice > 0) params.set('minPrice', String(values.minPrice));
@@ -243,7 +245,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
               navigate({
                 ...applied,
                 [key]:
-                  key === 'brand' || key === 'scale' || key === 'condition' || key === 'assemblyState'
+                  key === 'brand' || key === 'scale' || key === 'condition' || key === 'assemblyState' || key === 'conditionNodeIds'
                     ? applied[key].filter((item) => item !== value)
                     : key === 'inStock' || key === 'outletOnly'
                       ? false

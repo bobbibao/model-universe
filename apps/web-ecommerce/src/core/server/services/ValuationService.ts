@@ -3,15 +3,12 @@ import HttpError from '../../../shared/server/utils/HttpError';
 import { estimateBuyback } from '../../../shared/buyback-pricing';
 import { estimatePawn, simulatePawnOwed } from '../../../shared/pawn-rules';
 import { memberPrice } from '../../../shared/pricing';
-import { referencePrice, type ReferenceCondition } from '../../../shared/sale-pricing';
+import { type ReferenceCondition } from '../../../shared/sale-pricing';
 
 // The days shown in the pawn interest simulation.
 const SIMULATED_DAYS = [7, 15, 30] as const;
 
-// The web valuation of a model the shop sells (owner rules of 2026-10-26), in each condition a customer can choose:
-// new (from S) and 2hand (from S 2hand, when staff entered one). Each gives the buyback price S − margin and the pawn
-// amount C50 (its interest only simulated until legal review); the member price is what a trade item costs. Any other
-// unit, or a model the shop does not sell, is priced by staff from the customer's photos.
+// The exact SKU supplies one approved S. Other combinations need their own matched SKU or staff review.
 export default class ValuationService {
   async forProduct(productId: number) {
     const product =
@@ -21,10 +18,10 @@ export default class ValuationService {
     if (!product) throw HttpError.notFound('Không tìm thấy mẫu trong cửa hàng.');
     const approved = !!product.targetPriceApprovedAt;
     const quote = (condition: ReferenceCondition) => {
-      const reference = product.condition === 'new' ? referencePrice(product, condition) : null;
+      const reference = product.modelFamilyId && product.itemTypeKey === condition && product.serviceReferenceEnabled ? product.pricingReferenceMemberVnd : null;
       const pawn = estimatePawn(reference, { approved });
       return {
-        buyback: estimateBuyback(reference, [], { approved }),
+        buyback: estimateBuyback(reference, [], { approved, conditionMatched: true }),
         pawn: {
           ...pawn,
           simulation: pawn.amountVnd
@@ -47,7 +44,7 @@ export default class ValuationService {
         listPriceVnd: product.price,
         memberPriceVnd: memberPrice(product.price),
       },
-      ...conditions.new,
+      ...(product.itemTypeKey === 'preowned' ? conditions.preowned : conditions.new),
       conditions,
     };
   }

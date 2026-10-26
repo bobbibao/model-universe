@@ -45,6 +45,7 @@ const CartLineItem = ({ entry, memberPriced }: { entry: CartEntry; memberPriced:
               {' '}
               <span className={`condition-chip is-${product.condition}`}>
                 {conditionTypes.label(product.condition)}
+                {product.conditionLabels?.length ? ` · ${product.conditionLabels.join(' · ')}` : ''}
               </span>
             </>
           )}

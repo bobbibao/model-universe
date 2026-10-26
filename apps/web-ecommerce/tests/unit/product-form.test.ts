@@ -12,7 +12,7 @@ const packaging = { packLengthCm: '30', packWidthCm: '15', packHeightCm: '10', p
 
 describe('product form numeric and inherited data contracts', () => {
   test('2hand accepts one uploaded main photo; placeholders are caught before save', () => {
-    const used = { ...inventory, condition: 'preowned' };
+    const used = { ...inventory, condition: 'preowned', isArchived: false };
     expect(validateProductImages(used, { url: '/uploads/products/actual.jpg' })).toEqual({});
     expect(validateProductImages(used, { url: '/images/product-placeholder.svg' })).toEqual({
       mainImage: 'actualPhotosRequired',
@@ -79,8 +79,8 @@ describe('product form numeric and inherited data contracts', () => {
     expect(payload).toMatchObject({ weight: values.weight, dimensions: values.dimensions });
   });
 
-  test('pre-owned items cannot represent multiple unique units', () => {
-    expect(validateInventory({ ...inventory, condition: 'preowned', stock: '2' }).stock).toBe('preownedStockInvalid');
+  test('one pre-owned condition SKU can contain multiple equivalent units', () => {
+    expect(validateInventory({ ...inventory, condition: 'preowned', stock: '2' })).toEqual({});
     expect(validateInventory({ ...inventory, condition: 'preowned', stock: '1' })).toEqual({});
   });
 

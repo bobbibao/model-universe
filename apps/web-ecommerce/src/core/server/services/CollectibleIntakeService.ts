@@ -1,35 +1,29 @@
 import fs from 'fs/promises';
-import crypto from 'crypto';
 import path from 'path';
 import type { Transaction } from 'sequelize';
 import ProductModel from '../database/client/models/Product.Model';
-import ProductImageModel from '../database/client/models/ProductImage.Model';
-import OrderItemModel from '../database/client/models/OrderItem.Model';
-import StockImportItemModel from '../database/client/models/StockImportItem.Model';
-import BuybackRequestModel from '../database/client/models/BuybackRequest.Model';
-import PawnContractModel from '../database/client/models/PawnContract.Model';
+import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
 import HttpError from '../../../shared/server/utils/HttpError';
 import FileStorageService from './FileStorageService';
 
-// Used only after the source workflow has verified buyback ownership or contractual pawn disposal. `publish: false`
-// takes the unit into stock as a DRAFT listing (still archived) for the buy-back publication check.
-export async function activateOwnedCollectibleDraft(productId: number, modelCode: string, acquisitionCostVnd: number, transaction: Transaction, { publish = true }: { publish?: boolean } = {}) {
+// Source workflows verify ownership, settlement and their own inspection/QC before calling this.
+export async function activateOwnedCollectibleDraft(productId: number, modelCode: string, acquisitionCostVnd: number, transaction: Transaction,
+  { publish = false, sourceType, sourceId, actorUserId }: { publish?: boolean; sourceType: 'buyback' | 'pawn'; sourceId: number; actorUserId: number }) {
   const product = await ProductModel.findByPk(productId, { transaction, lock: transaction.LOCK.UPDATE });
-  if (!product || product.partnerId || !product.isArchived || product.stock !== 0 || product.sold !== 0 || product.condition !== 'preowned' || product.modelCode !== modelCode) throw HttpError.conflict('Use a fresh archived, zero-stock shop-owned preowned draft with the inspected model code.');
-  // A transaction uses one PostgreSQL connection; do not issue overlapping queries on it.
-  const history = [
-    await StockImportItemModel.count({ where: { productId }, transaction }),
-    await OrderItemModel.count({ where: { productId }, transaction }),
-    await BuybackRequestModel.count({ where: { productId }, transaction }),
-    await PawnContractModel.count({ where: { productId }, transaction }),
-  ];
-  if (history.some(count => count > 0)) throw HttpError.conflict('This SKU already belongs to a historical inventory source.');
-  const photos = [product.imageUrl, ...(await ProductImageModel.findAll({ where: { productId }, transaction })).map(file => file.url)];
-  if (new Set(photos).size < 3 || photos.some(url => !/^\/uploads\/products\/[0-9a-f-]{36}\.(jpg|png|webp)$/i.test(url))) throw HttpError.badRequest('Use at least three distinct uploaded actual-item photographs.');
-  const hashes = new Set<string>();
-  try { for (const url of photos) hashes.add(crypto.createHash('sha256').update(await fs.readFile(path.join(FileStorageService.getUploadRoot(), url.slice('/uploads/'.length)))).digest('hex')); }
-  catch { throw HttpError.badRequest('An actual-item upload is missing. Reconcile the listing photographs before intake.'); }
-  if (hashes.size < 3) throw HttpError.badRequest('Use three distinct actual-item views, not copies of the same photograph.');
-  await product.update({ stock: 1, importPrice: acquisitionCostVnd, isArchived: !publish, inventoryStatus: 'available' }, { transaction });
+  if (!product || product.partnerId || product.modelCode !== modelCode || !product.combinationKey || product.catalogReviewRequired || product.inventoryStatus !== 'available')
+    throw HttpError.conflict('Chọn SKU của đúng mẫu/tổ hợp đã duyệt để nhập hàng.');
+  const previous = await CatalogIntakeModel.findOne({ where: { sourceType, sourceId: String(sourceId) }, transaction });
+  if (previous) {
+    if (previous.productId !== productId) throw HttpError.conflict('Nguồn hàng đã nhập vào một SKU khác.');
+    return product;
+  }
+  if (!product.imageUrl.startsWith('/uploads/')) throw HttpError.badRequest('SKU cần ảnh đại diện thật đã tải lên.');
+  const root = FileStorageService.getUploadRoot();
+  const filename = path.resolve(root, product.imageUrl.slice('/uploads/'.length));
+  if (!filename.startsWith(path.resolve(root) + path.sep)) throw HttpError.badRequest('Đường dẫn ảnh không hợp lệ.');
+  try { await fs.access(filename); } catch { throw HttpError.badRequest('Không tìm thấy ảnh thật của SKU.'); }
+  await CatalogIntakeModel.create({ productId, sourceType, sourceId: String(sourceId), quantity: 1, unitCostVnd: acquisitionCostVnd, actorUserId,
+    snapshot: { modelFamilyId: product.modelFamilyId, itemTypeKey: product.itemTypeKey, conditionNodeIds: product.conditionNodeIds, sku: product.sku } }, { transaction });
+  await product.update({ stock: product.stock + 1, importPrice: acquisitionCostVnd, ...(publish ? { isArchived: false } : {}) }, { transaction });
   return product;
 }

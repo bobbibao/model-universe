@@ -1,3 +1,5 @@
+import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
+import { lockCatalog } from './catalog/CatalogTreeService';
 import { Op, Transaction, WhereOptions } from 'sequelize';
 import OrderModel from '../database/client/models/Order.Model';
 import OrderItemModel from '../database/client/models/OrderItem.Model';
@@ -259,7 +261,7 @@ export default class ReturnService {
   }
 
   // The only step that changes stock: puts a received line in sellable condition back into stock, once.
-  async restockItem(returnId: number, itemId: number) {
+  async restockItem(returnId: number, itemId: number, actorUserId?: number) {
     await DatabaseProvider.getInstance().transaction(async (transaction) => {
       const item = await ReturnItemModel.findOne({
         where: { id: itemId, returnRequestId: returnId },
@@ -274,11 +276,14 @@ export default class ReturnService {
         throw HttpError.badRequest('Damaged models cannot return to sellable stock.');
       }
       if (item.restockedAt) throw HttpError.conflict('This line has already been restocked.');
+      await lockCatalog(transaction);
       const orderItem = await OrderItemModel.findByPk(item.orderItemId, { transaction });
-      const product = orderItem
-        ? await ProductModel.findByPk(orderItem.productId, { transaction, lock: transaction.LOCK.UPDATE })
+      const original = orderItem ? await ProductModel.findByPk(orderItem.productId, { transaction }) : null;
+      const product = original
+        ? await ProductModel.findByPk(original.catalogCanonicalId ?? original.id, { transaction, lock: transaction.LOCK.UPDATE })
         : null;
       if (!product) throw HttpError.notFound('The original model no longer exists.');
+      await CatalogIntakeModel.create({ productId: product.id, sourceType: 'return', sourceId: String(item.id), quantity: item.quantity, unitCostVnd: product.importPrice, actorUserId: actorUserId ?? null, snapshot: { returnId, orderItemId: item.orderItemId, originalProductId: orderItem!.productId, condition: item.condition } }, { transaction });
       await product.update({ stock: product.stock + item.quantity }, { transaction });
       await item.update({ restockedAt: new Date() }, { transaction });
     });

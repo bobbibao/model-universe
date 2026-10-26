@@ -2,6 +2,7 @@ import { Column, DataType, Model, Table } from 'sequelize-typescript';
 import type { BuybackAsset, BuybackOffer, BuybackStatus, TradeQuote } from '../../../../../shared/types/buyback';
 import type { BuybackEstimate, BuybackIssue, InspectionComparison } from '../../../../../shared/buyback-pricing';
 import type { ReferenceCondition } from '../../../../../shared/sale-pricing';
+import type { ConditionCaseSnapshot } from '../../../../../shared/condition-tree';
 
 @Table({
   tableName: 'buyback_request',
@@ -20,7 +21,10 @@ export default class BuybackRequestModel extends Model {
   @Column(DataType.TEXT) inspection!: string | null;
   @Column(DataType.INTEGER) policyVersion!: number | null;
   @Column(DataType.DATE) ownershipTransferredAt!: Date | null;
-  @Column({ type: DataType.INTEGER, unique: true }) productId!: number | null;
+  @Column(DataType.INTEGER) productId!: number | null;
+  @Column(DataType.JSONB) conditionCase!: ConditionCaseSnapshot | null;
+  @Column(DataType.STRING(20)) conditionCaseStatus!: 'pending' | 'resolved' | 'needs_evidence' | 'rejected' | null;
+  @Column(DataType.TEXT) conditionCaseReviewNote!: string | null;
   // Buyback pricing 2.0: the catalog product used as the reference price, the customer's declared issues and the
   // estimate computed from them, then the inspected issues and the two-way comparison.
   @Column(DataType.INTEGER) referenceProductId!: number | null;

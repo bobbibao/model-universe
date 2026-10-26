@@ -1,3 +1,4 @@
+import CatalogIntakeModel from '../../database/client/models/CatalogIntake.Model';
 import type { Transaction } from 'sequelize';
 import OrderItemModel from '../../database/client/models/OrderItem.Model';
 import StockImportItemModel from '../../database/client/models/StockImportItem.Model';
@@ -14,6 +15,7 @@ import RestockSubscriptionModel from '../../database/client/models/RestockSubscr
 export const productHasHistory = async (productId: number, transaction?: Transaction): Promise<boolean> => {
   const where = { productId };
   const counts = [
+    () => CatalogIntakeModel.count({ where, transaction }),
     () => OrderItemModel.count({ where, transaction }),
     () => StockImportItemModel.count({ where, transaction }),
     () => ReservationModel.count({ where, transaction }),

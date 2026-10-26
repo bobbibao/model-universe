@@ -379,7 +379,10 @@ export const syncOwnerCatalog = async (
     transaction,
     lock: transaction.LOCK.UPDATE,
   });
+  const keptFamilies = new Set((await ProductModel.findAll({ attributes: ['modelFamilyId'], where: { id: [...kept] }, transaction })).map(product => product.modelFamilyId).filter(Boolean));
   for (const product of retired) {
+    // A workbook row is a model reference, never authority to delete owner-created condition SKUs or intake stock.
+    if (product.modelFamilyId && (keptFamilies.has(product.modelFamilyId) || product.combinationKey)) continue;
     const options = await ProductModel.count({ where: { parentProductId: product.id }, transaction });
     if (
       options === 0 &&

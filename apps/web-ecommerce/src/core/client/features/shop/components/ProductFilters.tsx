@@ -1,6 +1,7 @@
 'use client';
 import { useLocale, useTranslations } from 'next-intl';
-import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
+import { useConditionTree } from '@/shared/client/hooks/useConditionTree';
+import { conditionPath } from '@/shared/condition-tree';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -12,6 +13,7 @@ export interface ProductFilterValues {
   category: string;
   scale: string[];
   condition: string[];
+  conditionNodeIds?: string[];
   brand: string[];
   minPrice: number;
   maxPrice?: number;
@@ -39,7 +41,7 @@ interface Props {
 export default function ProductFilters({ values: draft, brands, scales, priceLimit, onChange }: Props) {
   const values = { ...draft, maxPrice: draft.maxPrice ?? priceLimit };
   const t = useTranslations('catalog');
-  const conditionTypes = useProductConditions();
+  const tree = useConditionTree();
   const locale = useLocale();
   const [priceInputs, setPriceInputs] = useState({
     minPrice: String(values.minPrice),
@@ -78,7 +80,7 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
   ) => (
     <FilterMultiSelect
       key={field}
-      label={t(field === 'assemblyState' ? 'assembly' : field)}
+      label={field === 'condition' ? (locale === 'en' ? 'Item type' : 'Loại hàng') : t(field === 'assemblyState' ? 'assembly' : field)}
       options={options}
       values={values[field]}
       onChange={(next) => update(field, next)}
@@ -100,8 +102,9 @@ export default function ProductFilters({ values: draft, brands, scales, priceLim
       <div className="catalog-filter-grid">
         {select(
           'condition',
-          conditionTypes.active.map((type) => ({ value: type.key, label: conditionTypes.label(type.key) })),
+          [{ value: 'new', label: 'New' }, { value: 'preowned', label: '2hand' }],
         )}
+        <FilterMultiSelect label={locale === 'en' ? 'Conditions' : 'Tình trạng'} options={tree.nodes.filter(node => node.selectable && node.isActive).map(node => ({ value: String(node.id), label: conditionPath(node.id, tree.nodes, locale === 'en') }))} values={values.conditionNodeIds ?? []} onChange={ids => update('conditionNodeIds', ids)} />
         {select(
           'brand',
           brands.map((value) => ({ value, label: value })),

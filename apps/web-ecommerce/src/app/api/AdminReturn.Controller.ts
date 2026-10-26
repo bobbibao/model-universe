@@ -58,7 +58,7 @@ export default class AdminReturnController extends ApiBaseController {
   async restock(req: Request, res: Response) {
     try {
       const service = await this.requireService<ReturnService>();
-      const request = await service.restockItem(toInteger(req.params.id) || 0, toInteger(req.params.itemId) || 0);
+      const request = await service.restockItem(toInteger(req.params.id) || 0, toInteger(req.params.itemId) || 0, req.user?.id);
       return this.sendSuccess(res, request, apiReturnMessage(req, 'toastRestocked'));
     } catch (error) {
       return this.handleError(res, error, "AdminReturnController's restock");

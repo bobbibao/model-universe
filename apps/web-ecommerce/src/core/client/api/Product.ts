@@ -20,6 +20,7 @@ import type {
 } from '@/shared/types/product';
 
 export interface AdminProductListParams {
+  groupByModel?: boolean;
   q?: string;
   categoryId?: number | '';
   status?: '' | 'active' | 'archived' | 'featured' | 'held';

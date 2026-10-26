@@ -1,5 +1,7 @@
+import CatalogTreeService from './catalog/CatalogTreeService';
+import NotificationDispatchService from './NotificationDispatchService';
 import crypto from 'crypto';
-import { isReferenceCondition, referencePrice } from '../../../shared/sale-pricing';
+import { isReferenceCondition } from '../../../shared/sale-pricing';
 import { Transaction, UniqueConstraintError } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
 import PawnContractModel from '../database/client/models/PawnContract.Model';
@@ -101,7 +103,7 @@ export default class PawnService {
     // The condition the customer chose: new (C50 of S) or 2hand (C50 of S 2hand).
     const referenceCondition = data.referenceCondition == null ? 'new' : data.referenceCondition;
     if (!isReferenceCondition(referenceCondition)) throw HttpError.badRequest('Choose new or 2hand.');
-    const requestDigest = crypto.createHash('sha256').update(JSON.stringify({ asset, evidenceIds: data.evidenceIds, ...(referenceProductId ? { referenceProductId, issuesDeclared, ...(referenceCondition === 'new' ? {} : { referenceCondition }) } : {}) })).digest('hex');
+    const requestDigest = crypto.createHash('sha256').update(JSON.stringify({ asset, modelFamilyId: data.modelFamilyId, itemTypeKey: data.itemTypeKey, conditionNodeIds: data.conditionNodeIds, otherCondition: data.otherCondition, evidenceIds: data.evidenceIds, ...(referenceProductId ? { referenceProductId, issuesDeclared, ...(referenceCondition === 'new' ? {} : { referenceCondition }) } : {}) })).digest('hex');
     const id = await DatabaseProvider.getInstance().transaction(async transaction => {
       await this.actor(userId, false, transaction);
       await DatabaseProvider.getInstance().query('SELECT pg_advisory_xact_lock(836211, hashtext(:key))', { replacements: { key: `${userId}:${requestKey}` }, transaction });
@@ -112,11 +114,14 @@ export default class PawnService {
       }
       const product = referenceProductId ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction }) : null;
       if (referenceProductId && !product) throw HttpError.notFound('Catalogue model not found.');
-      const webQuote = product ? estimatePawn(product.condition === 'new' ? referencePrice(product, referenceCondition) : null, { approved: !!product.targetPriceApprovedAt, issuesDeclared }) : null;
-      const row = await PawnContractModel.create({ userId, requestKey, requestDigest, asset, referenceProductId: product?.id ?? null, referenceCondition, webQuote }, { transaction });
+      const conditionCase = await new CatalogTreeService().snapshot(data, transaction);
+      const webQuote = estimatePawn(conditionCase.salePriceVnd, { approved: !!conditionCase.approvedAt, issuesDeclared: false });
+      const row = await PawnContractModel.create({ userId, requestKey, requestDigest, asset, referenceProductId: conditionCase.productId, referenceCondition: conditionCase.itemTypeKey, conditionCase, conditionCaseStatus: conditionCase.salePriceVnd !== null ? 'resolved' : 'pending', webQuote }, { transaction });
+      if (conditionCase.salePriceVnd === null) await new NotificationDispatchService().alertAdmins({ kind: 'service_condition_proposal', orderId: null, dedupeKey: `pawn:${row.id}:condition:submitted`, title: 'Đề xuất tình trạng cầm mới', content: `Yêu cầu #${row.id}: ${asset.name}. ${conditionCase.labels.join('; ')}. ${conditionCase.otherCondition}. Xem /admin/pawn` }, transaction);
+      await new CatalogTreeService().remember(conditionCase.conditionNodeIds, 'pawn', row.id, transaction);
       const evidence = await this.evidence.bind(data.evidenceIds, userId, 'pawn', row.id, transaction);
       if (new Set(evidence.map(file => file.sha256)).size < 3) throw HttpError.badRequest('Provide three distinct model views.');
-      await this.event(row, userId, 'submitted', { asset, webQuote }, transaction);
+      await this.event(row, userId, 'submitted', { asset, conditionCase, webQuote }, transaction);
       return row.id;
     });
     return this.detail(id, userId);
@@ -128,6 +133,7 @@ export default class PawnService {
     await DatabaseProvider.getInstance().transaction(async transaction => {
       const row = await this.locked(id, userId, admin, transaction);
       this.current(row, data.expectedVersion);
+      if (['quote', 'accept'].includes(action) && row.conditionCase && row.conditionCaseStatus !== 'resolved') throw HttpError.conflict('Duyệt tổ hợp và giá S trước khi báo giá.', 'CONDITION_CASE_PENDING');
       const details: Record<string, unknown> = {};
       switch (action) {
         case 'quote': {
@@ -137,7 +143,7 @@ export default class PawnService {
           try { policy = validatePawnPolicy(approved.settings); validatePawnPrincipal(Number(data.appraisalVnd), Number(data.principalVnd)); }
           catch (error) { throw HttpError.badRequest((error as Error).message); }
           if (typeof data.appraisalVnd !== 'number' || typeof data.principalVnd !== 'number' || !Number.isInteger(data.termDays) || Number(data.termDays) < 1 || Number(data.termDays) > 365 || typeof data.disposalAfterGrace !== 'boolean') throw HttpError.badRequest('Choose explicit appraisal, principal, term and disposal terms.');
-          const terms: PawnTerms = { appraisalVnd: data.appraisalVnd, principalVnd: data.principalVnd, termDays: Number(data.termDays), contractText: text(data.details, 'full contract, extension and disposal conditions', 5000), disposalAfterGrace: data.disposalAfterGrace, policyVersion: approved.version, policy };
+          const terms: PawnTerms = { conditionCase: row.conditionCase, appraisalVnd: data.appraisalVnd, principalVnd: data.principalVnd, termDays: Number(data.termDays), contractText: text(data.details, 'full contract, extension and disposal conditions', 5000), disposalAfterGrace: data.disposalAfterGrace, policyVersion: approved.version, policy };
           await row.update({ terms, status: 'quoted', contractReference: null, contractEvidenceIds: [] }, { transaction });
           details.terms = terms;
           break;
@@ -268,10 +274,39 @@ export default class PawnService {
       }
       this.current(row, data.expectedVersion);
       if (row.status !== 'disposed' || !row.disposedAt || !row.terms || !row.disbursedAt) throw HttpError.conflict('Verified eligible contractual disposal must precede sellable inventory.');
-      const product = await activateOwnedCollectibleDraft(productId, row.asset.modelCode, row.terms.principalVnd, transaction);
+      if (row.conditionCase && (row.conditionCase.productId !== productId || row.conditionCaseStatus !== 'resolved')) throw HttpError.conflict('SKU không khớp tổ hợp đã duyệt.');
+      const product = await activateOwnedCollectibleDraft(productId, row.asset.modelCode, row.terms.principalVnd, transaction, { publish: false, sourceType: 'pawn', sourceId: row.id, actorUserId: userId });
       await row.update({ productId, version: row.version + 1 }, { transaction });
       await this.event(row, userId, 'intake', { productId, sku: product.sku, condition: product.get({ plain: true }), reason, acquisitionCostBasis: 'disbursed_principal' }, transaction);
     });
     return this.detail(id, userId, true);
+  }
+
+  async publish(id: number, userId: number, data: Record<string, unknown>) {
+    await DatabaseProvider.getInstance().transaction(async transaction => {
+      const row = await this.locked(id, userId, true, transaction);
+      this.current(row, data.expectedVersion);
+      if (row.status !== 'disposed' || !row.productId || !row.disposedAt || data.actualPhotosVerified !== true) throw HttpError.conflict('Xác nhận nhập kho và ảnh thật sau xử lý tài sản trước khi xuất bản.');
+      const product = await ProductModel.findByPk(row.productId, { transaction, lock: transaction.LOCK.UPDATE });
+      if (!product || product.partnerId || product.stock < 1 || product.inventoryStatus !== 'available' || !product.targetPriceApprovedAt || !product.pricingReferenceMemberVnd || !product.imageUrl.startsWith('/uploads/')) throw HttpError.conflict('SKU chưa đủ ảnh, giá được duyệt hoặc tồn sẵn bán.');
+      await product.update({ isArchived: false, listingStatus: 'published', publicationRequiresIntake: false }, { transaction });
+      await row.update({ version: row.version + 1 }, { transaction });
+      await this.event(row, userId, 'published', { productId: product.id }, transaction);
+    });
+    return this.detail(id, userId, true);
+  }
+
+  async addCaseEvidence(id: number, userId: number, data: Record<string, unknown>) {
+    await DatabaseProvider.getInstance().transaction(async transaction => {
+      const row = await this.locked(id, userId, false, transaction);
+      this.current(row, data.expectedVersion);
+      if (row.conditionCaseStatus !== 'needs_evidence') throw HttpError.conflict('Shop chưa yêu cầu bổ sung bằng chứng.');
+      const files = await this.evidence.bind(data.evidenceIds, userId, 'pawn', row.id, transaction);
+      if (!files.length) throw HttpError.badRequest('Chọn ảnh/bằng chứng cần bổ sung.');
+      await row.update({ conditionCaseStatus: 'pending', version: row.version + 1 }, { transaction });
+      await this.event(row, userId, 'condition_evidence_added', { evidenceIds: files.map(file => file.id) }, transaction);
+      await new NotificationDispatchService().alertAdmins({ kind: 'service_condition_proposal', orderId: null, dedupeKey: `pawn:${row.id}:evidence:${row.version}`, title: 'Khách đã bổ sung bằng chứng tình trạng', content: `Yêu cầu cầm #${row.id}. Xem /admin/pawn` }, transaction);
+    });
+    return this.detail(id, userId);
   }
 }

@@ -5,6 +5,7 @@ import { useProductConditions } from '@/shared/client/hooks/useProductConditions
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 
+import ProductPicker from '@/core/client/features/inventory/components/ProductPicker';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import Stepper from '@/components/Stepper/Stepper';
 import ProductApi from '@/core/client/api/Product';
@@ -96,6 +97,7 @@ const ProductCreate = () => {
   return (
     <div className="compact-admin-create-page">
       <Breadcrumb pageName={t('create')} />
+      <details className="catalog-inline-notice mb-4"><summary>{locale === 'en' ? 'Add a combination to an existing model instead?' : 'Thêm tổ hợp từ mẫu đã có?'}</summary><p>{locale === 'en' ? 'Choose the source to inherit its model information and images.' : 'Chọn sản phẩm gốc để kế thừa thông tin mẫu và ảnh.'}</p><ProductPicker value={null} excludeIds={[]} onChange={product => router.push(`/admin/products/${product.id}?section=conditions&create=1`)} /></details>
       <div className="compact-admin-create-card rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="compact-create-stepper">
           <Stepper steps={steps} currentStep={step} />

@@ -73,6 +73,8 @@ Verification of these purchase updates: 23 focused unit tests and 3 PostgreSQL Q
 
 ## Product input audit — 25 October 2026
 
+**Cập nhật 27/10/2026:** quy tắc tổ hợp, loại hàng, cây tình trạng, một giá S và kho chỉ đọc trong [condition-tree-catalog.md](condition-tree-catalog.md) thay thế các mô tả unique-item/S 2hand ở bản audit cũ bên dưới. SKU 2hand được có nhiều đơn vị; mỗi lần nhập vẫn cần bằng chứng riêng.
+
 The create wizard, product editor and add-condition dialog share the same field contract. The inventory tab follows this order: SKU/available quantity/received date, shipping package measurements, then descriptive metadata. The basic-information tab puts the product name first, then brand/model code, then category/scale. Pricing inputs precede the calculated outputs; descriptions follow Vietnamese, English and common fallback order.
 
 | Fields                                                | Control                        | Ownership and rules                                                                                                                                                                                                                                                                                                                         |

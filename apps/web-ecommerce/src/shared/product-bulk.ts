@@ -1,5 +1,5 @@
 export const MAX_PRODUCT_BULK = 50;
-export type ProductBulkChanges = { condition?: string; isFeatured?: boolean };
+export type ProductBulkChanges = { condition?: string; conditionNodeIds?: number[]; isFeatured?: boolean };
 export type ProductBulkIssue = {
   id: number;
   reason: 'retired' | 'uniqueIdentity' | 'photos' | 'missingAccessories' | 'defects';
