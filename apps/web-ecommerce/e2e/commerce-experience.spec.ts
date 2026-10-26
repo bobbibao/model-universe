@@ -476,13 +476,15 @@ for (const locale of ['vi', 'en'] as const) {
       }
       const filters = page.locator('.catalog-filters:visible');
       await expect(filters).toHaveCount(1);
-      await expect(filters.locator('select')).toHaveCount(4);
+      await expect(filters.locator('.filter-multi-trigger')).toHaveCount(4);
       await expect(filters.locator('.catalog-filter-footer')).toHaveCount(0);
       expect(await page.locator('.catalog-sidebar').evaluate((el) => getComputedStyle(el).overflowY)).toBe('visible');
       if (width > 1024)
         expect((await filters.boundingBox())!.y + (await filters.boundingBox())!.height).toBeLessThan(768);
-      await filters.locator('#filter-condition').selectOption('preowned');
+      await filters.locator('.filter-multi-trigger').first().click();
+      await filters.getByRole('checkbox', { name: m.catalog.preowned, exact: true }).check();
       await expect(page).toHaveURL(/condition=preowned/);
+      await filters.getByRole('button', { name: m.common.close, exact: true }).click();
       await page.locator('.catalog-clear').click();
       await expect(page).not.toHaveURL(/condition=/);
       await capture(page, `polish-filters-${locale}-${width}`);

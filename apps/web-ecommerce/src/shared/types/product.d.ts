@@ -166,12 +166,12 @@ export type ProductFilterOptions = {
 export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'name' | 'best_selling' | 'rating';
 
 export type ProductQuery = {
-  assemblyState?: string;
-  scale?: string;
-  condition?: string;
+  assemblyState?: string | string[];
+  scale?: string | string[];
+  condition?: string | string[];
   q?: string;
   category?: string;
-  brand?: string;
+  brand?: string | string[];
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;

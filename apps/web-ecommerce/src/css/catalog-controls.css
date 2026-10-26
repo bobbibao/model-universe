@@ -1,6 +1,117 @@
 /* Native controls retain form semantics and keyboard/touch behavior. */
+.filter-multi {
+  position: relative;
+  min-width: 0;
+}
+.filter-multi:has(.filter-multi-menu) {
+  z-index: 20;
+}
+.filter-multi-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--control-line, #e3dfee);
+  border-radius: 12px;
+  background: var(--control-surface, white);
+  color: var(--control-ink, #292535);
+  text-align: left;
+  font-size: 13px;
+}
+.filter-multi-trigger > span {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.filter-multi-trigger > b {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--control-soft);
+  color: var(--control-accent);
+  font-size: 11px;
+}
+.filter-multi-trigger > svg {
+  flex-shrink: 0;
+  color: var(--control-accent);
+}
+.filter-multi-trigger[aria-expanded="true"] {
+  border-color: var(--control-accent);
+}
+.filter-multi-trigger[aria-expanded="true"] > svg {
+  rotate: 180deg;
+}
+.filter-multi-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  width: max(100%, 230px);
+  max-width: calc(100vw - 48px);
+  min-width: 0;
+  border: 1px solid var(--control-line);
+  border-radius: 12px;
+  background: var(--control-surface);
+  color: var(--control-ink);
+  box-shadow: 0 12px 32px #29253524;
+}
+.filter-multi:nth-child(odd) > .filter-multi-menu {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+}
+.filter-multi-options {
+  max-height: min(280px, 40dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 5px;
+}
+.filter-multi-options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.filter-multi-options label:hover,
+.filter-multi-options label:has(input:checked) {
+  background: var(--control-soft);
+}
+.filter-multi-options input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--control-accent);
+  flex-shrink: 0;
+}
+.filter-multi-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 10px;
+  border-top: 1px solid var(--control-line);
+  font-size: 12px;
+}
+.filter-multi-footer button {
+  min-height: 36px;
+  color: var(--control-accent);
+  font-weight: 650;
+}
+.filter-multi-footer button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.filter-multi :is(button, input):focus-visible {
+  outline: 2px solid var(--control-accent);
+  outline-offset: 2px;
+}
 .mu-shell,
-.admin-workspace {
+.admin-workspace,
+.admin-modal-overlay {
   --control-surface: var(--admin-surface, #fff);
   --control-ink: var(--admin-ink, #292535);
   --control-line: var(--admin-line, #e3dfee);
@@ -15,7 +126,7 @@ select:not([multiple]) {
   font-size: 14px;
   line-height: 1.45;
 }
-:is(.mu-shell, .admin-workspace) select:not([multiple]) {
+:is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:not([multiple]) {
   appearance: none;
   border: 1px solid var(--control-line);
   border-radius: 14px;
@@ -29,26 +140,26 @@ select:not([multiple]) {
     border-color 0.15s,
     box-shadow 0.15s;
 }
-:is(.mu-shell, .admin-workspace) select:not([multiple]):hover {
+:is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:not([multiple]):hover {
   border-color: var(--control-accent);
 }
-:is(.mu-shell, .admin-workspace) select:not([multiple]):focus-visible {
+:is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:not([multiple]):focus-visible {
   outline: 3px solid var(--control-accent);
   outline-offset: 3px;
 }
-:is(.mu-shell, .admin-workspace) select:disabled {
+:is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
-:is(.mu-shell, .admin-workspace) select[aria-invalid='true'] {
+:is(.mu-shell, .admin-workspace, .admin-modal-overlay) select[aria-invalid='true'] {
   border-color: #c83758;
 }
 @supports (appearance: base-select) {
-  :is(.mu-shell, .admin-workspace) select:not([multiple]),
-  :is(.mu-shell, .admin-workspace) select:not([multiple])::picker(select) {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:not([multiple]),
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:not([multiple])::picker(select) {
     appearance: base-select;
   }
-  :is(.mu-shell, .admin-workspace) select:not([multiple]) {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:not([multiple]) {
     background-image: none !important;
     position: relative;
     display: flex;
@@ -60,7 +171,7 @@ select:not([multiple]) {
     gap: 14px;
     align-items: center;
   }
-  :is(.mu-shell, .admin-workspace) select::picker-icon {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select::picker-icon {
     color: var(--control-accent);
     position: absolute;
     right: 0;
@@ -74,13 +185,13 @@ select:not([multiple]) {
     margin-left: 0;
     transition: rotate 0.15s;
   }
-  :is(.mu-shell, .admin-workspace) select:open::picker-icon {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:open::picker-icon {
     rotate: 180deg;
   }
-  :is(.mu-shell, .admin-workspace) select:open {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select:open {
     border-color: var(--control-accent);
   }
-  :is(.mu-shell, .admin-workspace) select::picker(select) {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select::picker(select) {
     background: var(--control-surface);
     color: var(--control-ink);
     border: 1px solid var(--control-line);
@@ -94,7 +205,7 @@ select:not([multiple]) {
     scrollbar-width: thin;
     font: inherit;
   }
-  :is(.mu-shell, .admin-workspace) select option {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select option {
     min-height: 44px;
     border-radius: 11px;
     padding: 11px 13px;
@@ -102,21 +213,21 @@ select:not([multiple]) {
     overflow-wrap: anywhere;
     gap: 14px;
   }
-  :is(.mu-shell, .admin-workspace) select option:is(:hover, :focus) {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select option:is(:hover, :focus) {
     background: var(--control-soft);
     outline: none;
   }
-  :is(.mu-shell, .admin-workspace) select option:checked {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select option:checked {
     background: var(--control-soft);
     color: var(--control-accent);
     font-weight: 700;
   }
-  :is(.mu-shell, .admin-workspace) select option::checkmark {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select option::checkmark {
     color: var(--control-accent);
     order: 1;
     margin-left: auto;
   }
-  :is(.mu-shell, .admin-workspace) select option:disabled {
+  :is(.mu-shell, .admin-workspace, .admin-modal-overlay) select option:disabled {
     opacity: 0.5;
   }
 }

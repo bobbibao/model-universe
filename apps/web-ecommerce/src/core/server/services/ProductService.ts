@@ -1,4 +1,5 @@
 import { uniquePhotosMissing } from './catalog/ProductConditionValidation';
+import { parseFilterChoices } from './catalog/ProductFilterInput';
 import { rankRelatedProducts } from '../../../shared/product-recommendations';
 import type { ProductDetail, ProductSummary } from '../../../shared/types/product';
 import PromotionAuditModel from '../database/client/models/PromotionAudit.Model';
@@ -32,13 +33,13 @@ import mediaManifest from '../../../../docs/model-universe/media-manifest.json';
 
 export interface ProductListQuery {
   partnerId?: number;
-  assemblyState?: string;
-  scale?: string;
-  condition?: string;
+  assemblyState?: string | string[];
+  scale?: string | string[];
+  condition?: string | string[];
   q?: string;
   category?: string;
   categoryId?: number;
-  brand?: string;
+  brand?: string | string[];
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
@@ -149,17 +150,20 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         [Op.or]: ['name', 'brandName', 'sku', 'modelCode'].map((column) => ({ [column]: { [Op.iLike]: pattern } })),
       });
     }
-    if (query.brand) conditions.push({ brandName: query.brand });
+    const brands = parseFilterChoices(query.brand);
+    if (brands.length) conditions.push({ brandName: { [Op.in]: brands } });
     for (const field of ['scale', 'condition'] as const) {
-      if (query[field]) conditions.push({ [field]: query[field] });
+      const values = parseFilterChoices(query[field]);
+      if (values.length) conditions.push({ [field]: { [Op.in]: values } });
     }
     if (query.categoryId) conditions.push({ categoryId: query.categoryId });
     if (query.partnerId !== undefined) conditions.push({ partnerId: query.partnerId });
     if (query.minPrice !== undefined) conditions.push({ price: { [Op.gte]: query.minPrice } });
     if (query.maxPrice !== undefined) conditions.push({ price: { [Op.lte]: query.maxPrice } });
-    if (query.assemblyState) {
-      if (!ASSEMBLY_STATES.includes(query.assemblyState as typeof ASSEMBLY_STATES[number])) throw HttpError.badRequest('Invalid assembly state filter.');
-      conditions.push({ assemblyState: query.assemblyState });
+    const assemblies = parseFilterChoices(query.assemblyState);
+    if (assemblies.length) {
+      if (assemblies.some((value) => !ASSEMBLY_STATES.includes(value as typeof ASSEMBLY_STATES[number]))) throw HttpError.badRequest('Invalid assembly state filter.');
+      conditions.push({ assemblyState: { [Op.in]: assemblies } });
     }
     if (query.inStock) conditions.push({ stock: { [Op.gt]: 0 } });
     if (query.featured) conditions.push({ isFeatured: true });
