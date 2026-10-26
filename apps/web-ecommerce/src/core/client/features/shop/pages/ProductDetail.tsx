@@ -22,7 +22,7 @@ import OfferPanel from '../components/OfferPanel';
 import type { ProductConditionOption, ProductDetail as ProductDetailType } from '@/shared/types/product';
 import ProductGallery from '../components/ProductGallery';
 import ProductReviews from '../components/ProductReviews';
-import RatingStars from '../components/RatingStars';
+import PromoIcon from '@/components/PromoIcon';
 import RestockAlert from '../components/RestockAlert';
 import { trackAddToCart, trackViewContent } from '@/shared/client/utils/tracking';
 import AdminIcon from '@/components/Admin/AdminIcon';
@@ -263,16 +263,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             {product.brandName} <span> / {product.scale || product.modelCode || 'MODEL UNIVERSE'}</span>
           </p>
           <h1 className="text-3xl font-bold">{product.name}</h1>
-          <div className="flex items-center gap-2 text-body dark:text-store-muted">
-            {product.reviewCount > 0 ? (
-              <>
-                <RatingStars rating={product.rating} />
-                <span>{t('reviewCount', { count: product.reviewCount })}</span>
-              </>
-            ) : (
-              <span>{t('noReviews')}</span>
-            )}
-          </div>
           <ConditionPicker shopOwned={!product.partnerId} units={units} selected={unit} onSelect={chooseUnit} />
           <OfferPanel product={offer} />
           {product.partnerId && (
@@ -348,6 +338,24 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               </div>
             )}
           </div>
+
+          <ul className="product-service-strip" aria-label={ux('shoppingServices')}>
+            {(
+              [
+                ['truck', 'shippingService', 'shippingServiceNote'],
+                ['coin', 'paymentService', 'paymentServiceNote'],
+                ['package', 'returnsService', 'returnsServiceNote'],
+              ] as const
+            ).map(([icon, title, note]) => (
+              <li key={title}>
+                <PromoIcon name={icon} size={20} />
+                <div>
+                  <strong>{ux(title)}</strong>
+                  <span>{ux(note)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
 
           <button
             onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}

@@ -66,7 +66,12 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         {product.salesChannel === 'outlet' && <span className="tile-outlet">Outlet</span>}
       </Link>
       <div className="product-tile-body">
-        <div className="product-tile-tags">
+        <div
+          className="product-tile-tags"
+          title={[product.scale, ...shown.map((summary) => conditionTypes.label(summary.condition))]
+            .filter(Boolean)
+            .join(' · ')}
+        >
           {product.scale && <span>{product.scale}</span>}
           {shown.map((summary) => (
             <span key={summary.condition} className={`condition-chip is-${summary.condition}`}>
@@ -80,57 +85,64 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         <p className="product-tile-brand">
           {product.brandName}
           {product.reviewCount > 0 && (
-            <span>
+            <span className="product-tile-rating">
               <RatingStars rating={product.rating} size="sm" />({product.reviewCount})
             </span>
           )}
         </p>
-        <div className="mt-auto">
-          {fromPrice !== null ? (
-            <div className="tile-from-price">
-              <strong>{t('fromPrice', { price: formatVND(fromPrice, locale) })}</strong>
-              <small>{t('otherConditionsInStock')}</small>
-            </div>
+        <div className="product-tile-pricing">
+          <div className="product-tile-price">
+            {fromPrice !== null ? (
+              <div className="tile-from-price">
+                <strong>{t('fromPrice', { price: formatVND(fromPrice, locale) })}</strong>
+                <small>{t('otherConditionsInStock')}</small>
+              </div>
+            ) : (
+              <PriceTag
+                price={product.price}
+                salePrice={product.salePrice}
+                discountPercent={product.discountPercent}
+                showDiscountBadge={false}
+                showMemberPrice={shopOwned}
+              />
+            )}
+          </div>
+          <div className="product-tile-availability">
+            {(sold > 0 || scarce) && (
+              <p className="tile-meta">
+                {sold > 0 && (
+                  <span>{en ? `${compactCount(sold, 'en')} sold` : `Đã bán ${compactCount(sold, 'vi')}`}</span>
+                )}
+                {scarce && (
+                  <span className="tile-scarce">
+                    <i aria-hidden="true" />
+                    {en ? `Only ${groupStock} left` : `Chỉ còn ${groupStock}`}
+                  </span>
+                )}
+              </p>
+            )}
+            {soon && (
+              <p className="tile-countdown">
+                <PromoIcon name="clock" size={13} />
+                <span className="tile-countdown-label">{en ? 'Ends in' : 'Kết thúc sau'}</span>
+                <strong>
+                  {countdown.days > 0 ? `${countdown.days}${en ? 'd' : ' ngày'} ` : ''}
+                  {countdown.clock}
+                </strong>
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="product-tile-footer">
+          {groupStock <= 0 ? (
+            <RestockAlert productId={product.id} returnTo={href} className="product-tile-action" />
           ) : (
-            <PriceTag
-              price={product.price}
-              salePrice={product.salePrice}
-              discountPercent={product.discountPercent}
-              showDiscountBadge={false}
-              showMemberPrice={shopOwned}
-            />
-          )}
-          {(sold > 0 || scarce) && (
-            <p className="tile-meta">
-              {sold > 0 && (
-                <span>{en ? `${compactCount(sold, 'en')} sold` : `Đã bán ${compactCount(sold, 'vi')}`}</span>
-              )}
-              {scarce && (
-                <span className="tile-scarce">
-                  <i aria-hidden="true" />
-                  {en ? `Only ${groupStock} left` : `Chỉ còn ${groupStock}`}
-                </span>
-              )}
-            </p>
-          )}
-          {soon && (
-            <p className="tile-countdown">
-              <PromoIcon name="clock" size={13} /> {en ? 'Ends in' : 'Kết thúc sau'}{' '}
-              <strong>
-                {countdown.days > 0 ? `${countdown.days}${en ? 'd' : ' ngày'} ` : ''}
-                {countdown.clock}
-              </strong>
-            </p>
+            <Link href={href} className="product-tile-action" aria-label={ux('viewProduct', { name: product.name })}>
+              {ux('chooseProduct')}
+              <span aria-hidden="true">↗</span>
+            </Link>
           )}
         </div>
-        {groupStock <= 0 ? (
-          <RestockAlert productId={product.id} returnTo={href} className="product-tile-action" />
-        ) : (
-          <Link href={href} className="product-tile-action" aria-label={ux('viewProduct', { name: product.name })}>
-            {ux('chooseProduct')}
-            <span aria-hidden="true">↗</span>
-          </Link>
-        )}
       </div>
     </div>
   );
