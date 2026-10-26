@@ -88,6 +88,9 @@ export const CONDITION_KEY_PATTERN = /^[a-z][a-z0-9-]{1,39}$/;
 export const SKU_SUFFIX_PATTERN = /^[A-Z0-9]{1,8}$/;
 
 export const conditionName = (types: readonly ProductConditionType[], key: string | null | undefined, en: boolean) => {
+  // Shop display terminology stays the same in both locales; stored condition names/rules are unchanged.
+  if (key === 'new') return 'New';
+  if (key === 'preowned') return '2hand';
   const type = types.find((item) => item.key === key) ?? BUILT_IN_CONDITIONS.find((item) => item.key === key);
   return type ? (en ? type.nameEn : type.nameVi) : (key ?? '');
 };

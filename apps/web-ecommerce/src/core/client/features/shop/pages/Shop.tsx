@@ -59,10 +59,10 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
     return {
       q: searchParams.get('q') || '',
       category: categorySlug || searchParams.get('category') || '',
-      scale: searchParams.get('scale') || '',
-      condition: searchParams.get('condition') || '',
-      assemblyState: searchParams.get('assemblyState') || '',
-      brand: searchParams.get('brand') || '',
+      scale: [...new Set(searchParams.getAll('scale').filter(Boolean))],
+      condition: [...new Set(searchParams.getAll('condition').filter(Boolean))],
+      assemblyState: [...new Set(searchParams.getAll('assemblyState').filter(Boolean))],
+      brand: [...new Set(searchParams.getAll('brand').filter(Boolean))],
       minPrice,
       maxPrice: maxPrice === undefined ? undefined : Math.max(minPrice ?? 0, maxPrice),
       inStock: searchParams.get('inStock') === 'true',
@@ -147,10 +147,9 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   const navigate = (values: Partial<ProductFilterValues> & { page?: number }) => {
     const params = new URLSearchParams();
     if (values.q?.trim()) params.set('q', values.q.trim());
-    for (const field of ['scale', 'condition', 'assemblyState'] as const) {
-      if (values[field]) params.set(field, values[field] as string);
+    for (const field of ['scale', 'condition', 'assemblyState', 'brand'] as const) {
+      for (const value of values[field] ?? []) params.append(field, value);
     }
-    if (values.brand) params.set('brand', values.brand);
     if (values.minPrice && values.minPrice > 0) params.set('minPrice', String(values.minPrice));
     if (values.maxPrice !== undefined && values.maxPrice < priceLimit) params.set('maxPrice', String(values.maxPrice));
     if (values.inStock) params.set('inStock', 'true');
@@ -240,15 +239,17 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
           <AppliedFilters
             values={applied}
             categories={categories}
-            onRemove={(key) =>
+            onRemove={(key, value) =>
               navigate({
                 ...applied,
                 [key]:
-                  key === 'inStock' || key === 'outletOnly'
-                    ? false
-                    : key === 'minPrice' || key === 'maxPrice'
-                      ? undefined
-                      : '',
+                  key === 'brand' || key === 'scale' || key === 'condition' || key === 'assemblyState'
+                    ? applied[key].filter((item) => item !== value)
+                    : key === 'inStock' || key === 'outletOnly'
+                      ? false
+                      : key === 'minPrice' || key === 'maxPrice'
+                        ? undefined
+                        : '',
                 page: 1,
               })
             }

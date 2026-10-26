@@ -1148,64 +1148,68 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
   }
 }
 
-/* Quiet photo labels preserve the product image: condition left, availability/discount right. */
+/* Product condition is a high-contrast label; availability stays in the opposite corner. */
 .product-tile-badges {
   position: absolute;
   inset: 8px;
   z-index: 2;
   pointer-events: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
 }
-.product-tile-badges .tile-condition {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  padding: 0 7px;
-  border: 1px solid;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 750;
-  line-height: 20px;
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.tile-condition.is-new {
-  color: #155e3a;
-  background: #edf8f0;
-  border-color: #c9e5d2;
-}
-.tile-condition.is-preowned {
-  color: #784b16;
-  background: #fff7e9;
-  border-color: #ead9ba;
-}
+.product-tile-badges .tile-condition,
 .product-tile-badges :is(.tile-soldout, .tile-ribbon) {
-  position: absolute;
-  top: 0;
-  left: auto;
-  right: 0;
+  position: static;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 0;
-  height: 22px;
-  padding: 0 7px;
-  border: 1px solid #e0dfe4;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 650;
-  line-height: 20px;
+  flex-shrink: 0;
+  min-height: 28px;
+  height: auto;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 16px;
   white-space: nowrap;
+  box-shadow: 0 2px 6px #18241d14;
+}
+.product-tile-badges .tile-condition.is-new {
+  color: #fff;
+  background: #166b45;
+  border-color: #166b45;
+}
+.product-tile-badges .tile-condition.is-preowned {
+  color: #fff;
+  background: #9a571b;
+  border-color: #9a571b;
 }
 .product-tile-badges .tile-soldout {
-  color: #55515e;
-  background: rgb(255 255 255 / 0.94);
+  margin-left: auto;
+  color: #494550;
+  background: #ffffffed;
+  border-color: #dedbe3;
+  font-size: 11px;
+  font-weight: 600;
 }
 .product-tile-badges .tile-ribbon {
-  border-color: #f5d2d5;
-  color: #b42335;
+  margin-left: auto;
+  color: #a42135;
   background: #fff1f2;
+  border-color: #efc4cb;
+}
+@media (max-width: 420px) {
+  .product-tile-badges {
+    inset: 8px 6px;
+    gap: 4px;
+  }
+  .product-tile-badges .tile-condition,
+  .product-tile-badges :is(.tile-soldout, .tile-ribbon) {
+    padding-inline: 7px;
+    font-size: 11px;
+    min-height: 26px;
+  }
 }
