@@ -512,8 +512,7 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
 .admin-product-editor {
   padding-bottom: 24px;
 }
-.admin-load-error,
-.admin-filter-summary {
+.admin-load-error {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -530,11 +529,7 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
   color: var(--admin-danger);
   border-color: currentColor;
 }
-.admin-filter-summary {
-  color: var(--admin-muted);
-}
-.admin-load-error button,
-.admin-filter-summary button {
+.admin-load-error button {
   min-height: 36px;
   font-weight: 650;
   text-decoration: underline;

@@ -276,23 +276,6 @@ const ProductList = () => {
                     </button>
                   </div>
                 )}
-                {(searchInput || categoryId || status) && (
-                  <div className="admin-filter-summary">
-                    <span>{ux('filteredRecords')}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearchInput('');
-                        setSearch('');
-                        setCategoryId('');
-                        setStatus('');
-                        setPage(1);
-                      }}
-                    >
-                      {ux('clearFilters')}
-                    </button>
-                  </div>
-                )}
                 <ProductBulkActions
                   selected={Object.values(selected)}
                   onClear={() => setSelected({})}
