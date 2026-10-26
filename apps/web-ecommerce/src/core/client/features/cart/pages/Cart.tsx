@@ -2,7 +2,7 @@
 
 import FreeshipProgress from '../components/FreeshipProgress';
 import VoucherSection from '../components/VoucherSection';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Link from '@/i18n/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
@@ -89,37 +89,35 @@ function PendingCheckoutBar({
   );
 }
 
-// The member price, explained where the customer pays: applied (with what it saves), being applied, or how to get it.
-function MemberPriceNotice({
-  state,
-  savingVnd,
-}: {
-  state: 'guest' | 'applied' | 'pending' | 'other';
-  savingVnd: number;
-}) {
-  const t = useTranslations('checkout.memberNotice'),
-    locale = useLocale();
-  const amount = formatVND(savingVnd, locale);
+// A summary line with its parts folded under it (TikTok-style): "Goods" with the list price and each benefit.
+function SummaryGroup({ label, value, children }: { label: string; value: string; children?: ReactNode }) {
+  if (!children) return <SummaryRow label={label} value={value} strong />;
   return (
-    <div className={`cart-member-notice is-${state}`} role="status">
-      <span className="cart-member-notice-icon" aria-hidden="true">
-        <AdminIcon name={state === 'applied' ? 'check' : 'spark'} size={16} />
-      </span>
-      <div>
-        <strong>{t(`${state}.title`, { amount })}</strong>
-        <p>{t(`${state}.body`, { amount })}</p>
-        {state === 'guest' && (
-          <Link href="/auth/signin?redirect=/cart" className="cart-member-notice-link">
-            {t('guest.action')}
-          </Link>
-        )}
-      </div>
-    </div>
+    <details className="cart-summary-group-lines" open>
+      <summary className="cart-summary-row is-strong">
+        <span>
+          {label}
+          <AdminIcon name="arrow" size={12} />
+        </span>
+        <span>{value}</span>
+      </summary>
+      <div className="cart-summary-sub">{children}</div>
+    </details>
   );
 }
 
-const SummaryRow = ({ label, value, saving }: { label: string; value: string; saving?: boolean }) => (
-  <div className={`cart-summary-row${saving ? ' is-saving' : ''}`}>
+const SummaryRow = ({
+  label,
+  value,
+  saving,
+  strong,
+}: {
+  label: string;
+  value: string;
+  saving?: boolean;
+  strong?: boolean;
+}) => (
+  <div className={`cart-summary-row${saving ? ' is-saving' : ''}${strong ? ' is-strong' : ''}`}>
     <span>{label}</span>
     <span>{value}</span>
   </div>
@@ -279,6 +277,11 @@ const Cart = () => {
   const shippingFee = courier ? (currentFee?.feeVnd ?? 0) : 0;
   const shippingDiscount = checkedQuote?.shippingDiscountVnd ?? 0;
   const total = merchandiseTotal + shippingFee - shippingDiscount;
+  const voucherVnd = checkedQuote?.voucherDiscountVnd ?? 0;
+  const memberApplied = isMemberCode(checkedQuote?.couponCode) && voucherVnd > 0;
+  const saved = discount + shippingDiscount;
+  // Lines show the member price once it applies (or while a member's code is being applied), the list price otherwise.
+  const memberPriced = !!user && (memberApplied || couponPending || !checkedQuote);
   // The deposit covers at least the shipping fee and what the carrier cannot collect (above the COD limit).
   const codFloor = courier && codLimitVnd !== null ? Math.max(0, total - codLimitVnd) : 0;
   const depositFloor = Math.max(codFloor, Math.min(shippingFee, total));
@@ -442,6 +445,25 @@ const Cart = () => {
     }
   };
 
+  // The one checkout action (resume a payment, place the order, or sign in), in the summary and the mobile bar.
+  const checkoutButton = (className: string) =>
+    user && session && (session.status === 'OPEN' || session.status === 'PAID') ? (
+      <button onClick={() => setPaymentOpen(true)} className={className}>
+        {t('resumePayment')}
+        <AdminIcon name="arrow" size={17} />
+      </button>
+    ) : user ? (
+      <button onClick={startCheckout} disabled={hasIssues || quoting || couponPending} className={className}>
+        {t(onlinePayment ? 'payNow' : 'placeNow')}
+        <AdminIcon name="arrow" size={17} />
+      </button>
+    ) : (
+      <Link href="/auth/signin?redirect=/cart" className={className}>
+        {t('signIn')}
+        <AdminIcon name="arrow" size={17} />
+      </Link>
+    );
+
   if (count === 0) {
     return (
       <section className="mu-wrap store-workspace cart-workspace">
@@ -489,7 +511,7 @@ const Cart = () => {
               </div>
             )}
             {entries.map((entry) => (
-              <CartLineItem key={entry.item.productId} entry={entry} />
+              <CartLineItem key={entry.item.productId} entry={entry} memberPriced={memberPriced} />
             ))}
           </section>
           {user && (
@@ -582,66 +604,79 @@ const Cart = () => {
               onFreeship={setFreeship}
               quote={checkedQuote}
             />
-            {memberSavingVnd > 0 && (
-              <MemberPriceNotice
-                state={
-                  !user
-                    ? 'guest'
-                    : isMemberCode(checkedQuote?.couponCode) && (checkedQuote?.voucherDiscountVnd ?? 0) > 0
-                      ? 'applied'
-                      : couponPending || quoting
-                        ? 'pending'
-                        : 'other'
-                }
-                savingVnd={
-                  isMemberCode(checkedQuote?.couponCode) ? (checkedQuote?.voucherDiscountVnd ?? 0) : memberSavingVnd
-                }
-              />
+            {memberSavingVnd > 0 && !memberApplied && !(user && (couponPending || quoting)) && (
+              <p className="cart-member-hint">
+                <AdminIcon name="spark" size={14} />
+                {user ? (
+                  <span>{t('memberHint.other', { amount: money(memberSavingVnd) })}</span>
+                ) : (
+                  <Link href="/auth/signin?redirect=/cart">
+                    {t('memberHint.guest', { amount: money(memberSavingVnd) })}
+                  </Link>
+                )}
+              </p>
             )}
             <div className="cart-summary-lines">
-              <SummaryRow label={t('listSubtotal')} value={money(subtotal)} />
+              <SummaryGroup label={t('goods')} value={money(subtotal - discount)}>
+                {discount > 0 && (
+                  <>
+                    <SummaryRow label={t('originalPrice')} value={money(subtotal)} />
+                    {voucherVnd > 0 && (
+                      <SummaryRow
+                        label={
+                          memberApplied
+                            ? t('benefits.member')
+                            : `${t('benefits.voucher')} ${checkedQuote?.couponCode ?? ''}`.trim()
+                        }
+                        value={`-${money(voucherVnd)}`}
+                        saving
+                      />
+                    )}
+                    {(checkedQuote?.rankDiscountVnd ?? 0) > 0 && checkedQuote?.rank && (
+                      <SummaryRow
+                        label={t('benefits.rank', { tier: tierNames(checkedQuote.rank.tier) })}
+                        value={`-${money(checkedQuote.rankDiscountVnd!)}`}
+                        saving
+                      />
+                    )}
+                  </>
+                )}
+              </SummaryGroup>
               {hasPartnerItems && (
                 <p className="cart-summary-note">{t('shopBenefitsOnly', { amount: money(benefitSubtotalVnd) })}</p>
               )}
-              <SummaryRow
+              <SummaryGroup
                 label={t('shippingFee')}
                 value={
                   !courier
                     ? fulfillment('meetingFree')
                     : currentFee
-                      ? money(currentFee.feeVnd)
+                      ? money(shippingFee - shippingDiscount)
                       : fulfillment(feeQuoting ? 'feeQuoting' : 'feeNeedsAddress')
                 }
-              />
-              {(checkedQuote?.voucherDiscountVnd ?? 0) > 0 && (
-                <SummaryRow
-                  label={
-                    isMemberCode(checkedQuote?.couponCode)
-                      ? t('benefits.member')
-                      : `${t('benefits.voucher')} ${checkedQuote?.couponCode ?? ''}`.trim()
-                  }
-                  value={`-${money(checkedQuote!.voucherDiscountVnd!)}`}
-                  saving
-                />
-              )}
-              {(checkedQuote?.rankDiscountVnd ?? 0) > 0 && checkedQuote?.rank && (
-                <SummaryRow
-                  label={t('benefits.rank', { tier: tierNames(checkedQuote.rank.tier) })}
-                  value={`-${money(checkedQuote.rankDiscountVnd!)}`}
-                  saving
-                />
-              )}
-              {shippingDiscount > 0 && (
-                <SummaryRow label={t('benefits.freeship')} value={`-${money(shippingDiscount)}`} saving />
-              )}
+              >
+                {shippingDiscount > 0 && currentFee && (
+                  <>
+                    <SummaryRow label={t('shippingLine')} value={money(shippingFee)} />
+                    <SummaryRow label={t('benefits.freeship')} value={`-${money(shippingDiscount)}`} saving />
+                  </>
+                )}
+              </SummaryGroup>
             </div>
             <div className="cart-summary-total">
               <span>{t('total')}</span>
               <strong>{money(total)}</strong>
-              {(discount + shippingDiscount > 0 || (checkedQuote?.earnedPoints ?? 0) > 0) && (
+              {(saved > 0 || (checkedQuote?.earnedPoints ?? 0) > 0) && (
                 <small>
-                  {discount + shippingDiscount > 0 && t('savedLine', { amount: money(discount + shippingDiscount) })}
-                  {discount + shippingDiscount > 0 && (checkedQuote?.earnedPoints ?? 0) > 0 && ' · '}
+                  {saved > 0 && (
+                    <b>
+                      {t('savedPercent', {
+                        amount: money(saved),
+                        percent: Math.round((saved * 100) / Math.max(1, subtotal + shippingFee)),
+                      })}
+                    </b>
+                  )}
+                  {saved > 0 && (checkedQuote?.earnedPoints ?? 0) > 0 && ' · '}
                   {(checkedQuote?.earnedPoints ?? 0) > 0 && t('pointsLine', { points: checkedQuote!.earnedPoints! })}
                 </small>
               )}
@@ -658,31 +693,25 @@ const Cart = () => {
                 </div>
               </dl>
             )}
-            {user && session && (session.status === 'OPEN' || session.status === 'PAID') ? (
-              <button onClick={() => setPaymentOpen(true)} className="mu-button cart-review-button">
-                {t('resumePayment')}
-                <AdminIcon name="arrow" size={17} />
-              </button>
-            ) : user ? (
-              <button
-                onClick={startCheckout}
-                disabled={hasIssues || quoting || couponPending}
-                className="mu-button cart-review-button"
-              >
-                {t(onlinePayment ? 'payNow' : 'placeNow')}
-                <AdminIcon name="arrow" size={17} />
-              </button>
-            ) : (
-              <Link href="/auth/signin?redirect=/cart" className="mu-button cart-review-button">
-                {t('signIn')}
-                <AdminIcon name="arrow" size={17} />
-              </Link>
-            )}
+            {checkoutButton('mu-button cart-review-button')}
             <p className="cart-checkout-note" role="status">
               {quoting || couponPending ? t('quotePending') : t('reviewNote')}
             </p>
           </section>
         </aside>
+      </div>
+      {/* Phones: the total and the action stay on screen above the tab bar (TikTok-style). */}
+      <div className="cart-mobile-bar">
+        <div>
+          <span>{t('mobileTotal', { count })}</span>
+          <strong>{money(total)}</strong>
+          {saved > 0 && (
+            <small>
+              {t('savedShort', { percent: Math.round((saved * 100) / Math.max(1, subtotal + shippingFee)) })}
+            </small>
+          )}
+        </div>
+        {checkoutButton('mu-button cart-mobile-bar-button')}
       </div>
       <ConfirmModal
         open={confirming}

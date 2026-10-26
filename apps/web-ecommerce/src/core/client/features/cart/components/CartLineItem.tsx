@@ -9,7 +9,8 @@ import { CartEntry, useCart } from '@/shared/client/providers/CartProvider';
 import { formatVND } from '@/shared/server/utils/utils';
 import { memberPrice } from '@/shared/pricing';
 
-const CartLineItem = ({ entry }: { entry: CartEntry }) => {
+// `memberPriced`: the member code applies to this cart, so a shop item is shown at its member price.
+const CartLineItem = ({ entry, memberPriced }: { entry: CartEntry; memberPriced: boolean }) => {
   const t = useTranslations('checkout'),
     catalog = useTranslations('catalog'),
     locale = useLocale();
@@ -23,6 +24,7 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
   // A shop item outside a sale shows its member price S (R with the member code) first, R struck (owner rule of
   // 2026-10-26); the code itself is applied in the summary.
   const member = !!product && !product.partnerId && !(product.discountPercent > 0 && product.salePrice < product.price);
+  const unit = member && memberPriced ? memberPrice(price) : price;
   const status = line?.status;
   const unavailable = status === 'UNAVAILABLE' || status === 'OUT_OF_STOCK';
   const maxQuantity = line && line.availableStock > 0 ? line.availableStock : item.quantity;
@@ -45,6 +47,22 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
                 {conditionTypes.label(product.condition)}
               </span>
             </>
+          )}
+        </p>
+        <p className="cart-line-price">
+          <strong>{formatVND(unit, locale)}</strong>
+          {unit < price && (
+            <>
+              <s aria-label={t('listPrice')}>{formatVND(price, locale)}</s>
+              <span className="cart-line-off" title={t('memberPrice')}>
+                -10%
+              </span>
+            </>
+          )}
+          {member && unit === price && (
+            <span className="cart-line-member">
+              {t('memberPrice')} {formatVND(memberPrice(price), locale)}
+            </span>
           )}
         </p>
         {!!product?.partnerId && <p className="text-sm text-brand">{t('partnerItem')}</p>}
@@ -83,21 +101,9 @@ const CartLineItem = ({ entry }: { entry: CartEntry }) => {
           </button>
         </div>
       </div>
-      <div className={`cart-line-total${member ? ' is-member' : ''}`}>
-        {member ? (
-          <>
-            <span className="cart-line-member-badge">{t('memberPrice')}</span>
-            <p className={unavailable ? 'line-through' : ''}>{formatVND(memberPrice(price) * item.quantity, locale)}</p>
-            <s aria-label={t('listPrice')}>{formatVND(price * item.quantity, locale)}</s>
-            <span>{t('unitPrice', { price: formatVND(memberPrice(price), locale) })}</span>
-          </>
-        ) : (
-          <>
-            <p className={unavailable ? 'line-through' : ''}>{formatVND(price * item.quantity, locale)}</p>
-            <span>{t('unitPrice', { price: formatVND(price, locale) })}</span>
-          </>
-        )}
-      </div>
+      <p className={`cart-line-total${unavailable ? ' line-through' : ''}`}>
+        {formatVND(unit * item.quantity, locale)}
+      </p>
     </article>
   );
 };

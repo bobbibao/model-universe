@@ -678,7 +678,7 @@
       "nothing": "Không còn",
       "noteQr": "Mã QR có hiệu lực 30 phút. Đơn hàng chỉ được tạo khi thanh toán thành công.",
       "note": "Đơn được xử lý sau khi cửa hàng nhận được khoản chuyển khoản.",
-      "goods": "Tiền mô hình (giá niêm yết)",
+      "goods": "Giá gốc",
       "voucher": "Mã {code}",
       "rank": "Ưu đãi hạng {tier}",
       "shipDiscount": "Giảm phí vận chuyển",
@@ -738,26 +738,16 @@
     "pointsLine": "tích {points} điểm",
     "memberPrice": "Giá thành viên",
     "listPrice": "Giá niêm yết",
-    "listSubtotal": "Tạm tính (giá niêm yết)",
-    "memberNotice": {
-      "applied": {
-        "title": "Bạn đang mua với giá thành viên",
-        "body": "Đã giảm {amount} so với giá niêm yết."
-      },
-      "pending": {
-        "title": "Đang áp dụng giá thành viên…",
-        "body": "Mã thành viên tháng này đang được áp vào đơn của bạn."
-      },
-      "other": {
-        "title": "Giá thành viên: tiết kiệm {amount}",
-        "body": "Chọn mã thành viên tháng này ở mục mã giảm giá để thanh toán theo giá thành viên."
-      },
-      "guest": {
-        "title": "Đăng nhập để mua với giá thành viên",
-        "body": "Thành viên được giảm 10%, tiết kiệm {amount} cho giỏ hàng này. Miễn phí đăng ký.",
-        "action": "Đăng nhập hoặc đăng ký"
-      }
-    }
+    "goods": "Tiền hàng",
+    "originalPrice": "Giá gốc",
+    "shippingLine": "Phí giao hàng",
+    "savedPercent": "Tiết kiệm {amount} ({percent}%)",
+    "memberHint": {
+      "guest": "Đăng nhập để có giá thành viên, tiết kiệm {amount}",
+      "other": "Chọn mã thành viên tháng này để tiết kiệm {amount}"
+    },
+    "mobileTotal": "Tổng ({count} món)",
+    "savedShort": "Tiết kiệm {percent}%"
   },
   "loyalty": {
     "title": "Tích lũy bộ sưu tập. Nhận thêm ưu đãi.",
@@ -3772,7 +3762,13 @@
     "relatedProducts": "Có thể bạn sẽ thích",
     "relatedProductsNote": "Mô hình liên quan, còn hàng và dễ so sánh.",
     "exploreCatalog": "Xem danh mục",
-    "relatedReason": {"category": "Cùng danh mục", "brand": "Cùng thương hiệu", "scale": "Cùng tỉ lệ", "price": "Tầm giá tương đương", "discover": "Khám phá thêm"},
+    "relatedReason": {
+      "category": "Cùng danh mục",
+      "brand": "Cùng thương hiệu",
+      "scale": "Cùng tỉ lệ",
+      "price": "Tầm giá tương đương",
+      "discover": "Khám phá thêm"
+    },
     "shoppingServices": "Thông tin mua hàng",
     "shippingService": "Giao hàng toàn quốc",
     "shippingServiceNote": "Phí vận chuyển tính tại giỏ hàng",
