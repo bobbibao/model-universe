@@ -78,7 +78,7 @@ for (const locale of ['vi', 'en'] as const)
       const condition = filters.locator('.filter-multi').first();
       await condition.getByRole('button').first().click();
       await condition.getByRole('checkbox', { name: m.catalog.new, exact: true }).check();
-      await condition.getByRole('checkbox', { name: locale === 'vi' ? '2hand' : 'Pre-owned', exact: true }).check();
+      await condition.getByRole('checkbox', { name: '2hand', exact: true }).check();
       await expect.poll(() => new URL(page.url()).searchParams.getAll('condition')).toEqual(['new', 'preowned']);
       await page.getByRole('heading', { level: 1 }).click();
       await expect(condition.getByRole('button').first()).toHaveAttribute('aria-expanded', 'false');
