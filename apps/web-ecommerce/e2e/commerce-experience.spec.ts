@@ -165,6 +165,100 @@ async function capture(page: Page, name: string) {
 }
 
 for (const locale of ['vi', 'en'] as const) {
+  for (const width of [1366, 390]) {
+    test(`${locale} ${width}: product card rhythm and detail services stay compact`, async ({ page }) => {
+      await fixture(page);
+      const m = locale === 'vi' ? vi : en;
+      await page.setViewportSize({ width, height: 900 });
+      const products = [0, 1, 2, 3].map((index) => ({
+        ...model,
+        id: model.id + index,
+        name: index === 0 ? 'Compact model' : 'Collector model with alternate armor and extended accessories',
+        brandName: 'MOTOR NUCLEAR',
+        imageUrl: '/images/store/product-placeholder.svg',
+        price: 777777,
+        salePrice: index === 1 ? 684445 : 777777,
+        discountPercent: index === 1 ? 12 : 0,
+        discountEndsAt: index === 1 ? new Date(Date.now() + 3600000).toISOString() : null,
+        partnerId: index === 2 ? 9 : null,
+        stock: index === 0 || index === 3 ? 0 : 1,
+        groupStock: index === 0 ? 0 : index === 3 ? 2 : 1,
+        sold: index === 1 ? 240 : 0,
+        reviewCount: index === 1 ? 12 : 0,
+        rating: 4.5,
+        conditions: [
+          { condition: index === 3 ? 'preowned' : 'new', stock: index === 0 ? 0 : 2, units: 1, minSalePrice: 650000 },
+        ],
+      }));
+      await page.route('**/api/sales/2', (route) =>
+        route.fulfill({
+          json: {
+            id: 2,
+            title: 'Card rhythm',
+            status: 'running',
+            startsAt: new Date().toISOString(),
+            endsAt: null,
+            maximumPercent: 12,
+            products,
+          },
+        }),
+      );
+      await page.goto(`/${locale}/su-kien/2`);
+      const cards = page.locator('.sale-products .product-tile:visible');
+      await expect(cards).toHaveCount(4);
+      await expect(cards.locator('.tile-countdown')).toHaveCount(1);
+      if (width === 390) await expect(cards.locator('.product-tile-rating')).toBeHidden();
+      const geometry = await cards.evaluateAll((elements) =>
+        elements.map((card) => {
+          const rect = card.getBoundingClientRect();
+          const position = (selector: string) => card.querySelector(selector)!.getBoundingClientRect().top - rect.top;
+          return {
+            height: rect.height,
+            price: position('.product-tile-price'),
+            footer: position('.product-tile-footer'),
+            sections: [...card.querySelectorAll('.product-tile-body > *, .product-tile-pricing > *')].map((el) => [
+              el.className,
+              el.getBoundingClientRect().height,
+            ]),
+            overflow: [card, ...card.querySelectorAll('.tile-meta, .tile-countdown, .product-tile-price')].some(
+              (el) => el.scrollWidth > el.clientWidth + 1,
+            ),
+          };
+        }),
+      );
+      for (const key of ['height', 'price', 'footer'] as const) {
+        const values = geometry.map((item) => item[key]);
+        expect(Math.max(...values) - Math.min(...values), `${key}: ${JSON.stringify(geometry)}`).toBeLessThan(2);
+      }
+      expect(geometry.every((item) => !item.overflow)).toBe(true);
+      await cards.first().scrollIntoViewIfNeeded();
+      await capture(page, `card-rhythm-${locale}-${width}`);
+      await page.locator('.sale-products').screenshot({
+        path: `../../.artifacts/model-universe/commerce-experience/card-grid-${locale}-${width}.png`,
+      });
+      for (const reviewCount of [0, 12]) {
+        await page.route(`**/api/products/${model.slug}`, (route) =>
+          route.fulfill({ json: { ...model, reviewCount, rating: 4.5 } }),
+        );
+        await page.goto(`/${locale}/san-pham/${model.slug}?review-fixture=${reviewCount}`);
+        const offer = page.locator('.product-detail-offer:visible');
+        await expect(offer).toHaveCount(1);
+        await expect(offer.getByRole('heading', { level: 1 })).toBeVisible();
+        await expect(offer.getByText(m.catalog.noReviews, { exact: true })).toHaveCount(0);
+        await expect(offer.locator('[aria-label$="trên 5 sao"]')).toHaveCount(0);
+        const services = offer.getByRole('list', { name: m.commerceUX.shoppingServices });
+        await expect(services.getByRole('listitem')).toHaveCount(3);
+        await expect(services).toContainText(m.commerceUX.paymentServiceNote);
+        await services.scrollIntoViewIfNeeded();
+        expect(await services.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+        await expect(page.locator('.product-information').getByRole('tab').last()).toContainText(`(${reviewCount})`);
+      }
+      await capture(page, `detail-services-${locale}-${width}`);
+    });
+  }
+}
+
+for (const locale of ['vi', 'en'] as const) {
   for (const width of [1440, 1024, 390]) {
     test(`${locale} ${width}: admin product cells keep stock adjacent and status text on one line`, async ({
       page,

@@ -872,3 +872,170 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
     width: 100%;
   }
 }
+/* Stable content rows keep prices and actions aligned without tall promo gaps. */
+.mu-shell .product-tile {
+  container-type: inline-size;
+}
+.mu-shell .product-tile-body {
+  gap: 6px;
+  min-width: 0;
+}
+.product-tile-tags {
+  height: 22px;
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow: hidden;
+}
+.product-tile-tags > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mu-shell .product-tile-name {
+  height: 3em;
+  flex-shrink: 0;
+}
+.product-tile-brand {
+  height: 18px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.product-tile-pricing {
+  margin-top: auto;
+}
+.product-tile-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 50px;
+}
+.product-tile-price > :is(.price-tag, .tile-from-price) {
+  width: 100%;
+}
+.product-tile .price-tag-was,
+.product-tile .tile-from-price small {
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.product-tile .price-tag-row {
+  height: 26px;
+  flex-wrap: nowrap;
+  align-content: start;
+  align-items: center;
+}
+.product-tile .price-tag-now {
+  white-space: nowrap;
+}
+.product-tile .tile-from-price strong {
+  min-height: 26px;
+  display: flex;
+  align-items: flex-start;
+  line-height: 26px;
+  white-space: nowrap;
+}
+.product-tile-availability {
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 2px;
+}
+.product-tile-availability :is(.tile-meta, .tile-countdown) {
+  margin-top: 0;
+  line-height: 16px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.product-tile-availability .tile-meta {
+  flex-wrap: nowrap;
+}
+.product-tile-footer {
+  margin-top: 4px;
+  border-top: 1px solid var(--studio-line, #e5e4dc);
+}
+.product-tile-footer .product-tile-action {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0;
+  padding-block: 6px;
+  border-top: 0;
+  text-align: left;
+  line-height: 18px;
+}
+.product-tile-footer .restock-action > [role='status'] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.product-service-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-block: 14px;
+  border-block: 1px solid var(--commerce-line, #e5e4dc);
+}
+.product-service-strip li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-inline: 12px;
+  color: var(--studio-muted, #6b7280);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.product-service-strip li:first-child {
+  padding-left: 0;
+}
+.product-service-strip li + li {
+  border-left: 1px solid var(--commerce-line, #e5e4dc);
+}
+.product-service-strip svg {
+  flex-shrink: 0;
+  color: var(--studio-ink, #24222c);
+}
+.product-service-strip strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--studio-ink, #24222c);
+  font-size: 12px;
+  font-weight: 650;
+}
+.product-service-strip span {
+  display: block;
+}
+@container (max-width: 220px) {
+  .product-tile-brand .product-tile-rating {
+    display: none;
+  }
+  .tile-countdown-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .product-tile-price {
+    min-height: 68px;
+  }
+  .product-tile .price-tag-row,
+  .product-tile .tile-from-price strong {
+    height: 46px;
+    min-height: 46px;
+  }
+  .product-tile .price-tag-row {
+    flex-wrap: wrap;
+    gap: 2px 6px;
+  }
+}
+@media (max-width: 480px) {
+  .product-service-strip li {
+    flex-direction: column;
+    gap: 6px;
+    padding-inline: 8px;
+  }
+}
