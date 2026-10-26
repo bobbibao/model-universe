@@ -3727,6 +3727,45 @@
       "problems": "Vấn đề kỳ gần nhất"
     }
   },
+  "productBulk": {
+    "selected": "Đã chọn {count} sản phẩm",
+    "clearSelection": "Bỏ chọn",
+    "edit": "Sửa hàng loạt",
+    "title": "Cập nhật {count} sản phẩm",
+    "cancel": "Hủy",
+    "saving": "Đang lưu…",
+    "apply": "Áp dụng cho {count} sản phẩm",
+    "hint": "Chỉ các trường được đánh dấu mới thay đổi. Tình trạng chỉ áp dụng cho SKU chính của sản phẩm được chọn, không thay các phiên bản khác.",
+    "reviewSelection": "Xem danh sách đã chọn",
+    "failed": "Chưa xác nhận cập nhật thành công. Bạn có thể thử lại hoặc tải lại danh sách nếu dữ liệu đã thay đổi.",
+    "reload": "Tải lại và chọn lại",
+    "chooseFields": "Chọn trường cần thay đổi",
+    "value": "Giá trị mới: {field}",
+    "chooseValue": "Chọn giá trị mới",
+    "featuredOn": "Bật nổi bật",
+    "featuredOff": "Tắt nổi bật",
+    "done": "Đã xử lý {count} sản phẩm.",
+    "protectedFields": "Không thay đổi giá, tồn kho, SKU, ảnh, mô tả phụ kiện/lỗi hoặc trạng thái bán. Lô sẽ dừng toàn bộ nếu một món thiếu dữ liệu bắt buộc hoặc có xung đột.",
+    "limit": "Chỉ chọn tối đa {count} sản phẩm mỗi lần.",
+    "selectPage": "Chọn sản phẩm của shop trên trang này",
+    "selectProduct": "Chọn sản phẩm: {name}",
+    "fields": {
+      "isFeatured": "Nổi bật",
+      "condition": "Tình trạng hàng"
+    },
+    "issues": {
+      "retired": "Tình trạng không còn được chọn. Hãy tải lại danh sách.",
+      "uniqueIdentity": "Hàng một chiếc không được đổi sang loại khác; cần dùng luồng kiểm định riêng.",
+      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ít nhất 3 ảnh thật đã tải lên.",
+      "missingAccessories": "Chưa liệt kê phụ kiện còn thiếu. Hãy bổ sung trong trang sửa sản phẩm.",
+      "defects": "Chưa mô tả lỗi. Hãy bổ sung trong trang sửa sản phẩm."
+    },
+    "requirements": {
+      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ít nhất 3 ảnh thật đã tải lên.",
+      "missingAccessories": "Mỗi sản phẩm phải có danh sách phụ kiện còn thiếu trước khi đổi tình trạng.",
+      "defects": "Mỗi sản phẩm phải có mô tả lỗi trước khi đổi tình trạng."
+    }
+  },
   "commerceUX": {
     "appliedFilters": "Bộ lọc đang áp dụng",
     "removeFilter": "Bỏ bộ lọc: {name}",

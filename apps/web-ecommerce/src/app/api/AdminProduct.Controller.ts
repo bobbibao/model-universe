@@ -3,6 +3,7 @@ import { Controller } from '../../shared/server/decorators/controller.decorator'
 import { Delete, Get, Post, Put } from '../../shared/server/decorators/router.decorator';
 import ApiBaseController from './ApiBase.Controller';
 import type { Request, Response } from 'express';
+import ProductBulkService from '../../core/server/services/ProductBulkService';
 import type ProductService from '../../core/server/services/ProductService';
 import { apiProductMessage } from '../../shared/server/utils/ApiLocale';
 import HttpError from '../../shared/server/utils/HttpError';
@@ -46,6 +47,16 @@ export default class AdminProductController extends ApiBaseController {
       return res.json(await service.inventoryStats());
     } catch (error) {
       return this.handleError(res, error, "AdminProductController's getInventoryStats");
+    }
+  }
+
+  @Post('/bulk')
+  async bulkUpdate(req: Request, res: Response) {
+    try {
+      if (!req.user) throw HttpError.unauthorized();
+      return this.sendSuccess(res, await new ProductBulkService().update(req.user.id, req.body));
+    } catch (error) {
+      return this.handleError(res, error, 'Admin product bulk update');
     }
   }
 

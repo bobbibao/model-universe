@@ -1,6 +1,9 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { toast } from 'react-toastify';
+import { MAX_PRODUCT_BULK } from '@/shared/product-bulk';
+import ProductBulkActions, { BulkCheckbox, type SelectedBulkProduct } from '../components/ProductBulkActions';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useEffect, useState } from 'react';
 import Link from '@/i18n/navigation';
@@ -29,6 +32,8 @@ const ProductList = () => {
   const t = useTranslations('adminProducts'),
     locale = useLocale();
   const conditionTypes = useProductConditions();
+  const bulk = useTranslations('productBulk');
+  const [selected, setSelected] = useState<Record<number, SelectedBulkProduct>>({});
   const [products, setProducts] = useState<AdminProductListItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -81,9 +86,52 @@ const ProductList = () => {
     };
   }, [search, categoryId, status, page, sort, retry]);
 
+  useEffect(() => {
+    setSelected({});
+  }, [searchInput, categoryId, status]);
+  const selectionBusy = loading || searchInput.trim() !== search;
+  const eligible = products.filter((product) => !product.partnerId && !!product.updatedAt);
+  const checkedOnPage = eligible.filter((product) => !!selected[product.id]).length;
+  const selectProducts = (rows: AdminProductListItem[], checked: boolean) => {
+    const next = { ...selected };
+    for (const product of rows) {
+      if (checked && !next[product.id] && !product.partnerId && product.updatedAt)
+        next[product.id] = { id: product.id, name: product.name, expectedUpdatedAt: product.updatedAt };
+      else if (!checked) delete next[product.id];
+    }
+    if (Object.keys(next).length > MAX_PRODUCT_BULK) {
+      toast.error(bulk('limit', { count: MAX_PRODUCT_BULK }));
+      return;
+    }
+    setSelected(next);
+  };
   const columns: DataTableColumn<AdminProductListItem>[] = [
     {
+      key: 'selection',
+      essential: true,
+      selection: true,
+      className: 'product-bulk-select-cell',
+      header: (
+        <BulkCheckbox
+          label={bulk('selectPage')}
+          checked={eligible.length > 0 && checkedOnPage === eligible.length}
+          mixed={checkedOnPage > 0 && checkedOnPage < eligible.length}
+          disabled={selectionBusy || !eligible.length}
+          onChange={(checked) => selectProducts(eligible, checked)}
+        />
+      ),
+      render: (product) => (
+        <BulkCheckbox
+          label={bulk('selectProduct', { name: product.name })}
+          checked={!!selected[product.id]}
+          disabled={selectionBusy || !!product.partnerId || !product.updatedAt}
+          onChange={(checked) => selectProducts([product], checked)}
+        />
+      ),
+    },
+    {
       key: 'imageUrl',
+      essential: true,
       header: t('image'),
       render: (product) => (
         <div className="relative h-14 w-14 overflow-hidden rounded bg-gray-2 dark:bg-meta-4">
@@ -246,6 +294,14 @@ const ProductList = () => {
                     </button>
                   </div>
                 )}
+                <ProductBulkActions
+                  selected={Object.values(selected)}
+                  onClear={() => setSelected({})}
+                  onFinished={() => {
+                    setSelected({});
+                    setRetry((value) => value + 1);
+                  }}
+                />
                 <DataTable
                   title={t('list')}
                   actions={

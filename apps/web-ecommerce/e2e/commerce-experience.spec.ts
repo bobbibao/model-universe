@@ -121,7 +121,8 @@ async function fixture(page: Page, admin = false, complex = false, partnerId: nu
       path === `/api/products/${model.id}` ||
       path === `/api/admin/products/${model.id}`
     )
-      return route.fulfill({ json: product });
+      // Public products omit the staff-only target price; admin editor fixtures need it for valid pricing.
+      return route.fulfill({ json: admin ? { ...product, pricingReferenceMemberVnd: 900000 } : product });
     if (path.includes('/reviews'))
       return route.fulfill({ json: { payload: { data: [], pagination: { total: 0, page: 1, totalPages: 1 } } } });
     if (path === '/api/admin/products/stats')
