@@ -195,7 +195,13 @@
   font-weight: 800;
   color: var(--studio-ink, #22212b);
 }
-.condition-option-price s,
+.condition-option-price s {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5f5870;
+  text-decoration-color: #e11d48;
+  text-decoration-thickness: 1.5px;
+}
 .condition-option-price small {
   font-size: 11px;
   color: var(--studio-muted, #6a6877);

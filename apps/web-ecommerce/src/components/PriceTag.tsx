@@ -84,9 +84,12 @@ const PriceTag = ({
         )}
       </span>
       {(discounted || member) && (
-        <s className="price-tag-was" aria-label={en ? 'Web price' : 'Giá niêm yết'}>
-          {formatVND(price, locale)}
-        </s>
+        <span className="price-tag-list">
+          {member && size === 'detail' && <small>{en ? 'List price' : 'Giá niêm yết'}</small>}
+          <s className="price-tag-was" aria-label={en ? 'List price' : 'Giá niêm yết'}>
+            {formatVND(price, locale)}
+          </s>
+        </span>
       )}
     </span>
   );

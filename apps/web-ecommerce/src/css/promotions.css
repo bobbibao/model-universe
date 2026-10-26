@@ -303,8 +303,31 @@
   padding: 5px 11px;
   font-size: 13px;
 }
-.price-tag.is-member .price-tag-was {
-  text-decoration-thickness: 1px;
+/* The struck list price R, large and dark enough to be read: the gap to the member price is the point (owner request
+   of 2026-10-26), with a red strike line. */
+.price-tag-list {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.price-tag-list small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--p-faint);
+}
+.price-tag.is-member .price-tag-was,
+.price-tag.is-sale .price-tag-was {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5f5870;
+  text-decoration: line-through;
+  text-decoration-color: #e11d48;
+  text-decoration-thickness: 1.5px;
+}
+.price-tag.is-detail.is-member .price-tag-was,
+.price-tag.is-detail.is-sale .price-tag-was {
+  font-size: 20px;
+  text-decoration-thickness: 2px;
 }
 
 /* --- Product tile -------------------------------------------------------------------------------------------- */

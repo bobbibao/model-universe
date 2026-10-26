@@ -914,6 +914,10 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
 .product-tile-price > :is(.price-tag, .tile-from-price) {
   width: 100%;
 }
+.product-tile .price-tag-list {
+  max-width: 100%;
+  min-width: 0;
+}
 .product-tile .price-tag-was,
 .product-tile .tile-from-price small {
   line-height: 18px;
