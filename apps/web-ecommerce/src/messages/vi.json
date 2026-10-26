@@ -109,7 +109,7 @@
     "rating": "Đánh giá cao",
     "inStock": "Đang có hàng",
     "soldOut": "Hết hàng",
-    "new": "Mới",
+    "new": "New",
     "preowned": "2hand",
     "apply": "Áp dụng bộ lọc",
     "reset": "Xóa bộ lọc",
@@ -4030,7 +4030,7 @@
     "shopItems": "Món bạn muốn nhận",
     "condition": "Tình trạng",
     "conditions": {
-      "new": "Mới",
+      "new": "New",
       "preowned": "2hand",
       "other": "Khác"
     },
