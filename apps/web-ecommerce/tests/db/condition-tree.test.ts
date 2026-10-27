@@ -232,6 +232,69 @@ describe('condition catalog integration', () => {
     }
     expect((await source.reload()).stock).toBe(stock + 2);
   });
+  it('requires a settlement event for an even trade and receives it without a fictitious cash payout', async () => {
+    const snapshot = await tree.snapshot({
+      modelFamilyId: source.modelFamilyId,
+      itemTypeKey: 'preowned',
+      conditionNodeIds: source.conditionNodeIds,
+    });
+    const row = await newRequest(snapshot, {
+      status: 'completed',
+      inspection: 'QA physical inspection',
+      ownershipTransferredAt: new Date(),
+      finalOffer: { amountVnd: 560000, details: 'QA', basis: 'formula' },
+      tradeQuote: {
+        revision: 1,
+        productId: source.id,
+        itemPriceVnd: 560000,
+        buybackVnd: 560000,
+        differenceVnd: 0,
+        status: 'settled',
+        refundApprovedByUserId: null,
+      },
+    });
+    await BuybackEventModel.create({
+      buybackRequestId: row.id,
+      actorUserId: customerId,
+      action: 'accept',
+      details: {},
+    });
+    await EvidenceModel.create({
+      ownerUserId: adminId,
+      purpose: 'buyback_inspection',
+      entityId: row.id,
+      diskKey: randomUUID(),
+      originalName: 'QA-inspection.png',
+      mimeType: 'image/png',
+      sizeBytes: 100,
+      sha256: randomUUID(),
+    });
+    const service = new BuybackService();
+    const input = {
+      productId: source.id,
+      checks: Object.fromEntries(LISTING_QC_CHECKS.map((key) => [key, true])),
+      details: 'QA even exchange without a cash transfer.',
+    };
+    const missing = await service.qcReview(row.id, adminId, { ...input, expectedVersion: 0 });
+    expect(missing.qcReview?.failed).toContain('QC07');
+    await BuybackEventModel.create({
+      buybackRequestId: row.id,
+      actorUserId: adminId,
+      action: 'payout',
+      details: { amountVnd: 0, externalReference: `QA-EVEN-${row.id}` },
+    });
+    const checked = await service.qcReview(row.id, adminId, { ...input, expectedVersion: missing.version });
+    expect(checked.qcReview?.result).toBe('passed');
+    expect(await BuybackPayoutModel.count({ where: { buybackRequestId: row.id } })).toBe(0);
+    const before = (await source.reload()).stock;
+    await service.intake(row.id, adminId, {
+      productId: source.id,
+      expectedVersion: checked.version,
+      actualPhotosVerified: true,
+      details: 'QA received even exchange once.',
+    });
+    expect((await source.reload()).stock).toBe(before + 1);
+  });
   it('cannot reuse another request QC or take pledged goods into sellable stock', async () => {
     const snapshot = await tree.snapshot({
       modelFamilyId: source.modelFamilyId,

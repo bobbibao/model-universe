@@ -1197,7 +1197,10 @@
       "qc_passed": "QC trước đăng bán: đạt",
       "qc_failed": "QC trước đăng bán: chưa đạt",
       "published": "Đã đăng bán sau kiểm tra cuối",
-      "approve_trade_refund": "Admin duyệt khoản shop trả lại"
+      "approve_trade_refund": "Admin duyệt khoản shop trả lại",
+      "condition_case_resolved": "Đã duyệt tổ hợp tình trạng",
+      "condition_case_needs_evidence": "Yêu cầu bổ sung ảnh tình trạng",
+      "condition_case_rejected": "Từ chối đề xuất tình trạng"
     },
     "historyDetails": "Xem báo giá và quyết định đã lưu",
     "paidByCustomer": "Đã nhận khoản chênh lệch",
@@ -4025,7 +4028,7 @@
       "note": "Lãi 0,3%/ngày hiện chỉ mô phỏng, chưa áp dụng. Chốt sau khi shop kiểm tra hàng.",
       "terms": "Giá cầm bằng 50% giá bán thực của shop cho đúng tình trạng, chốt sau khi kiểm hàng. Shop giữ mô hình đến khi bạn chuộc lại theo hợp đồng ký hai bên."
     },
-    "intro": "Thêm một hoặc nhiều mô hình, chọn tình trạng Mới hoặc 2hand để xem giá ngay. Tình trạng phức tạp hơn chọn \"Khác\" để shop báo giá.",
+    "intro": "Chọn mẫu và loại hàng New/2hand. Dùng tổ hợp có báo giá hoặc khai báo tình trạng để shop kiểm tra và báo giá riêng.",
     "models": "Mô hình của bạn",
     "yourModels": "Mô hình bạn đưa",
     "shopItems": "Món bạn muốn nhận",
@@ -4037,7 +4040,7 @@
     },
     "otherModel": "Mẫu shop không bán",
     "otherModelNote": "Shop báo giá sau khi xem ảnh",
-    "shopQuotes": "Shop báo giá",
+    "shopQuotes": "Báo giá riêng",
     "remove": "Bỏ",
     "addFirst": "Chọn mô hình",
     "addAnother": "Thêm mô hình khác",
@@ -4046,7 +4049,7 @@
     "memberPrice": "Giá thành viên",
     "oneItemPerModel": "Mỗi món nhận đổi với một mô hình của bạn: thêm mô hình để chọn thêm món.",
     "empty": "Chọn mô hình để xem giá.",
-    "afterQuote": "Chốt sau báo giá",
+    "afterQuote": "Báo giá sau kiểm hàng",
     "even": "Ngang giá",
     "youPay": "bạn trả thêm",
     "shopPays": "shop trả lại bạn",

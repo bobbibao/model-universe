@@ -13,6 +13,7 @@ test.describe('condition catalog demo', () => {
   test('library has a navigable tree and global editable/select controls', async ({ page }) => {
     await page.goto('/vi/admin/products/conditions');
     await expect(page.getByRole('heading', { name: 'Cây tình trạng', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Mở nhánh Hộp', exact: true }).click();
     await page.locator('.catalog-tree-node').filter({ hasText: 'Thiếu hộp' }).first().click();
     await expect(page.getByRole('textbox', { name: 'Tên tiếng Việt', exact: true })).toHaveValue('Thiếu hộp');
     await expect(page.getByLabel('Nhánh cha / di chuyển đến')).toBeEnabled();
@@ -128,5 +129,43 @@ test.describe('condition catalog demo', () => {
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBeTruthy();
     }
     await page.screenshot({ path: test.info().outputPath('condition-shop-mobile.png') });
+  });
+
+  test('Admin selection toggles independently and a fully selected parent has a derived tick', async ({ page }) => {
+    await page.goto('/en/admin/products/conditions');
+    const box = page.locator('.catalog-tree-node').filter({ hasText: /^Box/ });
+    const accessories = page.locator('.catalog-tree-node').filter({ hasText: /^Accessories/ });
+    await box.click();
+    await accessories.click();
+    await expect(box).toHaveAttribute('aria-pressed', 'true');
+    await expect(accessories).toHaveAttribute('aria-pressed', 'true');
+    await accessories.click();
+    await expect(accessories).toHaveAttribute('aria-pressed', 'false');
+    await expect(box).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByLabel('Guidance')).toHaveCount(0);
+    await expect(page.locator('.catalog-tree-add')).toHaveCount(0);
+    await page.goto('/en/admin/products/5?section=conditions');
+    await page.getByRole('button', { name: '+ Add combination', exact: true }).click();
+    const picker = page.getByRole('dialog').locator('.condition-tree-picker');
+    await picker.getByRole('button', { name: 'Damaged box', exact: true }).click();
+    await picker.getByRole('button', { name: 'Expand Damaged box', exact: true }).click();
+    for (const name of ['Dented box', 'Torn box', 'Water-damaged box'])
+      await picker.getByRole('button', { name, exact: true }).click();
+    await expect(picker.getByRole('button', { name: 'Damaged box', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await picker.getByRole('button', { name: 'Torn box', exact: true }).click();
+    await expect(picker.getByRole('button', { name: 'Damaged box', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await picker.getByRole('button', { name: 'Torn box', exact: true }).click();
+    await picker.getByRole('button', { name: 'Damaged box', exact: true }).click();
+    await expect(picker.getByRole('button', { name: 'Damaged box', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await expect(picker.locator('.condition-tree-choice').filter({ hasText: '+' })).toHaveCount(0);
   });
 });

@@ -17,12 +17,7 @@ import type { PawnEstimate } from '@/shared/pawn-rules';
 import type { ReferenceCondition } from '@/shared/sale-pricing';
 import type { ProductSummary } from '@/shared/types/product';
 import CatalogCombobox from './CatalogCombobox';
-import {
-  NameField,
-  NEW_CONDITION_VALUE,
-  useConditionPayload,
-  type ConditionValue,
-} from './ConditionFields';
+import { NameField, NEW_CONDITION_VALUE, useConditionPayload, type ConditionValue } from './ConditionFields';
 import EvidenceUploader, { type UploadedEvidence } from './EvidenceUploader';
 import ServiceRequestPanel from './ServiceRequestPanel';
 import './quick-valuation.css';
@@ -60,7 +55,8 @@ const newRow = (product: ProductSummary | null): Row => ({
   key: `row-${++nextKey}`,
   product,
   condition: product?.itemTypeKey ?? 'new',
-  conditionNodeIds: product?.conditionNodeIds ?? [], otherCondition: '',
+  conditionNodeIds: product?.conditionNodeIds ?? [],
+  otherCondition: '',
   details: NEW_CONDITION_VALUE,
   files: [],
 });
@@ -97,12 +93,13 @@ export default function ServiceBasket({
     if (product) chosen.current.add(product.id);
     const row = newRow(product);
     setRows((current) => [...current, row]);
-
   };
 
   useEffect(() => {
     if (!initialProductId) return;
-    Api.get(`/products/${initialProductId}`).then(({ data }) => add(data)).catch(() => undefined);
+    Api.get(`/products/${initialProductId}`)
+      .then(({ data }) => add(data))
+      .catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialProductId]);
 
@@ -144,10 +141,18 @@ export default function ServiceBasket({
       );
       const referenceCondition: ReferenceCondition = row.condition === 'preowned' ? 'preowned' : 'new';
       const common = {
-        asset: { ...built.asset, defects: [...(row.matchedCase?.labels ?? []), row.otherCondition].filter(Boolean).join('; ') || built.asset.defects },
+        asset: {
+          ...built.asset,
+          defects:
+            [...(row.matchedCase?.labels ?? []), row.otherCondition].filter(Boolean).join('; ') || built.asset.defects,
+        },
         evidenceIds: row.files.map((file) => file.id),
-        referenceProductId: row.product?.modelFamilyId ? null : row.product?.id ?? null,
-        referenceCondition, modelFamilyId: row.product?.modelFamilyId ?? null, itemTypeKey: row.condition, conditionNodeIds: row.conditionNodeIds, otherCondition: row.otherCondition,
+        referenceProductId: row.product?.modelFamilyId ? null : (row.product?.id ?? null),
+        referenceCondition,
+        modelFamilyId: row.product?.modelFamilyId ?? null,
+        itemTypeKey: row.condition,
+        conditionNodeIds: row.conditionNodeIds,
+        otherCondition: row.otherCondition,
       };
       const data =
         kind === 'pawn'
@@ -213,8 +218,15 @@ export default function ServiceBasket({
                   </span>
                   <div className="sb-row-copy">
                     <strong>{row.product?.name ?? t('otherModel')}</strong>
-                    <ServiceConditionSelector familyId={row.product?.modelFamilyId} type={row.condition} ids={row.conditionNodeIds} other={row.otherCondition}
-                      onChange={change => update(row.key, { ...change, matchedCase: null })} onMatch={matchedCase => update(row.key, { matchedCase })} />
+                    <ServiceConditionSelector
+                      kind={kind}
+                      familyId={row.product?.modelFamilyId}
+                      type={row.condition}
+                      ids={row.conditionNodeIds}
+                      other={row.otherCondition}
+                      onChange={(change) => update(row.key, { ...change, matchedCase: null })}
+                      onMatch={(matchedCase) => update(row.key, { matchedCase })}
+                    />
                   </div>
                   <span className={`sb-row-price${priced[index] === null ? ' is-quote' : ''}`}>
                     {row.matchedCase === undefined
@@ -300,7 +312,9 @@ export default function ServiceBasket({
                       : difference === 0
                         ? t('even')
                         : money(Math.abs(difference))
-                    : money(ownTotal)}
+                    : quotedByShop
+                      ? t('afterQuote')
+                      : money(ownTotal)}
                 </strong>
                 {kind === 'trade' && !quotedByShop && difference !== 0 && items.length > 0 && (
                   <span className="qv-direction">{t(difference > 0 ? 'youPay' : 'shopPays')}</span>
@@ -309,6 +323,12 @@ export default function ServiceBasket({
                   {t('count', { count: rows.length })}
                   {quotedByShop > 0 && ` · ${t('quotedCount', { count: quotedByShop })}`}
                 </p>
+                {quotedByShop > 0 && known.length > 0 && (
+                  <p className="qv-fineprint">
+                    {locale === 'en' ? 'Priced items subtotal: ' : 'Tạm tính các món đã có giá: '}
+                    {money(ownTotal)}
+                  </p>
+                )}
                 <p className="qv-fineprint">{t(`${kind}.note`)}</p>
               </>
             )}

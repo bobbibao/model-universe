@@ -1,3 +1,4 @@
+import { conditionSelected, shortConditionLabel, toggleCondition } from '../../src/shared/condition-selection';
 import {
   ancestors,
   conditionPath,
@@ -93,5 +94,36 @@ describe('condition combinations', () => {
     expect(estimatePawn(700000, { approved: true }).amountVnd).toBe(350000);
     expect(estimateBuyback(700000, issues, { approved: true }).estimateVnd).toBeNull();
     expect(estimateBuyback(null, issues, { approved: false, conditionMatched: false }).estimateVnd).toBeNull();
+  });
+});
+
+describe('condition selection interaction', () => {
+  it('automatically replaces mutually exclusive branches, including a selected descendant', () => {
+    expect(toggleCondition(id('missing-box'), [id('dented-box')], nodes, 'preowned')).toEqual([id('missing-box')]);
+    expect(toggleCondition(id('damaged-box'), [id('missing-box'), id('missing-shield')], nodes, 'preowned')).toEqual(
+      [id('damaged-box'), id('missing-shield')].sort((a, b) => a - b),
+    );
+  });
+  it('supports independent multi-selection and deselection without adding parent IDs', () => {
+    const one = toggleCondition(id('missing-box'), [], nodes, 'preowned');
+    const two = toggleCondition(id('missing-rifle'), one, nodes, 'preowned');
+    expect(two).toEqual([id('missing-box'), id('missing-rifle')].sort((a, b) => a - b));
+    expect(toggleCondition(id('missing-box'), two, nodes, 'preowned')).toEqual([id('missing-rifle')]);
+  });
+  it('ticks a parent when every child is selected but preserves the exact child combination', () => {
+    const children = ['dented-box', 'torn-box', 'wet-box'].map(id);
+    expect(conditionSelected(id('damaged-box'), children, nodes)).toBe(true);
+    expect(conditionSelected(id('damaged-box'), children.slice(0, 2), nodes)).toBe(false);
+    expect(toggleCondition(id('damaged-box'), children, nodes, 'preowned')).toEqual([]);
+    expect(normalizeSelection(children, nodes, 'preowned')).toEqual(children.sort((a, b) => a - b));
+  });
+  it('refines a broad condition rather than keeping it as an additional defect', () => {
+    expect(toggleCondition(id('missing-rifle'), [id('missing-accessories')], nodes, 'preowned')).toEqual([
+      id('missing-rifle'),
+    ]);
+  });
+  it('uses only the specific condition in a compact card caption', () => {
+    expect(shortConditionLabel('Phụ kiện / Thiếu phụ kiện / Thiếu vũ khí / Thiếu súng')).toBe('Thiếu súng');
+    expect(shortConditionLabel('Khớp / Lỏng khớp / Khớp tay / Tay trái')).toBe('Lỏng khớp · Tay trái');
   });
 });

@@ -1,12 +1,12 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
 import Api from '@/core/client/api/Api';
+import { conditionSelected } from '@/shared/condition-selection';
 import { useConditionTree } from '@/shared/client/hooks/useConditionTree';
 import { ancestors, conditionPath, nodeLabel, type ConditionNode, type ItemTypeKey } from '@/shared/condition-tree';
 import TextField from '@/components/FormElements/TextField';
-import TextAreaField from '@/components/FormElements/TextAreaField';
 import SelectField from '@/components/FormElements/SelectField';
 import Modal from '@/components/Modal/Modal';
 
@@ -36,11 +36,19 @@ const empty: Draft = {
 export default function ProductConditionList() {
   const en = useLocale() === 'en';
   const tree = useConditionTree(true);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const initialized = useRef(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const selected = tree.nodes.find((node) => node.id === selectedId);
   const [draft, setDraft] = useState<Draft>(empty);
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  useEffect(() => {
+    if (tree.nodes.length && !initialized.current) {
+      setCollapsed(new Set(tree.nodes.map((node) => node.id)));
+      initialized.current = true;
+    }
+  }, [tree.nodes]);
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<'save' | 'delete' | null>(null);
   const [dragId, setDragId] = useState<number | null>(null);
@@ -81,6 +89,7 @@ export default function ProductConditionList() {
         ? await Api.put(`/admin/product-condition-tree/${selected.id}`, payload)
         : await Api.post('/admin/product-condition-tree', payload);
       setSelectedId(response.data.id);
+      setSelectedIds((current) => new Set([...current, response.data.id]));
       setDraft(response.data);
       setMessage(en ? 'Saved' : 'Đã lưu');
       tree.reload();
@@ -96,6 +105,7 @@ export default function ProductConditionList() {
     setBusy(true);
     try {
       await Api.delete(`/admin/product-condition-tree/${selected.id}`, { data: { expectedVersion: selected.version } });
+      setSelectedIds((current) => new Set([...current].filter((id) => id !== selected.id)));
       edit();
       tree.reload();
       setConfirm(null);
@@ -117,7 +127,14 @@ export default function ProductConditionList() {
             {en ? 'Shared across products, buyback, trade and pawn.' : 'Dùng chung cho sản phẩm, thu, trade và cầm.'}
           </p>
         </div>
-        <button className="mu-button" type="button" onClick={() => edit()}>
+        <button
+          className="mu-button"
+          type="button"
+          onClick={() => {
+            setSelectedIds(new Set());
+            edit();
+          }}
+        >
           {en ? '+ Add root' : '+ Thêm nhánh gốc'}
         </button>
       </div>
@@ -141,6 +158,26 @@ export default function ProductConditionList() {
               {en ? 'Retry' : 'Thử lại'}
             </button>
           )}
+          <div className="catalog-tree-selection-bar">
+            <span>
+              {selectedIds.size
+                ? `${selectedIds.size} ${en ? 'selected · edit one at a time' : 'nhánh đã chọn · sửa từng nhánh'}`
+                : en
+                  ? 'Select a branch to edit'
+                  : 'Chọn nhánh để chỉnh sửa'}
+            </span>
+            {selectedIds.size > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedIds(new Set());
+                  edit();
+                }}
+              >
+                {en ? 'Clear' : 'Bỏ chọn'}
+              </button>
+            )}
+          </div>
           <div className="catalog-tree-definition-rows">
             {rows.map(({ node, depth }) => (
               <div
@@ -176,7 +213,7 @@ export default function ProductConditionList() {
                   );
                   setDragId(null);
                 }}
-                className={`catalog-tree-definition-row${selectedId === node.id ? ' is-active' : ''}${!node.isActive ? ' is-retired' : ''}`}
+                className={`catalog-tree-definition-row${conditionSelected(node.id, [...selectedIds], tree.nodes) ? ' is-active' : ''}${selectedId === node.id ? ' is-editing' : ''}${!node.isActive ? ' is-retired' : ''}`}
                 style={{ paddingInlineStart: `${8 + Math.min(depth, 8) * 16}px` }}
               >
                 {tree.nodes.some((item) => item.parentId === node.id) ? (
@@ -203,18 +240,29 @@ export default function ProductConditionList() {
                   type="button"
                   className="catalog-tree-node"
                   aria-current={selectedId === node.id ? 'true' : undefined}
-                  onClick={() => edit(node)}
+                  aria-pressed={conditionSelected(node.id, [...selectedIds], tree.nodes)}
+                  onClick={() => {
+                    const checked = conditionSelected(node.id, [...selectedIds], tree.nodes);
+                    const next = new Set(
+                      [...selectedIds].filter(
+                        (id) => !checked || (id !== node.id && !ancestors(id, tree.nodes).includes(node.id)),
+                      ),
+                    );
+                    if (!checked) {
+                      ancestors(node.id, tree.nodes).forEach((id) => next.delete(id));
+                      next.add(node.id);
+                    }
+                    setSelectedIds(next);
+                    if (!checked) edit(node);
+                    else if (selectedId === node.id)
+                      edit(tree.nodes.find((item) => item.id === [...next].slice(-1)[0]));
+                  }}
                 >
                   <span>{query ? conditionPath(node.id, tree.nodes, en) : nodeLabel(node, en)}</span>
-                  <small>{node.productCount ?? 0}</small>
-                </button>
-                <button
-                  type="button"
-                  className="catalog-tree-add"
-                  aria-label={`${en ? 'Add child to' : 'Thêm nhánh con cho'} ${nodeLabel(node, en)}`}
-                  onClick={() => edit(undefined, node.id)}
-                >
-                  +
+                  <small>{node.productCount ? node.productCount : ''}</small>
+                  <span className="catalog-tree-tick" aria-hidden="true">
+                    {conditionSelected(node.id, [...selectedIds], tree.nodes) ? '✓' : ''}
+                  </span>
                 </button>
               </div>
             ))}
@@ -229,8 +277,24 @@ export default function ProductConditionList() {
         >
           <div className="catalog-section-toolbar">
             <h2>{selected ? nodeLabel(selected, en) : en ? 'New branch' : 'Nhánh mới'}</h2>
-            {selected && <span className="catalog-subtle-code">#{selected.id}</span>}
+            {selected && (
+              <button type="button" className="catalog-child-action" onClick={() => edit(undefined, selected.id)}>
+                {en ? 'Add child' : 'Thêm nhánh con'}
+              </button>
+            )}
           </div>
+          {selectedIds.size > 1 && (
+            <div className="catalog-tree-review-selection">
+              {[...selectedIds].map((id) => {
+                const node = tree.nodes.find((row) => row.id === id);
+                return node ? (
+                  <button type="button" key={id} aria-pressed={selectedId === id} onClick={() => edit(node)}>
+                    {nodeLabel(node, en)}
+                  </button>
+                ) : null;
+              })}
+            </div>
+          )}
           <fieldset disabled={busy} className="grid gap-5 sm:grid-cols-2">
             <TextField
               name="nameVi"
@@ -319,15 +383,6 @@ export default function ProductConditionList() {
                 { value: 'inactive', label: en ? 'Retired · retain history' : 'Ngừng dùng · giữ lịch sử' },
               ]}
               onChange={(event) => set('isActive', event.target.value === 'active')}
-            />
-            <TextAreaField
-              className="sm:col-span-2"
-              name="description"
-              label={en ? 'Guidance' : 'Hướng dẫn nhận biết'}
-              rows={3}
-              maxLength={2000}
-              value={draft.description ?? ''}
-              onChange={(event) => set('description', event.target.value)}
             />
           </fieldset>
           <div className="catalog-tree-editor-footer">

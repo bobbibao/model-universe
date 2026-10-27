@@ -1197,7 +1197,10 @@
       "qc_passed": "Pre-listing QC passed",
       "qc_failed": "Pre-listing QC not passed",
       "published": "Published after the final check",
-      "approve_trade_refund": "Admin approved the amount the shop pays back"
+      "approve_trade_refund": "Admin approved the amount the shop pays back",
+      "condition_case_resolved": "Condition combination approved",
+      "condition_case_needs_evidence": "Additional condition evidence requested",
+      "condition_case_rejected": "Condition proposal rejected"
     },
     "historyDetails": "View the recorded quote and decision",
     "paidByCustomer": "Difference received",
@@ -4025,7 +4028,7 @@
       "note": "The 0.3% a day interest is only simulated, not charged yet. Final after inspection.",
       "terms": "The pawn amount is 50% of the shop's real selling price for that condition, final after inspection. The shop keeps the model until you redeem it under the contract both sides sign."
     },
-    "intro": "Add one or more models and choose New or 2hand to see the price now. Anything more complicated: choose \"Other\" and the shop quotes it.",
+    "intro": "Choose a model and New/2hand. Select a priced combination or describe its condition for an individual inspection quote.",
     "models": "Your models",
     "yourModels": "Models you give",
     "shopItems": "Items you want",
@@ -4037,7 +4040,7 @@
     },
     "otherModel": "A model the shop does not sell",
     "otherModelNote": "Quoted from the photos",
-    "shopQuotes": "Shop quotes",
+    "shopQuotes": "Individual quote",
     "remove": "Remove",
     "addFirst": "Choose a model",
     "addAnother": "Add another model",
@@ -4046,7 +4049,7 @@
     "memberPrice": "Member price",
     "oneItemPerModel": "Each item is traded for one of your models: add a model to choose another item.",
     "empty": "Choose a model to see the price.",
-    "afterQuote": "Set after the quote",
+    "afterQuote": "Quote after inspection",
     "even": "Even",
     "youPay": "you pay the shop",
     "shopPays": "the shop pays you",

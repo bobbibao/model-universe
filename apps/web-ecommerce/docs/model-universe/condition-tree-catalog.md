@@ -114,3 +114,31 @@ Các kiểm tra phải bao phủ: chuẩn hóa cây/tổ hợp, ràng buộc duy
 - 8 bài E2E kiểm tra thêm/sửa/xóa nhánh, VI/EN, trường kho chỉ đọc, cây, tổ hợp trùng, URL/giỏ hàng đúng SKU, chọn nhiều bộ lọc, nhóm mẫu và mobile đã đạt. Rà soát thực tế các trang shop, chi tiết, cây Admin, SKU Admin và dịch vụ: không có lỗi JavaScript hoặc tràn ngang toàn trang ở 390px.
 - Type check backend, production Next.js build và Express TypeScript build đã đạt. ESLint phạm vi thay đổi không có lỗi; còn warning kiểu dữ liệu/hook từ các module đang dùng. Full-project lint có hạn chế cấu hình plugin cũ, nên build xác minh dùng `next build --no-lint` cùng lint riêng và `tsc --project tsconfig.server.json`.
 - Chưa áp dụng quyết định chuyển catalog thật. Giá tham chiếu cũ, ghi chú chưa phân loại, tổ hợp trùng và xung đột giá vẫn phải qua báo cáo/đối chiếu trước khi bật nghiệp vụ mới cho dữ liệu shop. Không triển khai hoặc xác minh dịch vụ thanh toán/vận chuyển bên ngoài trong demo.
+
+
+## Cập nhật trải nghiệm chọn tình trạng
+
+- Khách dùng **tổ hợp có báo giá** của đúng mẫu/loại hàng trước; dropdown tùy chỉnh theo nhóm và các cấp chi tiết chỉ xuất hiện khi nhánh tương ứng được chọn. Tất cả các cấp chi tiết đều tùy chọn. Không dựng cây quản trị cho khách.
+- Dropdown dùng dòng chữ + dấu tích, chọn nhiều và khách chủ động đóng/mở. Chọn một nhánh loại trừ tự bỏ nhánh đối nghịch cùng các con của nó. Các lỗi độc lập vẫn được giữ.
+- Dấu tích nhánh cha là trạng thái giao diện suy ra khi tất cả con đã chọn; không tự thay ID lỗi cụ thể bằng ID cha, vì như vậy sẽ đổi nghĩa tổ hợp/SKU và giá. Chọn/bỏ lựa chọn không tự tạo SKU.
+- Cây Admin mặc định thu gọn, phân biệt lựa chọn nhánh và chỉnh sửa từng nhánh. Có thể chọn/bỏ nhiều nhánh để đối chiếu; form bên phải luôn sửa **một** nhánh đang mở, không ngầm áp dụng sửa hàng loạt. Thao tác thêm con chuyển lên form, không đặt dấu cộng trên mọi dòng.
+- Bỏ ô **Hướng dẫn nhận biết** khỏi form: đó là mô tả phụ nội bộ, không dùng để xác định tổ hợp, giá hoặc tồn. Dữ liệu mô tả cũ vẫn được giữ nguyên.
+- Chưa có S được duyệt: thông báo rõ báo giá riêng sau nhận/kiểm hàng, không hiển thị 0đ. Tổng có món cần báo giá cũng hiển thị trạng thái chờ; phần đã biết chỉ là tạm tính, không ngầm coi món chưa có giá bằng 0.
+- Card chỉ hiện tên lỗi cụ thể dưới dạng tag có màu (ví dụ **Thiếu súng**); vị trí như **Tay trái** giữ ngữ cảnh **Lỏng khớp · Tay trái**. Giới hạn một tag và số lỗi còn lại để hàng card đồng đều; tooltip/chi tiết giữ đầy đủ thông tin.
+- Kiểm thử click thật trên database demo riêng bao phủ gửi nhiều món New/2hand, tổ hợp mới, bổ sung bằng chứng, duyệt S tồn 0, nhận hàng, kiểm hàng, xác nhận khách, đối soát, QC và nhập SKU. Trade kiểm tra khách trả thêm, shop trả chênh lệch và đổi ngang giá.
+- Đổi ngang giá không tạo phiếu chi 0đ. QC07 xác minh lịch sử đối soát của chính giao dịch và chuyển quyền sở hữu; thiếu lịch sử đối soát vẫn bị chặn.
+
+Lệnh kiểm thử browser (chỉ dùng database demo riêng, có thể tạo một database `_condition_demo` mới để có tồn/đề xuất ban đầu):
+
+```powershell
+$env:E2E_BASE_URL="http://localhost:6080"
+$env:CONDITION_DEMO_E2E="true"
+yarn e2e e2e/condition-tree.spec.ts e2e/service-condition-journeys.spec.ts
+```
+
+Các hồ sơ/ảnh/chứng từ trong E2E đều là dữ liệu minh họa. Mọi thay đổi nghiệp vụ trong bài hành trình được thực hiện qua giao diện; API chỉ phục vụ đăng nhập và đọc kết quả để kiểm chứng.
+
+
+Xác minh bản UX: **994 unit tests / 62 suites, 14 integration PostgreSQL và 12 E2E đã đạt**. Production build Next.js (kèm type check) và Express TypeScript build đạt; ESLint phạm vi thay đổi không có lỗi, còn cảnh báo kiểu dữ liệu trong test. Các lượt thất bại do hết dung lượng cache ban đầu đã được chạy lại sau khi xử lý môi trường.
+
+Bản preview bàn giao chạy trên `model_universe_ux_release_condition_demo`, cổng 6080, tài khoản demo như trên. E2E có tạo thêm SKU và lịch sử đối soát/nhập kho; dữ liệu shop không tham gia bài kiểm thử. Không dùng database demo đã hết tồn ở các SKU fixture để chạy lại toàn bộ hành trình; tạo một database demo riêng mới khi cần một lượt độc lập.

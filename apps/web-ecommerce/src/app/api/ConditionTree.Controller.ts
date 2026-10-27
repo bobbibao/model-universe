@@ -58,6 +58,42 @@ export class PublicConditionTreeController extends ApiBaseController {
       return this.handleError(res, error, 'Model families');
     }
   }
+  @Get('/families/:id/combinations')
+  async combinations(req: Request, res: Response) {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isSafeInteger(id) || id < 1) throw HttpError.badRequest('Mẫu mô hình không hợp lệ.');
+      const products = await ProductModel.findAll({
+        attributes: ['id', 'itemTypeKey', 'conditionNodeIds', 'pricingReferenceMemberVnd'],
+        where: {
+          modelFamilyId: id,
+          partnerId: null,
+          catalogCanonicalId: null,
+          catalogReviewRequired: false,
+          serviceReferenceEnabled: true,
+          inventoryStatus: 'available',
+          targetPriceApprovedAt: { [Op.ne]: null },
+          pricingReferenceMemberVnd: { [Op.gt]: 0 },
+          combinationKey: { [Op.ne]: null },
+        },
+        order: [
+          ['itemTypeKey', 'ASC'],
+          ['id', 'ASC'],
+        ],
+        limit: 100,
+      });
+      return res.json(
+        products.map((product) => ({
+          productId: product.id,
+          itemTypeKey: product.itemTypeKey,
+          conditionNodeIds: product.conditionNodeIds,
+          salePriceVnd: product.pricingReferenceMemberVnd,
+        })),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Available condition combinations');
+    }
+  }
   @Post('/match')
   async match(req: Request, res: Response) {
     try {
