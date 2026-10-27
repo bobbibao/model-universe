@@ -14,20 +14,20 @@ Tồn kho được chọn để chỉ ra vốn chưa được xác minh; không 
 
 ## Công thức và nguồn
 
-| Chỉ tiêu | Nguồn / công thức |
-|---|---|
-| Hàng bán ghi nhận | Chỉ `order.status = DELIVERED`, theo `deliveredAt`; thiếu ngày giao không tự dùng ngày tạo đơn |
-| Tiền hàng trước voucher | `sum(order.subtotal)` của đơn đã giao trong kỳ; đối chiếu `sum(order_item.quantity × unitPrice)` |
-| Giá trị trước giảm trực tiếp | Snapshot `modelSnapshot.financeListUnitVnd × quantity` khi chốt giá; thiếu snapshot trả `null`, không đọc giá catalog hôm nay |
-| Doanh thu hàng thuần | Tiền hàng − `order.discount` − `order_refund.merchandiseVnd` đã xác nhận trong kỳ |
-| Phí ship thuần thu khách | `order.shippingFee − shippingDiscountVnd` của đơn giao trong kỳ − `order_refund.shippingVnd` trong kỳ |
-| Doanh thu thuần | Doanh thu hàng thuần + phí ship thuần thu khách; không gồm thuế thu hộ |
-| Tiền thu ròng xác nhận | `order_receipt` + `order_prepayment` receipt/topup − refund + `reservation_payment` receipt − refund − `order_refund` (cả hàng/ship/thuế), theo ngày từng bút toán |
-| Giá vốn | Giá mua thực tế đã nhập trong phiên bản đối soát mới nhất × lượng giao trong kỳ, trừ giá vốn hàng thực nhập trả có `return_item.restockedAt` trong kỳ |
-| Chi phí | Tổng bút toán `finance_expense.amountVnd` theo `incurredAt`, gồm cả chi phí đơn hủy và chi phí vận hành không gắn đơn |
-| Lợi nhuận theo chi phí ghi nhận | Doanh thu thuần − giá vốn − chi phí; `null` nếu thiếu giá vốn, thiếu đối soát, có hàng đối tác chưa quyết toán, đơn lệch tiền hoặc thiếu ngày giao |
-| Giá trị đơn trung bình | `(tiền hàng − giảm đơn) ÷ số đơn giao`; không gồm ship và hoàn phát sinh của các kỳ khác |
-| Tỷ suất lợi nhuận | Lợi nhuận / doanh thu thuần; chỉ có khi dữ liệu đủ và doanh thu dương |
+| Chỉ tiêu                        | Nguồn / công thức                                                                                                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Hàng bán ghi nhận               | Chỉ `order.status = DELIVERED`, theo `deliveredAt`; thiếu ngày giao không tự dùng ngày tạo đơn                                                                     |
+| Tiền hàng trước voucher         | `sum(order.subtotal)` của đơn đã giao trong kỳ; đối chiếu `sum(order_item.quantity × unitPrice)`                                                                   |
+| Giá trị trước giảm trực tiếp    | Snapshot `modelSnapshot.financeListUnitVnd × quantity` khi chốt giá; thiếu snapshot trả `null`, không đọc giá catalog hôm nay                                      |
+| Doanh thu hàng thuần            | Tiền hàng − `order.discount` − `order_refund.merchandiseVnd` đã xác nhận trong kỳ                                                                                  |
+| Phí ship thuần thu khách        | `order.shippingFee − shippingDiscountVnd` của đơn giao trong kỳ − `order_refund.shippingVnd` trong kỳ                                                              |
+| Doanh thu thuần                 | Doanh thu hàng thuần + phí ship thuần thu khách; không gồm thuế thu hộ                                                                                             |
+| Tiền thu ròng xác nhận          | `order_receipt` + `order_prepayment` receipt/topup − refund + `reservation_payment` receipt − refund − `order_refund` (cả hàng/ship/thuế), theo ngày từng bút toán |
+| Giá vốn                         | Giá mua thực tế đã nhập trong phiên bản đối soát mới nhất × lượng giao trong kỳ, trừ giá vốn hàng thực nhập trả có `return_item.restockedAt` trong kỳ              |
+| Chi phí                         | Tổng bút toán `finance_expense.amountVnd` theo `incurredAt`, gồm cả chi phí đơn hủy và chi phí vận hành không gắn đơn                                              |
+| Lợi nhuận theo chi phí ghi nhận | Doanh thu thuần − giá vốn − chi phí; `null` nếu thiếu giá vốn, thiếu đối soát, có hàng đối tác chưa quyết toán, đơn lệch tiền hoặc thiếu ngày giao                 |
+| Giá trị đơn trung bình          | `(tiền hàng − giảm đơn) ÷ số đơn giao`; không gồm ship và hoàn phát sinh của các kỳ khác                                                                           |
+| Tỷ suất lợi nhuận               | Lợi nhuận / doanh thu thuần; chỉ có khi dữ liệu đủ và doanh thu dương                                                                                              |
 
 Giảm trực tiếp đã nằm trong unitPrice/subtotal. Voucher/thành viên nằm trong `discount`. Freeship giảm phần ship thu khách. Các khoản này không được trừ tiếp như chi phí lần hai. Sổ chi phí chỉ nhập tiền shop thực chịu, ví dụ toàn bộ hóa đơn cước phải trả hãng vận chuyển. Cước lúc tạo vận đơn chỉ là tham khảo, không tự xác nhận là chi phí cuối cùng. Giá vốn chỉ gồm tiền mua hàng; không dùng tổng cost profile định giá (có đóng gói, xử lý, dự phòng) làm COGS rồi lại trừ các khoản đó.
 
@@ -97,7 +97,6 @@ Log, CSV và ảnh kiểm tra ở `D:/ModelUniverseRuntime/finance-*`; không đ
 
 Tham khảo khái niệm: [IFRS 15](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-15-revenue-from-contracts-with-customers/) phân biệt việc thu tiền với thời điểm chuyển giao hàng/dịch vụ; [IAS 2](https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/) phân biệt giá trị hàng tồn với chi phí khi hàng được bán. `DELIVERED` và cách ghi chi phí ở đây là quy ước quản trị được triển khai cho ứng dụng, không phải tuyên bố tuân thủ toàn bộ các chuẩn mực đó.
 
-
 ## Bổ sung dữ liệu phát triển vào database chính theo yêu cầu chủ shop
 
 ```powershell
@@ -109,3 +108,16 @@ Lệnh tạo pg_dump trước khi ghi, không reset hoặc xóa dữ liệu. Nh�
 Màn hình đang chạy dùng chính database này; dashboard gắn thông báo có dữ liệu phát triển. SKU mẫu được ẩn khỏi cửa hàng công khai. Chứng từ/đơn mẫu được gắn nhãn, không được hiểu là giao dịch thực đã diễn ra. Chạy kiểm tra UI trên dataset chính bằng `yarn test:finance:ui --current-development-data`.
 
 Biểu đồ dashboard gồm doanh thu/lợi nhuận và tiền thu/chi phí theo thời gian; donut cơ cấu chi phí; cột ưu đãi và xếp hạng SKU theo số lượng hoặc tiền hàng. Dữ liệu thiếu không bị thay thành lợi nhuận 0; biểu đồ donut không ép chi phí âm thành một tỷ trọng dương. Bảng số liệu có thể mở để đối chiếu. Khoảng trên 62 ngày gộp theo tháng trong phạm vi lọc.
+
+### Kết quả bàn giao lần cập nhật này — 27/10/2026
+
+- Bản chạy localhost cổng 6050: `7b0b70f`, gồm thay đổi giao diện/tính năng `aadb0c6` và sửa migration dùng chung. Migration tài chính 57 và 58 đã áp dụng; bản chạy này không đưa phần catalog đang được Antigravity phát triển vào deployment.
+- Đã chạy seed trực tiếp trên database hiện tại theo ủy quyền mới của chủ shop, thay cho trạng thái database shop rỗng ghi trong biên bản trước. Có 54 đơn: 44 đã giao, 5 hủy, 3 đang xử lý và 2 đang giao; 12 SKU lịch sử ẩn; 8 khách mẫu bị khóa đăng nhập; 11 loại chi phí chưa xóa; 315 bút toán seed và 3 hoàn tiền. Chạy lại không nhân bản đơn hoặc đặt lại dữ liệu đã chỉnh.
+- Kiểm thử UI thêm một khoản 6.000đ rồi đảo −6.000đ, nên sổ hiện có 317 bút toán, tổng tiền không tăng. Loại chi phí dùng để kiểm thử đã xóa khỏi danh mục; chứng từ và lịch sử vẫn còn. Phiên bản đối soát mới không thay tổng tiền đơn.
+- Đối chiếu sau seed, chạy lại seed và kiểm thử: đủ 103 sản phẩm ban đầu giữ nguyên ID/UUID/SKU/slug/giá/giá vốn tham chiếu/tồn/số đã bán/loại/tổ hợp. Tổng catalog nội bộ 115 sản phẩm; cả 12 SKU `[DEV]` đều ẩn khỏi cửa hàng.
+- Backup trước khi thêm dữ liệu: `D:/ModelUniverseRuntime/backups/before-finance-development-1793118796600.dump`, SHA-256 `96a0f4331c2aee51a9f0195aade92d1c8e0c9ff6be3d596622c62598d5c898c7`. Báo cáo đối chiếu cuối: `finance-development-final-db-verification.json` trong cùng thư mục runtime.
+- 1.042 unit test, 13 kiểm thử PostgreSQL tài chính, kiểm tra kiểu và production build đạt. Bộ PostgreSQL cuối chạy trên snapshot commit đã chốt, không dùng source đang sửa đồng thời.
+- Chrome thực xác minh desktop 1440px, mobile 390px và tablet 768px; bốn biểu đồ, chọn tiêu chí bán chạy, chú giải tương tác, kỳ ngày/tháng, light/dark, xuất CSV, CRUD loại chi phí, nhập lượng thập phân, trường disable/chỉ đọc, đảo bút toán và đối soát. Tab hỗ trợ End/Home, modal đóng bằng Escape. Không tràn trang, không lỗi JavaScript hoặc API tài chính trong lượt đạt.
+- Kỳ mẫu 01–27/10/2026 đối chiếu từ database: doanh thu thuần 37.387.000đ, giá vốn 20.350.000đ, chi phí 2.057.000đ, lợi nhuận theo chi phí ghi nhận 14.980.000đ. Đây là kết quả của dữ liệu phát triển được gắn nhãn, không phải doanh số thực của shop.
+
+Bằng chứng: `finance-ui-verification.json`, `finance-v2-chart-verification.json`, ảnh `finance-report-full.png`, `finance-report-light.png`, `finance-types-light.png`, `finance-mobile-390.png` và log `logs/finance-v2-*` tại `D:/ModelUniverseRuntime`. Ứng dụng chạy local, không mở tunnel public. Không tạo thanh toán, vận đơn hoặc email thật từ seed/kiểm thử này.

@@ -69,7 +69,9 @@ const getJson = async (ctx, path) => {
     await page.getByRole('button', { name: '↓ Xuất báo cáo CSV', exact: true }).click();
     const download = await downloadEvent;
     await download.saveAs(home + '/finance-acceptance-export.csv');
-    results.push('Desktop report, verified dataset banner and CSV download');
+    results.push(
+      'Distinct dashboard with four interactive charts, revenue ranking, development banner and CSV download',
+    );
     await page.goto('/vi/admin/finance', { waitUntil: 'networkidle' });
     await expect(page.getByRole('heading', { name: 'Chi phí & đối soát', exact: true })).toBeVisible();
     await expect(page.locator('.finance-kpi')).toHaveCount(0);
@@ -143,7 +145,7 @@ const getJson = async (ctx, path) => {
       ),
     );
     results.push(
-      'Create expense type, enabled/disabled inputs, fractional usage, historical price/unit snapshot, retirement, reversal',
+      'Independent cost workspace, create/edit/delete cost type, enabled/disabled inputs, fractional usage, historical price/unit snapshot, retirement and reversal',
     );
     await page.getByRole('button', { name: 'Tháng này', exact: true }).click();
     await page.getByRole('tab', { name: 'Đối soát đơn hàng', exact: true }).click();
@@ -185,10 +187,7 @@ const getJson = async (ctx, path) => {
     ]) {
       await page.setViewportSize(viewport);
       await expect(page.locator('.finance-kpi')).toHaveCount(4);
-      assert(
-        await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
-        'Page overflow ' + viewport.width,
-      );
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       await page.screenshot({ path: home + '/finance-mobile-' + viewport.width + '.png' });
     }
     await page.setViewportSize({ width: 390, height: 844 });
