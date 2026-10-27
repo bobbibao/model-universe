@@ -83,3 +83,16 @@ Unit: công thức doanh thu/COGS/lợi nhuận, không trừ giảm/ship hai l�
 Tồn hiện tại không phải tồn cuối kỳ. Giá trị theo `product.importPrice` là tham chiếu, có đếm số lượng chưa có giá vốn. Ngày nhập gần nhất chỉ là tín hiệu chưa nhập bổ sung, không suy ra tuổi từng món còn trong kho khi chưa có phân bổ xuất theo lô. Không tự dùng ngày tạo catalog hoặc ngày baseline 25/10/2026 làm bằng chứng nhập hàng.
 
 Chưa có tự động xác minh hóa đơn chi phí, phân bổ chi phí vận hành theo SKU, khóa sổ, thuế thu nhập, lợi nhuận theo lô FIFO hay quyết toán đối tác. Những giới hạn này được giữ rõ để tránh hiển thị lợi nhuận chính xác giả tạo.
+
+## Xác minh ngày 27/10/2026
+
+- Bản ứng dụng chạy: `d1b287b`, production build/Next type check/Express build đạt. 1.042 unit test và 24 bài PostgreSQL (10 tài chính, 14 cây/SKU) đạt.
+- Chrome thực: desktop 1440px, mobile 390px và tablet 768px; nhập chi phí, sửa định mức/đơn vị, ngừng dùng, kiểm tra lịch sử, đảo, đối soát, lọc ngày và xuất CSV. Không có lỗi JavaScript hoặc lỗi API tài chính trong lượt đạt. Đã kiểm tra light/dark, Escape của modal và không tràn trang.
+- Kỳ chỉ có chi phí 26/10: không ghi doanh thu, chi phí 12.000đ, kết quả −12.000đ. Bộ test còn đối chiếu doanh thu/chi phí bằng truy vấn SQL độc lập.
+- Năm lượt báo cáo trên fixture thực mất 65–120ms/lượt ở máy này. Tính toán thuần cho 10.000 đơn tổng hợp mất khoảng 0,9 giây; đây không phải benchmark 10.000 đơn PostgreSQL hay cam kết tải đồng thời.
+- Sau kiểm thử đã dừng server fixture và khôi phục database shop. Đối chiếu đủ 103 sản phẩm không đổi ID/UUID/SKU/slug/giá/giá vốn tham chiếu/tồn/số đã bán/loại/tổ hợp. Shop vẫn 27 tài khoản, 0 đơn, 0 bút toán chi phí, 0 loại chi phí và 0 đối soát mẫu. Các bảng/cột và index mới đã có, dữ liệu mẫu chỉ ở database phát triển.
+- Cookie QA không dùng được ở shop (401). Agent thật đã khởi động lại; không mở tunnel public, không tạo thanh toán hay vận đơn thật để kiểm tra.
+
+Log, CSV và ảnh kiểm tra ở `D:/ModelUniverseRuntime/finance-*`; không được đưa ra đường dẫn public của ứng dụng. Bản seed ban đầu có 173 bút toán; thao tác kiểm thử UI có thêm bút toán và phiên bản trong database QA, đúng tính chất lịch sử bất biến.
+
+Tham khảo khái niệm: [IFRS 15](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-15-revenue-from-contracts-with-customers/) phân biệt việc thu tiền với thời điểm chuyển giao hàng/dịch vụ; [IAS 2](https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/) phân biệt giá trị hàng tồn với chi phí khi hàng được bán. `DELIVERED` và cách ghi chi phí ở đây là quy ước quản trị được triển khai cho ứng dụng, không phải tuyên bố tuân thủ toàn bộ các chuẩn mực đó.
