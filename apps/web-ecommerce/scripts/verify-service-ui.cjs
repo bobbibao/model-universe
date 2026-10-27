@@ -70,7 +70,7 @@ const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(process.cwd(), 
       await page.goto(`/vi/services/${kind}`, { waitUntil: 'networkidle' });
       const basket = page.locator('.qv');
       await expect(basket).toBeVisible();
-      await basket.getByRole('button', { name: 'Tự nhập tên', exact: true }).click();
+      await basket.getByRole('button', { name: 'Mẫu không có trong danh mục', exact: true }).click();
       const manual = basket.locator('.is-custom-model').first(),
         name = manual.getByRole('textbox', { name: 'Tên mô hình', exact: true });
       await expect(name).toBeFocused();
@@ -88,6 +88,16 @@ const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(process.cwd(), 
         'true',
       );
       await custom.getByRole('button', { name: 'Hộp bị hư', exact: true }).click();
+      assert.equal(
+        await custom.locator('.filter-multi-menu').evaluate((el) => getComputedStyle(el).position),
+        'static',
+        'Condition options remain in their own group',
+      );
+      const columns = await custom
+        .locator('.condition-cascade-grid')
+        .evaluate((el) => ({ display: getComputedStyle(el).display, columns: getComputedStyle(el).columnCount }));
+      assert.equal(columns.display, 'grid');
+      assert.equal(columns.columns, 'auto');
       await expect(custom.getByRole('button', { name: 'Thiếu hộp', exact: true })).toHaveAttribute(
         'aria-pressed',
         'false',
@@ -160,6 +170,16 @@ const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(process.cwd(), 
         await expect(basket.locator('.sb-list').nth(1).locator('.sb-row')).toHaveCount(2);
       }
       await expect(basket.locator('.qv-cta')).toBeEnabled();
+      await expect(basket.locator('.qv-summary-item')).toHaveCount(2);
+      await expect(basket.locator('.qv-summary-total')).toContainText('1 mô hình cần shop báo giá riêng.');
+      await expect(basket.locator('.qv-summary-total')).toContainText('Chưa tính vào số tiền trên.');
+      await expect(basket.locator('.qv-summary-total > strong')).toHaveText(
+        await catalog.locator('.sb-row-price').innerText(),
+      );
+      await expect(basket.locator('.qv-cta')).toHaveText('Tiếp tục: thêm ảnh');
+      await basket.locator('.qv-summary-item').first().click();
+      await expect(name).toBeFocused();
+      await expect(name).toHaveValue(modelName);
       await basket.screenshot({ path: path.join(home, `service-${kind}-desktop.png`), animations: 'disabled' });
       await basket.locator('.qv-cta').click();
       await expect(page.locator('.sb-request-title').first()).toContainText(modelName);
@@ -169,6 +189,14 @@ const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(process.cwd(), 
       await page.locator('.service-request-panel-head button').click();
       await page.setViewportSize({ width: 390, height: 844 });
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      await conditions.tap();
+      await expect(basket.locator('.qv-mobile-track')).toBeVisible();
+      const barBox = await basket.locator('.qv-mobile-track').boundingBox();
+      const navBox = await page.locator('.mu-mobile-nav').boundingBox();
+      assert(barBox.y + barBox.height <= navBox.y, 'Tracking bar stays above mobile navigation');
+      await basket.locator('.qv-mobile-track').tap();
+      await expect(basket.locator('.qv-summary-heading h3')).toBeFocused();
+      await expect(basket.locator('.qv-mobile-track')).toBeHidden();
       await conditions.tap();
       await expect(custom.locator('.condition-selection-tags > button')).toHaveText(selected);
       await basket.screenshot({ path: path.join(home, `service-${kind}-mobile.png`), animations: 'disabled' });
@@ -184,9 +212,54 @@ const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(process.cwd(), 
           'Keyboard type navigation',
           'Request panel reuses model name and requires evidence',
           'Touch interaction and no mobile overflow',
+          'Inline condition groups stay in a fixed grid without floating or splitting',
+          'Itemized subtotal excludes private quotes and links back to the correct model',
+          'Mobile summary tracker stays above navigation and hides at the summary',
         ],
       });
     }
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.goto('/vi/services/trade', { waitUntil: 'networkidle' });
+    const trade = page.locator('.qv');
+    await trade.getByRole('combobox').first().fill(family.name);
+    await expect(trade.getByRole('option').first()).toBeVisible();
+    await trade.getByRole('combobox').first().press('Enter');
+    const own = trade.locator('.sb-row.is-service');
+    await own.getByRole('radio', { name: '2hand', exact: true }).click();
+    await own.locator('.service-combinations-options > button').first().click();
+    await expect(own.locator('.service-condition-notice')).toContainText('Giá tham khảo');
+    await expect(trade.locator('.qv-summary-total > strong')).toHaveText(
+      await own.locator('.sb-row-price').innerText(),
+    );
+    await expect(trade.locator('.qv-cta')).toBeDisabled();
+    await trade.locator('.sb-list').nth(1).getByRole('combobox').click();
+    await expect(trade.getByRole('option').first()).toBeVisible();
+    await trade.getByRole('option').first().click();
+    const parseVnd = (value) => Number(value.replace(/\D/g, ''));
+    const expectedDifference =
+      parseVnd(await trade.locator('.sb-list').nth(1).locator('.sb-row-price').innerText()) -
+      parseVnd(await own.locator('.sb-row-price').innerText());
+    await expect(trade.locator('.qv-summary-total > span')).toHaveText(
+      expectedDifference > 0
+        ? 'Bạn dự kiến bù thêm'
+        : expectedDifference < 0
+          ? 'Shop dự kiến trả lại bạn'
+          : 'Chênh lệch dự kiến',
+    );
+    if (expectedDifference === 0) await expect(trade.locator('.qv-summary-total > strong')).toHaveText('Ngang giá');
+    else
+      assert.equal(
+        parseVnd(await trade.locator('.qv-summary-total > strong').innerText()),
+        Math.abs(expectedDifference),
+      );
+    checks.push({
+      kind: 'priced-trade',
+      checks: [
+        'Known prices have a numeric subtotal',
+        'Trade waits for a shop item',
+        'Exchange difference and payment direction match the selected item prices',
+      ],
+    });
     await page.goto('/vi/services/sell', { waitUntil: 'networkidle' });
     let interrupt = true;
     const searchRoute = (url) => url.pathname === '/api/product-condition-tree/families';
