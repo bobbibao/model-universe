@@ -2359,7 +2359,20 @@
     "sendAnother": "Gửi tin nhắn khác",
     "nameError": "Vui lòng nhập họ tên.",
     "emailError": "Email không hợp lệ.",
-    "messageError": "Nội dung phải có ít nhất {count} ký tự."
+    "messageError": "Nội dung phải có ít nhất {count} ký tự.",
+    "quickChannelsTitle": "Kênh liên hệ nhanh",
+    "hotlineLabel": "Hotline / Gọi điện",
+    "hotlineDesc": "8:00 - 22:00 hàng ngày · Gọi trực tiếp",
+    "callNow": "Gọi ngay",
+    "copyPhone": "Sao chép số",
+    "copiedPhoneToast": "Đã sao chép số điện thoại: {phone}",
+    "zaloLabel": "Zalo Chat",
+    "zaloDesc": "Tư vấn trực tiếp · Phản hồi trong vài phút",
+    "chatZalo": "Nhắn Zalo",
+    "messengerLabel": "Facebook Messenger",
+    "messengerDesc": "Nhắn tin qua Fanpage MODEL UNIVERSE",
+    "chatMessenger": "Mở Messenger",
+    "formHint": "Cần hỗ trợ gấp? Gọi Hotline hoặc nhắn Zalo / Messenger để được phản hồi ngay."
   },
   "partnerAdmin": {
     "title": "Đối tác bán hàng",

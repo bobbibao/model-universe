@@ -1679,6 +1679,189 @@ body:has(.mu-shell) .agent-send {
 .studio-contact-assistant > span:last-child {
   margin-left: auto;
 }
+
+/* Quick Direct Contact Channels (Hotline, Zalo, Messenger) */
+.studio-contact-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 26px;
+}
+.studio-channel-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+.studio-channel-card:hover {
+  border-color: #cbd5e1;
+  background: #fbfcfe;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+}
+.studio-channel-card .channel-icon-wrap {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  transition: transform 180ms ease;
+}
+.studio-channel-card:hover .channel-icon-wrap {
+  transform: scale(1.06);
+}
+.studio-channel-card.is-phone .channel-icon-wrap {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #dcfce7;
+}
+.studio-channel-card.is-zalo .channel-icon-wrap,
+.studio-channel-card.is-messenger .channel-icon-wrap {
+  background: transparent;
+  border: none;
+}
+.studio-channel-card .channel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.studio-channel-card .channel-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+.studio-channel-card .channel-value {
+  font-size: 15.5px;
+  font-weight: 750;
+  color: #0f172a;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+a.channel-value:hover {
+  color: #16a34a;
+}
+.studio-channel-card .channel-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.3;
+}
+.studio-channel-card .channel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.studio-channel-card .channel-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 650;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+.studio-channel-card.is-phone .channel-action-btn.is-call {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+.studio-channel-card.is-phone .channel-action-btn.is-call:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+.studio-channel-card.is-zalo .channel-action-btn {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+.studio-channel-card.is-zalo:hover .channel-action-btn {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+.studio-channel-card.is-messenger .channel-action-btn {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #6d28d9;
+}
+.studio-channel-card.is-messenger:hover .channel-action-btn {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+.channel-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+.channel-copy-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.studio-contact-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 12.5px;
+  color: #475569;
+}
+.studio-contact-hint svg {
+  flex-shrink: 0;
+  color: #6366f1;
+}
+
+@media (max-width: 640px) {
+  .studio-channel-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+  .studio-channel-card .channel-icon-wrap {
+    width: 38px;
+    height: 38px;
+  }
+  .studio-channel-card .channel-value {
+    font-size: 14.5px;
+  }
+  .studio-channel-card .channel-action-btn {
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+}
 .studio-contact-form {
   border: 1px solid #e5e4dc;
 }

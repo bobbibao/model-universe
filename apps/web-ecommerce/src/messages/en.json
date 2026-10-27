@@ -2359,7 +2359,20 @@
     "sendAnother": "Send another message",
     "nameError": "Please enter your full name.",
     "emailError": "Please enter a valid email.",
-    "messageError": "Your message must have at least {count} characters."
+    "messageError": "Your message must have at least {count} characters.",
+    "quickChannelsTitle": "Quick Direct Contact",
+    "hotlineLabel": "Hotline / Phone",
+    "hotlineDesc": "8:00 - 22:00 daily · Tap to call",
+    "callNow": "Call now",
+    "copyPhone": "Copy number",
+    "copiedPhoneToast": "Copied phone number: {phone}",
+    "zaloLabel": "Zalo Chat",
+    "zaloDesc": "Instant consultation · Reply in minutes",
+    "chatZalo": "Chat Zalo",
+    "messengerLabel": "Facebook Messenger",
+    "messengerDesc": "Direct message via MODEL UNIVERSE Fanpage",
+    "chatMessenger": "Open Messenger",
+    "formHint": "Need urgent support? Call our hotline or message us on Zalo / Messenger for an instant reply."
   },
   "partnerAdmin": {
     "title": "Marketplace sellers",
