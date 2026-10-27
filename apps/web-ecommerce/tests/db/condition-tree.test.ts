@@ -123,6 +123,14 @@ describe('condition catalog integration', () => {
     ).rejects.toMatchObject({ code: 'STOCK_RECEIPT_REQUIRED' });
     await expect(
       products.update(source.id, { ...body, price: undefined, itemTypeKey: 'new' }, adminId),
+    ).rejects.toMatchObject({ statusCode: 400 });
+    const additional = await tree.save(adminId, { nameVi: `Identity lock QA ${unique}`, selectable: true });
+    expect(additional.itemTypes).toEqual(['preowned']);
+    await expect(
+      products.update(source.id, {
+        ...body, price: undefined, itemTypeKey: 'preowned',
+        conditionNodeIds: [...source.conditionNodeIds, additional.id],
+      }, adminId),
     ).rejects.toMatchObject({ code: 'SKU_IDENTITY_LOCKED' });
   });
   it('allows a multi-quantity supplier receipt into a 2hand combination', async () => {

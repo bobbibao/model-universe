@@ -13,13 +13,19 @@ const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(sourceApp, '.ru
 const committedSnapshot = !!git('status', '--porcelain', '--untracked-files=no');
 if (committedSnapshot) {
   // Build only the committed revision; leave another editor's pending changes untouched.
-  const staging = path.join(home, 'build-sources', `${commit.slice(0, 7)}-${Date.now()}`);
+  // Webpack entry paths must stay on the same Windows volume as node_modules.
+  const name = `${commit.slice(0, 7)}-${Date.now()}`;
+  const staging = path.join(sourceApp, '.runtime', 'build-sources', name);
   fs.mkdirSync(staging, { recursive: true });
   const archive = path.join(staging, 'source.tar');
   execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, commit, 'apps/web-ecommerce'], { cwd: git('rev-parse', '--show-toplevel'), windowsHide: true });
   execFileSync('tar', ['-xf', archive, '-C', staging], { windowsHide: true });
+  fs.rmSync(archive);
   app = path.join(staging, 'apps/web-ecommerce');
   fs.symlinkSync(path.join(sourceApp, 'node_modules'), path.join(app, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
+  const output = path.join(home, 'build-output', name);
+  fs.mkdirSync(output, { recursive: true });
+  fs.symlinkSync(output, path.join(app, 'dist'), process.platform === 'win32' ? 'junction' : 'dir');
   console.log(`Building committed snapshot ${commit.slice(0, 7)}; pending source changes are preserved.`);
 }
 const unchanged = () => {
