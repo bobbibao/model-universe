@@ -1,5 +1,5 @@
 import { Controller } from '../../shared/server/decorators/controller.decorator';
-import { Get, Post, Put } from '../../shared/server/decorators/router.decorator';
+import { Get, Post, Put, Delete } from '../../shared/server/decorators/router.decorator';
 import ApiBaseController from './ApiBase.Controller';
 import FinanceService from '../../core/server/services/FinanceService';
 import type { Request, Response } from 'express';
@@ -76,6 +76,17 @@ export default class AdminFinanceController extends ApiBaseController {
       );
     } catch (e) {
       return this.handleError(res, e, 'Finance cost type');
+    }
+  }
+  @Delete('/cost-types/:id') async deleteType(req: Request, res: Response) {
+    try {
+      return this.sendSuccess(
+        res,
+        await this.finance.deleteType(Number(req.params.id), this.actor(req), req.body?.expectedVersion),
+        'Đã xóa loại chi phí khỏi danh mục; chứng từ cũ được giữ nguyên.',
+      );
+    } catch (e) {
+      return this.handleError(res, e, 'Delete finance cost type');
     }
   }
   @Get('/expenses') async expenses(req: Request, res: Response) {

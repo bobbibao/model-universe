@@ -108,9 +108,24 @@ export default class FinanceService {
           restocks: restocks.map((r) => ({ ...r, unitCostVnd: r.unitCostVnd === null ? null : Number(r.unitCostVnd) })),
         };
         const report = buildFinanceReport(data, range.from, range.to);
+        const [manifestTable] = await this.query<{ relation: string | null }>(
+          "SELECT to_regclass('finance_fixture_manifest') AS relation",
+          {},
+          transaction,
+        );
+        const developmentData = manifestTable.relation
+          ? (
+              await this.query<{ present: boolean }>(
+                "SELECT EXISTS(SELECT 1 FROM finance_fixture_manifest WHERE key='finance-development-main-v1') AS present",
+                {},
+                transaction,
+              )
+            )[0].present
+          : false;
         const today = Date.now();
         return {
           ...report,
+          developmentData,
           developmentFixtures:
             this.db.getDatabaseName().startsWith('model_universe_finance_') &&
             this.db.getDatabaseName().endsWith('_test'),
@@ -205,6 +220,7 @@ export default class FinanceService {
   }
   types() {
     return FinanceCostTypeModel.findAll({
+      where: { deletedAt: null },
       order: [
         ['isActive', 'DESC'],
         ['name', 'ASC'],
@@ -227,7 +243,7 @@ export default class FinanceService {
       const row = id
         ? await FinanceCostTypeModel.findByPk(positiveId(id), { transaction, lock: transaction.LOCK.UPDATE })
         : null;
-      if (id && !row) throw HttpError.notFound();
+      if (id && (!row || row.deletedAt)) throw HttpError.notFound();
       if (row && raw.expectedVersion !== row.version)
         throw HttpError.conflict('Loại chi phí đã thay đổi. Vui lòng tải lại.');
       await this.db.query('SELECT pg_advisory_xact_lock(575729,hashtext(:name))', {
@@ -243,7 +259,7 @@ export default class FinanceService {
         isActive: raw.isActive,
         version: (row?.version ?? 0) + 1,
       };
-      const duplicate = await FinanceCostTypeModel.findOne({ where: { name }, transaction });
+      const duplicate = await FinanceCostTypeModel.findOne({ where: { name, deletedAt: null }, transaction });
       if (duplicate && duplicate.id !== row?.id) throw HttpError.conflict('Tên loại chi phí đã tồn tại.');
       const saved = row
         ? await row.update(values, { transaction })
@@ -253,6 +269,19 @@ export default class FinanceService {
         { transaction },
       );
       return saved;
+    });
+  }
+  async deleteType(id: number, actorUserId: number, expectedVersion: unknown) {
+    return this.db.transaction(async (transaction) => {
+      const row = await FinanceCostTypeModel.findByPk(positiveId(id), { transaction, lock: transaction.LOCK.UPDATE });
+      if (!row || row.deletedAt) throw HttpError.notFound();
+      if (expectedVersion !== row.version) throw HttpError.conflict('Loại chi phí đã thay đổi. Tải lại trước khi xóa.');
+      await row.update({ isActive: false, deletedAt: new Date(), version: row.version + 1 }, { transaction });
+      await FinanceConfigAuditModel.create(
+        { costTypeId: row.id, actorUserId, snapshot: { ...row.get({ plain: true }), action: 'delete_from_catalog' } },
+        { transaction },
+      );
+      return { id: row.id, deleted: true };
     });
   }
   async expenses(raw: Record<string, unknown>) {
@@ -280,6 +309,7 @@ export default class FinanceService {
         JSON.stringify({
           reversalId: reversalId ?? null,
           costTypeId: raw.costTypeId,
+          expectedTypeVersion: raw.expectedTypeVersion,
           orderId: raw.orderId ?? null,
           quantity: raw.quantity,
           unitCostVnd: raw.unitCostVnd,
@@ -328,7 +358,9 @@ export default class FinanceService {
         transaction,
         lock: transaction.LOCK.SHARE,
       });
-      if (!type?.isActive) throw HttpError.badRequest('Loại chi phí không còn được sử dụng.');
+      if (!type?.isActive || type.deletedAt) throw HttpError.badRequest('Loại chi phí không còn được sử dụng.');
+      if (raw.expectedTypeVersion !== undefined && raw.expectedTypeVersion !== type.version)
+        throw HttpError.conflict('Đơn giá hoặc đơn vị đã thay đổi. Tải lại loại chi phí trước khi ghi nhận.');
       const quantity = Number(raw.quantity);
       if (
         !Number.isFinite(quantity) ||

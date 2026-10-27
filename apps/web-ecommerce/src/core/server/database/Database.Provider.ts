@@ -554,6 +554,7 @@ export default class DatabaseProvider {
     // owner-catalog imports, placeholder prices and synthetic financial policies into an unrelated demo database.
     await MIGRATIONS.find(migration => migration.name === '2026-10-27-54-product-condition-tree')!.up({ context: { sequelize } });
     await MIGRATIONS.find(migration => migration.name === '2026-10-27-57-finance-workspace')!.up({ context: { sequelize } });
+    await MIGRATIONS.find(migration => migration.name === '2026-10-27-58-finance-cost-catalog-deletion')!.up({ context: { sequelize } });
     const storage = new SequelizeStorage({ sequelize, tableName: MIGRATION_TABLE });
     const executed = new Set(await storage.executed());
     for (const migration of MIGRATIONS) if (!executed.has(migration.name)) await storage.logMigration({ name: migration.name });

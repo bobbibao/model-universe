@@ -20,6 +20,7 @@ export default function ExpenseWorkspace({
     [revision, setRevision] = useState(0),
     [loading, setLoading] = useState(true),
     [failed, setFailed] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<CostType | null>(null);
   const [editor, setEditor] = useState<CostType | 'new' | null>(null),
     [add, setAdd] = useState(false),
     [reverse, setReverse] = useState<FinanceExpense | null>(null);
@@ -122,6 +123,13 @@ export default function ExpenseWorkspace({
                     <button className="finance-link" onClick={() => setEditor(type)} aria-label={`Sửa ${type.name}`}>
                       Sửa
                     </button>
+                    <button
+                      className="finance-link finance-delete"
+                      onClick={() => setDeleteTarget(type)}
+                      aria-label={`Xóa ${type.name}`}
+                    >
+                      Xóa
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -194,6 +202,16 @@ export default function ExpenseWorkspace({
           </div>
           <Pagination page={page} count={entries?.count ?? 0} setPage={setPage} />
         </>
+      )}
+      {deleteTarget && (
+        <DeleteType
+          type={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onSaved={() => {
+            setDeleteTarget(null);
+            saved();
+          }}
+        />
       )}
       {editor && (
         <TypeEditor type={editor === 'new' ? undefined : editor} onClose={() => setEditor(null)} onSaved={saved} />
@@ -334,6 +352,7 @@ function ExpenseEditor({ types, onClose, onSaved }: { types: CostType[]; onClose
       await financeApi.expense({
         requestKey,
         costTypeId: Number(typeId),
+        expectedTypeVersion: type?.version,
         unitCostVnd: Number(unitCost),
         quantity: Number(quantity),
         orderId: orderId ? Number(orderId) : null,
@@ -490,6 +509,47 @@ function ReverseEditor({
           </button>
         </footer>
       </form>
+    </FinanceDialog>
+  );
+}
+
+function DeleteType({ type, onClose, onSaved }: { type: CostType; onClose: () => void; onSaved: () => void }) {
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState(false);
+  return (
+    <FinanceDialog title="Xóa loại chi phí" onClose={onClose}>
+      <p>
+        Xóa “{type.name}” khỏi danh mục lựa chọn. Giá, số lượng và chứng từ đã ghi nhận vẫn được giữ nguyên để đối chiếu
+        báo cáo.
+      </p>
+      {error && (
+        <p className="finance-error" role="alert">
+          Chưa xóa được; tải lại nếu cấu hình vừa thay đổi.
+        </p>
+      )}
+      <footer>
+        <button className="finance-button" disabled={busy} onClick={onClose}>
+          Hủy
+        </button>
+        <button
+          className="finance-button is-primary"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setError(false);
+            try {
+              await financeApi.deleteType(type.id, type.version);
+              onSaved();
+            } catch {
+              setError(true);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? 'Đang xóa…' : 'Xác nhận xóa'}
+        </button>
+      </footer>
     </FinanceDialog>
   );
 }

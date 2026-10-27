@@ -3,13 +3,14 @@ import type { CostBasis, FinanceCategory, FinanceReview } from '../../../../../s
 
 @Table({ tableName: 'finance_cost_type' })
 export class FinanceCostTypeModel extends Model {
-  @Column({ type: DataType.STRING(100), allowNull: false, unique: true }) name!: string;
+  @Column({ type: DataType.STRING(100), allowNull: false }) name!: string;
   @Column({ type: DataType.STRING(20), allowNull: false }) category!: FinanceCategory;
   @Column({ type: DataType.STRING(20), allowNull: false }) basis!: CostBasis;
   @Column({ type: DataType.BIGINT, allowNull: false }) unitCostVnd!: number;
   @Column({ type: DataType.STRING(30), allowNull: false }) unit!: string;
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true }) isActive!: boolean;
   @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 1 }) version!: number;
+  @Column(DataType.DATE) deletedAt!: Date | null;
   static async seedData(): Promise<void> {}
 }
 

@@ -228,6 +228,9 @@ export function financePeriod(data: FinanceData, from: string, to: string) {
         (e) => Number(e.amountVnd),
       ),
     })),
+    topProductsByRevenue: [...top.values()]
+      .sort((a, b) => b.merchandiseVnd - a.merchandiseVnd || b.quantity - a.quantity)
+      .slice(0, 8),
     topProducts: [...top.values()]
       .sort((a, b) => b.quantity - a.quantity || b.merchandiseVnd - a.merchandiseVnd)
       .slice(0, 8),
@@ -249,6 +252,7 @@ export function buildFinanceReport(data: FinanceData, from: string, to: string) 
       netRevenueVnd: value.netRevenueVnd,
       profitVnd: value.profitVnd,
       expenseVnd: value.expenseVnd,
+      verifiedCashNetVnd: value.verifiedCashNetVnd,
     });
     cursor = new Date(Date.parse(last) + 86400000).toISOString().slice(0, 10);
   }
@@ -256,6 +260,7 @@ export function buildFinanceReport(data: FinanceData, from: string, to: string) 
     from,
     to,
     timeZone: 'Asia/Ho_Chi_Minh',
+    granularity: bounds.days > 62 ? ('month' as const) : ('day' as const),
     previousFrom: bounds.previousFrom,
     previousTo: bounds.previousTo,
     current: financePeriod(data, from, to),

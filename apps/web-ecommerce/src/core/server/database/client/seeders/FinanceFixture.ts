@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { hash } from 'bcryptjs';
 import { QueryTypes } from 'sequelize';
 import DatabaseProvider from '../../Database.Provider';
@@ -12,7 +13,12 @@ import OrderRefundModel from '../models/OrderRefund.Model';
 import CatalogIntakeModel from '../models/CatalogIntake.Model';
 import ReturnRequestModel from '../models/ReturnRequest.Model';
 import ReturnItemModel from '../models/ReturnItem.Model';
-import { FinanceCostTypeModel, FinanceExpenseModel, FinanceOrderReviewModel } from '../models/Finance.Model';
+import {
+  FinanceCostTypeModel,
+  FinanceExpenseModel,
+  FinanceOrderReviewModel,
+  FinanceConfigAuditModel,
+} from '../models/Finance.Model';
 
 export interface FinanceFixtureManifest {
   key: string;
@@ -24,12 +30,28 @@ export interface FinanceFixtureManifest {
   crossPeriodRefundOrderId: number;
   counts: { customers: number; products: number; orders: number; expenses: number; refunds: number };
 }
-// Explicitly disposable databases only. All rows are linked, deterministic and committed together.
+// The isolated fixture stays strict; current-database seeding requires the separate explicit authorization entry.
 export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<FinanceFixtureManifest> {
+  return seedFinanceRows(baseDay, false);
+}
+export async function seedFinanceDevelopment(
+  expectedDatabase: string,
+  baseDay = '2026-10-27',
+): Promise<FinanceFixtureManifest> {
+  if (
+    DatabaseProvider.getInstance().getDatabaseName() !== expectedDatabase ||
+    process.env.FINANCE_ALLOW_CURRENT_DEVELOPMENT !== 'true'
+  )
+    throw new Error('Explicit development database authorization is required.');
+  return seedFinanceRows(baseDay, true);
+}
+async function seedFinanceRows(baseDay: string, currentDevelopment: boolean): Promise<FinanceFixtureManifest> {
   const db = DatabaseProvider.getInstance();
-  if (!db.getDatabaseName().endsWith('_test'))
+  if (!currentDevelopment && !db.getDatabaseName().endsWith('_test'))
     throw new Error('Finance fixtures require an explicit disposable *_test database.');
-  const key = 'finance-linked-fixture-v1';
+  const key = currentDevelopment ? 'finance-development-main-v1' : 'finance-linked-fixture-v1';
+  const prefix = currentDevelopment ? 'DEV-FIN' : 'FIN-QA';
+  const label = currentDevelopment ? '[DEV]' : 'QA ·';
   const at = (days: number) =>
     new Date(`${new Date(Date.parse(baseDay) - days * 86400000).toISOString().slice(0, 10)}T10:00:00+07:00`);
   await db.query('CREATE TABLE IF NOT EXISTS finance_fixture_manifest (key text PRIMARY KEY, manifest jsonb NOT NULL)');
@@ -40,34 +62,49 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
       { replacements: { key }, type: QueryTypes.SELECT, transaction },
     );
     if (prior) return prior.manifest;
-    const [foreign] = await db.query<{ count: string }>(`SELECT COUNT(*) FROM product WHERE sku NOT LIKE 'FIN-QA-%'`, {
-      type: QueryTypes.SELECT,
-      transaction,
-    });
-    if (Number(foreign.count) || (await OrderModel.count({ transaction })))
-      throw new Error('Refusing to mix finance fixtures with an existing shop catalog or orders.');
-    const passwordHash = await hash('Finance-Check-2026!', 10);
-    const admin = await UserModel.create(
-      { email: 'finance.admin@model-universe.test', passwordHash, firstName: 'Finance', lastName: 'QA', role: 'ADMIN' },
-      { transaction },
-    );
+    if (!currentDevelopment) {
+      const [foreign] = await db.query<{ count: string }>(
+        `SELECT COUNT(*) FROM product WHERE sku NOT LIKE 'FIN-QA-%'`,
+        { type: QueryTypes.SELECT, transaction },
+      );
+      if (Number(foreign.count) || (await OrderModel.count({ transaction })))
+        throw new Error('Refusing to mix finance fixtures with an existing shop catalog or orders.');
+    }
+    const passwordHash = await hash(currentDevelopment ? randomUUID() : 'Finance-Check-2026!', 10);
+    const admin = currentDevelopment
+      ? await UserModel.findOne({ where: { role: 'ADMIN', isActive: true }, order: [['id', 'ASC']], transaction })
+      : await UserModel.create(
+          {
+            email: 'finance.admin@model-universe.test',
+            passwordHash,
+            firstName: 'Finance',
+            lastName: 'QA',
+            role: 'ADMIN',
+          },
+          { transaction },
+        );
+    if (!admin)
+      throw new Error(
+        'An existing active admin is required. No admin credentials are created for the current database.',
+      );
     const customers = [];
     for (let i = 0; i < 8; i++)
       customers.push(
         await UserModel.create(
           {
-            email: `finance.customer.${i}@model-universe.test`,
+            email: `${currentDevelopment ? 'development.finance' : 'finance.customer'}.${i}@model-universe.test`,
             passwordHash,
-            firstName: `Khách kiểm thử ${i + 1}`,
-            lastName: 'QA',
+            firstName: `${label} Khách ${i + 1}`,
+            lastName: currentDevelopment ? 'Development' : 'QA',
             role: 'USER',
+            isActive: !currentDevelopment,
             createdAt: at(180 - i * 10),
           },
           { transaction },
         ),
       );
     const category = await CategoryModel.create(
-      { name: 'QA · Mô hình kiểm thử tài chính', slug: 'finance-qa' },
+      { name: `${label} Lịch sử bán hàng phát triển`, slug: currentDevelopment ? 'development-finance' : 'finance-qa' },
       { transaction },
     );
     const brands = ['BANDAI', 'MOTOR NUCLEAR', 'MOSHOW', 'SNAA', 'IN ERA+', 'HEMOXIAN'];
@@ -78,18 +115,19 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
         cost = 180000 + i * 70000;
       const product = await ProductModel.create(
         {
-          name: `QA · ${models[i % 6]} · ${i < 6 ? '2hand thiếu hộp' : 'New'}`,
-          sku: `FIN-QA-${i + 1}`,
+          name: `${label} ${models[i % 6]} · ${i < 6 ? '2hand thiếu hộp' : currentDevelopment ? '2hand đã lắp' : 'New'}`,
+          sku: `${prefix}-${i + 1}`,
           brandName: brands[i % 6],
           categoryId: category.id,
           price,
           importPrice: cost,
-          stock: 50,
+          stock: currentDevelopment ? 50 + i * 3 : 50,
+          listingStatus: currentDevelopment ? 'hidden' : 'published',
           sold: 0,
-          condition: i < 6 ? 'preowned' : 'new',
-          itemTypeKey: i < 6 ? 'preowned' : 'new',
+          condition: currentDevelopment || i < 6 ? 'preowned' : 'new',
+          itemTypeKey: currentDevelopment || i < 6 ? 'preowned' : 'new',
           imageUrl: '/placeholder.svg',
-          modelCode: `FIN-QA-${i + 1}`,
+          modelCode: `${prefix}-${i + 1}`,
           scale: '1/100',
           createdAt: at(180),
         },
@@ -99,9 +137,9 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
       await CatalogIntakeModel.create(
         {
           productId: product.id,
-          sourceType: 'finance_fixture',
-          sourceId: `FIN-QA-INTAKE-${i}-A`,
-          quantity: 30,
+          sourceType: currentDevelopment ? 'development_finance' : 'finance_fixture',
+          sourceId: `${prefix}-INTAKE-${i}-A`,
+          quantity: currentDevelopment ? 30 + i * 3 : 30,
           unitCostVnd: cost,
           actorUserId: admin.id,
           snapshot: { fixture: key, lot: 'A' },
@@ -112,8 +150,8 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
       await CatalogIntakeModel.create(
         {
           productId: product.id,
-          sourceType: 'finance_fixture',
-          sourceId: `FIN-QA-INTAKE-${i}-B`,
+          sourceType: currentDevelopment ? 'development_finance' : 'finance_fixture',
+          sourceId: `${prefix}-INTAKE-${i}-B`,
           quantity: 20,
           unitCostVnd: cost + 5000,
           actorUserId: admin.id,
@@ -125,13 +163,13 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
     }
     const types: FinanceCostTypeModel[] = [];
     for (const values of [
-      { name: 'QA · Thùng carton', unit: 'kiện', category: 'PACKAGING', basis: 'PARCEL', unitCostVnd: 12000 },
-      { name: 'QA · Chống sốc', unit: 'mét', category: 'PACKAGING', basis: 'QUANTITY', unitCostVnd: 4000 },
-      { name: 'QA · Nhân công đóng gói', unit: 'đơn', category: 'LABOUR', basis: 'ORDER', unitCostVnd: 8000 },
-      { name: 'QA · Cước thực tế', unit: 'lần', category: 'SHIPPING', basis: 'ACTUAL', unitCostVnd: 35000 },
-      { name: 'QA · Di chuyển hàng', unit: 'chuyến', category: 'OPERATING', basis: 'ACTUAL', unitCostVnd: 90000 },
+      { name: label + ' Thùng carton', unit: 'kiện', category: 'PACKAGING', basis: 'PARCEL', unitCostVnd: 12000 },
+      { name: label + ' Chống sốc', unit: 'mét', category: 'PACKAGING', basis: 'QUANTITY', unitCostVnd: 4000 },
+      { name: label + ' Nhân công đóng gói', unit: 'đơn', category: 'LABOUR', basis: 'ORDER', unitCostVnd: 8000 },
+      { name: label + ' Cước thực tế', unit: 'lần', category: 'SHIPPING', basis: 'ACTUAL', unitCostVnd: 35000 },
+      { name: label + ' Di chuyển hàng', unit: 'chuyến', category: 'OPERATING', basis: 'ACTUAL', unitCostVnd: 90000 },
       {
-        name: 'QA · Băng keo cũ (ngừng)',
+        name: label + ' Băng keo cũ (ngừng)',
         unit: 'cuộn',
         category: 'PACKAGING',
         basis: 'QUANTITY',
@@ -140,6 +178,26 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
       },
     ])
       types.push(await FinanceCostTypeModel.create(values, { transaction }));
+    if (currentDevelopment)
+      for (const values of [
+        { name: '[DEV] Băng keo đóng gói', unit: 'mét', category: 'PACKAGING', basis: 'QUANTITY', unitCostVnd: 800 },
+        { name: '[DEV] Túi khí chống sốc', unit: 'túi', category: 'PACKAGING', basis: 'QUANTITY', unitCostVnd: 1500 },
+        { name: '[DEV] Túi / bao bì', unit: 'cái', category: 'PACKAGING', basis: 'QUANTITY', unitCostVnd: 2000 },
+        {
+          name: '[DEV] Thuê kho / mặt bằng',
+          unit: 'tháng',
+          category: 'OPERATING',
+          basis: 'ACTUAL',
+          unitCostVnd: 750000,
+        },
+        { name: '[DEV] Điện / Internet', unit: 'tháng', category: 'OPERATING', basis: 'ACTUAL', unitCostVnd: 350000 },
+      ])
+        types.push(await FinanceCostTypeModel.create(values, { transaction }));
+    for (const type of types)
+      await FinanceConfigAuditModel.create(
+        { costTypeId: type.id, actorUserId: admin.id, snapshot: { ...type.get({ plain: true }), source: key } },
+        { transaction },
+      );
     let expenseCount = 0;
     const expense = async (
       typeIndex: number,
@@ -155,7 +213,7 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
         {
           costTypeId: type.id,
           orderId,
-          requestKey: `FIN-QA-EXP-${expenseCount}`,
+          requestKey: `${prefix}-EXP-${expenseCount}`,
           requestDigest: `fixture-${expenseCount}`,
           incurredAt: at(days),
           nameSnapshot: type.name,
@@ -166,7 +224,7 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
           quantity,
           unitCostVnd: cost,
           amountVnd: Math.round(quantity * cost),
-          note: `Dữ liệu kiểm thử · Chứng từ ${expenseCount}`,
+          note: `${label} Dữ liệu phát triển · Chứng từ ${expenseCount}`,
           actorUserId: admin.id,
           createdAt: at(days),
         },
@@ -193,6 +251,8 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
       const order = await OrderModel.create(
         {
           userId: customers[i % customers.length].id,
+          createdByUserId: currentDevelopment ? admin.id : null,
+          note: currentDevelopment ? '[DEV] Đơn mẫu phát triển, không giao hàng hoặc thanh toán thật.' : null,
           salesChannel: ['WEBSITE', 'COUNTER', 'ASSISTED'][i % 3],
           status,
           paymentMethod: 'COD',
@@ -204,11 +264,11 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
           shippingDiscountVnd,
           total,
           prepaidVnd: 0,
-          recipientName: `QA · Khách ${(i % 8) + 1}`,
+          recipientName: `${label} Khách ${(i % 8) + 1}`,
           phone: '0900000000',
           address: 'Dữ liệu kiểm thử - không giao hàng',
           city: 'QA',
-          checkoutKey: `FIN-QA-ORDER-${i}`,
+          checkoutKey: `${prefix}-ORDER-${i}`,
           couponCode: member ? 'MEMBER10' : voucher ? 'QA50K' : null,
           benefitSnapshot: {
             scope: 'shop_owned',
@@ -241,7 +301,7 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
         lines.push(item);
         if (status !== 'CANCELLED') {
           product.stock -= quantity;
-          product.sold += status === 'DELIVERED' ? quantity : 0;
+          product.sold += quantity;
           await product.save({ transaction });
         }
       }
@@ -251,13 +311,13 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
             orderId: order.id,
             confirmedByUserId: admin.id,
             amountVnd: total,
-            externalReference: `FIN-QA-RECEIPT-${i}`,
-            reason: 'QA · thu tiền đã xác nhận',
+            externalReference: `${prefix}-RECEIPT-${i}`,
+            reason: `${label} Biên nhận mẫu phát triển`,
             createdAt: at(Math.max(0, days - 1)),
           },
           { transaction },
         );
-        const incomplete = i === 2 || i === 6;
+        const incomplete = !currentDevelopment && (i === 2 || i === 6);
         if (incomplete) incompleteOrderIds.push(order.id);
         await FinanceOrderReviewModel.create(
           {
@@ -268,7 +328,7 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
               orderItemId: line.id,
               unitCostVnd: incomplete && index === 0 ? null : selected[index].importPrice,
             })),
-            note: incomplete ? 'QA · chờ hóa đơn mua hàng' : 'QA · đối chiếu lô nhập A và chứng từ chi phí',
+            note: incomplete ? 'QA · chờ hóa đơn mua hàng' : `${label} Giá vốn mẫu theo lô A và chi phí phát triển`,
             actorUserId: admin.id,
             createdAt: at(days),
           },
@@ -278,6 +338,11 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
         await expense(1, order.id, 1.5, days);
         await expense(2, order.id, 1, days);
         if (shippingFee > 0) await expense(3, order.id, 1, days, 32000 + (i % 4) * 2000);
+        if (currentDevelopment) {
+          await expense(6, order.id, 2.5, days);
+          await expense(7, order.id, 2, days);
+          await expense(8, order.id, 1, days);
+        }
         if (i === 40) oldRefundOrder = order;
         if (i === 7 || i === 25 || i === 40) {
           const refundDays = i === 40 ? 3 : Math.max(1, days - 3),
@@ -287,11 +352,11 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
             {
               orderId: order.id,
               actorUserId: admin.id,
-              externalReference: `FIN-QA-REFUND-${i}`,
+              externalReference: `${prefix}-REFUND-${i}`,
               merchandiseVnd: refundAmount,
               shippingVnd: 0,
               taxVnd: 0,
-              reason: 'QA · hoàn tiền đã xác nhận',
+              reason: `${label} Bút toán hoàn tiền mẫu`,
               lineRefunds: [{ orderItemId: item.id, merchandiseVnd: refundAmount }],
               createdAt: at(refundDays),
             },
@@ -332,8 +397,8 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
               actorUserId: admin.id,
               kind,
               amountVnd: 100000,
-              externalReference: `FIN-QA-CANCEL-${i}-${kind}`,
-              reason: 'QA · cọc và hoàn cọc',
+              externalReference: `${prefix}-CANCEL-${i}-${kind}`,
+              reason: `${label} Cọc và hoàn cọc mẫu`,
               createdAt: at(days),
             },
             { transaction },
@@ -342,6 +407,11 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
       }
     }
     for (const days of [4, 35, 65, 95, 125]) await expense(4, null, 1, days);
+    if (currentDevelopment)
+      for (const days of [4, 35, 65, 95, 125]) {
+        await expense(9, null, 1, days);
+        await expense(10, null, 1, days);
+      }
     const original = await expense(0, null, 2, 8);
     await FinanceExpenseModel.create(
       {
@@ -349,11 +419,11 @@ export async function seedFinanceFixture(baseDay = '2026-10-27'): Promise<Financ
         id: undefined,
         createdAt: at(7),
         reversesId: original.id,
-        requestKey: 'FIN-QA-REVERSAL',
+        requestKey: `${prefix}-REVERSAL`,
         requestDigest: 'fixture-reversal',
         quantity: -2,
         amountVnd: -Number(original.amountVnd),
-        note: 'QA · đảo chứng từ nhập nhầm',
+        note: `${label} Đảo chứng từ nhập nhầm`,
       },
       { transaction },
     );

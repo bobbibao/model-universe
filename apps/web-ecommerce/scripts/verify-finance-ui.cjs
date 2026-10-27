@@ -11,8 +11,17 @@ const getJson = async (ctx, path) => {
   return r.json();
 };
 (async () => {
-  const runtime = JSON.parse(fs.readFileSync(home + '/finance-review.json'));
-  assert(/^model_universe_finance_.*_test$/.test(runtime.database), 'Never mutate shop data in this test');
+  const currentDevelopment = process.argv.includes('--current-development-data');
+  const runtime = JSON.parse(fs.readFileSync(home + (currentDevelopment ? '/state.json' : '/finance-review.json')));
+  if (!currentDevelopment)
+    assert(
+      /^model_universe_finance_.*_test$/.test(runtime.database),
+      'Use an isolated finance database or explicit --current-development-data',
+    );
+  const manifest = currentDevelopment
+    ? JSON.parse(fs.readFileSync(home + '/finance-development-seed-result.json')).manifest
+    : null;
+  const selectedOrderId = manifest ? manifest.orderIds[2] : 3;
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   const results = [];
   try {
@@ -21,13 +30,16 @@ const getJson = async (ctx, path) => {
     assert.equal(
       (
         await context.request.post('/api/auth/login', {
-          data: { email: 'finance.admin@model-universe.test', password: 'Finance-Check-2026!' },
+          data: currentDevelopment
+            ? { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD }
+            : { email: 'finance.admin@model-universe.test', password: 'Finance-Check-2026!' },
         })
       ).status(),
       200,
     );
     const initial = await getJson(context, '/api/admin/finance/report?from=2026-10-01&to=2026-10-27');
-    assert.equal(initial.developmentFixtures, true);
+    assert.equal(currentDevelopment ? initial.developmentData : initial.developmentFixtures, true);
+    if (currentDevelopment) assert.notEqual(initial.current.profitVnd, null);
     assert(initial.current.orders > 5);
     const page = await context.newPage();
     const errors = [],
@@ -37,9 +49,20 @@ const getJson = async (ctx, path) => {
       if (r.url().includes('/api/admin/finance/') && r.status() >= 400)
         financeErrors.push({ url: r.url(), status: r.status() });
     });
-    await page.goto('/vi/admin/finance', { waitUntil: 'networkidle' });
+    await page.goto('/vi/admin/dashboard', { waitUntil: 'networkidle' });
     await expect(page.locator('.finance-kpi')).toHaveCount(4);
-    await expect(page.getByText('DỮ LIỆU PHÁT TRIỂN · Không phải giao dịch của shop')).toBeVisible();
+    await expect(
+      page.getByText(
+        currentDevelopment
+          ? 'Dữ liệu phát triển đã được gắn nhãn [DEV]'
+          : 'DỮ LIỆU PHÁT TRIỂN · Không phải giao dịch của shop',
+      ),
+    ).toBeVisible();
+    await expect(page.locator('.apexcharts-canvas')).toHaveCount(4);
+    await page.getByRole('button', { name: 'Tiền thu & chi phí', exact: true }).click();
+    await expect(page.locator('.apexcharts-legend-text').filter({ hasText: 'Tiền thu ròng' })).toBeVisible();
+    await page.getByRole('button', { name: 'Doanh thu & lợi nhuận', exact: true }).click();
+    await page.getByLabel('Xếp theo').selectOption('revenue');
     await page.screenshot({ path: home + '/finance-desktop.png' });
     await page.screenshot({ path: home + '/finance-report-full.png', fullPage: true });
     const downloadEvent = page.waitForEvent('download');
@@ -47,11 +70,14 @@ const getJson = async (ctx, path) => {
     const download = await downloadEvent;
     await download.saveAs(home + '/finance-acceptance-export.csv');
     results.push('Desktop report, verified dataset banner and CSV download');
+    await page.goto('/vi/admin/finance', { waitUntil: 'networkidle' });
+    await expect(page.getByRole('heading', { name: 'Chi phí & đối soát', exact: true })).toBeVisible();
+    await expect(page.locator('.finance-kpi')).toHaveCount(0);
     await page.getByRole('tab', { name: 'Chi phí & định mức', exact: true }).click();
     await page.getByRole('button', { name: 'Loại chi phí & định mức', exact: true }).click();
     await page.getByRole('button', { name: '+ Thêm loại chi phí', exact: true }).click();
     let dialog = page.getByRole('dialog');
-    const label = 'UI · Carton ' + Date.now();
+    const label = '[DEV UI] Carton ' + Date.now();
     await dialog.getByLabel('Tên loại chi phí').fill(label);
     await dialog.getByLabel('Phân loại').selectOption('PACKAGING');
     await dialog.getByLabel('Cách ghi nhận').selectOption('QUANTITY');
@@ -106,34 +132,47 @@ const getJson = async (ctx, path) => {
     await expect(dialog).not.toBeVisible();
     entries = await getJson(context, '/api/admin/finance/expenses?from=2026-10-15&to=2026-10-15');
     assert.equal(Number(entries.rows.find((e) => e.reversesId === entry.id).amountVnd), -6000);
+    await page.getByRole('button', { name: 'Loại chi phí & định mức', exact: true }).click();
+    await page.getByRole('button', { name: 'Xóa ' + label, exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Xác nhận xóa', exact: true }).click();
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    assert(!(await getJson(context, '/api/admin/finance/cost-types')).some((row) => row.id === type.id));
+    assert(
+      (await getJson(context, '/api/admin/finance/expenses?from=2026-10-15&to=2026-10-15')).rows.some(
+        (row) => row.id === entry.id,
+      ),
+    );
     results.push(
       'Create expense type, enabled/disabled inputs, fractional usage, historical price/unit snapshot, retirement, reversal',
     );
     await page.getByRole('button', { name: 'Tháng này', exact: true }).click();
     await page.getByRole('tab', { name: 'Đối soát đơn hàng', exact: true }).click();
-    const order = await getJson(context, '/api/admin/finance/orders/3');
-    await page.getByLabel('Tìm mã đơn / khách hàng').fill('3');
+    const order = await getJson(context, '/api/admin/finance/orders/' + selectedOrderId);
+    await page.getByLabel('Tìm mã đơn / khách hàng').fill(String(selectedOrderId));
     await page.getByRole('button', { name: 'Tìm', exact: true }).click();
     await page
       .locator('tr')
-      .filter({ has: page.getByRole('link', { name: '#3', exact: true }) })
+      .filter({ has: page.getByRole('link', { name: '#' + selectedOrderId, exact: true }) })
       .getByRole('button', { name: 'Đối soát', exact: true })
       .click();
     dialog = page.getByRole('dialog');
     await dialog.getByLabel('Giá vốn / SP · dòng #' + order.items[0].id).fill('');
     await expect(dialog.getByRole('checkbox')).toBeDisabled();
-    for (const line of order.items) await dialog.getByLabel('Giá vốn / SP · dòng #' + line.id).fill('200000');
+    for (const line of order.items)
+      await dialog
+        .getByLabel('Giá vốn / SP · dòng #' + line.id)
+        .fill(String(order.review?.items.find((row) => row.orderItemId === line.id)?.unitCostVnd ?? 200000));
     await expect(dialog.getByRole('checkbox')).toBeEnabled();
     await dialog.getByRole('checkbox').check();
     await dialog.getByLabel('Căn cứ / ghi chú đối soát').fill('UI · verified purchase invoices');
     await dialog.getByRole('button', { name: 'Lưu phiên bản đối soát', exact: true }).click();
     await expect(dialog).not.toBeVisible();
-    const after = await getJson(context, '/api/admin/finance/orders/3');
+    const after = await getJson(context, '/api/admin/finance/orders/' + selectedOrderId);
     assert.equal(after.review.version, order.review.version + 1);
     assert.equal(after.review.costsReviewed, true);
     assert.equal(after.total, order.total);
     results.push('Order review, unknown-cost completion guard, revision history and unchanged order totals');
-    await page.getByRole('tab', { name: 'Tổng quan', exact: true }).click();
+    await page.goto('/vi/admin/dashboard', { waitUntil: 'networkidle' });
     await expect(page.locator('.finance-kpi')).toHaveCount(4);
     while (await page.locator('.Toastify__close-button').count()) {
       const count = await page.locator('.Toastify__close-button').count();
@@ -153,6 +192,7 @@ const getJson = async (ctx, path) => {
       await page.screenshot({ path: home + '/finance-mobile-' + viewport.width + '.png' });
     }
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/vi/admin/finance', { waitUntil: 'networkidle' });
     await page.getByRole('tab', { name: 'Chi phí & định mức', exact: true }).click();
     await page.getByRole('button', { name: '+ Ghi nhận chi phí', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();

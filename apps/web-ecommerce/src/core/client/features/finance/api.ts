@@ -25,6 +25,7 @@ export interface OrderDetail extends FinanceOrder {
 }
 export interface Report extends FinanceReport {
   developmentFixtures?: boolean;
+  developmentData?: boolean;
   inventory: {
     units: number;
     referenceValueVnd: number;
@@ -47,6 +48,8 @@ export const financeApi = {
   types: async () => (await Api.get<CostType[]>(`${root}/cost-types`)).data,
   saveType: async (id: number | undefined, data: object) =>
     id ? Api.put(`${root}/cost-types/${id}`, data) : Api.post(`${root}/cost-types`, data),
+  deleteType: async (id: number, expectedVersion: number) =>
+    Api.delete(`${root}/cost-types/${id}`, { data: { expectedVersion } }),
   expenses: async (params: object) =>
     (await Api.get<Page<FinanceExpense & { reversed: boolean }>>(`${root}/expenses`, { params })).data,
   expense: async (data: object) => Api.post(`${root}/expenses`, data),

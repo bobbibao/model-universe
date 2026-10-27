@@ -10,6 +10,7 @@ import {
 } from '../../src/core/server/database/client/models/Finance.Model';
 import {
   seedFinanceFixture,
+  seedFinanceDevelopment,
   type FinanceFixtureManifest,
 } from '../../src/core/server/database/client/seeders/FinanceFixture';
 import { useTestDatabase, testApp } from './support/testDb';
@@ -246,4 +247,89 @@ describe('finance database and immutable expense ledger', () => {
       stockBefore,
     );
   });
+  it('deletes a cost type from the catalog while preserving recorded expenses and allows its name to be reused', async () => {
+    const type = await service.saveType(null, manifest.adminId, {
+      name: 'QA · Delete and reuse',
+      category: 'PACKAGING',
+      basis: 'QUANTITY',
+      unit: 'm',
+      unitCostVnd: 5000,
+      isActive: true,
+    });
+    const expense = await service.postExpense(manifest.adminId, {
+      costTypeId: type.id,
+      quantity: 2,
+      incurredAt: '2026-10-25',
+      note: 'Invoice before deletion',
+      requestKey: randomUUID(),
+      expectedTypeVersion: type.version,
+    });
+    await service.deleteType(type.id, manifest.adminId, type.version);
+    expect((await service.types()).some((t) => t.id === type.id)).toBe(false);
+    await expense.reload();
+    expect(Number(expense.amountVnd)).toBe(10000);
+    expect(expense.nameSnapshot).toBe(type.name);
+    await expect(
+      service.postExpense(manifest.adminId, {
+        costTypeId: type.id,
+        quantity: 1,
+        incurredAt: '2026-10-25',
+        note: 'Deleted type',
+        requestKey: randomUUID(),
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+    const replacement = await service.saveType(null, manifest.adminId, {
+      name: type.name,
+      category: 'PACKAGING',
+      basis: 'QUANTITY',
+      unit: 'm',
+      unitCostVnd: 8000,
+      isActive: true,
+    });
+    expect(replacement.id).not.toBe(type.id);
+  });
+  it('rejects a stale material unit/rate version instead of applying quantities to changed units', async () => {
+    const type = (await service.types()).find((t) => t.isActive && t.basis === 'QUANTITY')!;
+    await expect(
+      service.postExpense(manifest.adminId, {
+        costTypeId: type.id,
+        quantity: 1,
+        incurredAt: '2026-10-25',
+        note: 'Stale screen',
+        requestKey: randomUUID(),
+        expectedTypeVersion: type.version - 1,
+      }),
+    ).rejects.toMatchObject({ statusCode: 409 });
+  });
+  it('adds authorized development data to a populated database idempotently without modifying existing catalog rows or admin credentials', async () => {
+    const before = await db.query('SELECT id,sku,price,stock,sold FROM product ORDER BY id', {
+      type: QueryTypes.SELECT,
+    });
+    const admins = await db.query(`SELECT id,email,"passwordHash" FROM "user" WHERE role='ADMIN' ORDER BY id`, {
+      type: QueryTypes.SELECT,
+    });
+    await expect(seedFinanceDevelopment(db.getDatabaseName())).rejects.toThrow('authorization');
+    process.env.FINANCE_ALLOW_CURRENT_DEVELOPMENT = 'true';
+    try {
+      const added = await seedFinanceDevelopment(db.getDatabaseName());
+      expect(added.counts.orders).toBe(54);
+      expect(added.counts.expenses).toBeGreaterThan(250);
+      expect(added.incompleteOrderIds).toEqual([]);
+      expect(await seedFinanceDevelopment(db.getDatabaseName())).toEqual(added);
+      const after = await db.query<{ id: number }>('SELECT id,sku,price,stock,sold FROM product ORDER BY id', {
+        type: QueryTypes.SELECT,
+      });
+      expect(after.filter((row) => before.some((old) => (old as { id: number }).id === row.id))).toEqual(before);
+      expect(
+        await db.query(`SELECT id,email,"passwordHash" FROM "user" WHERE role='ADMIN' ORDER BY id`, {
+          type: QueryTypes.SELECT,
+        }),
+      ).toEqual(admins);
+      const report = await service.report({ from: '2026-10-01', to: '2026-10-27' });
+      expect(report.developmentData).toBe(true);
+      expect(report.current.profitVnd).not.toBeNull();
+    } finally {
+      delete process.env.FINANCE_ALLOW_CURRENT_DEVELOPMENT;
+    }
+  }, 30000);
 });

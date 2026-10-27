@@ -4,11 +4,11 @@ Phạm vi: đơn bán website, tại quầy và chốt qua chat/điện thoại.
 
 ## Không gian quản trị
 
-`/vi/admin/dashboard` và `/vi/admin/finance` dùng cùng workspace. Bốn chỉ số chính: doanh thu thuần, tiền thu ròng đã xác nhận, chi phí ghi nhận và lợi nhuận theo chi phí đã ghi nhận. Chọn kỳ tối đa 366 ngày, so với khoảng liền trước có cùng số ngày, theo Asia/Ho_Chi_Minh. Có CSV tổng hợp và bảng số liệu tương ứng biểu đồ.
+`/vi/admin/dashboard` là trang báo cáo kinh doanh duy nhất, với biểu đồ tương tác. `/vi/admin/finance` là trang nhập liệu độc lập: quản lý chi phí/định mức và đối soát đơn, không lặp lại dashboard. Bốn chỉ số chính: doanh thu thuần, tiền thu ròng đã xác nhận, chi phí ghi nhận và lợi nhuận theo chi phí đã ghi nhận. Chọn kỳ tối đa 366 ngày, so với khoảng liền trước có cùng số ngày, theo Asia/Ho_Chi_Minh. Có CSV tổng hợp và bảng số liệu tương ứng biểu đồ.
 
-- **Tổng quan:** cầu nối tiền hàng → doanh thu → giá vốn/chi phí → lợi nhuận, cơ cấu ưu đãi, chi phí, các SKU bán chạy và vốn tồn kho tham chiếu.
+- **Dashboard báo cáo:** cầu nối tiền hàng → doanh thu → giá vốn/chi phí → lợi nhuận, cơ cấu ưu đãi, chi phí, các SKU bán chạy và vốn tồn kho tham chiếu.
 - **Đối soát đơn:** nhập giá mua thực tế cho từng dòng, xác nhận đã rà soát chi phí liên quan, lưu căn cứ và phiên bản. Không sửa giá bán, số lượng hoặc tồn kho. Sửa dựa trên `expectedVersion`; dữ liệu cũ không bị ghi đè.
-- **Chi phí & định mức:** chủ shop tự thêm, sửa, phân loại hoặc ngừng dùng loại chi phí. Hỗ trợ theo đơn, theo kiện, lượng vật tư (3 chữ số thập phân) và số thực chi. Định mức chỉ gợi ý, không tự biến thành chi phí. Theo đơn bắt buộc liên kết đơn, theo kiện chỉ nhận số nguyên, theo đơn/thực chi có lượng bằng 1.
+- **Trang chi phí & đối soát — Chi phí & định mức:** chủ shop tự thêm, sửa, phân loại hoặc ngừng dùng loại chi phí. Hỗ trợ theo đơn, theo kiện, lượng vật tư (3 chữ số thập phân) và số thực chi. Định mức chỉ gợi ý, không tự biến thành chi phí. Theo đơn bắt buộc liên kết đơn, theo kiện chỉ nhận số nguyên, theo đơn/thực chi có lượng bằng 1.
 
 Tồn kho được chọn để chỉ ra vốn chưa được xác minh; không giả định giá niêm yết là giá trị tồn. Mẫu bán chạy được xếp theo số lượng giao, tiền hàng trước voucher cấp đơn/hoàn, không giả xếp hạng lợi nhuận khi chưa phân bổ hoàn tiền. Không thêm biểu đồ giới tính hoặc tỷ lệ chuyển đổi khi không phục vụ quyết định và chưa có nguồn đáng tin cậy.
 
@@ -39,7 +39,7 @@ Hoàn của đơn kỳ cũ được giảm doanh thu trong kỳ bút toán hoàn
 
 Migration `2026-10-27-57-finance-workspace` thêm:
 
-- `finance_cost_type`: cấu hình có version; không xóa loại đã sử dụng.
+- `finance_cost_type`: cấu hình có version; xóa khỏi danh mục bằng deletedAt, giữ liên kết lịch sử. Migration 58 cho phép tạo lại cùng tên bằng bản ghi mới, không sửa chứng từ cũ.
 - `finance_expense`: tên/nhóm/cách tính/đơn giá/lượng/phiên bản được chụp tại lúc ghi. `requestKey` + digest + transaction/advisory lock chống gửi lại. Đảo duy nhất qua `reversesId`, cùng ngày phát sinh gốc, lượng/tiền đối dấu.
 - `finance_order_review`: phiên bản đối soát bất biến, khóa order và kiểm tra phiên bản trước khi ghi.
 - `finance_config_audit`: phiên bản cấu hình chi phí và người thay đổi.
@@ -52,7 +52,7 @@ Snapshot giá gốc thêm vào cả đơn web, bán trực tiếp và giữ ch�
 
 ## Seed và xem trực tiếp dữ liệu phát triển
 
-Database shop đang dùng là `web_ecommerce_ci_verify`: tên lịch sử, dữ liệu catalog thật, không phải nơi để seed. Không thêm đơn/khách/chi phí giả vào đó. Đã sao lưu riêng trước migration tại `D:/ModelUniverseRuntime/backups/shop-before-finance-*.dump`.
+Database đang dùng là `web_ecommerce_ci_verify`. Chủ shop xác nhận toàn bộ hệ thống đang ở giai đoạn phát triển và cho phép thêm đơn/dữ liệu mẫu trực tiếp vào database chính. Chỉ lệnh có cờ `--current-development-database` mới được thực hiện việc này; lệnh seed cô lập mặc định vẫn từ chối database chính. Đã sao lưu riêng trước migration tại `D:/ModelUniverseRuntime/backups/shop-before-finance-*.dump`.
 
 ```powershell
 cd apps/web-ecommerce
@@ -96,3 +96,16 @@ Chưa có tự động xác minh hóa đơn chi phí, phân bổ chi phí vận 
 Log, CSV và ảnh kiểm tra ở `D:/ModelUniverseRuntime/finance-*`; không được đưa ra đường dẫn public của ứng dụng. Bản seed ban đầu có 173 bút toán; thao tác kiểm thử UI có thêm bút toán và phiên bản trong database QA, đúng tính chất lịch sử bất biến.
 
 Tham khảo khái niệm: [IFRS 15](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-15-revenue-from-contracts-with-customers/) phân biệt việc thu tiền với thời điểm chuyển giao hàng/dịch vụ; [IAS 2](https://www.ifrs.org/issued-standards/list-of-standards/ias-2-inventories/) phân biệt giá trị hàng tồn với chi phí khi hàng được bán. `DELIVERED` và cách ghi chi phí ở đây là quy ước quản trị được triển khai cho ứng dụng, không phải tuyên bố tuân thủ toàn bộ các chuẩn mực đó.
+
+
+## Bổ sung dữ liệu phát triển vào database chính theo yêu cầu chủ shop
+
+```powershell
+yarn seed:finance:development --current-development-database
+```
+
+Lệnh tạo pg_dump trước khi ghi, không reset hoặc xóa dữ liệu. Nhóm `finance-development-main-v1` có manifest và khóa transaction nên chạy lại không nhân bản. Tạo 54 đơn qua nhiều tháng, 12 SKU lịch sử ẩn có nhãn [DEV], 8 khách mẫu không được đăng nhập, 11 loại chi phí (carton, chống sốc, keo, túi khí, bao bì, nhân công, cước, di chuyển, thuê kho, điện/Internet), 315 bút toán và 3 hoàn tiền. Toàn bộ đơn giao có giá vốn/chi phí đối soát để xem lợi nhuận đầy đủ. Dữ liệu danh mục cũ, giá bán, tồn và thông tin đăng nhập Admin không bị ghi đè. Không gọi cổng thanh toán, vận chuyển, email hay Agent.
+
+Màn hình đang chạy dùng chính database này; dashboard gắn thông báo có dữ liệu phát triển. SKU mẫu được ẩn khỏi cửa hàng công khai. Chứng từ/đơn mẫu được gắn nhãn, không được hiểu là giao dịch thực đã diễn ra. Chạy kiểm tra UI trên dataset chính bằng `yarn test:finance:ui --current-development-data`.
+
+Biểu đồ dashboard gồm doanh thu/lợi nhuận và tiền thu/chi phí theo thời gian; donut cơ cấu chi phí; cột ưu đãi và xếp hạng SKU theo số lượng hoặc tiền hàng. Dữ liệu thiếu không bị thay thành lợi nhuận 0; biểu đồ donut không ép chi phí âm thành một tỷ trọng dương. Bảng số liệu có thể mở để đối chiếu. Khoảng trên 62 ngày gộp theo tháng trong phạm vi lọc.

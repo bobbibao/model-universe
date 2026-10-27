@@ -1,95 +1,9 @@
 'use client';
-import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
-import { amount, categoryLabels, type Report } from './api';
+import { amount, type Report } from './api';
+import { FinanceTrend, FinanceCostChart, FinancePromoChart, FinanceProductChart } from './FinanceCharts';
 
-function Trend({ report, en }: { report: Report; en: boolean }) {
-  const [active, setActive] = useState(report.series.length - 1);
-  const rows = report.series;
-  const min = Math.min(0, ...rows.map((r) => r.netRevenueVnd)),
-    max = Math.max(1, ...rows.map((r) => r.netRevenueVnd));
-  const x = (i: number) => 16 + (i * 608) / Math.max(1, rows.length - 1),
-    y = (n: number) => 166 - ((n - min) * 146) / (max - min);
-  const selected = rows[active] ?? rows[0];
-  return (
-    <section className="finance-card finance-trend">
-      <div className="finance-card-heading">
-        <div>
-          <h2>{en ? 'Net revenue trend' : 'Xu hướng doanh thu thuần'}</h2>
-          <p>
-            {en
-              ? 'By delivery date, after refunds posted in the period'
-              : 'Theo ngày giao hàng, trừ hoàn tiền phát sinh trong kỳ'}
-          </p>
-        </div>
-        <span className="finance-dot-label">{en ? 'Net revenue' : 'Doanh thu thuần'}</span>
-      </div>
-      <svg
-        viewBox="0 0 640 190"
-        role="img"
-        aria-label={en ? 'Net revenue by period' : 'Doanh thu thuần theo thời gian'}
-      >
-        <line x1="16" x2="624" y1={y(0)} y2={y(0)} stroke="currentColor" opacity=".15" />
-        <polyline
-          points={rows.map((r, i) => `${x(i)},${y(r.netRevenueVnd)}`).join(' ')}
-          fill="none"
-          stroke="var(--finance-accent)"
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-        {rows.map((r, i) => (
-          <circle
-            key={r.date}
-            cx={x(i)}
-            cy={y(r.netRevenueVnd)}
-            r={active === i ? 6 : 4}
-            fill="var(--finance-accent)"
-            tabIndex={0}
-            role="button"
-            aria-label={`${r.date}: ${amount(r.netRevenueVnd, en)}`}
-            onMouseEnter={() => setActive(i)}
-            onFocus={() => setActive(i)}
-            onClick={() => setActive(i)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setActive(i);
-            }}
-          />
-        ))}
-      </svg>
-      <div className="finance-chart-caption">
-        <span>{report.from}</span>
-        <strong aria-live="polite">
-          {selected?.date} · {amount(selected?.netRevenueVnd, en)}
-        </strong>
-        <span>{report.to}</span>
-      </div>
-      <details className="finance-method">
-        <summary>{en ? 'View data table' : 'Xem bảng số liệu'}</summary>
-        <div className="finance-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>{en ? 'Date' : 'Ngày'}</th>
-                <th>{en ? 'Net revenue' : 'Doanh thu thuần'}</th>
-                <th>{en ? 'Recorded expenses' : 'Chi phí ghi nhận'}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.date}>
-                  <td>{r.date}</td>
-                  <td>{amount(r.netRevenueVnd, en)}</td>
-                  <td>{amount(r.expenseVnd, en)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
-    </section>
-  );
-}
 export default function ReportView({ report, onReconcile }: { report: Report; onReconcile: () => void }) {
   const en = useLocale() === 'en',
     t = (vi: string, english: string) => (en ? english : vi);
@@ -234,7 +148,7 @@ export default function ReportView({ report, onReconcile }: { report: Report; on
         </div>
       )}
       <div className="finance-grid">
-        <Trend report={report} en={en} />
+        <FinanceTrend report={report} />
         <section className="finance-card">
           <div className="finance-card-heading">
             <h2>{t('Từ hàng bán đến lợi nhuận', 'Revenue to profit')}</h2>
@@ -273,25 +187,16 @@ export default function ReportView({ report, onReconcile }: { report: Report; on
             <h2>{t('Ưu đãi đã sử dụng', 'Benefits used')}</h2>
             <span>{t('Theo đơn đã giao', 'Delivered orders')}</span>
           </div>
+          <FinancePromoChart report={report} />
           <dl className="finance-bridge">
-            {[
-              [t('Giảm trực tiếp trên sản phẩm', 'Product markdowns'), current.markdownVnd],
-              ['MEMBER10', current.promotions.memberVnd],
-              [t('Voucher khác', 'Other vouchers'), current.promotions.voucherVnd],
-              [t('Ưu đãi hạng thành viên', 'Membership tier benefit'), current.promotions.rankVnd],
-              [t('Giảm đơn chưa phân loại', 'Unclassified order discount'), current.promotions.unclassifiedVnd],
-              [t('Hỗ trợ phí ship', 'Shipping benefit'), current.shippingSupportVnd],
-              [t('Tổng giá trị ưu đãi', 'Total benefit value'), current.promotions.totalVnd],
-              [
-                t('Shop tài trợ đã xác nhận từ snapshot', 'Shop funding confirmed by snapshots'),
-                current.promotions.confirmedShopFundedVnd,
-              ],
-            ].map(([name, value]) => (
-              <div key={String(name)}>
-                <dt>{name}</dt>
-                <dd>{amount(value as number | null, en)}</dd>
-              </div>
-            ))}
+            <div className="is-total">
+              <dt>Tổng giá trị ưu đãi</dt>
+              <dd>{amount(current.promotions.totalVnd, en)}</dd>
+            </div>
+            <div>
+              <dt>Shop tài trợ xác nhận từ snapshot</dt>
+              <dd>{amount(current.promotions.confirmedShopFundedVnd, en)}</dd>
+            </div>
           </dl>
           <p className="finance-caption">
             {q.missingListUnits
@@ -311,22 +216,7 @@ export default function ReportView({ report, onReconcile }: { report: Report; on
             <h2>{t('Cơ cấu chi phí', 'Recorded cost mix')}</h2>
             <span>{amount(current.expenseVnd, en)}</span>
           </div>
-          <div className="finance-cost-mix">
-            {current.expenseGroups.map((group) => (
-              <div key={group.category}>
-                <div>
-                  <span>{categoryLabels[group.category]}</span>
-                  <strong>{amount(group.amountVnd, en)}</strong>
-                </div>
-                <meter
-                  min="0"
-                  max={Math.max(1, current.expenseVnd)}
-                  value={Math.max(0, group.amountVnd)}
-                  aria-label={categoryLabels[group.category]}
-                />
-              </div>
-            ))}
-          </div>
+          <FinanceCostChart report={report} />
           <p className="finance-caption">
             {t(
               'Ghi nhận cả chi phí đơn hủy và chi phí vận hành độc lập. Chứng từ đảo được bù trừ đúng kỳ gốc.',
@@ -343,31 +233,7 @@ export default function ReportView({ report, onReconcile }: { report: Report; on
               {current.soldUnits} {t('sản phẩm', 'units')}
             </span>
           </div>
-          <div className="finance-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>{t('Sản phẩm', 'Product')}</th>
-                  <th>{t('Đã giao', 'Delivered')}</th>
-                  <th>{t('Tiền hàng', 'Merchandise')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {current.topProducts.map((p) => (
-                  <tr key={p.productId}>
-                    <td>
-                      <Link href={`/admin/products/${p.productId}`}>{p.name}</Link>
-                    </td>
-                    <td>{p.quantity}</td>
-                    <td>{amount(p.merchandiseVnd, en)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!current.topProducts.length && (
-              <p className="finance-empty">{t('Chưa có hàng giao trong kỳ này.', 'No deliveries in this period.')}</p>
-            )}
-          </div>
+          <FinanceProductChart report={report} />
           <p className="finance-caption">
             {t(
               'Tiền hàng trước voucher cấp đơn và hoàn tiền; không dùng để xếp hạng lợi nhuận SKU.',

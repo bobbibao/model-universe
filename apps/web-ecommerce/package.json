@@ -26,6 +26,7 @@
     "test:finance:ui": "node scripts/verify-finance-ui.cjs",
     "finance:review": "node scripts/finance-review.cjs",
     "finance:review:stop": "node scripts/finance-review.cjs stop",
+    "seed:finance:development": "ts-node --project tsconfig.server.json scripts/seed-finance-development.ts",
     "seed:finance": "ts-node --project tsconfig.server.json scripts/seed-finance.ts",
     "seed:condition-demo": "ts-node scripts/seed-condition-demo.ts",
     "test:condition-db": "node scripts/test-condition-catalog.cjs",

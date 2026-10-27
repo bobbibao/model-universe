@@ -886,3 +886,64 @@
   border-color: #68532c;
   color: #f4d599;
 }
+
+.finance-dashboard-content {
+  margin-top: 20px;
+}
+.finance-chart-card .finance-card-heading {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.finance-chart-card .finance-segment button {
+  font-size: 11px;
+}
+.finance-chart-card .finance-segment {
+  flex-wrap: wrap;
+}
+.finance-ranking-control {
+  display: flex;
+  justify-content: flex-end;
+  margin: -6px 0 8px;
+}
+.finance-ranking-control > div {
+  width: 230px;
+}
+.finance-ranking-control label {
+  font-size: 11px !important;
+  margin-bottom: 4px !important;
+  color: var(--finance-muted) !important;
+}
+.finance-ranking-control select {
+  font-size: 12px;
+  padding: 7px 10px;
+  min-height: 36px;
+}
+.finance-workspace .apexcharts-canvas {
+  max-width: 100%;
+}
+.finance-workspace .apexcharts-legend-text {
+  font-family: inherit !important;
+}
+.finance-delete {
+  margin-left: 14px;
+  color: #bd5368;
+}
+.finance-dialog > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+@media (max-width: 700px) {
+  .finance-chart-card .finance-segment {
+    width: 100%;
+  }
+  .finance-chart-card .finance-segment button {
+    flex: 1;
+    font-size: 10px;
+    padding: 6px 5px;
+  }
+  .finance-ranking-control > div {
+    width: 100%;
+  }
+}
