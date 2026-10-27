@@ -84,6 +84,22 @@ describe('product form numeric and inherited data contracts', () => {
     expect(validateInventory({ ...inventory, condition: 'preowned', stock: '1' })).toEqual({});
   });
 
+  test('validates condition percentage between 1 and 100 for 2hand products', () => {
+    const { validateCondition, conditionPayload } = require('../../src/core/client/features/product-management/components/productForm');
+    expect(validateCondition({ ...inventory, condition: 'preowned', conditionPercent: '95' })).toEqual({});
+    expect(validateCondition({ ...inventory, condition: 'preowned', conditionPercent: '0' })).toEqual({
+      conditionPercent: 'conditionPercentInvalid',
+    });
+    expect(validateCondition({ ...inventory, condition: 'preowned', conditionPercent: '101' })).toEqual({
+      conditionPercent: 'conditionPercentInvalid',
+    });
+    expect(validateCondition({ ...inventory, condition: 'preowned', conditionPercent: '95.5' })).toEqual({
+      conditionPercent: 'conditionPercentInvalid',
+    });
+    expect(conditionPayload({ ...inventory, condition: 'preowned', conditionPercent: '98' }).conditionPercent).toBe(98);
+    expect(conditionPayload({ ...inventory, condition: 'preowned', conditionPercent: '' }).conditionPercent).toBeNull();
+  });
+
   test('typed received dates reject rollover dates and accept a real leap day or empty value', () => {
     expect(validateInventory({ ...inventory, productionDate: '2026-02-30' }).productionDate).toBe(
       'receivedDateInvalid',

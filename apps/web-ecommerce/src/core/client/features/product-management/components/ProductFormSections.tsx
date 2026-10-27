@@ -148,13 +148,29 @@ export const ConditionFields = ({
           onChange('conditionNodeIds', []);
         }}
       />
-      <TextAreaField
-        rows={2}
-        label={en ? 'Additional notes (not part of SKU identity)' : 'Ghi chú bổ sung (không tạo tổ hợp mới)'}
-        name="conditionNote"
-        value={values.conditionNote}
-        onChange={(event) => onChange('conditionNote', event.target.value)}
-      />
+      {values.condition !== 'new' && (
+        <TextField
+          label={en ? 'Condition percentage (%)' : 'Mức độ phần trăm 2hand (%)'}
+          name="conditionPercent"
+          type="number"
+          min={1}
+          max={100}
+          step={1}
+          placeholder="95"
+          value={values.conditionPercent}
+          error={errors.conditionPercent ? (en ? 'Percentage must be between 1 and 100%' : 'Mức độ phần trăm phải từ 1 đến 100%') : undefined}
+          onChange={(event) => onChange('conditionPercent', event.target.value)}
+        />
+      )}
+      <div className={values.condition !== 'new' ? 'md:col-span-2' : ''}>
+        <TextAreaField
+          rows={2}
+          label={en ? 'Additional notes (not part of SKU identity)' : 'Ghi chú bổ sung (không tạo tổ hợp mới)'}
+          name="conditionNote"
+          value={values.conditionNote}
+          onChange={(event) => onChange('conditionNote', event.target.value)}
+        />
+      </div>
       <div className="md:col-span-2">
         <ConditionTreePicker
           value={values.conditionNodeIds}

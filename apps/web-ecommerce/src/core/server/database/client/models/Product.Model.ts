@@ -81,6 +81,9 @@ export default class ProductModel extends Model {
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'unassembled' })
   assemblyState!: AssemblyState;
 
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  conditionPercent!: number | null;
+
   @Column(DataType.STRING)
   boxCondition?: string;
 

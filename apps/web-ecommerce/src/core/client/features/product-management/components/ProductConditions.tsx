@@ -32,6 +32,7 @@ export default function ProductConditions({
   const createRequested = useSearchParams().get('create') === '1';
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<ItemTypeKey>('preowned');
+  const [percent, setPercent] = useState('');
   const [ids, setIds] = useState<number[]>([]);
   const [price, setPrice] = useState('');
   const [mainImage, setMainImage] = useState<ImageItem | null>(null);
@@ -73,6 +74,7 @@ export default function ProductConditions({
   }
   const start = () => {
     setType(product.itemTypeKey ?? 'preowned');
+    setPercent(product.conditionPercent != null ? String(product.conditionPercent) : '');
     setIds(product.conditionNodeIds ?? []);
     setPrice('');
     setMainImage(imageFromUrl(product.imageUrl));
@@ -99,6 +101,7 @@ export default function ProductConditions({
       setGallery(uploaded.slice(1).map(imageFromUrl));
       const result = await ProductApi.createConditionOption(product.id, {
         condition: type,
+        conditionPercent: percent ? Number(percent) : null,
         itemTypeKey: type,
         conditionNodeIds: ids,
         pricingReferenceMemberVnd: Number(price),
@@ -154,6 +157,7 @@ export default function ProductConditions({
                 <td>
                   <span className={`condition-chip is-${unit.itemTypeKey ?? unit.condition}`}>
                     {itemTypeLabel(unit.itemTypeKey ?? unit.condition)}
+                    {unit.conditionPercent ? ` · ${unit.conditionPercent}%` : ''}
                   </span>
                   <span className="catalog-combination-label">
                     {unit.conditionLabels?.join(' · ') || (en ? 'No issues recorded' : 'Không ghi nhận lỗi')}
@@ -291,6 +295,21 @@ export default function ProductConditions({
               required
               onChange={(event) => setPrice(event.target.value)}
             />
+            {type === 'preowned' && (
+              <div className="sm:col-span-2">
+                <TextField
+                  label={en ? 'Condition percentage (%)' : 'Mức độ phần trăm 2hand (%)'}
+                  name="variantConditionPercent"
+                  type="number"
+                  min={1}
+                  max={100}
+                  step={1}
+                  placeholder="95"
+                  value={percent}
+                  onChange={(event) => setPercent(event.target.value)}
+                />
+              </div>
+            )}
           </div>
           <ConditionTreePicker value={ids} itemType={type} onChange={setIds} />
           {matching && <p role="status">{en ? 'Checking combination…' : 'Đang kiểm tra tổ hợp…'}</p>}

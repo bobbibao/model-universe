@@ -9,6 +9,7 @@ export interface ProductFormValues {
   scale: string;
   modelCode: string;
   condition: ModelCondition;
+  conditionPercent: string;
   conditionNodeIds: number[];
   serviceReferenceEnabled: boolean;
   assemblyState: AssemblyState;
@@ -53,6 +54,7 @@ export const emptyProductForm: ProductFormValues = {
   scale: '',
   modelCode: '',
   condition: 'new',
+  conditionPercent: '',
   conditionNodeIds: [],
   serviceReferenceEnabled: true,
   assemblyState: 'unassembled',
@@ -96,6 +98,7 @@ export const toFormValues = (product: AdminProduct): ProductFormValues => ({
   scale: product.scale || '',
   modelCode: product.modelCode || '',
   condition: product.modelFamilyId ? product.itemTypeKey ?? 'new' : product.condition === 'new' ? 'new' : 'preowned',
+  conditionPercent: product.conditionPercent != null ? String(product.conditionPercent) : '',
   conditionNodeIds: product.conditionNodeIds ?? [],
   serviceReferenceEnabled: product.serviceReferenceEnabled ?? true,
   assemblyState: product.assemblyState || 'unassembled',
@@ -164,6 +167,12 @@ export const validateCondition = (
   types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
 ): ProductFormErrors => {
   const errors: ProductFormErrors = {};
+  if (values.condition !== 'new' && values.conditionPercent.trim()) {
+    const num = Number(values.conditionPercent);
+    if (!isWholeNumber(values.conditionPercent, 1) || num < 1 || num > 100) {
+      errors.conditionPercent = 'conditionPercentInvalid';
+    }
+  }
   return errors;
 };
 
@@ -235,6 +244,7 @@ export const pricingPayload = (values: ProductFormValues) => {
 
 export const conditionPayload = (values: ProductFormValues) => ({
   condition: values.condition,
+  conditionPercent: values.conditionPercent.trim() ? Math.min(100, Math.max(1, Number(values.conditionPercent))) : null,
   itemTypeKey: values.condition === 'new' ? 'new' as const : 'preowned' as const,
   conditionNodeIds: values.conditionNodeIds,
   assemblyState: values.assemblyState,

@@ -36,7 +36,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
   const [added, setAdded] = useState(false);
 
   const conditions = product.conditions ?? [
-    { condition: product.condition ?? 'new', units: 1, stock: product.stock, minSalePrice: product.salePrice },
+    { condition: product.condition ?? 'new', units: 1, stock: product.stock, minSalePrice: product.salePrice, conditionPercent: product.conditionPercent },
   ];
   const groupStock = product.groupStock ?? product.stock;
   const shown = conditions.some((summary) => summary.stock > 0)
@@ -45,10 +45,14 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
   const otherConditionOnly = product.stock <= 0 && groupStock > 0;
   const fromPrice = otherConditionOnly ? Math.min(...shown.map((summary) => summary.minSalePrice)) : null;
   // Match the badge to the listing whose price the card shows; detailed condition disclosure stays on the PDP.
+  const activeCondition = otherConditionOnly
+    ? shown.find((summary) => summary.minSalePrice === fromPrice)
+    : undefined;
   const pricedCondition = otherConditionOnly
-    ? shown.find((summary) => summary.minSalePrice === fromPrice)?.condition
+    ? activeCondition?.condition
     : (product.condition ?? conditions[0]?.condition);
   const isNew = (pricedCondition ?? 'new') === 'new';
+  const conditionPercent = activeCondition?.conditionPercent ?? product.conditionPercent ?? conditions.find((c) => c.condition !== 'new')?.conditionPercent;
   const href = productPath(product);
   const shopOwned = !product.partnerId;
   const onSale = product.discountPercent > 0 && product.salePrice < product.price;
@@ -92,7 +96,14 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
           className="studio-card-stage"
         />
         <div className="product-tile-badges">
-          <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>{isNew ? t('new') : '2hand'}</span>
+          <div className="tile-condition-badges">
+            <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>{isNew ? t('new') : '2hand'}</span>
+            {!isNew && conditionPercent != null && conditionPercent > 0 && (
+              <span className="tile-condition-percent" title={en ? `Condition: ${conditionPercent}%` : `Độ mới: ${conditionPercent}%`}>
+                {conditionPercent}%
+              </span>
+            )}
+          </div>
           {groupStock <= 0 && <span className="tile-soldout">{t('soldOut')}</span>}
           {product.stock > 0 && onSale && <span className="tile-ribbon">-{product.discountPercent}%</span>}
         </div>
@@ -107,6 +118,11 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         <div className="product-tile-tags">
           {product.scale && <span>{product.scale}</span>}
           {product.salesChannel === 'outlet' && <span>Outlet</span>}
+          {!isNew && conditionPercent != null && conditionPercent > 0 && (
+            <span className="product-tile-condition-tag is-condition-percent" title={en ? `Condition: ${conditionPercent}%` : `Độ mới: ${conditionPercent}%`}>
+              {en ? `${conditionPercent}% Condition` : `Độ mới ${conditionPercent}%`}
+            </span>
+          )}
           {(product.conditionLabels ?? []).slice(0, 1).map((label) => (
             <span key={label} className="product-tile-condition-tag" title={label}>
               {shortConditionLabel(label)}

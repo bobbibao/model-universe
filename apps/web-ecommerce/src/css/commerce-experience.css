@@ -1524,6 +1524,38 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
   background: #9a571b;
   border-color: #9a571b;
 }
+.product-tile-badges .tile-condition-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.product-tile-badges .tile-condition-percent {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 28px;
+  height: auto;
+  padding: 5px 9px;
+  border: 1px solid #f59e0b;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 16px;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.22);
+}
+.product-tile-tags .product-tile-condition-tag.is-condition-percent {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
+  font-weight: 700;
+}
 .product-tile-badges .tile-soldout {
   margin-left: auto;
   color: #494550;
@@ -1544,6 +1576,7 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
     gap: 4px;
   }
   .product-tile-badges .tile-condition,
+  .product-tile-badges .tile-condition-percent,
   .product-tile-badges :is(.tile-soldout, .tile-ribbon) {
     padding-inline: 7px;
     font-size: 11px;

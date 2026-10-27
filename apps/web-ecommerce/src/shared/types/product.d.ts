@@ -28,6 +28,7 @@ export type ConditionSummary = {
   units: number;
   stock: number;
   minSalePrice: number;
+  conditionPercent?: number | null;
 };
 
 // Product card data returned by the storefront listing: one card per model (its main listing).
@@ -64,6 +65,7 @@ export type ProductConditionOption = ProductPricing & ConditionSelection & {
   sku: string;
   isMain: boolean;
   condition: ModelCondition;
+  conditionPercent?: number | null;
   conditionNote: string | null;
   missingAccessories: string[];
   defects: string[];
@@ -113,6 +115,7 @@ export type AdminProductUnit = ProductPricing & ConditionSelection & {
   name: string;
   isMain: boolean;
   condition: ModelCondition;
+  conditionPercent?: number | null;
   conditionNote?: string | null;
   missingAccessories: string[];
   defects: string[];
@@ -257,6 +260,7 @@ export type InventoryStats = {
 export type ConditionOptionPayload = ConditionSelection & Pick<
   ProductPayload,
   | 'condition'
+  | 'conditionPercent'
   | 'conditionNote'
   | 'missingAccessories'
   | 'defects'

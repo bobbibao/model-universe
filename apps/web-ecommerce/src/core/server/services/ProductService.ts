@@ -84,7 +84,7 @@ const LIST_ATTRIBUTES = [
   'uuid',
   'slug',
   'partnerId',
-  'scale', 'modelCode', 'condition', 'assemblyState',
+  'scale', 'modelCode', 'condition', 'conditionPercent', 'assemblyState',
   'id',
   'name',
   'brandName',
@@ -205,7 +205,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       const row = listing as T & Record<string, any>;
       const ids: number[] = row.conditionNodeIds ?? [];
       return { ...listing, itemTypeKey: effectiveItemType({ modelFamilyId: row.modelFamilyId, itemTypeKey: row.itemTypeKey, condition: row.condition }), conditionLabels: ids.map(id => conditionPath(id, nodes)),
-        conditions: [{ condition: row.modelFamilyId ? row.itemTypeKey : row.condition, units: 1, stock: row.stock, minSalePrice: row.salePrice }], groupStock: row.stock };
+        conditions: [{ condition: row.modelFamilyId ? row.itemTypeKey : row.condition, units: 1, stock: row.stock, minSalePrice: row.salePrice, conditionPercent: row.conditionPercent ?? null }], groupStock: row.stock, conditionPercent: row.conditionPercent ?? null };
     });
   }
 
@@ -305,6 +305,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       sku: row.sku,
       isMain,
       condition: row.modelFamilyId ? row.itemTypeKey : row.condition,
+      conditionPercent: row.conditionPercent ?? null,
       itemTypeKey: effectiveItemType(row), conditionNodeIds: row.conditionNodeIds,
       conditionLabels: (row.conditionNodeIds ?? []).map(id => conditionPath(id, treeNodes)),
       conditionNote: row.conditionNote ?? null,
@@ -521,6 +522,20 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       if (!ASSEMBLY_STATES.includes(data.assemblyState as typeof ASSEMBLY_STATES[number])) errors.push('Invalid assembly state.');
       gunpla.assemblyState = data.assemblyState;
     }
+    const conditionPercentRaw = data.conditionPercent;
+    let conditionPercent: number | null | undefined = undefined;
+    if (conditionPercentRaw !== undefined) {
+      if (conditionPercentRaw === null || conditionPercentRaw === '') {
+        conditionPercent = null;
+      } else {
+        const num = toInteger(conditionPercentRaw);
+        if (num === undefined || num < 1 || num > 100) {
+          errors.push('Mức độ phần trăm tình trạng phải từ 1 đến 100%.');
+        } else {
+          conditionPercent = num;
+        }
+      }
+    }
     for (const field of ['includedAccessories', 'missingAccessories', 'defects'] as const) {
       if (data[field] !== undefined) {
         const list = textList(data[field]);
@@ -588,6 +603,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         weight: asTrimmedString(data.weight) || null,
         dimensions: asTrimmedString(data.dimensions) || null,
         ...(packaging ? { packaging: packaging.value } : {}),
+        ...(conditionPercent !== undefined ? { conditionPercent } : {}),
         productionDate,
         serviceReferenceEnabled: data.serviceReferenceEnabled === undefined ? current?.serviceReferenceEnabled ?? true : data.serviceReferenceEnabled === true,
         isFeatured: data.isFeatured === true,

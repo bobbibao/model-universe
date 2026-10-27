@@ -1482,4 +1482,11 @@ export const MIGRATIONS: Migration[] = [
       `);
     },
   },
+  {
+    name: '2026-10-27-59-product-condition-percent',
+    up: async ({ context }) => {
+      const qi = context.sequelize.getQueryInterface();
+      await ensureColumns(qi, ProductModel, ['conditionPercent']);
+    },
+  },
 ];

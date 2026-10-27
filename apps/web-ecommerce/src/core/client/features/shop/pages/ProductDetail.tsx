@@ -55,6 +55,7 @@ const unitsOf = (product: ProductDetailType): ProductConditionOption[] =>
           sku: product.sku,
           isMain: true,
           condition: product.condition ?? 'new',
+          conditionPercent: product.conditionPercent ?? null,
           conditionNote: product.conditionNote ?? null,
           missingAccessories: product.missingAccessories ?? [],
           defects: product.defects ?? [],
@@ -569,6 +570,7 @@ const ConditionPicker = ({
   const locale = useLocale();
   const facts = [
     ...(selected.conditionLabels ?? []),
+    selected.conditionPercent ? (locale === 'en' ? `Condition: ${selected.conditionPercent}%` : `Độ mới: ${selected.conditionPercent}%`) : null,
     selected.conditionNote,
     selected.missingAccessories.length > 0 && `${t('missingAccessories')}: ${selected.missingAccessories.join(', ')}`,
     selected.condition !== 'new' && selected.defects.length > 0 && `${t('defects')}: ${selected.defects.join(', ')}`,
@@ -596,7 +598,10 @@ const ConditionPicker = ({
                   <ProductImage src={unit.imageUrl} alt="" sizes="48px" className="object-contain" />
                 </span>
                 <span className="condition-option-description">
-                  <span className={`condition-chip is-${unit.condition}`}>{conditionTypes.label(unit.condition)}</span>
+                  <span className={`condition-chip is-${unit.condition}`}>
+                    {conditionTypes.label(unit.condition)}
+                    {unit.conditionPercent ? ` · ${unit.conditionPercent}%` : ''}
+                  </span>
                   <span className="condition-option-note">
                     {unit.conditionLabels?.join(' · ') || unit.conditionNote || (locale === 'en' ? 'No issues recorded' : 'Không ghi nhận lỗi')}
                   </span>

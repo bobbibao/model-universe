@@ -19,6 +19,7 @@ export interface GunplaAttributes {
   condition?: ModelCondition;
   assemblyState?: AssemblyState;
   boxCondition?: string | null;
+  conditionPercent?: number | null;
   includedAccessories?: string[];
   missingAccessories?: string[];
   defects?: string[];
