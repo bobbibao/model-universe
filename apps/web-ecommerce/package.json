@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development TURBOPACK=1 PORT=6050 ts-node --transpile-only server.ts",
     "dev:webpack": "cross-env NODE_ENV=development TURBOPACK= PORT=6050 ts-node --transpile-only server.ts",
-    "dev:rec": "cross-env NODE_ENV=development TURBOPACK=1 PORT=6060 ts-node --transpile-only server.ts",
-    "seed-dev": "cross-env SEED_DATA=true DROP_TABLES=true NODE_ENV=development PORT=5050 ts-node server.ts",
+    "seed-dev": "cross-env SEED_DATA=true DROP_TABLES=true NODE_ENV=development PORT=6050 ts-node server.ts",
     "seed-prod": "cross-env SEED_DATA=true DROP_TABLES=true NODE_ENV=production ts-node server.ts",
     "build": "cross-env NODE_ENV=production next build && tsc --project tsconfig.server.json",
     "start": "node dist/.next/server.js",
@@ -25,8 +24,11 @@
     "payos:test-webhook": "ts-node scripts/payos-test-webhook.ts",
     "catalog:tree:migrate": "ts-node scripts/migrate-condition-catalog.ts",
     "seed:condition-demo": "ts-node scripts/seed-condition-demo.ts",
-    "start:condition-demo": "node scripts/start-condition-demo.cjs",
-    "test:condition-db": "node scripts/test-condition-catalog.cjs"
+    "test:condition-db": "node scripts/test-condition-catalog.cjs",
+    "start:production": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-production.ps1",
+    "production:status": "node scripts/production-runtime.cjs status",
+    "production:stop": "node scripts/production-runtime.cjs stop",
+    "build:production": "cross-env NODE_ENV=production next build --no-lint && tsc --project tsconfig.server.json"
   },
   "dependencies": {
     "@expo-google-fonts/be-vietnam-pro": "0.4.1",

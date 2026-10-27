@@ -54,6 +54,8 @@ app
   .then(() => {
     // Database initialization successful, now setup the server
     const server = e();
+    // The public tunnel connects over loopback; keep each remote client's IP for rate limits.
+    server.set('trust proxy', 'loopback');
 
     server.use(bodyParser.json());
     server.use(bodyParser.urlencoded({ extended: true }));
@@ -141,7 +143,7 @@ app
     // Start the server
     const port = process.env.PORT || 3000;
     server
-      .listen(port, () => {
+      .listen(Number(port), process.env.HOST || '0.0.0.0', () => {
         Logger.INFO(`> Ready on http://localhost:${port} - Environment: ${process.env.NODE_ENV}`);
       })
       .on('error', (error) => {

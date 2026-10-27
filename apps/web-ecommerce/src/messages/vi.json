@@ -4131,6 +4131,34 @@
         "title": "Mua kèm tối ưu Freeship & ưu đãi",
         "subtitle": "Các mẫu vừa tầm giá giúp mở khóa miễn phí vận chuyển hoặc ghép đơn tiện lợi."
       }
+    },
+    "strategy": {
+      "for_you": "Dành riêng cho bạn (Personalized)",
+      "similar": "Sản phẩm tương tự (Similar)",
+      "related": "Sản phẩm liên quan (Related)",
+      "bought_together": "Thường mua cùng nhau (Co-purchase)",
+      "trending": "Xu hướng nổi bật (Trending)",
+      "budget_alternative": "Thay thế hợp ngân sách (Budget / 2hand)",
+      "cart_addon": "Mua kèm giỏ hàng (Cart Add-on)"
+    },
+    "eyebrow": "Gợi ý thông minh",
+    "strategySwitcherLabel": "Chiến lược gợi ý mô hình",
+    "saveBadge": "Tiết kiệm {amount}",
+    "preownedBadge": "Có bản 2hand sẵn kho",
+    "personalizedBadge": "Dành cho người thích {brand}",
+    "surfaceTitle": {
+      "home": "Hợp gu sưu tầm của bạn",
+      "product_detail": "Khám phá mô hình phù hợp với bạn",
+      "cart": "Mua kèm tối ưu Freeship & ưu đãi",
+      "catalog": "Hợp gu sưu tầm của bạn",
+      "wishlist": "Hợp gu sưu tầm của bạn"
+    },
+    "surfaceSubtitle": {
+      "home": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
+      "product_detail": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
+      "cart": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
+      "catalog": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
+      "wishlist": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng."
     }
   },
   "adminRecommendations": {
@@ -4149,7 +4177,11 @@
       "conversions": "Thêm vào giỏ từ gợi ý",
       "conversionRateHint": "Tỷ lệ chuyển đổi: {rate}%",
       "behavioralEvents": "Tín hiệu hành vi",
-      "eventsHint": "Tổng sự kiện xem, tìm kiếm, dwell & giỏ hàng"
+      "eventsHint": "Tổng sự kiện xem, tìm kiếm, dwell & giỏ hàng",
+      "ctr": "CTR",
+      "addToCarts": "Thêm vào giỏ từ gợi ý",
+      "behaviorSignals": "Tín hiệu hành vi",
+      "uniqueSessions": "Phiên truy cập"
     },
     "byStrategyTitle": "Hiệu quả theo chiến lược gợi ý",
     "byStrategySubtitle": "So sánh lượt hiển thị, CTR và tỷ lệ thêm vào giỏ của từng thuật toán.",
@@ -4206,6 +4238,43 @@
       "reasonPlaceholder": "VD: Tăng trọng số mua cùng cho chiến dịch cuối tuần",
       "saving": "Đang lưu cấu hình…",
       "saveConfig": "Lưu cấu hình gợi ý"
+    },
+    "days": "ngày",
+    "saveSuccess": "Đã cập nhật cấu hình gợi ý thông minh.",
+    "saveError": "Không lưu được cấu hình gợi ý.",
+    "strategyBreakdownTitle": "Hiệu quả theo chiến lược gợi ý",
+    "emptyTopProducts": "Chưa có dữ liệu tương tác gợi ý trong khoảng thời gian này.",
+    "emptySearches": "Chưa ghi nhận truy vấn tìm kiếm nào trong kỳ.",
+    "resetDefaults": "Khôi phục mặc định",
+    "saving": "Đang lưu cấu hình…",
+    "saveConfig": "Lưu cấu hình gợi ý",
+    "col": {
+      "strategy": "Chiến lược",
+      "impressions": "Hiển thị",
+      "clicks": "Lượt nhấp",
+      "ctr": "CTR",
+      "conversions": "Thêm giỏ",
+      "convRate": "CVR",
+      "product": "Mô hình",
+      "brandScale": "Hãng · Tỉ lệ",
+      "price": "Giá bán",
+      "stock": "Tồn kho",
+      "addToCarts": "Thêm vào giỏ"
+    },
+    "config": {
+      "enabled": "Bật hệ thống gợi ý thông minh trên toàn cửa hàng",
+      "enablePreowned": "Ưu tiên cộng điểm cho sản phẩm có phiên bản 2hand sẵn kho",
+      "enableFreeshipGap": "Gợi ý theo ngưỡng ưu đãi vận chuyển",
+      "defaultLimit": "Số sản phẩm hiển thị",
+      "maxPerBrandScale": "Giới hạn số mẫu tối đa cùng Hãng + Tỉ lệ trong 1 danh sách (Đa dạng hóa)",
+      "weightsTitle": "Trọng số chấm điểm (0 – 100)"
+    },
+    "weights": {
+      "relevance": "Độ tương đồng",
+      "preference": "Sở thích khách hàng",
+      "cooccurrence": "Hành vi mua/xem cùng",
+      "popularity": "Mức độ quan tâm",
+      "business": "Giá trị kinh doanh"
     }
   }
 }

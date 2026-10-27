@@ -56,6 +56,7 @@ export const conversionPlatforms = (): ConversionPlatform[] => [
 export default class ConversionService {
   // Builds, sends (live) or records (fake) the purchase for every configured platform. Never throws.
   async recordPurchase(purchase: Purchase): Promise<void> {
+    if (process.env.REAL_COMMERCE === 'true' && conversionsMode() !== 'live') return;
     for (const platform of conversionPlatforms()) {
       let attempt: Attempt;
       try {

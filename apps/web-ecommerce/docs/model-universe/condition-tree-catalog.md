@@ -87,24 +87,15 @@ Import workbook không được xóa các SKU tổ hợp đã quản lý độc 
 
 API mới: `/api/product-condition-tree` (đọc), `/families` (tìm mẫu), `/match` (đối chiếu tổ hợp); `/api/admin/product-condition-tree` (quản trị); tạo tổ hợp qua `/api/admin/products/:id/conditions`; chuyển tồn qua `/:id/transfer-condition`; duyệt đề xuất qua `.../buyback/:id/condition-case` hoặc `.../pawn/:id/condition-case`. Các API ghi giữ kiểm tra quyền, phiên bản và khóa chống thực hiện lặp. API tình trạng phẳng còn lại dùng cho tương thích lịch sử/luồng đối tác, không phải cấu hình cây mới.
 
-## Demo và xác minh
+## Dữ liệu kiểm thử (không triển khai)
+
+Fixture gồm 12 mẫu thuộc 6 hãng, 64 SKU, 62 nhánh, tổ hợp 5 cấp, hàng hết/nháp/chưa duyệt giá, nhiều nguồn nhập cùng SKU, đề xuất mới, thiếu bằng chứng, trade và tài sản cầm. Đây là dữ liệu giả chỉ cho database kiểm thử riêng; không chạy seed trên database shop.
+
+Runtime demo và lệnh khởi động demo đã được gỡ. Hướng dẫn chạy website thật, cấu hình và đối chiếu dữ liệu nằm tại [single-production-runtime.md](single-production-runtime.md). Database integration có thể chạy độc lập, tự tạo và gỡ database `_test`:
 
 ```powershell
-yarn seed:condition-demo --database=model_universe_tree_condition_demo
-yarn build
-yarn start:condition-demo --database=model_universe_tree_condition_demo --port=6080
-# Trong terminal khác:
 node scripts/test-condition-catalog.cjs
-$env:E2E_BASE_URL="http://localhost:6080"
-$env:CONDITION_DEMO_E2E="true"
-yarn e2e e2e/condition-tree.spec.ts
 ```
-
-Seed chỉ nhận database có hậu tố `_condition_demo` (test helper chỉ nhận `_test`), không có mặc định trỏ về database shop. Schema demo được tạo từ models hiện hành rồi baseline lịch sử; không replay các migration nhập catalog/giá placeholder cũ vào demo riêng. Seed lặp không nhân bản và không reset các thay đổi đang có.
-
-Bộ dữ liệu gồm 12 mẫu thuộc 6 hãng, 64 SKU, 62 nhánh, tổ hợp 5 cấp, hàng hết/nháp/chưa duyệt giá, nhiều nguồn nhập cùng SKU, đề xuất mới, thiếu bằng chứng, trade và tài sản cầm. Ảnh và hồ sơ tài chính là **minh họa giả lập**, không phải giao dịch hoặc hàng thật của shop.
-
-Tài khoản chỉ trong database demo: `admin@condition.demo` và `customer@condition.demo`; mật khẩu mặc định `Demo@2026!`, đổi bằng `CONDITION_DEMO_PASSWORD` trước lần seed đầu. Khi chạy preview phải đặt tên database/cổng và `DISABLE_BACKGROUND_JOBS=true`, tắt SMTP/Zalo/PayOS và dùng vận chuyển mô phỏng **trước khi khởi tạo Next.js**; không ghi cấu hình này vào `.env` của shop.
 
 Các kiểm tra phải bao phủ: chuẩn hóa cây/tổ hợp, ràng buộc duy nhất khi tạo đồng thời, quyền và phiên bản, giá đúng tổ hợp, duyệt không nhập kho, bằng chứng/QC riêng từng nguồn, nhập/di chuyển lặp, bán/giữ/hoàn cùng tồn, snapshot chứng từ, báo cáo cũ rollback, alias giữ URL và giao diện desktop/mobile/VI/EN.
 
@@ -113,7 +104,7 @@ Các kiểm tra phải bao phủ: chuẩn hóa cây/tổ hợp, ràng buộc duy
 - 989 unit tests (62 suites), 13 bài integration PostgreSQL về cây/tổ hợp/nguồn nhập/chuyển dữ liệu 9 bài integration bán trực tiếp và 26 bài giữ hàng/checkout/cọc–giao hàng đã đạt trên database dùng riêng.
 - 8 bài E2E kiểm tra thêm/sửa/xóa nhánh, VI/EN, trường kho chỉ đọc, cây, tổ hợp trùng, URL/giỏ hàng đúng SKU, chọn nhiều bộ lọc, nhóm mẫu và mobile đã đạt. Rà soát thực tế các trang shop, chi tiết, cây Admin, SKU Admin và dịch vụ: không có lỗi JavaScript hoặc tràn ngang toàn trang ở 390px.
 - Type check backend, production Next.js build và Express TypeScript build đã đạt. ESLint phạm vi thay đổi không có lỗi; còn warning kiểu dữ liệu/hook từ các module đang dùng. Full-project lint có hạn chế cấu hình plugin cũ, nên build xác minh dùng `next build --no-lint` cùng lint riêng và `tsc --project tsconfig.server.json`.
-- Chưa áp dụng quyết định chuyển catalog thật. Giá tham chiếu cũ, ghi chú chưa phân loại, tổ hợp trùng và xung đột giá vẫn phải qua báo cáo/đối chiếu trước khi bật nghiệp vụ mới cho dữ liệu shop. Không triển khai hoặc xác minh dịch vụ thanh toán/vận chuyển bên ngoài trong demo.
+- Trạng thái lịch sử của đợt demo: khi đó chưa chuyển catalog thật. Đợt hợp nhất source chính sau đó đã đối chiếu 101 SKU; xem single-production-runtime.md và báo cáo riêng trên máy.
 
 
 ## Cập nhật trải nghiệm chọn tình trạng
@@ -131,7 +122,7 @@ Các kiểm tra phải bao phủ: chuẩn hóa cây/tổ hợp, ràng buộc duy
 Lệnh kiểm thử browser (chỉ dùng database demo riêng, có thể tạo một database `_condition_demo` mới để có tồn/đề xuất ban đầu):
 
 ```powershell
-$env:E2E_BASE_URL="http://localhost:6080"
+$env:E2E_BASE_URL="http://localhost:<test-port>"
 $env:CONDITION_DEMO_E2E="true"
 yarn e2e e2e/condition-tree.spec.ts e2e/service-condition-journeys.spec.ts
 ```
@@ -141,4 +132,4 @@ Các hồ sơ/ảnh/chứng từ trong E2E đều là dữ liệu minh họa. M�
 
 Xác minh bản UX: **994 unit tests / 62 suites, 14 integration PostgreSQL và 12 E2E đã đạt**. Production build Next.js (kèm type check) và Express TypeScript build đạt; ESLint phạm vi thay đổi không có lỗi, còn cảnh báo kiểu dữ liệu trong test. Các lượt thất bại do hết dung lượng cache ban đầu đã được chạy lại sau khi xử lý môi trường.
 
-Bản preview bàn giao chạy trên `model_universe_ux_release_condition_demo`, cổng 6080, tài khoản demo như trên. E2E có tạo thêm SKU và lịch sử đối soát/nhập kho; dữ liệu shop không tham gia bài kiểm thử. Không dùng database demo đã hết tồn ở các SKU fixture để chạy lại toàn bộ hành trình; tạo một database demo riêng mới khi cần một lượt độc lập.
+Bản preview cổng 6080 của đợt kiểm thử đã được dừng và database fixture đã được gỡ sau khi sao lưu. Website vận hành hiện tại chỉ dùng source chính, dữ liệu shop và cổng 6050. Không chạy E2E có ghi dữ liệu trên website này.

@@ -1,5 +1,4 @@
 import { FREESHIP_TIERS } from './promotions';
-import { memberPrice } from './pricing';
 import type { ProductSummary } from './types/product';
 
 export const RECOMMENDATION_STRATEGIES = [
@@ -35,14 +34,14 @@ export const SMART_RECOMMENDATION_REASONS = [
   'scale',
   'price',
   'discover',
-  'boughtTogether',
-  'viewedTogether',
-  'personalTaste',
-  'searchMatch',
-  'budgetChoice',
-  'trendingNow',
-  'freeshipAddon',
-  'preownedDeal',
+  'bought_together',
+  'viewed_together',
+  'personalized_affinity',
+  'search_match',
+  'budget_friendly',
+  'trending_now',
+  'freeship_completer',
+  'preowned_deal',
 ] as const;
 export type SmartRecommendationReason = (typeof SMART_RECOMMENDATION_REASONS)[number];
 
@@ -69,6 +68,9 @@ export interface RecommendationConfig {
   maxPerBrandScale: number;
   preferInStockPreowned: boolean;
   budgetRatio: number;
+  defaultLimit: number;
+  enableFreeshipGapAddons: boolean;
+  freeshipThresholdVnd: number;
 }
 
 export const DEFAULT_RECOMMENDATION_CONFIG: RecommendationConfig = {
@@ -90,6 +92,9 @@ export const DEFAULT_RECOMMENDATION_CONFIG: RecommendationConfig = {
   maxPerBrandScale: 2,
   preferInStockPreowned: true,
   budgetRatio: 0.85,
+  defaultLimit: 4,
+  enableFreeshipGapAddons: true,
+  freeshipThresholdVnd: FREESHIP_TIERS[0]?.minOrderVnd ?? 1000000,
 };
 
 export interface ScoreBreakdown {
@@ -105,6 +110,8 @@ export interface SmartRecommendationItem<T extends ProductSummary = ProductSumma
   reason: SmartRecommendationReason;
   strategy: RecommendationStrategy;
   score: number;
+  savingsVnd?: number;
+  hasPreownedOption?: boolean;
   priceSavingVnd?: number;
   freeshipGapVnd?: number;
   breakdown?: ScoreBreakdown;
@@ -230,7 +237,7 @@ export const extractTokens = (text?: string | null): string[] => {
   const raw = text
     .trim()
     .toLowerCase()
-    .split(/[^\p{L}\p{N}-]+/u)
+    .split(/[^\p{L}\p{N}/-]+/u)
     .map((word) => word.replace(/^-+|-+$/g, ''))
     .filter((word) => word.length >= 2 && !STOP_WORDS.has(word));
   const normalized = raw.map((word) => normalizeText(word)).filter((word) => word.length >= 2 && !STOP_WORDS.has(word));
@@ -240,6 +247,7 @@ export const extractTokens = (text?: string | null): string[] => {
 export const modelFamilyKey = (
   product: Pick<ProductSummary, 'brandName'> & { modelCode?: string | null },
 ): string => {
+  if ('modelFamilyId' in product && product.modelFamilyId) return `family:${product.modelFamilyId}`;
   const code = normalizeText(product.modelCode);
   return code ? `${normalizeText(product.brandName)}:${code}` : '';
 };
@@ -258,11 +266,6 @@ export const effectiveCustomerPrice = (
       : product.salePrice > 0
         ? product.salePrice
         : product.price;
-  const shopOwned = !product.partnerId;
-  const onSale = (product.discountPercent ?? 0) > 0 && product.salePrice < product.price;
-  if (!onSale && shopOwned && baseSale === product.price && product.price > 0) {
-    return memberPrice(product.price);
-  }
   return Math.max(0, baseSale);
 };
 
@@ -293,6 +296,9 @@ export function sanitizeRecommendationConfig(raw?: unknown): RecommendationConfi
     return Number.isFinite(parsed) ? clamp(parsed, min, max) : fallback;
   };
   return {
+    defaultLimit: Math.round(num(input.defaultLimit, DEFAULT_RECOMMENDATION_CONFIG.defaultLimit, 1, 12)),
+    enableFreeshipGapAddons: typeof input.enableFreeshipGapAddons === 'boolean' ? input.enableFreeshipGapAddons : true,
+    freeshipThresholdVnd: Math.round(num(input.freeshipThresholdVnd, DEFAULT_RECOMMENDATION_CONFIG.freeshipThresholdVnd, 0, 100000000)),
     enabled: typeof input.enabled === 'boolean' ? input.enabled : DEFAULT_RECOMMENDATION_CONFIG.enabled,
     weights: {
       relevance: num(rawWeights.relevance, DEFAULT_RECOMMENDATION_CONFIG.weights.relevance, 0, 100),
@@ -559,7 +565,7 @@ export function rankSmartRecommendations<T extends ProductSummary>(
   const maxCoView = maxMapValue(cooccurrence.coViews ?? {});
   const maxRecentViews = maxMapValue(cooccurrence.recentViews ?? {});
 
-  const freeshipGap = nextFreeshipGap(context.cartSubtotalVnd);
+  const freeshipGap = config.enableFreeshipGapAddons ? nextFreeshipGap(context.cartSubtotalVnd) : null;
   const budgetCeiling =
     context.maxBudgetVnd && context.maxBudgetVnd > 0
       ? context.maxBudgetVnd
@@ -797,23 +803,23 @@ export function rankSmartRecommendations<T extends ProductSummary>(
     // Determine primary explainable reason badge
     let reason: SmartRecommendationReason = 'discover';
     if (strategy === 'cart_addon' && freeshipGapVnd) {
-      reason = 'freeshipAddon';
+      reason = 'freeship_completer';
     } else if (coPurchaseCount > 0) {
-      reason = 'boughtTogether';
+      reason = 'bought_together';
     } else if (coViewCount > 0 && (strategy === 'bought_together' || strategy === 'for_you')) {
-      reason = 'viewedTogether';
+      reason = 'viewed_together';
     } else if (strategy === 'budget_alternative') {
-      reason = hasPreownedInStock(product) && product.stock <= 0 ? 'preownedDeal' : 'budgetChoice';
+      reason = hasPreownedInStock(product) && product.stock <= 0 ? 'preowned_deal' : 'budget_friendly';
     } else if (searchMatchCount > 0 && context.activeSearchQuery) {
-      reason = 'searchMatch';
+      reason = 'search_match';
     } else if (
       !profile.isColdStart &&
       strategy === 'for_you' &&
       (brandAffinity >= 0.5 || catAffinity >= 0.5 || scaleAffinity >= 0.5)
     ) {
-      reason = 'personalTaste';
+      reason = 'personalized_affinity';
     } else if (strategy === 'trending' && (sold >= 3 || recentViews >= 2 || product.isFeatured)) {
-      reason = 'trendingNow';
+      reason = 'trending_now';
     } else if (sameCategory) {
       reason = 'category';
     } else if (sameBrand) {
@@ -842,7 +848,14 @@ export function rankSmartRecommendations<T extends ProductSummary>(
   }
 
   // Sort deterministically by score DESC, then id ASC
-  scoredCandidates.sort((a, b) => b.score - a.score || a.product.id - b.product.id);
+  scoredCandidates.sort((a, b) => {
+    if (strategy === 'bought_together') {
+      const tier = (item: typeof a) => (cooccurrence.coPurchases?.[item.product.id] ?? 0) > 0 ? 2 : (cooccurrence.coViews?.[item.product.id] ?? 0) > 0 ? 1 : 0;
+      const evidence = tier(b) - tier(a);
+      if (evidence) return evidence;
+    }
+    return b.score - a.score || a.product.id - b.product.id;
+  });
 
   // Apply family deduplication and brand+scale diversity cap (with backfill if pool is small)
   const selected: SmartRecommendationItem<T>[] = [];
@@ -871,6 +884,8 @@ export function rankSmartRecommendations<T extends ProductSummary>(
       score: item.score,
       ...(item.priceSavingVnd ? { priceSavingVnd: item.priceSavingVnd } : {}),
       ...(item.freeshipGapVnd ? { freeshipGapVnd: item.freeshipGapVnd } : {}),
+      savingsVnd: item.priceSavingVnd,
+      hasPreownedOption: hasPreownedInStock(item.product),
       breakdown: item.breakdown,
     });
     if (selected.length >= limit) break;
@@ -890,7 +905,9 @@ export function rankSmartRecommendations<T extends ProductSummary>(
         score: item.score,
         ...(item.priceSavingVnd ? { priceSavingVnd: item.priceSavingVnd } : {}),
         ...(item.freeshipGapVnd ? { freeshipGapVnd: item.freeshipGapVnd } : {}),
-        breakdown: item.breakdown,
+        savingsVnd: item.priceSavingVnd,
+      hasPreownedOption: hasPreownedInStock(item.product),
+      breakdown: item.breakdown,
       });
       if (selected.length >= limit) break;
     }
@@ -928,3 +945,6 @@ export function buildSurfaceRecommendationSections<T extends ProductSummary>(
   return sections;
 }
 
+
+export type RecommendationSection = SmartRecommendationSection;
+export type SmartRecommendedProduct = SmartRecommendationItem;

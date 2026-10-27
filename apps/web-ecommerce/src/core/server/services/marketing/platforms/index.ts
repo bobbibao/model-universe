@@ -1,4 +1,5 @@
 import type { AdPlatformName } from '../../agent/AgentLimits';
+import HttpError from '../../../../../shared/server/utils/HttpError';
 import { FacebookGraphPage } from './FacebookGraphPage';
 import { FakeAdPlatform, FakeFacebookPage } from './FakePlatforms';
 import { GoogleAdsClient, type GoogleAdsCredentials } from './GoogleAdsClient';
@@ -106,6 +107,8 @@ const liveAdClient = (platform: AdPlatformName): AdPlatformClient => {
 };
 
 export const adPlatform = (platform: AdPlatformName): AdPlatformClient => {
+  if (process.env.REAL_COMMERCE === 'true' && platformMode(platform) !== 'live')
+    throw HttpError.serviceUnavailable('This advertising platform is not connected. Configure its live credentials first.');
   let client = adClients.get(platform);
   if (!client) {
     client = platformMode(platform) === 'live' ? liveAdClient(platform) : new FakeAdPlatform(platform);
@@ -115,6 +118,8 @@ export const adPlatform = (platform: AdPlatformName): AdPlatformClient => {
 };
 
 export const facebookPage = (): FacebookPageClient => {
+  if (process.env.REAL_COMMERCE === 'true' && platformMode('facebook') !== 'live')
+    throw HttpError.serviceUnavailable('Facebook publishing is not connected. Configure live credentials first.');
   if (!pageClient) {
     pageClient =
       platformMode('facebook') === 'live'

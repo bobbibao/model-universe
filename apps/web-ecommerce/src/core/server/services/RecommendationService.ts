@@ -7,16 +7,16 @@ import {
   RECOMMENDATION_SURFACES,
   buildSurfaceRecommendationSections,
   buildUserAffinityProfile,
-  effectivePrice,
+  effectiveCustomerPrice as effectivePrice,
   rankSmartRecommendations,
   sanitizeRecommendationConfig,
-  type AffinityProductSignal,
+  type ProductSignalRef as AffinityProductSignal,
   type RecommendationConfig,
   type RecommendationEventType,
-  type RecommendationSection,
+  type SmartRecommendationSection as RecommendationSection,
   type RecommendationStrategy,
   type RecommendationSurface,
-  type SmartRecommendedProduct,
+  type SmartRecommendationItem as SmartRecommendedProduct,
   type UserAffinityProfile,
 } from '../../../shared/smart-recommendations';
 import type { ProductDetail, ProductSummary } from '../../../shared/types/product';
@@ -139,7 +139,7 @@ const trendingCache = new LRUCache<string, Record<number, number>>({
 
 const parseIdList = (input: unknown, maxItems = 24): number[] => {
   if (Array.isArray(input)) {
-    return [...new Set(input.map((v) => toInteger(v)).filter((v): v is number => v !== null && v > 0))].slice(0, maxItems);
+    return [...new Set(input.map((v) => toInteger(v)).filter((v): v is number => v != null && v > 0))].slice(0, maxItems);
   }
   if (typeof input === 'string' && input.trim()) {
     return [
@@ -147,7 +147,7 @@ const parseIdList = (input: unknown, maxItems = 24): number[] => {
         input
           .split(',')
           .map((part) => toInteger(part.trim()))
-          .filter((v): v is number => v !== null && v > 0),
+          .filter((v): v is number => v != null && v > 0),
       ),
     ].slice(0, maxItems);
   }
@@ -306,11 +306,11 @@ export default class RecommendationService {
     const surface = RECOMMENDATION_SURFACES.includes(surfaceRaw as RecommendationSurface) ? surfaceRaw : null;
 
     const rawDwell = toInteger(input.dwellMs);
-    const dwellMs = rawDwell !== null && rawDwell >= 0 ? Math.min(600_000, rawDwell) : null;
+    const dwellMs = rawDwell != null && rawDwell >= 0 ? Math.min(600_000, rawDwell) : null;
 
     const rawPrice = toInteger(input.priceVnd);
     const priceVnd =
-      rawPrice !== null && rawPrice > 0
+      rawPrice != null && rawPrice > 0
         ? Math.min(500_000_000, rawPrice)
         : resolvedProduct?.price ?? null;
 
@@ -514,15 +514,14 @@ export default class RecommendationService {
     const enrichSignal = (productId: number, extra: Partial<AffinityProductSignal> = {}): AffinityProductSignal => {
       const candidate = candidateById.get(productId);
       return {
-        productId,
+        id: productId,
         brandName: extra.brandName ?? candidate?.brandName ?? null,
         scale: extra.scale ?? candidate?.scale ?? null,
         categoryId: extra.categoryId ?? candidate?.category?.id ?? null,
-        categorySlug: extra.categorySlug ?? candidate?.category?.slug ?? null,
         priceVnd: extra.priceVnd ?? (candidate ? effectivePrice(candidate) : null),
         dwellMs: extra.dwellMs ?? null,
         weight: extra.weight,
-        occurredAt: extra.occurredAt,
+        ageDays: extra.ageDays,
       };
     };
 
@@ -563,7 +562,7 @@ export default class RecommendationService {
 
     let fallbackProductsMap = new Map<
       number,
-      { id: number; parentProductId: number | null; brandName: string | null; scale: string | null; categoryId: number | null; price: number }
+      { id: number; parentProductId: number | null; brandName: string | null; scale?: string | null; categoryId: number | null; price: number }
     >();
     if (missingProductIds.size > 0) {
       const rows = await ProductModel.findAll({
@@ -586,7 +585,7 @@ export default class RecommendationService {
         categoryId: ev.categoryId ?? fallback?.categoryId ?? undefined,
         priceVnd: ev.priceVnd ?? fallback?.price ?? undefined,
         dwellMs: ev.dwellMs ?? null,
-        occurredAt: ev.createdAt,
+        ageDays: Math.max(0,(Date.now()-new Date(ev.createdAt).getTime())/86400000),
       });
 
       if (ev.eventType === 'add_to_cart' || ev.eventType === 'rec_add_to_cart') {
@@ -606,7 +605,7 @@ export default class RecommendationService {
         limit: 40,
       });
       for (const w of wishRows) {
-        wishlistItems.push(enrichSignal(w.productId, { occurredAt: w.createdAt }));
+        wishlistItems.push(enrichSignal(w.productId, { ageDays: Math.max(0,(Date.now()-new Date(w.createdAt).getTime())/86400000) }));
       }
 
       const orders = await OrderModel.findAll({
@@ -619,7 +618,7 @@ export default class RecommendationService {
           {
             model: OrderItemModel,
             as: 'items',
-            attributes: ['productId', 'price', 'quantity'],
+            attributes: ['productId', 'unitPrice', 'quantity'],
           },
         ],
         order: [['createdAt', 'DESC']],
@@ -633,9 +632,9 @@ export default class RecommendationService {
           const candidate = candidateById.get(item.productId);
           purchases.push(
             enrichSignal(item.productId, {
-              priceVnd: item.price || (candidate ? effectivePrice(candidate) : null),
+              priceVnd: item.unitPrice || (candidate ? effectivePrice(candidate) : null),
               weight: Math.min(2, Math.max(1, item.quantity || 1)),
-              occurredAt: order.createdAt,
+              ageDays: Math.max(0,(Date.now()-new Date(order.createdAt).getTime())/86400000),
             }),
           );
         }
@@ -643,14 +642,11 @@ export default class RecommendationService {
     }
 
     const profile = buildUserAffinityProfile({
-      userId,
-      sessionKey,
-      views,
-      cartItems,
-      wishlistItems,
-      purchases,
-      searchQueries,
-      categorySlugs,
+      viewedProducts: views,
+      cartProducts: cartItems,
+      wishlistProducts: wishlistItems,
+      purchasedProducts: purchases,
+      searchQueries: searchQueries.map(query => ({query})),
     });
 
     const signalCount =
@@ -690,10 +686,11 @@ export default class RecommendationService {
     const candidates = await this.productService.getSellableCandidatePool(180);
     const candidateById = new Map<number, ProductSummary>(candidates.map((c) => [c.id, c]));
 
-    let anchorProduct: (Partial<ProductDetail> & { id: number; price: number }) | null = null;
+    let anchorProduct: ProductDetail | null = null;
     if (rawQuery.productId !== undefined && rawQuery.productId !== null && String(rawQuery.productId).trim() !== '') {
       try {
-        const detail = (await this.productService.getPublicById(rawQuery.productId)) as unknown as ProductDetail;
+        const key = /^\d+$/.test(String(rawQuery.productId)) ? Number(rawQuery.productId) : rawQuery.productId;
+        const detail = (await this.productService.getPublicById(key)) as unknown as ProductDetail;
         const activeUnits = detail.conditionOptions?.filter((u) => u.stock > 0) ?? [];
         anchorProduct = {
           ...detail,
@@ -748,23 +745,21 @@ export default class RecommendationService {
     const context = {
       strategy,
       surface,
-      anchorProduct,
+      sourceProduct: anchorProduct,
       profile,
-      cartProductIds,
+      excludeProductIds: cartProductIds,
+      anchorProducts: cartProductIds.map(id => candidateById.get(id)).filter((p): p is ProductSummary => !!p).map(p => ({...p, categoryId: p.category?.id, priceVnd: effectivePrice(p)})),
       cartSubtotalVnd,
-      currentCategoryId,
-      currentCategorySlug: currentCategorySlug ?? null,
-      currentQuery: currentQuery ?? null,
+      activeCategoryId: currentCategoryId,
+      activeSearchQuery: currentQuery ?? null,
       maxBudgetVnd: maxBudgetVnd && maxBudgetVnd > 0 ? maxBudgetVnd : null,
-      coPurchaseCounts,
-      coViewCounts,
-      trendingScores,
+      cooccurrence: { coPurchases: coPurchaseCounts, coViews: coViewCounts, recentViews: trendingScores },
       config,
       limit,
     };
 
     const items = rankSmartRecommendations(candidates, context);
-    const sections = buildSurfaceRecommendationSections(candidates, context);
+    const sections = buildSurfaceRecommendationSections(surface, candidates, context);
 
     const topBrands = Object.entries(profile.brandWeights)
       .sort((a, b) => b[1] - a[1])
@@ -774,7 +769,7 @@ export default class RecommendationService {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([scale]) => scale);
-    const topCategories = Object.entries(profile.categorySlugWeights)
+    const topCategories = Object.entries(profile.categoryWeights)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([slug]) => slug);
@@ -788,7 +783,7 @@ export default class RecommendationService {
         topBrands,
         topScales,
         topCategories,
-        preferredPriceBand: profile.preferredPriceBand,
+        preferredPriceBand: profile.priceProfile.hasSignal ? {min:profile.priceProfile.minVnd,median:profile.priceProfile.preferredVnd,max:profile.priceProfile.maxVnd} : null,
         signalCount,
       },
       items,

@@ -374,7 +374,11 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       limit: Math.max(12, Math.min(240, limit)),
     });
     const enriched = await this.withConditions(await this.discountService.withPricing(rows));
-    return enriched as unknown as ProductSummary[];
+    return enriched.map(row => {
+      const product = {...row} as Record<string, unknown>;
+      for (const key of ['importPrice', 'minPrice', 'pricingReferenceMemberVnd', 'parentProductId']) delete product[key];
+      return product;
+    }) as unknown as ProductSummary[];
   }
 
   async getReviews(productId: number, limit: number, offset: number) {

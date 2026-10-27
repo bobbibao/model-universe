@@ -22,6 +22,13 @@ describe('marketing platform configuration', () => {
     expect(facebookPage()).toBeInstanceOf(FakeFacebookPage);
   });
 
+  it('never produces simulated ads or posts in the real commerce runtime', () => {
+    process.env.REAL_COMMERCE = 'true';
+    expect(() => adPlatform('meta')).toThrow('not connected');
+    expect(() => adPlatform('google')).toThrow('not connected');
+    expect(() => facebookPage()).toThrow('not connected');
+  });
+
   it('refuses a live platform without its credentials or a public https address', () => {
     process.env.META_ADS_MODE = 'live';
     expect(() => assertMarketingConfig()).toThrow(

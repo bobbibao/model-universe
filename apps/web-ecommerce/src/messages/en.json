@@ -4131,6 +4131,34 @@
         "title": "Smart add-ons for Free Shipping",
         "subtitle": "Right-sized kits that pair with your bag and help unlock free delivery."
       }
+    },
+    "strategy": {
+      "for_you": "Personalized for you",
+      "similar": "Similar products",
+      "related": "Related products",
+      "bought_together": "Frequently bought together",
+      "trending": "Trending now",
+      "budget_alternative": "Budget-friendly / 2hand",
+      "cart_addon": "Cart & Freeship add-on"
+    },
+    "eyebrow": "Smart recommendations",
+    "strategySwitcherLabel": "Model recommendation strategies",
+    "saveBadge": "Save {amount}",
+    "preownedBadge": "Pre-owned unit in stock",
+    "personalizedBadge": "For fans of {brand}",
+    "surfaceTitle": {
+      "home": "Matches your collector profile",
+      "product_detail": "Discover models tailored to your build",
+      "cart": "Smart add-ons for Free Shipping",
+      "catalog": "Matches your collector profile",
+      "wishlist": "Matches your collector profile"
+    },
+    "surfaceSubtitle": {
+      "home": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
+      "product_detail": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
+      "cart": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
+      "catalog": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
+      "wishlist": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart."
     }
   },
   "adminRecommendations": {
@@ -4149,7 +4177,11 @@
       "conversions": "Add-to-cart conversions",
       "conversionRateHint": "Conversion rate: {rate}%",
       "behavioralEvents": "Behavioral signals",
-      "eventsHint": "Total view, search, dwell & cart events"
+      "eventsHint": "Total view, search, dwell & cart events",
+      "ctr": "CTR",
+      "addToCarts": "Add-to-cart conversions",
+      "behaviorSignals": "Behavioral signals",
+      "uniqueSessions": "Sessions"
     },
     "byStrategyTitle": "Performance by strategy",
     "byStrategySubtitle": "Compare impressions, CTR and add-to-cart conversion rate across algorithms.",
@@ -4206,6 +4238,43 @@
       "reasonPlaceholder": "e.g. Boost co-purchase weight for weekend campaign",
       "saving": "Saving configuration…",
       "saveConfig": "Save recommendation settings"
+    },
+    "days": "days",
+    "saveSuccess": "Smart recommendation configuration saved.",
+    "saveError": "Could not save recommendation configuration.",
+    "strategyBreakdownTitle": "Performance by strategy",
+    "emptyTopProducts": "No recommendation interaction events recorded in this window yet.",
+    "emptySearches": "No search queries recorded in this period.",
+    "resetDefaults": "Reset defaults",
+    "saving": "Saving configuration…",
+    "saveConfig": "Save recommendation settings",
+    "col": {
+      "strategy": "Strategy",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "ctr": "CTR",
+      "conversions": "Add to bag",
+      "convRate": "CVR",
+      "product": "Model",
+      "brandScale": "Brand · Scale",
+      "price": "Price",
+      "stock": "Stock",
+      "addToCarts": "Add to cart"
+    },
+    "config": {
+      "enabled": "Enable smart recommendations across the storefront",
+      "enablePreowned": "Boost products with in-stock pre-owned (2hand) condition units",
+      "enableFreeshipGap": "Suggest items near shipping benefit thresholds",
+      "defaultLimit": "Products per rail",
+      "maxPerBrandScale": "Max items per Brand + Scale in a single rail (diversity cap)",
+      "weightsTitle": "Scoring weights (0 – 100)"
+    },
+    "weights": {
+      "relevance": "Similarity",
+      "preference": "Customer affinity",
+      "cooccurrence": "Purchased/viewed together",
+      "popularity": "Popularity",
+      "business": "Business value"
     }
   }
 }

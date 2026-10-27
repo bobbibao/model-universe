@@ -49,9 +49,9 @@ describe('smart recommendations API, behavioral tracking & admin governance (db)
         surface: 'product_detail',
         productId: child.id,
       })
-      .expect(200);
+      .expect(201);
 
-    expect(first.body).toEqual({ recorded: true });
+    expect(first.body.data).toEqual(expect.objectContaining({ recorded: true }));
 
     const duplicate = await request(app)
       .post('/api/recommendations/events')
@@ -61,9 +61,9 @@ describe('smart recommendations API, behavioral tracking & admin governance (db)
         surface: 'product_detail',
         productId: child.id,
       })
-      .expect(200);
+      .expect(201);
 
-    expect(duplicate.body).toEqual({ recorded: false });
+    expect(duplicate.body.data).toEqual(expect.objectContaining({ recorded: false }));
 
     await request(app)
       .post('/api/recommendations/events')
@@ -73,14 +73,14 @@ describe('smart recommendations API, behavioral tracking & admin governance (db)
         surface: 'catalog',
         searchQuery: 'Motor Nuclear 1/72',
       })
-      .expect(200);
+      .expect(201);
 
     const savedView = await RecommendationEventModel.findOne({
       where: { sessionKey: 'sess_collector_alpha_001', eventType: 'product_view' },
     });
     expect(savedView).not.toBeNull();
     expect(savedView?.productId).toBe(main.id);
-    expect(savedView?.brandName).toBe('Motor Nuclear');
+    expect(savedView?.priceVnd).toBe(1500000);
   });
 
   it('serves multi-strategy recommendations across home, product_detail and cart surfaces without leaking internal fields', async () => {
@@ -113,7 +113,7 @@ describe('smart recommendations API, behavioral tracking & admin governance (db)
       .get('/api/recommendations')
       .query({
         surface: 'product_detail',
-        anchorProductId: String(anchor.id),
+        productId: String(anchor.id),
         sessionKey: 'sess_collector_alpha_001',
         limit: '6',
       })
@@ -148,7 +148,7 @@ describe('smart recommendations API, behavioral tracking & admin governance (db)
       .expect(200);
 
     expect(cartRes.body.surface).toBe('cart');
-    expect(cartRes.body.sections.some((s: { key: string }) => s.key === 'cart_addon')).toBe(true);
+    expect(cartRes.body.sections.some((s: { strategy: string }) => s.strategy === 'cart_addon')).toBe(true);
   });
 
   it('enforces admin RBAC and audits configuration updates', async () => {
@@ -170,25 +170,24 @@ describe('smart recommendations API, behavioral tracking & admin governance (db)
       .put('/api/admin/recommendations/config')
       .set('x-test-role', 'ADMIN')
       .send({
-        personalizationWeight: 42,
-        coPurchaseWeight: 35,
+        weights: {preference:42,cooccurrence:35},
         freeshipThresholdVnd: 1200000,
         maxPerBrandScale: 2,
         reason: 'Tune weights for weekend Gunpla event',
       })
       .expect(200);
 
-    expect(updateRes.body.personalizationWeight).toBe(42);
-    expect(updateRes.body.coPurchaseWeight).toBe(35);
-    expect(updateRes.body.freeshipThresholdVnd).toBe(1200000);
-    expect(updateRes.body.maxPerBrandScale).toBe(2);
+    expect(updateRes.body.data.weights.preference).toBe(42);
+    expect(updateRes.body.data.weights.cooccurrence).toBe(35);
+    expect(updateRes.body.data.freeshipThresholdVnd).toBe(1200000);
+    expect(updateRes.body.data.maxPerBrandScale).toBe(2);
 
     const auditEntry = await PromotionAuditModel.findOne({
-      where: { entityType: 'recommendation_config', action: 'update' },
+      where: { entityType: 'recommendation_config', action: 'update_config' },
       order: [['id', 'DESC']],
     });
     expect(auditEntry).not.toBeNull();
-    expect(auditEntry?.reason).toBe('Tune weights for weekend Gunpla event');
+    expect(auditEntry?.newValue?.weights).toEqual(expect.objectContaining({preference:42,cooccurrence:35}));
   });
 });
 

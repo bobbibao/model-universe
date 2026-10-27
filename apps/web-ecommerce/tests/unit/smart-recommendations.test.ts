@@ -4,7 +4,7 @@ import {
   DEFAULT_RECOMMENDATION_CONFIG,
   rankSmartRecommendations,
   sanitizeRecommendationConfig,
-  type BehavioralInteractionSignal,
+  type BehaviorSignalsInput,
 } from '../../src/shared/smart-recommendations';
 import type { ProductSummary } from '../../src/shared/types/product';
 
@@ -32,51 +32,30 @@ const makeProduct = (id: number, extra: Partial<ProductSummary> = {}): ProductSu
 
 describe('smart product recommendation engine (unit)', () => {
   it('builds a collector affinity profile with time decay, dwell boost, price band and search tokens', () => {
-    const now = Date.parse('2026-10-27T00:00:00.000Z');
     const catalog = new Map<number, ProductSummary>([
       [1, makeProduct(1, { brandName: 'Bandai', scale: '1/100', salePrice: 1100000 })],
       [2, makeProduct(2, { brandName: 'Motor Nuclear', scale: '1/72', salePrice: 1500000, category: { id: 20, name: 'Metal Build', slug: 'metal-build' } })],
     ]);
 
-    const signals: BehavioralInteractionSignal[] = [
-      {
-        eventType: 'purchase',
-        productId: 2,
-        categoryId: 20,
-        brandName: 'Motor Nuclear',
-        scale: '1/72',
-        priceVnd: 1500000,
-        timestampMs: now - 2 * 86_400_000,
-      },
-      {
-        eventType: 'dwell',
-        productId: 2,
-        dwellMs: 95_000,
-        timestampMs: now - 3600_000,
-      },
-      {
-        eventType: 'product_view',
-        productId: 1,
-        timestampMs: now - 20 * 86_400_000,
-      },
-      {
-        eventType: 'search',
-        searchQuery: 'Motor Nuclear Bai Qi 1/72',
-        timestampMs: now - 1800_000,
-      },
-    ];
-
-    const profile = buildUserAffinityProfile(signals, catalog, now);
+    const signals: BehaviorSignalsInput = {
+      purchasedProducts: [{...catalog.get(2)!,priceVnd:1500000,ageDays:2}],
+      viewedProducts: [
+        {...catalog.get(2)!,dwellMs:95000,ageDays:1/24},
+        {...catalog.get(1)!,ageDays:20},
+      ],
+      searchQueries: [{query:'Motor Nuclear Bai Qi 1/72',ageDays:1/48}],
+    };
+    const profile = buildUserAffinityProfile(signals);
 
     expect(profile.isColdStart).toBe(false);
-    expect(profile.signalCount).toBe(4);
+    expect(profile.totalSignalScore).toBeGreaterThan(0);
     expect(profile.purchasedProductIds.has(2)).toBe(true);
     expect(profile.viewedProductIds.has(1)).toBe(true);
-    expect(profile.brandWeights.get('motor nuclear')!).toBeGreaterThan(profile.brandWeights.get('bandai')!);
-    expect(profile.scaleWeights.get('1/72')!).toBeGreaterThan(profile.scaleWeights.get('1/100')!);
-    expect(profile.preferredPriceBand).not.toBeNull();
-    expect(profile.preferredPriceBand!.median).toBeGreaterThanOrEqual(1100000);
-    expect(profile.searchTokens).toEqual(expect.arrayContaining(['motor', 'nuclear', 'bai', '1/72']));
+    expect(profile.brandWeights['motor nuclear']).toBeGreaterThan(profile.brandWeights['bandai']);
+    expect(profile.scaleWeights['1/72']).toBeGreaterThan(profile.scaleWeights['1/100']);
+    expect(profile.priceProfile.hasSignal).toBe(true);
+    expect(profile.priceProfile.preferredVnd).toBeGreaterThanOrEqual(1100000);
+    expect(Object.keys(profile.keywordWeights)).toEqual(expect.arrayContaining(['motor', 'nuclear', 'bai', '1/72']));
   });
 
   it('strictly filters out-of-stock, self, cart items, explicitly excluded ids and duplicate model families', () => {
@@ -91,12 +70,10 @@ describe('smart product recommendation engine (unit)', () => {
       makeProduct(7, { modelCode: 'ASW-G-08' }), // duplicate model family with #6
     ];
 
-    const ranked = rankSmartRecommendations({
+    const ranked = rankSmartRecommendations(candidates, {
       strategy: 'similar',
-      candidates,
-      anchorProduct: anchor,
-      cartProducts: [candidates[3]],
-      excludeProductIds: [5],
+      sourceProduct: anchor,
+      excludeProductIds: [4, 5],
       limit: 8,
     });
 
@@ -117,12 +94,10 @@ describe('smart product recommendation engine (unit)', () => {
     });
     const sameCategoryOnly = makeProduct(4);
 
-    const ranked = rankSmartRecommendations({
+    const ranked = rankSmartRecommendations([sameCategoryOnly, coViewed, coPurchased], {
       strategy: 'bought_together',
-      candidates: [sameCategoryOnly, coViewed, coPurchased],
-      anchorProduct: anchor,
-      coPurchaseCounts: new Map([[2, 4]]),
-      coViewCounts: new Map([[3, 6]]),
+      sourceProduct: anchor,
+      cooccurrence: {coPurchases: {2:4}, coViews: {3:6}},
       limit: 4,
     });
 
@@ -144,10 +119,9 @@ describe('smart product recommendation engine (unit)', () => {
       conditions: [{ condition: 'preowned', units: 1, stock: 1, minSalePrice: 1350000 }],
     });
 
-    const ranked = rankSmartRecommendations({
+    const ranked = rankSmartRecommendations([expensive, cheaperNew, preownedDeal], {
       strategy: 'budget_alternative',
-      candidates: [expensive, cheaperNew, preownedDeal],
-      anchorProduct: anchor,
+      sourceProduct: anchor,
       limit: 4,
     });
 
@@ -162,16 +136,15 @@ describe('smart product recommendation engine (unit)', () => {
   });
 
   it('recommends freeship completers in cart_addon strategy when cart is below freeshipThresholdVnd', () => {
-    const cartItem = makeProduct(1, { salePrice: 700000 });
+    const cartItem = makeProduct(1, { salePrice: 200000 });
     const completer = makeProduct(2, { salePrice: 350000, modelCode: 'HG-01' });
     const farTooExpensive = makeProduct(3, { salePrice: 4500000, modelCode: 'PG-01' });
 
-    const ranked = rankSmartRecommendations({
+    const ranked = rankSmartRecommendations([farTooExpensive, completer], {
       strategy: 'cart_addon',
-      candidates: [farTooExpensive, completer],
-      cartProducts: [cartItem],
-      cartSubtotalVnd: 700000,
-      config: { ...DEFAULT_RECOMMENDATION_CONFIG, freeshipThresholdVnd: 1000000 },
+      anchorProducts: [cartItem],
+      excludeProductIds: [cartItem.id],
+      cartSubtotalVnd: 200000,
       limit: 4,
     });
 
@@ -187,9 +160,8 @@ describe('smart product recommendation engine (unit)', () => {
       makeProduct(5, { brandName: 'Motor Nuclear', scale: '1/72', sold: 25 }),
     ];
 
-    const ranked = rankSmartRecommendations({
+    const ranked = rankSmartRecommendations(candidates, {
       strategy: 'trending',
-      candidates,
       config: { ...DEFAULT_RECOMMENDATION_CONFIG, maxPerBrandScale: 2 },
       limit: 3,
     });
@@ -200,20 +172,18 @@ describe('smart product recommendation engine (unit)', () => {
   it('sanitizes admin configuration and returns empty recommendations when disabled', () => {
     const sanitized = sanitizeRecommendationConfig({
       enabled: false,
-      personalizationWeight: 999,
-      contentSimilarityWeight: -20,
+      weights: {preference:999,relevance:-20},
       maxPerBrandScale: 99,
       freeshipThresholdVnd: 450000.7,
     });
 
     expect(sanitized.enabled).toBe(false);
-    expect(sanitized.personalizationWeight).toBe(100);
-    expect(sanitized.contentSimilarityWeight).toBe(0);
+    expect(sanitized.weights.preference).toBe(100);
+    expect(sanitized.weights.relevance).toBe(0);
     expect(sanitized.maxPerBrandScale).toBe(8);
     expect(sanitized.freeshipThresholdVnd).toBe(450001);
 
-    const sections = buildSurfaceRecommendationSections('home', {
-      candidates: [makeProduct(1), makeProduct(2)],
+    const sections = buildSurfaceRecommendationSections('home', [makeProduct(1), makeProduct(2)], {
       config: sanitized,
     });
     expect(sections).toEqual([]);

@@ -12,7 +12,7 @@ import type {
   SmartRecommendedProduct,
 } from '@/shared/smart-recommendations';
 import ProductCard from '@/core/client/features/shop/components/ProductCard';
-import { formatPrice } from '@/shared/client/utils/format';
+import { formatVND as formatPrice } from '@/shared/server/utils/utils';
 
 export interface SmartRecommendationRailProps {
   surface: RecommendationSurface;
@@ -81,7 +81,7 @@ export default function SmartRecommendationRail({
           surface,
           strategy: defaultStrategy,
           productId,
-          cartProductIds,
+          cartProductIds: cartIdsKey ? cartIdsKey.split(',').map(Number) : [],
           cartSubtotalVnd,
           category,
           categoryId,

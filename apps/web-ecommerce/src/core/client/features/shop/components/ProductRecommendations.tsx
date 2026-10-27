@@ -12,7 +12,7 @@ import type {
   RecommendationStrategy,
   SmartRecommendedProduct,
 } from '@/shared/smart-recommendations';
-import { formatPrice } from '@/shared/client/utils/format';
+import { formatVND as formatPrice } from '@/shared/server/utils/utils';
 import ProductCard from './ProductCard';
 
 export default function ProductRecommendations({ productId }: { productId: number }) {

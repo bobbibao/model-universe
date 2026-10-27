@@ -9,15 +9,14 @@ import {
   DEFAULT_RECOMMENDATION_CONFIG,
   type RecommendationConfig,
 } from '@/shared/smart-recommendations';
-import { formatPrice } from '@/shared/client/utils/format';
+import { formatVND as formatPrice } from '@/shared/server/utils/utils';
 
 const WEIGHT_KEYS: Array<keyof RecommendationConfig['weights']> = [
   'relevance',
-  'personalization',
-  'coOccurrence',
+  'preference',
+  'cooccurrence',
   'popularity',
-  'priceFit',
-  'businessValue',
+  'business',
 ];
 
 export default function AdminRecommendations() {
@@ -257,8 +256,8 @@ export default function AdminRecommendations() {
               <span>{t('config.enablePreowned')}</span>
               <input
                 type="checkbox"
-                checked={config.enablePreownedBudgetAlternatives}
-                onChange={(e) => setConfig({ ...config, enablePreownedBudgetAlternatives: e.target.checked })}
+                checked={config.preferInStockPreowned}
+                onChange={(e) => setConfig({ ...config, preferInStockPreowned: e.target.checked })}
                 className="h-4 w-4 accent-brand"
               />
             </label>
@@ -317,13 +316,13 @@ export default function AdminRecommendations() {
                   <div key={key}>
                     <div className="flex justify-between text-xs font-medium text-black dark:text-white">
                       <span>{t(`weights.${key}`)}</span>
-                      <span>{config.weights[key].toFixed(2)}×</span>
+                      <span>{config.weights[key].toFixed(0)}%</span>
                     </div>
                     <input
                       type="range"
                       min={0}
-                      max={3}
-                      step={0.1}
+                      max={100}
+                      step={1}
                       value={config.weights[key]}
                       onChange={(e) =>
                         setConfig({
