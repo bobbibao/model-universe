@@ -67,7 +67,7 @@
     "gradeNote": "Từ bộ snap-fit đầu tiên đến tác phẩm tâm điểm của bộ sưu tập.",
     "servicesTitle": "Thêm cách để sưu tầm",
     "reserve": "Đặt cọc giữ mô hình",
-    "reserveNote": "Bắt đầu với cọc 50%. Theo dõi rõ số tiền và thời gian giữ.",
+    "reserveNote": "Cọc từ 20%, kích hoạt khi tiền và tồn kho đã xác nhận.",
     "sell": "Bán cho Model Universe",
     "sellNote": "Gửi ảnh thực tế và xác nhận giá thu sau thẩm định.",
     "pawn": "Cầm cố mô hình",
@@ -272,9 +272,9 @@
     "title": "Giữ chỗ cho mô hình bạn yêu thích.",
     "adminTitle": "Quản lý giữ hàng",
     "adminEmpty": "Chưa có yêu cầu giữ hàng cần quản lý.",
-    "intro": "Giữ mô hình còn hàng, theo dõi tiền đã xác nhận và yêu cầu giao hoặc nhận hàng tại một nơi.",
-    "rules": "Thanh toán lần đầu đã xác nhận từ 50% bắt đầu thời hạn 15 ngày. Mỗi 5% bổ sung trọn vẹn tăng thêm 10 ngày, tính từ lần xác nhận đầu tiên. Thanh toán đủ sẽ dừng hết hạn.",
-    "moneyNotice": "Ảnh chuyển khoản chưa phải xác nhận thanh toán. Nhân viên phải kiểm tra tiền thực nhận. Hàng hết hạn vẫn được giữ đến khi nhân viên xử lý.",
+    "intro": "Giữ mô hình bằng cọc từ 20% tiền hàng sau ưu đãi, không gồm phí giao hàng chưa chốt.",
+    "rules": "20–dưới 40%: 10 ngày; 40–dưới 50%: 15; 50–dưới 60%: 25; 60–dưới 70%: 30; 70–dưới 100%: 45. Hạn tính từ lần kích hoạt ban đầu. Đúng 100%: đã trả đủ.",
+    "moneyNotice": "Chỉ giữ hàng sau khi tiền được xác nhận và đặt giữ tồn thành công. Tiền đến muộn hoặc dư cần đối soát.",
     "signIn": "Đăng nhập để quản lý giữ hàng",
     "retry": "Thử lại",
     "empty": "Bộ sưu tập bắt đầu từ một mô hình.",
@@ -308,7 +308,7 @@
     "deliveryNotice": "Xác nhận của cửa hàng mới dừng hết hạn. COD chỉ thu số tiền còn thiếu. Địa điểm và thời gian nhận trực tiếp cần được hẹn với nhân viên.",
     "requestDelivery": "Gửi yêu cầu nhận hàng",
     "cancelDelivery": "Hủy yêu cầu nhận chưa xác nhận",
-    "cancelNotice": "Tiền cọc thông thường không được hoàn khi khách hủy. Nhân viên sẽ ghi nhận đối soát; ngoại lệ phải có bằng chứng lỗi của cửa hàng.",
+    "cancelNotice": "Gửi yêu cầu hủy để shop kiểm tra và xử lý tiền cọc. Không tự tịch thu cọc.",
     "history": "Thanh toán và hoạt động",
     "status": {
       "awaiting_payment": "Chờ xác nhận tiền",
@@ -318,7 +318,9 @@
       "fulfilling": "Đang thực hiện đơn",
       "completed": "Hoàn tất",
       "expired": "Hết hạn / chờ xử lý",
-      "cancelled": "Đã hủy"
+      "cancelled": "Đã hủy",
+      "PAID_IN_FULL": "Đã trả đủ",
+      "cancel_requested": "Chờ duyệt hủy"
     },
     "evidence": "Chứng từ thanh toán riêng tư",
     "uploadEvidence": "Tải chứng từ thanh toán",
@@ -356,9 +358,9 @@
       "voucher": "Ngưỡng lợi nhuận voucher"
     },
     "disclosures": {
-      "reservation": "Xác nhận giá giữ hàng là giá mô hình thực trả, tính ngày đủ 24 giờ từ lần xác nhận tiền đầu tiên và cộng số ngày gia hạn được phép.",
+      "reservation": "20–dưới 40%: 10 ngày; 40–dưới 50%: 15; 50–dưới 60%: 25; 60–dưới 70%: 30; 70–dưới 100%: 45. Hạn tính từ lần kích hoạt ban đầu. Đúng 100%: đã trả đủ.",
       "loyalty": "Xác nhận bảng đổi thưởng chung và một ưu đãi chính mỗi đơn. Điểm của hàng hoàn được đảo theo giá trị mô hình còn lại; điểm đã dùng tạo nợ được bù bằng điểm sau. Phải chọn rõ hạn mã ưu đãi. Điểm chỉ được cộng sau thời gian kiểm soát đổi trả tính từ khi giao hàng (tối đa bằng thời hạn đổi trả 30 ngày).",
-      "pawn": "Văn bản nêu lãi 0,03% mỗi ngày nhưng một công thức ghi 0,3%. Chọn mức lãi, cách tính ngày, làm tròn và thời gian ân hạn được duyệt; hệ thống không tự chọn. Lãi bị giới hạn bằng tiền gốc.",
+      "pawn": "C50 = ROUND(S × 0,5). Lãi kép 0,3%/ngày chỉ mô phỏng, tổng lãi tối đa bằng gốc ban đầu. Ghi nhận phê duyệt pháp lý riêng trước nghiệp vụ thật; hợp đồng cũ giữ nguyên snapshot.",
       "marketplace": "Chọn phí bán hàng cố định và thời gian chờ đối soát. Ký quỹ 10% là khoản riêng, vận chuyển báo giá theo từng người bán. Tiền đang tranh chấp bị giữ lại.",
       "buyback": "Kiểm định trước khi khách chấp nhận giá cuối và cửa hàng xác nhận trả tiền. Không nhận COD chiều gửi vào cho đến khi duyệt phương án tương thích kiểm định.",
       "voucher": "Các kiểm tra lợi nhuận mọi voucher phải qua (quy tắc v6.2 của chủ shop). Chỉ được đặt bằng hoặc chặt hơn v6.2: giữ ít nhất 80% lợi nhuận chuẩn khi dùng mã riêng và 75% khi cộng ưu đãi hạng (điểm cơ bản: 8000 = 80%), lãi tối thiểu 50.000đ và 5% tiền hàng thực trả, phí trên tiền thu và dự phòng mỗi điểm. \"Chỉ giá đã duyệt\" chặn mã trên sản phẩm chưa có giá niêm yết được duyệt."
@@ -390,7 +392,12 @@
       "minimumMarginBps": "Biên lãi tối thiểu trên tiền hàng (điểm cơ bản)",
       "feeBps": "Phí trên tiền thu (điểm cơ bản)",
       "pointReserveVnd": "Dự phòng mỗi điểm tích (VND)",
-      "pricingApproval": "Giá niêm yết được tính"
+      "pricingApproval": "Giá niêm yết được tính",
+      "calculation": "Phương pháp tính",
+      "cashFlowClock": "Kỳ dòng tiền",
+      "legalMode": "Chế độ pháp lý",
+      "legalReference": "Căn cứ duyệt pháp lý (chỉ khi đã duyệt)",
+      "ruleVersion": "Phiên bản quy tắc"
     },
     "values": {
       "net_merchandise": "Giá mô hình thực trả",
@@ -412,7 +419,13 @@
       "v6_2": "Quy tắc v6.2: 1 mã chính + 1 ưu đãi hạng (kiểm tra 80%/75%)",
       "marketplace_v1": "Cộng dồn kiểu sàn (21/10, đã thay)",
       "recorded": "Giá đang đăng, trừ khi khác giá đã duyệt",
-      "required": "Chỉ giá đã duyệt"
+      "required": "Chỉ giá đã duyệt",
+      "compound_0_3_v2": "Lãi kép mô phỏng 0,3%/ngày · trần bằng gốc",
+      "elapsed_24h_periods": "Thời gian thực / 24h; chia kỳ khi trả gốc",
+      "simulation": "Chỉ mô phỏng",
+      "approved": "Đã hoàn tất duyệt pháp lý (cần Compliance và căn cứ)",
+      "original_start_tiers": "Theo mốc mới, giữ thời điểm bắt đầu",
+      "hold-deposit-2026-10-28": "Cọc từ 20% · bảng hạn 28/10/2026"
     },
     "versionShort": "Đang áp dụng v{version}",
     "notApproved": "Chưa duyệt",
@@ -534,7 +547,7 @@
       "fullDue": "Số tiền cần chuyển",
       "received": "đã nhận",
       "awaiting": "chờ chuyển khoản",
-      "cancelPolicy": "Huỷ đơn sau khi đã đặt cọc sẽ mất 50% tiền cọc.",
+      "cancelPolicy": "Hủy và tiền đã trả được xem xét, đối soát và duyệt hoàn; không tự tịch thu cọc.",
       "depositHintInPerson": "10% giá trị mô hình để shop giữ hàng cho bạn; phần còn lại trả tại shop khi xem hàng.",
       "fullHintInPerson": "Thanh toán toàn bộ trước, tới shop chỉ cần xem và nhận hàng.",
       "payAtShop": "Trả tại shop",
@@ -1252,7 +1265,7 @@
     "attachContract": "Gửi ảnh thỏa thuận đã ký",
     "requestExtension": "Yêu cầu gia hạn ngày đáo hạn",
     "proposedDueAt": "Ngày đáo hạn mới đề nghị (giờ địa phương của bạn)",
-    "extensionNote": "Gửi yêu cầu không tự gia hạn hợp đồng. Chính sách lãi và trần lãi ban đầu không thay đổi.",
+    "extensionNote": "Shop kiểm tra trần 80% giá trị tài sản trước credit. Khoản chênh lãi gia hạn là credit trả trước, chỉ ghi khi tiền đã được xác nhận.",
     "cancelRequest": "Hủy trước khi bàn giao lưu giữ",
     "pendingExtension": "Gia hạn đang chờ nhân viên quyết định",
     "quote": "Đề xuất hoặc điều chỉnh thẩm định",
@@ -1287,7 +1300,9 @@
       "repaid": "Đã ghi nhận tiền, chờ trả tài sản",
       "returned": "Đã trả tài sản, hoàn tất hợp đồng",
       "cancelled": "Đóng mà không giải ngân",
-      "disposed": "Đã ghi nhận xử lý theo hợp đồng"
+      "disposed": "Đã ghi nhận xử lý theo hợp đồng",
+      "DUE_GRACE": "Ân hạn 48 giờ",
+      "OVERDUE_REVIEW": "Chờ xem xét quá hạn"
     },
     "events": {
       "submitted": "Đã gửi yêu cầu",
@@ -3176,17 +3191,17 @@
     },
     "admin": {
       "requestTitle": "Khách yêu cầu huỷ đơn",
-      "refundNote": "Đơn đã nhận tiền: sau khi huỷ, ghi nhận khoản hoàn tiền ở mục Thanh toán trước.",
+      "refundNote": "Đơn đã nhận tiền: lập yêu cầu hoàn; duyệt độc lập và chờ ngân hàng xác nhận.",
       "approve": "Chấp nhận và huỷ đơn",
       "reject": "Từ chối yêu cầu",
       "rejectNote": "Lý do từ chối (gửi cho khách)",
       "approveTitle": "Huỷ đơn #{id} theo yêu cầu của khách",
       "cancelTitle": "Huỷ đơn #{id}",
       "cancelNotice": "Vận đơn đang chờ lấy hàng sẽ được huỷ với đơn vị vận chuyển. Đơn đã được lấy hàng thì không thể huỷ.",
-      "feeNote": "Huỷ vì lý do của khách (khách yêu cầu huỷ, không liên lạc được) sẽ giữ lại 50% tiền cọc; lý do của cửa hàng hoàn lại toàn bộ."
+      "feeNote": "Hủy và tiền đã trả được xem xét, đối soát và duyệt hoàn; không tự tịch thu cọc."
     },
-    "feeNotice": "Theo chính sách, huỷ đơn đã đặt cọc sẽ mất 50% tiền cọc: cửa hàng giữ {fee} và hoàn lại {refund}.",
-    "feeKept": "Cửa hàng giữ {fee} (50% tiền cọc) và hoàn lại {refund}."
+    "feeNotice": "Hủy và tiền đã trả được xem xét, đối soát và duyệt hoàn; không tự tịch thu cọc.",
+    "feeKept": "Hủy và tiền đã trả được xem xét, đối soát và duyệt hoàn; không tự tịch thu cọc."
   },
   "printCenter": {
     "title": "In phiếu giao hàng",
@@ -3436,7 +3451,7 @@
       }
     },
     "freeShipping": "Miễn phí vận chuyển",
-    "cancelPolicy": "Huỷ đơn đã cọc mất 50% tiền cọc",
+    "cancelPolicy": "Hủy và tiền đã trả được xem xét, đối soát và duyệt hoàn; không tự tịch thu cọc.",
     "when": "Bạn muốn đến lúc nào?",
     "yourName": "Họ tên của bạn",
     "notePlaceholder": "Không bắt buộc, ví dụ: đi cùng 2 người",

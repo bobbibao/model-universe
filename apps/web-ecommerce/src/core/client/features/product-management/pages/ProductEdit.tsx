@@ -1,5 +1,6 @@
 'use client';
 
+import ProductOwnership from '../components/ProductOwnership';
 import { useTranslations } from 'next-intl';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -151,7 +152,17 @@ const ProductEdit = () => {
     );
   }
 
-  if (product.catalogCanonicalId) return <div className="catalog-inline-notice"><p>{t('name')}: {product.name} · SKU {product.sku}</p><Link href={`/admin/products/${product.catalogCanonicalId}`}>Đã gộp vào sản phẩm #{product.catalogCanonicalId} →</Link></div>;
+  if (product.catalogCanonicalId)
+    return (
+      <div className="catalog-inline-notice">
+        <p>
+          {t('name')}: {product.name} · SKU {product.sku}
+        </p>
+        <Link href={`/admin/products/${product.catalogCanonicalId}`}>
+          Đã gộp vào sản phẩm #{product.catalogCanonicalId} →
+        </Link>
+      </div>
+    );
 
   // A condition option: its model (name, brand, code, descriptions, box) is edited on the main listing.
   const option = false;
@@ -316,6 +327,7 @@ const ProductEdit = () => {
         </div>
       </div>
 
+      <ProductOwnership productId={productId} />
       <ConfirmModal
         open={confirmingDelete}
         title={t('remove')}

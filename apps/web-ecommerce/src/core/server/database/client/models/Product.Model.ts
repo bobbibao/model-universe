@@ -15,10 +15,21 @@ export const INVENTORY_STATUSES: InventoryStatus[] = ['available', 'quarantine',
 export const SALES_CHANNELS: SalesChannel[] = ['web', 'outlet'];
 
 // Storefront visibility, shared by every public query: not discontinued and not held back by an adjustment.
-export const STOREFRONT_VISIBLE = { isArchived: false, inventoryStatus: 'available', listingStatus: 'published', catalogCanonicalId: null } as const;
+export const STOREFRONT_VISIBLE = {
+  isArchived: false,
+  inventoryStatus: 'available',
+  listingStatus: 'published',
+  catalogCanonicalId: null,
+} as const;
 
-export const isSellable = (product: Pick<ProductModel, 'isArchived' | 'inventoryStatus'> & Partial<Pick<ProductModel,'partnerId'|'listingStatus'|'catalogCanonicalId'>>): boolean =>
-  !product.catalogCanonicalId && !product.isArchived && product.inventoryStatus === 'available' && (product.listingStatus === 'published' || (!product.partnerId && product.listingStatus === undefined));
+export const isSellable = (
+  product: Pick<ProductModel, 'isArchived' | 'inventoryStatus'> &
+    Partial<Pick<ProductModel, 'partnerId' | 'listingStatus' | 'catalogCanonicalId'>>,
+): boolean =>
+  !product.catalogCanonicalId &&
+  !product.isArchived &&
+  product.inventoryStatus === 'available' &&
+  (product.listingStatus === 'published' || (!product.partnerId && product.listingStatus === undefined));
 
 @Table({
   tableName: 'product',
@@ -28,6 +39,8 @@ export const isSellable = (product: Pick<ProductModel, 'isArchived' | 'inventory
   ],
 })
 export default class ProductModel extends Model {
+  @Column(DataType.DATE) ownershipVerifiedAt!: Date | null;
+  @Column(DataType.TEXT) ownershipReference!: string | null;
   @Column(DataType.INTEGER)
   partnerId!: number | null;
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires -- Resolve mutually dependent workflow services only when an operation runs. */
 import { effectiveItemType } from '../../../shared/condition-tree';
 import CatalogTreeService from './catalog/CatalogTreeService';
 import { conditionPath } from '../../../shared/condition-tree';
@@ -469,7 +470,11 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
                 shopBenefitEligible: !product.partnerId,
                 scale: product.scale,
                 modelCode: product.modelCode,
-                condition: product.condition, modelFamilyId: product.modelFamilyId, itemTypeKey: effectiveItemType(product), conditionNodeIds: product.conditionNodeIds, conditionLabels: (product.conditionNodeIds ?? []).map(id => conditionPath(id, conditionTree)),
+                condition: product.condition,
+                modelFamilyId: product.modelFamilyId,
+                itemTypeKey: effectiveItemType(product),
+                conditionNodeIds: product.conditionNodeIds,
+                conditionLabels: (product.conditionNodeIds ?? []).map((id) => conditionPath(id, conditionTree)),
                 conditionNote: product.conditionNote ?? null,
                 assemblyState: product.assemblyState,
                 boxCondition: product.boxCondition,
@@ -551,6 +556,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     });
     for (const order of page.rows) {
       order.setDataValue('benefitSnapshot', publicBenefitSnapshot(order.benefitSnapshot));
+      order.setDataValue('paymentPurpose', order.paymentPlan === 'deposit' ? 'PURCHASE_DEPOSIT' : 'PURCHASE_PAYMENT');
       order.setDataValue('transferInstructions', this.transferInstructions(order));
       order.setDataValue('shipments', await this.shipments(order.id));
       order.setDataValue(
@@ -575,7 +581,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
   // Tells the customer that their order was cancelled, why, and what happens to their money.
   private async notifyCancelled(order: OrderModel, transaction: Transaction) {
     const reason = order.cancelReason || '';
-    // The customer gave a paid order up: the shop keeps 50% of the deposit and refunds the rest.
+    // No automatic deposit forfeiture; actual refunds require review and provider confirmation.
     const feeVnd = isCustomerSideCancellation(order) ? cancellationFeeVnd(order) : 0;
     await order.update({ cancellationFeeVnd: feeVnd }, { transaction });
     const refundVnd = order.prepaidVnd - feeVnd;
@@ -598,10 +604,10 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
                   : '.'
             }`,
             feeVnd > 0
-              ? `Theo chính sách huỷ đơn đã đặt cọc, cửa hàng giữ lại ${feeVnd.toLocaleString('vi-VN')} ₫ (50% tiền cọc).`
+              ? `Theo chính sách huỷ đơn đã đặt cọc, cửa hàng giữ lại ${feeVnd.toLocaleString('vi-VN')} ₫ (theo quyết định đã được duyệt).`
               : '',
             refund
-              ? `Cửa hàng sẽ hoàn lại ${refundVnd.toLocaleString('vi-VN')} ₫ và báo cho bạn khi hoàn tất.`
+              ? `Khoản ${refundVnd.toLocaleString('vi-VN')} ₫ đang chờ đối soát hoàn tiền; cửa hàng báo lại sau khi ngân hàng xác nhận.`
               : order.prepaidVnd > 0
                 ? 'Đơn này không còn khoản nào được hoàn lại.'
                 : 'Bạn chưa thanh toán khoản nào cho đơn này.',
@@ -620,7 +626,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
           orderId: order.id,
           dedupeKey: `order:${order.id}:refund-due`,
           title: 'MODEL universe – ĐƠN ĐÃ HUỶ, CẦN HOÀN TIỀN',
-          content: `Mã đơn: ${transferMemo(order.id)}\nĐã thu: ${order.prepaidVnd} VND\nGiữ lại (50% cọc, khách huỷ): ${feeVnd} VND\nCần hoàn: ${refundVnd} VND\nHoàn tiền rồi ghi nhận ở mục Thanh toán trước.\nXem đơn: ${adminOrderUrl(order.id)}`,
+          content: `Mã đơn: ${transferMemo(order.id)}\nĐã thu: ${order.prepaidVnd} VND\nKhoản khấu trừ đã duyệt: ${feeVnd} VND\nCần hoàn: ${refundVnd} VND\nHoàn tiền rồi ghi nhận ở mục Thanh toán trước.\nXem đơn: ${adminOrderUrl(order.id)}`,
         },
         transaction,
       );
@@ -629,6 +635,8 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
   // Cancellations the system makes (src/shared/cancellation.ts): an unpaid order past its deadline, or a customer's
   // request staff did not answer in time. A waybill still waiting for pickup is cancelled with the carrier first.
   async systemCancel(orderId: number, reason: 'payment_timeout' | 'customer_request', note: string) {
+    const current = await OrderModel.findByPk(orderId);
+    if (!current || current.prepaidVnd > 0) return false;
     // Every parcel's waybill: none may have been picked up.
     const shipments = await OrderShipmentModel.findAll({
       where: { orderId, status: ACTIVE_SHIPMENT_STATUSES as unknown as string[] },
@@ -646,7 +654,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     await DatabaseProvider.getInstance().transaction(async (transaction) => {
       const order = await OrderModel.findByPk(orderId, { transaction, lock: transaction.LOCK.UPDATE });
       if (!order || order.status !== 'PROCESSING') return;
-      if (reason === 'payment_timeout' && order.prepaidVnd > 0) return; // paid meanwhile
+      if (order.prepaidVnd > 0) return; // paid meanwhile
       await this.changeStatus(order, 'CANCELLED', transaction, order.createdByUserId ?? order.userId ?? undefined);
       await order.update(
         {
@@ -679,6 +687,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     const order = await OrderModel.findOne({ where: { id: orderId, userId }, include: [itemsInclude] });
     if (!order) throw HttpError.notFound('Không tìm thấy đơn hàng.');
     order.setDataValue('benefitSnapshot', publicBenefitSnapshot(order.benefitSnapshot));
+    order.setDataValue('paymentPurpose', order.paymentPlan === 'deposit' ? 'PURCHASE_DEPOSIT' : 'PURCHASE_PAYMENT');
     order.setDataValue('transferInstructions', this.transferInstructions(order));
     order.setDataValue('shipments', await this.shipments(orderId));
     order.setDataValue(
@@ -740,6 +749,12 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
   }
 
   async recordPrepayment(orderId: number, actorUserId: number, data: Record<string, unknown>) {
+    if (data.kind === 'refund') {
+      const { default: MoneyOperationsService } =
+        require('./MoneyOperationsService') as typeof import('./MoneyOperationsService');
+      await new MoneyOperationsService().request('purchase_refund', orderId, actorUserId, data);
+      return this.getAdmin(orderId);
+    }
     await this.applyPrepayment(orderId, actorUserId, data, {});
     new NotificationDispatchService().dispatchSoon();
     if (data.kind !== 'refund') OrderService.afterUpfrontPayment(orderId);
@@ -890,8 +905,23 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       });
       if (order.discount > 0)
         await CouponModel.decrement('budgetUsedVnd', {
-          by: order.discount,
-          where: { code: order.couponCode, budgetVnd: { [Op.ne]: null }, budgetUsedVnd: { [Op.gte]: order.discount } },
+          by: Math.max(
+            0,
+            order.discount -
+              (Number((order.benefitSnapshot?.rank as { discountVnd?: number } | undefined)?.discountVnd || 0) || 0),
+          ),
+          where: {
+            code: order.couponCode,
+            budgetVnd: { [Op.ne]: null },
+            budgetUsedVnd: {
+              [Op.gte]: Math.max(
+                0,
+                order.discount -
+                  (Number((order.benefitSnapshot?.rank as { discountVnd?: number } | undefined)?.discountVnd || 0) ||
+                    0),
+              ),
+            },
+          },
           transaction,
         });
     }
@@ -918,21 +948,16 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     if (reservation && !actorUserId)
       throw HttpError.badRequest('An identified actor is required to change a reservation order.');
     if (nextStatus === 'CANCELLED') {
-      await this.restoreInventory(order, transaction, !!reservation);
+      await this.restoreInventory(order, transaction, false);
       if (reservation) {
-        const status =
-          reservation.paidVnd === reservation.totalVnd
-            ? 'fully_paid'
-            : reservation.expiresAt && reservation.expiresAt < new Date()
-              ? 'expired'
-              : 'holding';
-        await reservation.update({ status, orderId: null, shipping: null, deliveryMethod: null }, { transaction });
+        await reservation.update({ status: 'cancelled', inventoryAllocated: false }, { transaction });
         await ReservationEventModel.create(
           {
             reservationId: reservation.id,
             actorUserId,
             action: 'order_cancelled',
-            reason: 'Unshipped fulfillment cancelled; deposit and inventory allocation retained.',
+            reason:
+              'Unshipped order cancelled; stock released once. Transferred deposit remains on the linked order for refund reconciliation, not a new hold.',
             details: { orderId: order.id },
           },
           { transaction },
@@ -1009,7 +1034,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
           'ORDER_IN_TRANSIT',
         );
       // A checkout prepayment must be refunded by staff; reservation money stays with its reservation.
-      const refundDue = !!order.paymentPlan && order.prepaidVnd > 0;
+      const refundDue = order.prepaidVnd > 0;
       if (!refundDue && !shipment) {
         await this.changeStatus(order, 'CANCELLED', transaction, userId);
         await order.update(
@@ -1136,6 +1161,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       'prepayments',
       await OrderPrepaymentModel.findAll({ where: { orderId }, order: [['id', 'ASC']] }),
     );
+    order.setDataValue('paymentPurpose', order.paymentPlan === 'deposit' ? 'PURCHASE_DEPOSIT' : 'PURCHASE_PAYMENT');
     order.setDataValue('transferInstructions', this.transferInstructions(order));
     order.setDataValue('shipments', await this.shipments(orderId));
     order.setDataValue('notifications', await new NotificationDispatchService().listForOrder(orderId));

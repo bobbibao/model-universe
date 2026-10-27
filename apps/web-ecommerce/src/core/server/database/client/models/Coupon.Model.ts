@@ -80,6 +80,7 @@ export default class CouponModel extends Model {
 
   @Column(DataType.INTEGER)
   reservedOrderId?: number | null;
+  @Column(DataType.INTEGER) reservedHoldId?: number | null;
 
   @Column(DataType.DATE)
   usedAt?: Date | null;

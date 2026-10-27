@@ -67,7 +67,7 @@
     "gradeNote": "From your first snap-fit to a centerpiece masterpiece.",
     "servicesTitle": "More ways to collect",
     "reserve": "Reserve a model",
-    "reserveNote": "Start with a 50% deposit. Know your balance and hold time.",
+    "reserveNote": "From 20%; activate after verified funds and stock allocation.",
     "sell": "Sell to Model Universe",
     "sellNote": "Share real photos and approve the final appraisal offer.",
     "pawn": "Pawn a model",
@@ -272,9 +272,9 @@
     "title": "Keep your next build within reach.",
     "adminTitle": "Reservation operations",
     "adminEmpty": "No reservations to manage yet.",
-    "intro": "Reserve an available model, track confirmed payments, and arrange delivery or pickup from one place.",
-    "rules": "A confirmed initial payment of 50% starts a 15-day hold. Each completed additional 5% earns 10 more days, calculated from the original confirmation. Full payment stops expiry.",
-    "moneyNotice": "An uploaded payment slip is not a confirmed payment. Staff must verify received funds. Expired holds remain allocated until staff review.",
+    "intro": "Hold an eligible model with at least 20% of net merchandise. Unconfirmed shipping is separate.",
+    "rules": "20–<40%: 10 days; 40–<50%: 15; 50–<60%: 25; 60–<70%: 30; 70–<100%: 45. Deadlines use the original activation time. 100% is paid in full.",
+    "moneyNotice": "A hold starts only after verified funds and successful stock reservation. Late or excess funds require reconciliation.",
     "signIn": "Sign in to manage reservations",
     "retry": "Try again",
     "empty": "Your collection starts with one model.",
@@ -308,7 +308,7 @@
     "deliveryNotice": "Staff confirmation stops expiry. Cash on delivery covers only the remaining balance. Pickup location and time must be arranged with staff.",
     "requestDelivery": "Request fulfillment",
     "cancelDelivery": "Cancel unconfirmed fulfillment request",
-    "cancelNotice": "The deposit normally cannot be refunded after customer cancellation. Staff will record the final reconciliation; exceptions require documented shop fault.",
+    "cancelNotice": "Request cancellation for staff review and deposit reconciliation. No automatic forfeiture.",
     "history": "Payments and activity",
     "status": {
       "awaiting_payment": "Awaiting verified payment",
@@ -318,7 +318,9 @@
       "fulfilling": "In fulfillment",
       "completed": "Completed",
       "expired": "Expired / awaiting review",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "PAID_IN_FULL": "Paid in full",
+      "cancel_requested": "Cancellation requested"
     },
     "evidence": "Private payment evidence",
     "uploadEvidence": "Upload payment evidence",
@@ -356,9 +358,9 @@
       "voucher": "Voucher profit guard"
     },
     "disclosures": {
-      "reservation": "Confirm that the hold uses the net merchandise quote, elapsed 24-hour days from the first verified payment, and additive authorized extensions.",
+      "reservation": "20–<40%: 10 days; 40–<50%: 15; 50–<60%: 25; 60–<70%: 30; 70–<100%: 45. Deadlines use the original activation time. 100% is paid in full.",
       "loyalty": "Confirm the shared source reward table and one primary benefit per order. Refunded earnings are reversed using cumulative net merchandise, with debt carried when points were already spent. Select voucher expiry explicitly. Points are credited only after the return-control period that follows delivery (at most the 30-day return window).",
-      "pawn": "The source prose states 0.03% per day while one formula says 0.3%. Select the approved rate, day counting, rounding, and grace period; no rate is selected automatically. Interest is capped at principal.",
+      "pawn": "C50 = ROUND(S × 0.5). Compound 0.3% daily is simulated, with total interest capped at original principal. Actual operations require a recorded legal approval; historical contracts retain their snapshots.",
       "marketplace": "Select the approved fixed commission and settlement delay. The 10% guarantee is a separate liability, with shipping quoted per seller. Disputed funds remain frozen.",
       "buyback": "Inspection precedes final customer acceptance and verified payout. Inbound COD is unsupported until an inspection-compatible arrangement is approved.",
       "voucher": "The profit checks every voucher passes (owner rules v6.2). Values can only be as strict as v6.2 or stricter: keep at least 80% of the standard profit alone and 75% with a rank benefit (basis points: 8000 = 80%), at least 50,000 VND and 5% of the goods paid, a fee on money received and a reserve per point. \"Approved records only\" blocks codes on products without an approved list price."
@@ -390,7 +392,12 @@
       "minimumMarginBps": "Minimum margin on goods paid (basis points)",
       "feeBps": "Fee on money received (basis points)",
       "pointReserveVnd": "Reserve per earned point (VND)",
-      "pricingApproval": "Which list prices count"
+      "pricingApproval": "Which list prices count",
+      "calculation": "Calculation",
+      "cashFlowClock": "Cash-flow clock",
+      "legalMode": "Legal mode",
+      "legalReference": "Completed legal review reference",
+      "ruleVersion": "Rule version"
     },
     "values": {
       "net_merchandise": "Net merchandise quote",
@@ -412,7 +419,13 @@
       "v6_2": "Rules v6.2: 1 main voucher + 1 rank benefit (80%/75% checks)",
       "marketplace_v1": "Marketplace stacking (2026-10-21, superseded)",
       "recorded": "Published price unless an approved record differs",
-      "required": "Approved records only"
+      "required": "Approved records only",
+      "compound_0_3_v2": "Simulated compound 0.3% daily · principal cap",
+      "elapsed_24h_periods": "Actual elapsed time / 24h; split on repayment",
+      "simulation": "Simulation only",
+      "approved": "Legal review completed (Compliance and evidence required)",
+      "original_start_tiers": "Original activation and new tiers",
+      "hold-deposit-2026-10-28": "20% hold · 28 Oct 2026 tiers"
     },
     "versionShort": "In force v{version}",
     "notApproved": "Not approved",
@@ -534,7 +547,7 @@
       "fullDue": "Amount to transfer",
       "received": "received",
       "awaiting": "awaiting transfer",
-      "cancelPolicy": "Cancelling after paying the deposit forfeits 50% of it.",
+      "cancelPolicy": "Cancellation and paid funds require review, reconciliation and approved refund; no automatic forfeiture.",
       "depositHintInPerson": "10% of the model value so the shop holds it for you; pay the rest at the shop when you see it.",
       "fullHintInPerson": "Pay everything now; at the shop you only check and collect it.",
       "payAtShop": "Pay at the shop",
@@ -1252,7 +1265,7 @@
     "attachContract": "Submit signed agreement scans",
     "requestExtension": "Request a due-date extension",
     "proposedDueAt": "Requested new due date (your local time)",
-    "extensionNote": "A request does not extend the contract automatically. The original interest policy and cap remain unchanged.",
+    "extensionNote": "The 80% valuation ceiling is checked before credit. Extension interest differences are prepaid credits, recorded only after payment confirmation.",
     "cancelRequest": "Cancel before asset custody",
     "pendingExtension": "Extension awaiting staff decision",
     "quote": "Propose or revise appraisal terms",
@@ -1287,7 +1300,9 @@
       "repaid": "Payment recorded, awaiting handback",
       "returned": "Asset returned, contract complete",
       "cancelled": "Closed without disbursement",
-      "disposed": "Contractual disposal recorded"
+      "disposed": "Contractual disposal recorded",
+      "DUE_GRACE": "48h grace",
+      "OVERDUE_REVIEW": "Overdue review"
     },
     "events": {
       "submitted": "Request submitted",
@@ -3176,17 +3191,17 @@
     },
     "admin": {
       "requestTitle": "The customer asks to cancel",
-      "refundNote": "Money was received: after cancelling, record the refund under Upfront payment.",
+      "refundNote": "Funds received: request a refund, obtain independent approval and await bank confirmation.",
       "approve": "Accept and cancel the order",
       "reject": "Turn the request down",
       "rejectNote": "Why not (sent to the customer)",
       "approveTitle": "Cancel order #{id} at the customer’s request",
       "cancelTitle": "Cancel order #{id}",
       "cancelNotice": "A waybill still waiting for pickup is cancelled with the carrier. A picked-up order cannot be cancelled.",
-      "feeNote": "Cancelling for the customer's reason (their request, unreachable) keeps 50% of the deposit; the shop's own reasons refund everything."
+      "feeNote": "Cancellation and paid funds require review, reconciliation and approved refund; no automatic forfeiture."
     },
-    "feeNotice": "By policy, cancelling a paid order forfeits 50% of the deposit: the shop keeps {fee} and refunds {refund}.",
-    "feeKept": "The shop kept {fee} (50% of the deposit) and refunds {refund}."
+    "feeNotice": "Cancellation and paid funds require review, reconciliation and approved refund; no automatic forfeiture.",
+    "feeKept": "Cancellation and paid funds require review, reconciliation and approved refund; no automatic forfeiture."
   },
   "printCenter": {
     "title": "Print shipping labels",
@@ -3436,7 +3451,7 @@
       }
     },
     "freeShipping": "No shipping fee",
-    "cancelPolicy": "Cancelling after the deposit forfeits 50% of it",
+    "cancelPolicy": "Cancellation and paid funds require review, reconciliation and approved refund; no automatic forfeiture.",
     "when": "When will you come?",
     "yourName": "Your name",
     "notePlaceholder": "Optional, e.g. coming with a friend",

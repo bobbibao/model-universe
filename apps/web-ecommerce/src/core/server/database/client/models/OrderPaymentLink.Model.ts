@@ -2,7 +2,8 @@ import { Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript
 import OrderModel from './Order.Model';
 import CheckoutSessionModel from './CheckoutSession.Model';
 
-export type PaymentLinkStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'UNDERPAID' | 'PROCESSING' | 'FAILED';
+export type PaymentLinkStatus =
+  'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'UNDERPAID' | 'PROCESSING' | 'FAILED' | 'RECONCILIATION';
 
 // One online payment request (payOS) for an upfront amount (deposit or full): of an existing order, or of a checkout
 // session whose order is created once the payment is confirmed (orderId is set then). The provider order code is
@@ -17,6 +18,7 @@ export type PaymentLinkStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | '
   ],
 })
 export default class OrderPaymentLinkModel extends Model {
+  @Column(DataType.INTEGER) reservationId!: number | null;
   @ForeignKey(() => OrderModel) @Column(DataType.INTEGER) orderId!: number | null;
   @ForeignKey(() => CheckoutSessionModel) @Column(DataType.INTEGER) checkoutSessionId!: number | null;
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'payos' }) provider!: string;

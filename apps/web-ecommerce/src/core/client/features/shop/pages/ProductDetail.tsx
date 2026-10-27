@@ -1,4 +1,5 @@
 'use client';
+import HoldRequestDialog from '../../reservations/HoldRequestDialog';
 import { initialConditionOptionId, orderConditionOptions } from '@/shared/product-condition-option';
 
 import { rememberViewed } from '@/shared/client/recentlyViewed';
@@ -13,7 +14,6 @@ import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useParams, useSearchParams } from 'next/navigation';
 import ProductApi from '@/core/client/api/Product';
-import Api from '@/core/client/api/Api';
 import WishlistApi from '@/core/client/api/Wishlist';
 import { useCart } from '@/shared/client/providers/CartProvider';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
@@ -96,8 +96,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const [quantity, setQuantity] = useState(1);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [wishlistBusy, setWishlistBusy] = useState(false);
-  const [reserveBusy, setReserveBusy] = useState(false);
-  const reservationRequest = useRef<{ key: string; quantity: number } | undefined>(undefined);
+  const [holdOpen, setHoldOpen] = useState(false);
   const purchaseRef = useRef<HTMLDivElement>(null);
   const [purchaseVisible, setPurchaseVisible] = useState(true);
   const [addedUnit, setAddedUnit] = useState<number | null>(null);
@@ -186,9 +185,10 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const unit = units.find((item) => item.id === unitId) ?? units[0];
   const unitPath = unit ? productPath(unit) : product ? productPath(product) : '';
   const chooseUnit = (id: number) => {
-    const chosen = units.find(item => item.id === id);
+    const chosen = units.find((item) => item.id === id);
     if (!chosen || chosen.id === unitId) return;
-    setUnitId(id); setQuantity(1);
+    setUnitId(id);
+    setQuantity(1);
     router.push(productPath(chosen), { scroll: false });
   };
 
@@ -319,14 +319,27 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             {!inStock && (
               <div className="product-detail-soldout-banner mb-4" role="status">
                 <div className="soldout-banner-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                 </div>
                 <div className="soldout-banner-info">
                   <strong>{locale === 'en' ? 'Temporarily Out of Stock' : 'Mô hình này hiện đang tạm hết hàng'}</strong>
-                  <p>{locale === 'en' ? 'Click below to be notified immediately when restocked.' : 'Bật thông báo bên dưới để nhận tin ngay khi mô hình có hàng trở lại.'}</p>
+                  <p>
+                    {locale === 'en'
+                      ? 'Click below to be notified immediately when restocked.'
+                      : 'Bật thông báo bên dưới để nhận tin ngay khi mô hình có hàng trở lại.'}
+                  </p>
                 </div>
               </div>
             )}
@@ -378,7 +391,11 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             {!inStock && (
               <p className="detail-restock-hint mt-3">
                 <PromoIcon name="info" size={14} />
-                <span>{locale === 'en' ? 'Free notification · No pre-payment or deposit required' : 'Thông báo miễn phí · Không cần đặt cọc hay thanh toán trước'}</span>
+                <span>
+                  {locale === 'en'
+                    ? 'Free notification · No pre-payment or deposit required'
+                    : 'Thông báo miễn phí · Không cần đặt cọc hay thanh toán trước'}
+                </span>
               </p>
             )}
             {inStock && (
@@ -426,29 +443,14 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
 
             {product.modelCode && !product.partnerId && (
               <button
-                disabled={!inStock || reserveBusy}
+                disabled={!inStock}
                 className="product-secondary-action"
-                onClick={async () => {
+                onClick={() => {
                   if (!user) {
                     router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
                     return;
                   }
-                  if (reservationRequest.current?.quantity !== quantity)
-                    reservationRequest.current = { key: crypto.randomUUID(), quantity };
-                  setReserveBusy(true);
-                  try {
-                    await Api.post('/reservations', {
-                      productId: unit.id,
-                      quantity,
-                      expectedTotal: unit.salePrice * quantity,
-                      requestKey: reservationRequest.current.key,
-                    });
-                    router.push('/reservations');
-                  } catch {
-                    /* The shared API reports policy gates and stale quotes. */
-                  } finally {
-                    setReserveBusy(false);
-                  }
+                  setHoldOpen(true);
                 }}
               >
                 <PromoIcon name="calendar" size={16} />
@@ -459,6 +461,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         </div>
       </div>
 
+      {holdOpen && <HoldRequestDialog productId={unit.id} quantity={quantity} onClose={() => setHoldOpen(false)} />}
       <WorkspaceTabs
         className="product-information"
         label={t('details')}
@@ -591,7 +594,11 @@ const ConditionPicker = ({
   const locale = useLocale();
   const facts = [
     ...(selected.conditionLabels ?? []),
-    selected.conditionPercent ? (locale === 'en' ? `Condition: ${selected.conditionPercent}%` : `Độ mới: ${selected.conditionPercent}%`) : null,
+    selected.conditionPercent
+      ? locale === 'en'
+        ? `Condition: ${selected.conditionPercent}%`
+        : `Độ mới: ${selected.conditionPercent}%`
+      : null,
     selected.conditionNote,
     selected.missingAccessories.length > 0 && `${t('missingAccessories')}: ${selected.missingAccessories.join(', ')}`,
     selected.condition !== 'new' && selected.defects.length > 0 && `${t('defects')}: ${selected.defects.join(', ')}`,
@@ -599,8 +606,18 @@ const ConditionPicker = ({
   return (
     <section className="condition-picker" aria-labelledby="condition-picker-title">
       <div className="condition-picker-head">
-        <h2 id="condition-picker-title">{units.length > 1 ? (locale === 'en' ? 'Other conditions of this model' : 'Các tình trạng khác của mẫu này') : t('condition')}</h2>
-        {units.length > 1 && <span className="condition-options-count">{units.length} {locale === 'en' ? 'options' : 'lựa chọn'}</span>}
+        <h2 id="condition-picker-title">
+          {units.length > 1
+            ? locale === 'en'
+              ? 'Other conditions of this model'
+              : 'Các tình trạng khác của mẫu này'
+            : t('condition')}
+        </h2>
+        {units.length > 1 && (
+          <span className="condition-options-count">
+            {units.length} {locale === 'en' ? 'options' : 'lựa chọn'}
+          </span>
+        )}
       </div>
       {units.length > 1 && (
         <div className="condition-options" role="radiogroup" aria-labelledby="condition-picker-title">
@@ -624,7 +641,9 @@ const ConditionPicker = ({
                     {unit.conditionPercent ? ` · ${unit.conditionPercent}%` : ''}
                   </span>
                   <span className="condition-option-note">
-                    {unit.conditionLabels?.join(' · ') || unit.conditionNote || (locale === 'en' ? 'No issues recorded' : 'Không ghi nhận lỗi')}
+                    {unit.conditionLabels?.join(' · ') ||
+                      unit.conditionNote ||
+                      (locale === 'en' ? 'No issues recorded' : 'Không ghi nhận lỗi')}
                   </span>
                 </span>
                 <span className="condition-option-price">
@@ -638,8 +657,23 @@ const ConditionPicker = ({
           ))}
         </div>
       )}
-      {facts.length > 0 ? <details className={`condition-details is-${selected.condition}`}><summary>{locale === 'en' ? 'View the selected condition details' : 'Xem chi tiết tình trạng đã chọn'}</summary><ul>{facts.map(fact => <li key={fact}>{fact}</li>)}</ul></details> : units.length === 1 ? <div className={`condition-details is-${selected.condition}`}><span className={`condition-chip is-${selected.condition}`}>{conditionTypes.label(selected.condition)}</span><p>{locale === 'en' ? 'No issues recorded' : 'Không ghi nhận lỗi'}</p></div> : null}
-
+      {facts.length > 0 ? (
+        <details className={`condition-details is-${selected.condition}`}>
+          <summary>
+            {locale === 'en' ? 'View the selected condition details' : 'Xem chi tiết tình trạng đã chọn'}
+          </summary>
+          <ul>
+            {facts.map((fact) => (
+              <li key={fact}>{fact}</li>
+            ))}
+          </ul>
+        </details>
+      ) : units.length === 1 ? (
+        <div className={`condition-details is-${selected.condition}`}>
+          <span className={`condition-chip is-${selected.condition}`}>{conditionTypes.label(selected.condition)}</span>
+          <p>{locale === 'en' ? 'No issues recorded' : 'Không ghi nhận lỗi'}</p>
+        </div>
+      ) : null}
     </section>
   );
 };

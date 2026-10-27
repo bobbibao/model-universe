@@ -1,7 +1,7 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
 export type DeliveryChannel = 'email' | 'zalo' | 'zns';
-export type DeliveryStatus = 'pending' | 'sent' | 'failed' | 'skipped';
+export type DeliveryStatus = 'pending' | 'sent' | 'failed' | 'skipped' | 'cancelled';
 
 // One outbound message (an email to a customer, a Zalo message to the shop) for a customer notification or an admin
 // alert. Created pending inside the business transaction and sent after it commits; failures retry a limited number
@@ -11,6 +11,7 @@ export type DeliveryStatus = 'pending' | 'sent' | 'failed' | 'skipped';
   indexes: [{ fields: ['status', 'updatedAt'] }, { fields: ['sourceType', 'sourceId'] }],
 })
 export default class NotificationDeliveryModel extends Model {
+  @Column({ type: DataType.DATE, allowNull: false, defaultValue: DataType.NOW }) scheduledAt!: Date;
   @Column({ type: DataType.STRING, allowNull: false }) channel!: DeliveryChannel;
   @Column({ type: DataType.STRING, allowNull: false }) sourceType!: 'customer_notification' | 'admin_alert';
   @Column({ type: DataType.INTEGER, allowNull: false }) sourceId!: number;

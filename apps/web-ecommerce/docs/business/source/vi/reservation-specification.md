@@ -1,3 +1,5 @@
+> **Nguồn lịch sử:** quy tắc vận hành mới ngày 28/10/2026 được ghi tại [Cầm cố và cọc giữ hàng](../../../model-universe/pawn-hold-ledgers.md). Không dùng bảng hạn/lãi/khấu trừ cọc cũ dưới đây cho hồ sơ mới; giữ nguyên nội dung nguồn để đối chiếu.
+
 # **ĐẶC TẢ CHỨC NĂNG GIỮ HÀNG VÀ QUẢN LÝ TIỀN CỌC**
 
 ## **1. MỤC ĐÍCH**
@@ -63,7 +65,7 @@ Sau đó, cứ mỗi khi tổng tiền cọc tăng thêm **5% giá trị sản p
 Bảng quy định:
 
 | **Tỷ lệ cọc** | **Thời gian giữ hàng** |
-|---------------|------------------------|
+| ------------- | ---------------------- |
 | 50%           | 15 ngày                |
 | 55%           | 25 ngày                |
 | 60%           | 35 ngày                |
@@ -493,7 +495,7 @@ Mỗi lần khách thanh toán cọc phải tạo một bản ghi giao dịch ri
 Ví dụ:
 
 | **Lần** | **Số tiền** | **Tỷ lệ thêm** | **Tổng cọc** | **Tổng tỷ lệ** |
-|---------|-------------|----------------|--------------|----------------|
+| ------- | ----------- | -------------- | ------------ | -------------- |
 | 1       | 1.000.000đ  | 50%            | 1.000.000đ   | 50%            |
 | 2       | 100.000đ    | 5%             | 1.100.000đ   | 55%            |
 | 3       | 100.000đ    | 5%             | 1.200.000đ   | 60%            |
@@ -723,7 +725,7 @@ Admin phải có màn hình quản lý đơn giữ hàng.
 Các thông tin cần hiển thị:
 
 | **Thông tin** | **Nội dung**            |
-|---------------|-------------------------|
+| ------------- | ----------------------- |
 | Mã đơn        | ORDER001                |
 | Khách hàng    | Tên khách               |
 | Sản phẩm      | Tên model               |

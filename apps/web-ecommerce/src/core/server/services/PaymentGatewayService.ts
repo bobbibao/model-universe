@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-var-requires -- Resolve mutually dependent workflow services only when an operation runs. */
+import ReservationModel from '../database/client/models/Reservation.Model';
+import { HOLD_RULE_VERSION } from '../../../shared/reservation';
 import { PayOS } from '@payos/node';
-import { Op } from 'sequelize';
+import { Op, QueryTypes } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
 import OrderModel from '../database/client/models/Order.Model';
 import OrderPaymentLinkModel from '../database/client/models/OrderPaymentLink.Model';
@@ -78,6 +81,102 @@ const payos = (): PayOSLike => {
 export default class PaymentGatewayService {
   private notices = new NotificationDispatchService();
 
+  async createHoldLink(userId: number, reservationId: number, amountVnd: number, locale = 'vi') {
+    if (!Number.isSafeInteger(amountVnd) || amountVnd < 1) throw HttpError.badRequest('Provide positive whole VND.');
+    const result = await DatabaseProvider.getInstance().transaction(async (transaction) => {
+      const row = await ReservationModel.findOne({
+        where: { id: reservationId, userId },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!row) throw HttpError.notFound();
+      if (
+        row.ruleVersion !== HOLD_RULE_VERSION ||
+        row.disputed ||
+        row.paymentReversed ||
+        row.reconciliationRequired ||
+        !['awaiting_payment', 'holding', 'delivery_requested'].includes(row.status) ||
+        (row.expiresAt && row.expiresAt <= new Date()) ||
+        amountVnd > row.totalVnd - row.paidVnd
+      )
+        throw HttpError.conflict('The hold cannot accept this payment.');
+      const open = await OrderPaymentLinkModel.findOne({
+        where: { reservationId, status: ['PENDING', 'PROCESSING'], expiresAt: { [Op.gt]: new Date() } },
+        transaction,
+        order: [['id', 'DESC']],
+      });
+      if (open) {
+        if (open.amountVnd !== amountVnd)
+          throw HttpError.conflict(
+            'An existing QR fixes the payment amount. Reconcile or cancel it before changing the amount.',
+          );
+        return { link: open, create: false };
+      }
+      const ids = await DatabaseProvider.getInstance().query<{ id: string }>(
+        `SELECT nextval(pg_get_serial_sequence('order_payment_link','id')) AS id`,
+        { type: QueryTypes.SELECT, transaction },
+      );
+      const id = Number(ids[0].id);
+      const expiresAt = new Date(
+        Math.min(Date.now() + paymentLinkMinutes() * 60000, row.expiresAt?.getTime() || Infinity),
+      );
+      const link = await OrderPaymentLinkModel.create(
+        { id, reservationId, providerOrderCode: 2000000000000 + id, amountVnd, expiresAt, status: 'PROCESSING' },
+        { transaction },
+      );
+      return { link, create: true };
+    });
+    if (!result.create) {
+      if (!result.link.checkoutUrl)
+        throw HttpError.conflict('Payment provider request is processing. Retry after reconciliation.');
+      return { ...this.linkView(result.link), paymentPurpose: 'HOLD_DEPOSIT' };
+    }
+    const link = result.link;
+    try {
+      const back = `${shopPublicUrl()}/${locale === 'en' ? 'en' : 'vi'}/reservations?hold=${reservationId}`;
+      const created = await payos().paymentRequests.create({
+        orderCode: link.providerOrderCode,
+        amount: amountVnd,
+        description: `H${reservationId}`.slice(0, 9),
+        returnUrl: back,
+        cancelUrl: back,
+        expiredAt: Math.floor(link.expiresAt!.getTime() / 1000),
+        items: [{ name: `HOLD_DEPOSIT ${reservationId}`, quantity: 1, price: amountVnd }],
+      });
+      await link.update(this.linkDetails(created, `H${reservationId}`.slice(0, 9)));
+      return { ...this.linkView(link), paymentPurpose: 'HOLD_DEPOSIT' };
+    } catch (error) {
+      await link.update({ status: 'FAILED' });
+      throw HttpError.serviceUnavailable(
+        'Payment provider unavailable; no money or stock is confirmed from the browser.',
+      );
+    }
+  }
+  async syncHold(userId: number, reservationId: number) {
+    const row = await ReservationModel.findOne({ where: { id: reservationId, userId } });
+    if (!row) throw HttpError.notFound();
+    const links = await OrderPaymentLinkModel.findAll({
+      where: { reservationId, status: ['PENDING', 'PROCESSING'] },
+      order: [['id', 'ASC']],
+    });
+    for (const link of links) {
+      const remote = await payos().paymentRequests.get(link.providerOrderCode);
+      if (remote.status === 'PAID') {
+        const { default: ReservationService } =
+          require('./ReservationService') as typeof import('./ReservationService');
+        for (const payment of remote.transactions) {
+          if (!payment.reference || !Number.isSafeInteger(payment.amount) || payment.amount < 1) continue;
+          await new ReservationService().confirmProviderPayment(reservationId, {
+            linkId: link.id,
+            amountVnd: payment.amount,
+            externalReference: payment.reference,
+          });
+        }
+      }
+    }
+    const { default: ReservationService } = require('./ReservationService') as typeof import('./ReservationService');
+    return new ReservationService().detail(reservationId, userId);
+  }
   // The payment link for what the order must pay upfront; an open link for the same amount is reused.
   async createLink(userId: number, orderId: number, locale = 'vi') {
     const order = await OrderModel.findOne({ where: { id: orderId, userId } });
@@ -294,7 +393,14 @@ export default class PaymentGatewayService {
     if (data.code !== '00') return { recorded: false };
     const link = await OrderPaymentLinkModel.findOne({ where: { providerOrderCode: data.orderCode } });
     if (!link) return { recorded: false };
-    if (link.checkoutSessionId) await checkoutService().settlePayment(link.id, data.amount, data.reference);
+    if (link.reservationId) {
+      const { default: ReservationService } = require('./ReservationService') as typeof import('./ReservationService');
+      await new ReservationService().confirmProviderPayment(link.reservationId, {
+        linkId: link.id,
+        amountVnd: data.amount,
+        externalReference: data.reference,
+      });
+    } else if (link.checkoutSessionId) await checkoutService().settlePayment(link.id, data.amount, data.reference);
     else await this.settle(link.id, data.amount, data.reference);
     return { recorded: true };
   }

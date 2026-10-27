@@ -1,3 +1,4 @@
+import MoneyOperationsService from '../../core/server/services/MoneyOperationsService';
 import type { Request, Response } from 'express';
 import ServiceConditionCaseService from '../../core/server/services/catalog/ServiceConditionCaseService';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
@@ -11,66 +12,131 @@ import HttpError from '../../shared/server/utils/HttpError';
 export default class AdminPawnController extends ApiBaseController {
   @Post('/:id/condition-case')
   async conditionCase(req: Request, res: Response) {
-    try { await new ServiceConditionCaseService().resolve('pawn', Number(req.params.id), this.user(req), req.body ?? {}); return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req), true)); }
-    catch (error) { return this.handleError(res, error, 'Resolve pawn condition'); }
+    try {
+      await new ServiceConditionCaseService().resolve('pawn', Number(req.params.id), this.user(req), req.body ?? {});
+      return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req), true));
+    } catch (error) {
+      return this.handleError(res, error, 'Resolve pawn condition');
+    }
   }
   private service = new PawnService();
-  private user(req: Request) { if (!req.user) throw HttpError.unauthorized(); return req.user.id; }
+  private user(req: Request) {
+    if (!req.user) throw HttpError.unauthorized();
+    return req.user.id;
+  }
   @Get('/')
   async list(req: Request, res: Response) {
-    try { return res.json(await this.service.list(this.user(req), true)); }
-    catch (error) { return this.handleError(res, error, 'Staff pawn queue'); }
+    try {
+      return res.json(await this.service.list(this.user(req), true));
+    } catch (error) {
+      return this.handleError(res, error, 'Staff pawn queue');
+    }
   }
   @Get('/:id')
   async detail(req: Request, res: Response) {
-    try { return res.json(await this.service.detail(Number(req.params.id), this.user(req), true)); }
-    catch (error) { return this.handleError(res, error, 'Staff pawn contract'); }
+    try {
+      return res.json(await this.service.detail(Number(req.params.id), this.user(req), true));
+    } catch (error) {
+      return this.handleError(res, error, 'Staff pawn contract');
+    }
   }
   @Post('/:id/actions')
   async act(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await this.service.act(Number(req.params.id), this.user(req), req.body || {}, true)); }
-    catch (error) { return this.handleError(res, error, 'Pawn agreement and custody'); }
+    try {
+      return this.sendSuccess(res, await this.service.act(Number(req.params.id), this.user(req), req.body || {}, true));
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn agreement and custody');
+    }
   }
   @Post('/:id/disbursement')
   async disbursement(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await this.service.payment(Number(req.params.id), this.user(req), req.body || {}, 'disbursement')); }
-    catch (error) { return this.handleError(res, error, 'Verified pawn disbursement'); }
+    try {
+      return this.sendSuccess(
+        res,
+        await this.service.payment(Number(req.params.id), this.user(req), req.body || {}, 'disbursement'),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Verified pawn disbursement');
+    }
+  }
+  @Post('/:id/extension-credit') async extensionCredit(req: Request, res: Response) {
+    try {
+      return this.sendSuccess(
+        res,
+        await this.service.payment(Number(req.params.id), this.user(req), req.body || {}, 'extension_credit'),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Confirmed extension credit');
+    }
+  }
+  @Post('/:id/credit-refund-request') async refundCredit(req: Request, res: Response) {
+    try {
+      return res.json(
+        await new MoneyOperationsService().request(
+          'pawn_credit_refund',
+          Number(req.params.id),
+          this.user(req),
+          req.body || {},
+        ),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn excess credit refund');
+    }
   }
   @Post('/:id/redemption')
   async redemption(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await this.service.payment(Number(req.params.id), this.user(req), req.body || {}, 'redemption')); }
-    catch (error) { return this.handleError(res, error, 'Verified pawn redemption'); }
+    try {
+      return this.sendSuccess(
+        res,
+        await this.service.payment(Number(req.params.id), this.user(req), req.body || {}, 'redemption'),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Verified pawn redemption');
+    }
   }
   @Post('/:id/intake')
   async intake(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await this.service.intake(Number(req.params.id), this.user(req), req.body || {})); }
-    catch (error) { return this.handleError(res, error, 'Pawn contractual source intake'); }
+    try {
+      return this.sendSuccess(res, await this.service.intake(Number(req.params.id), this.user(req), req.body || {}));
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn contractual source intake');
+    }
   }
   @Post('/:id/publish')
   async publish(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await this.service.publish(Number(req.params.id), this.user(req), req.body || {})); }
-    catch (error) { return this.handleError(res, error, 'Publish disposed pawn inventory'); }
+    try {
+      return this.sendSuccess(res, await this.service.publish(Number(req.params.id), this.user(req), req.body || {}));
+    } catch (error) {
+      return this.handleError(res, error, 'Publish disposed pawn inventory');
+    }
   }
   @Post('/:id/disposal/offer')
   async disposalOffer(req: Request, res: Response) {
     try {
       await new PawnDisposalService().offer(Number(req.params.id), this.user(req), req.body || {});
       return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req), true));
-    } catch (error) { return this.handleError(res, error, 'Pawn disposal amendment'); }
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn disposal amendment');
+    }
   }
   @Post('/:id/disposal/execute')
   async disposalExecute(req: Request, res: Response) {
     try {
       await new PawnDisposalService().execute(Number(req.params.id), this.user(req), req.body || {});
       return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req), true));
-    } catch (error) { return this.handleError(res, error, 'Signed pawn disposal allocation'); }
+    } catch (error) {
+      return this.handleError(res, error, 'Signed pawn disposal allocation');
+    }
   }
   @Post('/:id/disposal/payment')
   async disposalPayment(req: Request, res: Response) {
     try {
-      if (!['repayment', 'surplus'].includes(req.body?.kind)) throw HttpError.badRequest('Choose debt repayment or surplus payout.');
+      if (!['repayment', 'surplus'].includes(req.body?.kind))
+        throw HttpError.badRequest('Choose debt repayment or surplus payout.');
       await new PawnDisposalService().payment(Number(req.params.id), this.user(req), req.body || {}, req.body.kind);
       return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req), true));
-    } catch (error) { return this.handleError(res, error, 'Verified pawn disposal money'); }
+    } catch (error) {
+      return this.handleError(res, error, 'Verified pawn disposal money');
+    }
   }
 }

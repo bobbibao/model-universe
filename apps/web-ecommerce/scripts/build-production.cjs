@@ -10,7 +10,8 @@ require('@next/env').loadEnvConfig(sourceApp, false);
 const git = (...args) => execFileSync('git', args, { cwd: sourceApp, encoding: 'utf8', windowsHide: true }).trim();
 const commit = git('rev-parse', 'HEAD');
 const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(sourceApp, '.runtime');
-const committedSnapshot = !!git('status', '--porcelain', '--untracked-files=no');
+const committedSnapshot =
+  process.env.MODEL_UNIVERSE_BUILD_SNAPSHOT === 'true' || !!git('status', '--porcelain', '--untracked-files=no');
 if (committedSnapshot) {
   // Build only the committed revision; leave another editor's pending changes untouched.
   // Webpack entry paths must stay on the same Windows volume as node_modules.
@@ -18,11 +19,18 @@ if (committedSnapshot) {
   const staging = path.join(sourceApp, '.runtime', 'build-sources', name);
   fs.mkdirSync(staging, { recursive: true });
   const archive = path.join(staging, 'source.tar');
-  execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, commit, 'apps/web-ecommerce'], { cwd: git('rev-parse', '--show-toplevel'), windowsHide: true });
+  execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, commit, 'apps/web-ecommerce'], {
+    cwd: git('rev-parse', '--show-toplevel'),
+    windowsHide: true,
+  });
   execFileSync('tar', ['-xf', archive, '-C', staging], { windowsHide: true });
   fs.rmSync(archive);
   app = path.join(staging, 'apps/web-ecommerce');
-  fs.symlinkSync(path.join(sourceApp, 'node_modules'), path.join(app, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
+  fs.symlinkSync(
+    path.join(sourceApp, 'node_modules'),
+    path.join(app, 'node_modules'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
   const output = path.join(home, 'build-output', name);
   fs.mkdirSync(output, { recursive: true });
   fs.symlinkSync(output, path.join(app, 'dist'), process.platform === 'win32' ? 'junction' : 'dir');
@@ -38,7 +46,12 @@ for (const args of [
   ['node_modules/next/dist/bin/next', 'build', '--no-lint'],
   ['node_modules/typescript/bin/tsc', '--project', 'tsconfig.server.json'],
 ]) {
-  const result = spawnSync(process.execPath, args, { cwd: app, env: { ...process.env, NEXT_DIST_DIR: '' }, stdio: 'inherit', windowsHide: true });
+  const result = spawnSync(process.execPath, args, {
+    cwd: app,
+    env: { ...process.env, NEXT_DIST_DIR: '' },
+    stdio: 'inherit',
+    windowsHide: true,
+  });
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 unchanged();
@@ -56,17 +69,26 @@ const inventory = (directory) => {
       const file = path.join(relative, item.name);
       if (!relative && item.name === 'cache') continue;
       if (item.isDirectory()) walk(file);
-      else { const stat = fs.statSync(path.join(directory, file)); files.push([file, stat.size, stat.mtimeMs]); }
+      else {
+        const stat = fs.statSync(path.join(directory, file));
+        files.push([file, stat.size, stat.mtimeMs]);
+      }
     }
   };
-  walk(); return JSON.stringify(files.sort((a, b) => a[0].localeCompare(b[0])));
+  walk();
+  return JSON.stringify(files.sort((a, b) => a[0].localeCompare(b[0])));
 };
 const before = inventory(build);
-fs.cpSync(build, release, { recursive: true, force: false, errorOnExist: true,
-  filter: source => path.relative(build, source).split(path.sep)[0] !== 'cache' });
-if (inventory(build) !== before) throw new Error('Build output changed while copying. The active release was preserved.');
+fs.cpSync(build, release, {
+  recursive: true,
+  force: false,
+  errorOnExist: true,
+  filter: (source) => path.relative(build, source).split(path.sep)[0] !== 'cache',
+});
+if (inventory(build) !== before)
+  throw new Error('Build output changed while copying. The active release was preserved.');
 // Resolve every static relative import in the compiled backend without executing application code.
-const verify = directory => {
+const verify = (directory) => {
   for (const item of fs.readdirSync(directory, { withFileTypes: true })) {
     const file = path.join(directory, item.name);
     if (item.isDirectory()) verify(file);
@@ -80,7 +102,12 @@ verify(path.join(release, 'src'));
 unchanged();
 const nextDist = `dist/.next-live-${name}`;
 fs.symlinkSync(release, path.join(sourceApp, nextDist), process.platform === 'win32' ? 'junction' : 'dir');
-const manifest = { commit: commit.slice(0, 7), nextDist, buildId: fs.readFileSync(path.join(release, 'BUILD_ID'), 'utf8').trim(), publishedAt: new Date().toISOString() };
+const manifest = {
+  commit: commit.slice(0, 7),
+  nextDist,
+  buildId: fs.readFileSync(path.join(release, 'BUILD_ID'), 'utf8').trim(),
+  publishedAt: new Date().toISOString(),
+};
 fs.writeFileSync(path.join(home, 'release.pending.json'), JSON.stringify(manifest, null, 2));
 fs.renameSync(path.join(home, 'release.pending.json'), path.join(home, 'release.json'));
 console.log(`Published isolated production build: ${manifest.commit}. Restart the runtime to activate it.`);

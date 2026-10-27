@@ -16,13 +16,14 @@ interface Policy {
   reason: string;
   createdAt: string;
 }
-type Field = { key: string; options?: string[]; number?: boolean; min?: number; max?: number };
+type Field = { key: string; options?: string[]; number?: boolean; text?: boolean; min?: number; max?: number };
 const POLICY_NAMES = ['loyalty', 'voucher', 'reservation', 'pawn', 'marketplace', 'buyback'] as const;
 const CHOICES: Record<string, Field[]> = {
   reservation: [
     { key: 'priceBasis', options: ['net_merchandise'] },
     { key: 'dayCutoff', options: ['elapsed_24h'] },
-    { key: 'extensionMode', options: ['additive'] },
+    { key: 'extensionMode', options: ['original_start_tiers'] },
+    { key: 'ruleVersion', options: ['hold-deposit-2026-10-28'] },
   ],
   loyalty: [
     { key: 'rewardTable', options: ['source_shared_v1'] },
@@ -33,11 +34,15 @@ const CHOICES: Record<string, Field[]> = {
     { key: 'returnControlDays', number: true, min: 0, max: 30 },
   ],
   pawn: [
-    { key: 'dailyRateBasisPoints', options: ['3', '30'] },
-    { key: 'dayCount', options: ['started_days', 'completed_days'] },
-    { key: 'rounding', options: ['ceil', 'floor', 'nearest'] },
-    { key: 'graceDays', number: true },
-    { key: 'interestStopEvent', options: ['verified_repayment', 'asset_handback'] },
+    { key: 'calculation', options: ['compound_0_3_v2'] },
+    { key: 'cashFlowClock', options: ['elapsed_24h_periods'] },
+    { key: 'legalMode', options: ['simulation', 'approved'] },
+    { key: 'legalReference', text: true },
+    { key: 'dailyRateBasisPoints', options: ['30'] },
+    { key: 'dayCount', options: ['completed_days'] },
+    { key: 'rounding', options: ['nearest'] },
+    { key: 'graceDays', number: true, min: 2, max: 2 },
+    { key: 'interestStopEvent', options: ['verified_repayment'] },
   ],
   marketplace: [
     { key: 'commissionBasisPoints', options: ['500', '600', '700', '800', '1000', '1200'] },
@@ -60,6 +65,22 @@ const CHOICES: Record<string, Field[]> = {
 };
 // Policies whose numbers start from the owner's v6.2 values when nothing is approved yet.
 const STARTING_VALUES: Record<string, Record<string, string | number>> = {
+  reservation: {
+    priceBasis: 'net_merchandise',
+    dayCutoff: 'elapsed_24h',
+    extensionMode: 'original_start_tiers',
+    ruleVersion: 'hold-deposit-2026-10-28',
+  },
+  pawn: {
+    calculation: 'compound_0_3_v2',
+    cashFlowClock: 'elapsed_24h_periods',
+    legalMode: 'simulation',
+    dailyRateBasisPoints: 30,
+    dayCount: 'completed_days',
+    rounding: 'nearest',
+    graceDays: 2,
+    interestStopEvent: 'verified_repayment',
+  },
   voucher: DEFAULT_VOUCHER_POLICY as unknown as Record<string, string | number>,
 };
 
@@ -214,12 +235,19 @@ export default function CommercePolicyWorkspace() {
                       <input
                         className={inputClassName}
                         name={field.key}
-                        type="number"
+                        type={field.text ? 'text' : 'number'}
                         min={field.min ?? 0}
                         max={field.max}
                         step="1"
-                        required
-                        defaultValue={initial[field.key] !== undefined ? Number(initial[field.key]) : undefined}
+                        required={!field.text}
+                        maxLength={field.text ? 1000 : undefined}
+                        defaultValue={
+                          initial[field.key] !== undefined
+                            ? field.text
+                              ? String(initial[field.key])
+                              : Number(initial[field.key])
+                            : undefined
+                        }
                       />
                     )}
                     {(field.min !== undefined || field.max !== undefined) && (

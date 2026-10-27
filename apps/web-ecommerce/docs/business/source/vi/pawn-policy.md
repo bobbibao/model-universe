@@ -1,3 +1,5 @@
+> **Nguồn lịch sử:** quy tắc vận hành mới ngày 28/10/2026 được ghi tại [Cầm cố và cọc giữ hàng](../../../model-universe/pawn-hold-ledgers.md). Không dùng bảng hạn/lãi/khấu trừ cọc cũ dưới đây cho hồ sơ mới; giữ nguyên nội dung nguồn để đối chiếu.
+
 # **QUY ĐỊNH CẦM CỐ MÔ HÌNH – VŨ TRỤ MÔ HÌNH**
 
 ## **1. Đối tượng và tài sản cầm cố**

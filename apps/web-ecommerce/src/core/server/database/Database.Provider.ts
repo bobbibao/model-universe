@@ -1,3 +1,4 @@
+import MoneyOperationModel from './client/models/MoneyOperation.Model';
 import 'reflect-metadata';
 import {
   FinanceCostTypeModel,
@@ -207,6 +208,7 @@ export default class DatabaseProvider {
     PawnContractModel,
     PawnEventModel,
     PawnPaymentModel,
+    MoneyOperationModel,
     PawnDisposalEntryModel,
     PartnerProfileModel,
     PartnerEventModel,
@@ -543,7 +545,8 @@ export default class DatabaseProvider {
 
   // An empty, dedicated demo/test database. Never executes the shop's synthetic-history seed or drops tables.
   public static async initializeDemoSchema() {
-    if (!/_(condition_demo|test)$/.test(process.env.DB_NAME ?? '')) throw new Error('Use a dedicated *_condition_demo or *_test database.');
+    if (!/_(condition_demo|test)$/.test(process.env.DB_NAME ?? ''))
+      throw new Error('Use a dedicated *_condition_demo or *_test database.');
     process.env.SEED_DATA = 'false';
     process.env.DROP_TABLES = 'false';
     const sequelize = DatabaseProvider.getInstance();
@@ -552,12 +555,22 @@ export default class DatabaseProvider {
     await sequelize.sync();
     // Current models create the whole empty schema. Baseline historical migrations instead of replaying old
     // owner-catalog imports, placeholder prices and synthetic financial policies into an unrelated demo database.
-    await MIGRATIONS.find(migration => migration.name === '2026-10-27-54-product-condition-tree')!.up({ context: { sequelize } });
-    await MIGRATIONS.find(migration => migration.name === '2026-10-27-57-finance-workspace')!.up({ context: { sequelize } });
-    await MIGRATIONS.find(migration => migration.name === '2026-10-27-58-finance-cost-catalog-deletion')!.up({ context: { sequelize } });
+    await MIGRATIONS.find((migration) => migration.name === '2026-10-27-54-product-condition-tree')!.up({
+      context: { sequelize },
+    });
+    await MIGRATIONS.find((migration) => migration.name === '2026-10-27-57-finance-workspace')!.up({
+      context: { sequelize },
+    });
+    await MIGRATIONS.find((migration) => migration.name === '2026-10-27-58-finance-cost-catalog-deletion')!.up({
+      context: { sequelize },
+    });
+    await MIGRATIONS.find((migration) => migration.name === '2026-10-28-60-pawn-and-hold-ledgers')!.up({
+      context: { sequelize },
+    });
     const storage = new SequelizeStorage({ sequelize, tableName: MIGRATION_TABLE });
     const executed = new Set(await storage.executed());
-    for (const migration of MIGRATIONS) if (!executed.has(migration.name)) await storage.logMigration({ name: migration.name });
+    for (const migration of MIGRATIONS)
+      if (!executed.has(migration.name)) await storage.logMigration({ name: migration.name });
     await applyAnalyticsViews(sequelize);
     return sequelize;
   }

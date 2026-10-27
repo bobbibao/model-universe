@@ -1,5 +1,6 @@
 'use client';
 
+import RefundRequest from '../../finance/RefundRequest';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import OrderApi from '@/core/client/api/Order';
@@ -14,7 +15,7 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
     ops = useTranslations('orderOperations'),
     locale = useLocale();
   const [busy, setBusy] = useState(false);
-  if (!order.paymentPlan) return null;
+  if (!order.paymentPlan && !order.prepaidVnd) return null;
   const money = (amount: number) => formatVND(amount, locale);
   const due = order.upfrontDueVnd || 0,
     prepaid = order.prepaidVnd || 0;
@@ -25,7 +26,7 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
   const kind: OrderPrepayment['kind'] | null =
     !receipt && order.status === 'PROCESSING'
       ? 'receipt'
-      : receipt && !refund && order.status === 'CANCELLED'
+      : prepaid > 0 && !refund && order.status === 'CANCELLED'
         ? 'refund'
         : receipt && order.status === 'PROCESSING' && prepaid < order.total && !waybill
           ? 'topup'
@@ -94,8 +95,17 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
       {topups.map(entry)}
       {refund && entry(refund)}
       {!receipt && order.status === 'PROCESSING' && <p className="prepayment-warning">{t('blocksShipping')}</p>}
-      {order.status === 'CANCELLED' && receipt && !refund && <p className="prepayment-warning">{t('refundDue')}</p>}
-      {kind && (
+      {order.status === 'CANCELLED' && prepaid > 0 && !refund && <p className="prepayment-warning">{t('refundDue')}</p>}
+      {kind === 'refund' && (
+        <RefundRequest
+          key={order.id}
+          endpoint={`/admin/orders/${order.id}/prepayment`}
+          maximum={prepaid}
+          extraData={{ kind: 'refund' }}
+          onUpdated={() => {}}
+        />
+      )}
+      {kind && !['refund'].includes(kind) && (
         <form
           className="space-y-4"
           onSubmit={(event) => void record(event)}

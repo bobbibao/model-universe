@@ -19,7 +19,8 @@ export default class ReservationPaymentModel extends Model {
   externalReference!: string;
 
   @Column({ type: DataType.STRING, allowNull: false, defaultValue: 'receipt' })
-  kind!: 'receipt' | 'refund' | 'forfeit';
+  kind!: 'receipt' | 'refund' | 'forfeit' | 'unallocated_receipt' | 'refund_request' | 'refund_approved' | 'reversal';
+  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: {} }) metadata!: Record<string, unknown>;
 
   @Column({ type: DataType.TEXT, allowNull: false })
   reason!: string;

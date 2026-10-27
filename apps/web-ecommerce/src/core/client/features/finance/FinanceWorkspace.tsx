@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
 import FinancePeriod, { currentFinanceRange } from './FinancePeriod';
+import MoneyOperationsWorkspace from './MoneyOperationsWorkspace';
 import ExpenseWorkspace from './ExpenseWorkspace';
 import ReconcileOrders from './ReconcileOrders';
 export default function FinanceWorkspace({ initialTab = 'expenses' }: { initialTab?: 'expenses' | 'orders' }) {
   const en = useLocale() === 'en';
   const [range, setRange] = useState(currentFinanceRange),
-    [tab, setTab] = useState(initialTab);
+    [tab, setTab] = useState<'expenses' | 'orders' | 'payments'>(initialTab);
   return (
     <div className="finance-workspace">
       <header className="finance-heading">
@@ -31,10 +32,11 @@ export default function FinanceWorkspace({ initialTab = 'expenses' }: { initialT
         role="tablist"
         aria-label="Quản lý chi phí"
         onKeyDown={(e) => {
-          const keys = ['expenses', 'orders'] as const;
+          const keys = ['expenses', 'orders', 'payments'] as const;
           if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
           e.preventDefault();
-          const next = e.key === 'Home' ? 0 : e.key === 'End' ? 1 : tab === 'expenses' ? 1 : 0;
+          const next =
+            e.key === 'Home' ? 0 : e.key === 'End' ? 2 : (keys.indexOf(tab) + (e.key === 'ArrowRight' ? 1 : 2)) % 3;
           setTab(keys[next]);
           e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
         }}
@@ -43,6 +45,7 @@ export default function FinanceWorkspace({ initialTab = 'expenses' }: { initialT
           [
             ['expenses', en ? 'Costs & rates' : 'Chi phí & định mức'],
             ['orders', en ? 'Order reconciliation' : 'Đối soát đơn hàng'],
+            ['payments', en ? 'Refund approvals' : 'Duyệt hoàn tiền'],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -61,6 +64,8 @@ export default function FinanceWorkspace({ initialTab = 'expenses' }: { initialT
       <section role="tabpanel" id={`finance-panel-${tab}`} aria-labelledby={`finance-tab-${tab}`}>
         {tab === 'expenses' ? (
           <ExpenseWorkspace range={range} onChange={() => {}} />
+        ) : tab === 'payments' ? (
+          <MoneyOperationsWorkspace />
         ) : (
           <ReconcileOrders range={range} onChange={() => {}} />
         )}

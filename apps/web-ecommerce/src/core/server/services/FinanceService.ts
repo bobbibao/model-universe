@@ -69,7 +69,7 @@ export default class FinanceService {
           `SELECT "createdAt","amountVnd"::bigint AS "amountVnd" FROM order_receipt WHERE "createdAt">= :start AND "createdAt"< :end
           UNION ALL SELECT "createdAt",CASE WHEN kind='refund' THEN -"amountVnd" ELSE "amountVnd" END FROM order_prepayment WHERE "createdAt">= :start AND "createdAt"< :end
           UNION ALL SELECT "createdAt",-("merchandiseVnd"::bigint+"shippingVnd"+"taxVnd") FROM order_refund WHERE "createdAt">= :start AND "createdAt"< :end
-          UNION ALL SELECT "createdAt",CASE WHEN kind='refund' THEN -"amountVnd" ELSE "amountVnd" END FROM reservation_payment WHERE kind IN ('receipt','refund') AND "createdAt">= :start AND "createdAt"< :end`,
+          UNION ALL SELECT "createdAt",CASE WHEN kind IN ('refund','reversal') THEN -"amountVnd" ELSE "amountVnd" END FROM reservation_payment WHERE kind IN ('receipt','unallocated_receipt','refund','reversal') AND "createdAt">= :start AND "createdAt"< :end`,
           params,
           transaction,
         );

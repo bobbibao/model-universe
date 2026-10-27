@@ -1,3 +1,5 @@
+> **Nguồn lịch sử:** quy tắc vận hành mới ngày 28/10/2026 được ghi tại [Cầm cố và cọc giữ hàng](../../../model-universe/pawn-hold-ledgers.md). Không dùng bảng hạn/lãi/khấu trừ cọc cũ dưới đây cho hồ sơ mới; giữ nguyên nội dung nguồn để đối chiếu.
+
 # **ĐẶC TẢ NGHIỆP VỤ HỆ THỐNG MUA HÀNG ĐẶT CỌC VÀ VẬN CHUYỂN TỰ ĐỘNG**
 
 ## **MODEL UNIVERSE – VŨ TRỤ MÔ HÌNH**
@@ -95,7 +97,7 @@ Phạm vi: Mua hàng đặt cọc, giao dịch trực tiếp (GDTT), vận chuy�
 **Ví dụ sản phẩm có giá 2.000.000đ:**
 
 | **Tỷ lệ thanh toán trước** | **Tiền cọc**   | **Tiền còn lại** |
-|----------------------------|----------------|------------------|
+| -------------------------- | -------------- | ---------------- |
 | **10%**                    | **200.000đ**   | **1.800.000đ**   |
 | **20%**                    | **400.000đ**   | **1.600.000đ**   |
 | **30%**                    | **600.000đ**   | **1.400.000đ**   |
@@ -1309,7 +1311,7 @@ Phạm vi: Mua hàng đặt cọc, giao dịch trực tiếp (GDTT), vận chuy�
 # **CHƯƠNG XIII. KIỂM THỬ NGHIỆP VỤ**
 
 | **Mã**   | **Tình huống**                         | **Kết quả**                                 |
-|----------|----------------------------------------|---------------------------------------------|
+| -------- | -------------------------------------- | ------------------------------------------- |
 | **TC01** | **Khách chọn cọc 5%**                  | **Không cho xác nhận**                      |
 | **TC02** | **Khách cọc 10%**                      | **Cho đặt hàng**                            |
 | **TC03** | **Khách cọc 100%**                     | **Còn lại 0đ**                              |

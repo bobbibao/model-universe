@@ -1,10 +1,12 @@
+> **28 October 2026 update:** PURCHASE_DEPOSIT remains a purchase prepayment of at least 10%, not HOLD_DEPOSIT. No automatic forfeiture on cancellation. Refund requests require independent Finance approval and signed provider-confirmed payout. A manual checkbox no longer completes a refund. See [current money and governance rules](../model-universe/pawn-hold-ledgers.md). Historical source cancellation-fee wording is superseded.
+
 # Deposit orders, QR checkout and delivery through SuperAI
 
 Canonical English interpretation of the owner's "deposit purchase and automatic delivery" specification 1.0
 ([original](source/vi/deposit-delivery-specification.md)), with the owner's changes: 2026-10-17 **payOS takes online
 payments** and the waybill is created automatically once the upfront payment is verified; 2026-10-18 **SuperAI
 replaces GHN** so the cheapest carrier ships each order, **the order exists only once the payment succeeds** (a QR
-dialog with a 30-minute countdown in which the customer may change how to pay), and **saved addresses** are offered at
+dialog with a 30-minute countdown and a locked payment plan), and **saved addresses** are offered at
 checkout.
 
 ## Money
@@ -70,19 +72,7 @@ and for a cancelled order who cancelled it, why, and the refund.
 
 Every cancellation records a reason (and a note for "other") and who cancelled (`src/shared/cancellation.ts`):
 
-- Customer, while the order is processing: cancelled at once when nothing was paid and no waybill exists; otherwise
-  (money received, or a waybill waiting for pickup) a cancellation request staff accept (the waybill is cancelled with
-  the carrier, then the refund is recorded) or turn down with a note the customer reads. Reservation orders keep their
-  money with the reservation and cancel at once.
-- Once the carrier picked the parcel up, nobody can cancel: the customer refuses the parcel or asks for a return.
-- Staff cancel with a staff reason (customer request, out of stock, unreachable, unpaid, address not served, suspected
-  fraud, other); a waybill still waiting for pickup is cancelled with the carrier first.
-- Cancellation fee (owner decision 2026-10-20), for every kind of order: when the customer gives up a paid order (their
-  own cancellation or request, a request approved automatically, or staff cancelling for "customer request" or
-  "customer unreachable", such as a no-show), the shop keeps 50% of the deposit (`order.cancellationFeeVnd`) and
-  refunds the rest; for an order paid in full the deposit is the 10% deposit it would have needed. Cancellations for the
-  shop's own reasons refund everything. The customer sees the amounts before confirming, at the payment choice and on
-  the cancelled order; staff see them in the refund alert.
+Cancellation/no-show never automatically forfeits a deposit. The money remains a liability until a reviewed, independently approved and provider-confirmed refund.
 
 ## Returns
 
@@ -123,7 +113,7 @@ and the customer completes the missing levels.
   is read back from `orders/info` instead of trusted from the body. Also a pull when the customer or staff refresh (at
   most once a minute, also for local development where SuperAI cannot reach the server). Events are deduplicated by
   code + status + update time. SuperAI's status codes map to `AWAITING_PICKUP, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY,
-  DELIVERED, DELIVERY_FAILED, RETURNING, RETURNED, CANCELLED, EXCEPTION` (not picked up, partly delivered, lost and
+DELIVERED, DELIVERY_FAILED, RETURNING, RETURNED, CANCELLED, EXCEPTION` (not picked up, partly delivered, lost and
   compensated are incidents for staff); picked up → order `SHIPPED`, delivered → `DELIVERED` with the COD still
   awaiting reconciliation.
 
@@ -190,15 +180,7 @@ Admin → Operational alerts and on its Zalo OA when configured.
 
 ## In-person collection at the shop ("Gặp trực tiếp", owner decision 2026-10-20)
 
-The customer comes to the shop to see the model before taking it. The deposit holds the model for them until the
-appointment (it is not sold to anyone else); there is no shipping fee; the rest is paid at the shop. Checkout shows the
-shop's address (Admin → Giao hàng → shop address; the SuperAI pickup warehouse until saved) with opening hours,
-phone and directions, the three steps (deposit to hold, visit, pay the rest), and asks only for the day and time slot
-and the customer's name and phone. The order's address is the shop's whatever the client sends; a customer may ask to
-change only the day and time. States: `WAITING_FOR_APPOINTMENT → (CHANGE_REQUESTED) → APPOINTMENT_CONFIRMED →
-COMPLETED` or `NOT_HELD`; completion needs the customer's handover code, the checked items and the verified balance.
-With payOS it is paid through the same QR checkout. A no-show cancelled as "customer unreachable" keeps 50% of the
-deposit.
+Cancellation/no-show never automatically forfeits a deposit. The money remains a liability until a reviewed, independently approved and provider-confirmed refund.
 
 ## Open decisions
 

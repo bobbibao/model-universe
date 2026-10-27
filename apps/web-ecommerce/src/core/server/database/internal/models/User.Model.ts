@@ -52,6 +52,9 @@ export default class UserModel extends Model {
   @Column({ type: DataType.ENUM('USER', 'ADMIN'), allowNull: false, defaultValue: 'USER' })
   role!: UserRole;
 
+  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: [] })
+  commerceScopes!: ('finance' | 'compliance')[];
+
   @Column(DataType.STRING)
   avatar?: string;
 

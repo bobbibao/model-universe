@@ -1,3 +1,4 @@
+import ProductOwnershipService from '../../core/server/services/ProductOwnershipService';
 import { ControllerModel } from '../../shared/server/decorators/controllerModel.decorator';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
 import { Delete, Get, Post, Put } from '../../shared/server/decorators/router.decorator';
@@ -20,10 +21,29 @@ const parseId = (value: string): number => {
 @Controller('/admin/products')
 @ControllerModel('ProductModel')
 export default class AdminProductController extends ApiBaseController {
+  @Post('/:id/verify-ownership')
+  async ownership(req: Request, res: Response) {
+    try {
+      if (!req.user) throw HttpError.unauthorized();
+      return this.sendSuccess(
+        res,
+        await new ProductOwnershipService().verify(parseId(req.params.id), req.user.id, req.body || {}),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Verify product ownership');
+    }
+  }
   @Post('/:id/transfer-condition')
   async transferCondition(req: Request, res: Response) {
-    try { if (!req.user) throw HttpError.unauthorized(); return this.sendSuccess(res, await new ConditionStockService().transfer(req.user.id, parseId(req.params.id), req.body ?? {})); }
-    catch (error) { return this.handleError(res, error, 'Transfer condition stock'); }
+    try {
+      if (!req.user) throw HttpError.unauthorized();
+      return this.sendSuccess(
+        res,
+        await new ConditionStockService().transfer(req.user.id, parseId(req.params.id), req.body ?? {}),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Transfer condition stock');
+    }
   }
   @Get('/')
   async getProducts(req: Request, res: Response) {
@@ -116,11 +136,7 @@ export default class AdminProductController extends ApiBaseController {
     try {
       const service = await this.requireService<ProductService>();
       const { archived } = await service.remove(parseId(req.params.id));
-      return this.sendSuccess(
-        res,
-        { archived },
-        apiProductMessage(req, archived ? 'archivedHistory' : 'deleted'),
-      );
+      return this.sendSuccess(res, { archived }, apiProductMessage(req, archived ? 'archivedHistory' : 'deleted'));
     } catch (error) {
       return this.handleError(res, error, "AdminProductController's deleteProduct");
     }

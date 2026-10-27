@@ -11,6 +11,15 @@ export interface Reservation {
   remainingVnd: number;
   minimumInitialVnd: number;
   status: ReservationStatus;
+  startedAt?: string;
+  inventoryAllocated?: boolean;
+  disputed?: boolean;
+  reconciliationRequired?: boolean;
+  paymentPurpose?: 'HOLD_DEPOSIT';
+  acceptedTerms?: { version: string; text: string; acceptedAt: string };
+  unresolvedDepositVnd?: number;
+  unallocatedVnd?: number;
+  operations?: import('./money-operation').MoneyOperation[];
   expiresAt?: string;
   orderId?: number;
   policyVersion: number;

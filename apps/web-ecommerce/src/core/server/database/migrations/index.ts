@@ -1,4 +1,10 @@
-import { FinanceCostTypeModel, FinanceExpenseModel, FinanceOrderReviewModel, FinanceConfigAuditModel } from '../client/models/Finance.Model';
+import MoneyOperationModel from '../client/models/MoneyOperation.Model';
+import {
+  FinanceCostTypeModel,
+  FinanceExpenseModel,
+  FinanceOrderReviewModel,
+  FinanceConfigAuditModel,
+} from '../client/models/Finance.Model';
 import SaleCampaignModel from '../client/models/SaleCampaign.Model';
 import UserModel from '../internal/models/User.Model';
 import OrderRefundModel from '../client/models/OrderRefund.Model';
@@ -842,7 +848,13 @@ export const MIGRATIONS: Migration[] = [
     name: '2026-10-19-37-merge-duplicate-addresses',
     up: async () => {
       // The address book and paid checkouts used to save the same address twice; keep the most recent row of each.
-      const rows = await CustomerAddressModel.findAll({ order: [['userId', 'ASC'], ['updatedAt', 'DESC'], ['id', 'DESC']] });
+      const rows = await CustomerAddressModel.findAll({
+        order: [
+          ['userId', 'ASC'],
+          ['updatedAt', 'DESC'],
+          ['id', 'DESC'],
+        ],
+      });
       const kept = new Map<string, CustomerAddressModel>();
       for (const row of rows) {
         const key = `${row.userId}:${savedAddressKey(row.shipping, row.delivery)}`;
@@ -860,14 +872,20 @@ export const MIGRATIONS: Migration[] = [
     name: '2026-10-20-auth-recovery-google',
     up: async ({ context }) => {
       await ensureColumns(context.sequelize.getQueryInterface(), UserModel, ['googleSubject', 'sessionVersion']);
-      await context.sequelize.query('CREATE UNIQUE INDEX IF NOT EXISTS user_google_subject_key ON "user" ("googleSubject")');
+      await context.sequelize.query(
+        'CREATE UNIQUE INDEX IF NOT EXISTS user_google_subject_key ON "user" ("googleSubject")',
+      );
     },
   },
   {
     name: '2026-10-20-store-sale-campaigns',
     up: async ({ context }) => {
       await ensureTables(SaleCampaignModel);
-      await ensureColumns(context.sequelize.getQueryInterface(), ProductModel, ['pricingReferenceMemberVnd', 'pricingIssueCount', 'buybackPriceVnd']);
+      await ensureColumns(context.sequelize.getQueryInterface(), ProductModel, [
+        'pricingReferenceMemberVnd',
+        'pricingIssueCount',
+        'buybackPriceVnd',
+      ]);
       // Derive metadata from real existing public R; do not rewrite historical prices or actual acquisition cost.
       // Known defects need an inspected issue count, so those records remain pending appraisal.
       await context.sequelize.query(`
@@ -1014,7 +1032,8 @@ export const MIGRATIONS: Migration[] = [
       const queryInterface = context.sequelize.getQueryInterface();
       await ensureColumns(queryInterface, ProductModel, ['missingAccessories', 'conditionNote', 'parentProductId']);
       const columns = await queryInterface.describeTable('product');
-      for (const column of ['grade', 'series']) if (column in columns) await queryInterface.removeColumn('product', column);
+      for (const column of ['grade', 'series'])
+        if (column in columns) await queryInterface.removeColumn('product', column);
       await context.sequelize.query('ALTER TABLE product ALTER COLUMN "categoryId" DROP NOT NULL');
       await context.sequelize.query('UPDATE product SET "productionDate" = "createdAt" WHERE "productionDate" IS NULL');
     },
@@ -1053,7 +1072,9 @@ export const MIGRATIONS: Migration[] = [
           ...('availableSizes' in product ? [`jsonb_array_length("availableSizes") > 0`] : []),
         ].join(' OR ');
         const select = (sql: string) =>
-          sequelize.query<{ id: number }>(sql, { type: QueryTypes.SELECT, transaction }).then((rows) => rows.map((row) => row.id));
+          sequelize
+            .query<{ id: number }>(sql, { type: QueryTypes.SELECT, transaction })
+            .then((rows) => rows.map((row) => row.id));
         const products = await select(`SELECT id FROM product WHERE "partnerId" IS NULL AND (${legacy})`);
         if (products.length > 0) {
           const list = products.join(',');
@@ -1079,9 +1100,11 @@ export const MIGRATIONS: Migration[] = [
           `SELECT viewname AS name FROM pg_views WHERE schemaname = 'analytics'`,
           { type: QueryTypes.SELECT, transaction },
         );
-        for (const view of views) await sequelize.query(`DROP VIEW IF EXISTS analytics."${view.name}" CASCADE`, { transaction });
+        for (const view of views)
+          await sequelize.query(`DROP VIEW IF EXISTS analytics."${view.name}" CASCADE`, { transaction });
         if ('gender' in product) await queryInterface.removeColumn('product', 'gender', { transaction });
-        if ('availableSizes' in product) await queryInterface.removeColumn('product', 'availableSizes', { transaction });
+        if ('availableSizes' in product)
+          await queryInterface.removeColumn('product', 'availableSizes', { transaction });
         await sequelize.query('DROP TYPE IF EXISTS enum_product_gender', { transaction });
         if ('size' in (await queryInterface.describeTable('order_item')))
           await queryInterface.removeColumn('order_item', 'size', { transaction });
@@ -1103,7 +1126,9 @@ export const MIGRATIONS: Migration[] = [
           { type: QueryTypes.SELECT, transaction },
         );
         if (sized.n > 0) {
-          await sequelize.query(`ALTER TYPE enum_return_item_reason RENAME TO enum_return_item_reason_old`, { transaction });
+          await sequelize.query(`ALTER TYPE enum_return_item_reason RENAME TO enum_return_item_reason_old`, {
+            transaction,
+          });
           await sequelize.query(
             `CREATE TYPE enum_return_item_reason AS ENUM (${RETURN_REASONS.map((reason) => `'${reason}'`).join(', ')})`,
             { transaction },
@@ -1140,7 +1165,14 @@ export const MIGRATIONS: Migration[] = [
           ),
         );
         const products = await ProductModel.findAll({
-          attributes: ['id', 'price', 'pricingReferenceMemberVnd', 'pricingIssueCount', 'buybackPriceVnd', 'listPriceVerified'],
+          attributes: [
+            'id',
+            'price',
+            'pricingReferenceMemberVnd',
+            'pricingIssueCount',
+            'buybackPriceVnd',
+            'listPriceVerified',
+          ],
           where: { partnerId: null },
           transaction,
           lock: transaction.LOCK.UPDATE,
@@ -1232,9 +1264,7 @@ export const MIGRATIONS: Migration[] = [
       // are recorded with the rules the code used to apply by name. `product.condition` already holds their keys.
       await ensureTables(ProductConditionTypeModel);
       await ProductConditionTypeModel.seedData();
-      await context.sequelize.query(
-        `CREATE INDEX IF NOT EXISTS product_condition ON product (condition)`,
-      );
+      await context.sequelize.query(`CREATE INDEX IF NOT EXISTS product_condition ON product (condition)`);
     },
   },
   {
@@ -1398,17 +1428,33 @@ export const MIGRATIONS: Migration[] = [
     up: async ({ context }) => {
       const qi = context.sequelize.getQueryInterface();
       await ensureTables(ModelFamilyModel, ConditionNodeModel, ConditionUsageModel);
-      await ensureColumns(qi, ProductModel, ['modelFamilyId', 'itemTypeKey', 'conditionNodeIds', 'combinationKey', 'catalogReviewRequired', 'catalogCanonicalId', 'serviceReferenceEnabled', 'publicationRequiresIntake']);
+      await ensureColumns(qi, ProductModel, [
+        'modelFamilyId',
+        'itemTypeKey',
+        'conditionNodeIds',
+        'combinationKey',
+        'catalogReviewRequired',
+        'catalogCanonicalId',
+        'serviceReferenceEnabled',
+        'publicationRequiresIntake',
+      ]);
       await ensureTables(CatalogIntakeModel);
       await ensureColumns(qi, BuybackRequestModel, ['conditionCase', 'conditionCaseStatus', 'conditionCaseReviewNote']);
       await ensureColumns(qi, PawnContractModel, ['conditionCase', 'conditionCaseStatus', 'conditionCaseReviewNote']);
       // Product IDs are intentionally many-to-one now. Idempotency lives on the source receipt, not productId.
       for (const table of ['buyback_request', 'pawn_contract']) {
-        const indexes = await qi.showIndex(table) as { name: string; unique: boolean; fields: { attribute: string }[] }[];
-        for (const index of indexes) if (index.unique && index.fields.length === 1 && index.fields[0].attribute === 'productId') {
-          await context.sequelize.query(`ALTER TABLE "${table}" DROP CONSTRAINT IF EXISTS "${index.name.replace(/"/g, '""')}"`);
-          await qi.removeIndex(table, index.name).catch(() => undefined);
-        }
+        const indexes = (await qi.showIndex(table)) as {
+          name: string;
+          unique: boolean;
+          fields: { attribute: string }[];
+        }[];
+        for (const index of indexes)
+          if (index.unique && index.fields.length === 1 && index.fields[0].attribute === 'productId') {
+            await context.sequelize.query(
+              `ALTER TABLE "${table}" DROP CONSTRAINT IF EXISTS "${index.name.replace(/"/g, '""')}"`,
+            );
+            await qi.removeIndex(table, index.name).catch(() => undefined);
+          }
       }
       await new CatalogTreeService().seed();
       // No catalog/stock rewrite on server startup. The reviewed, opt-in migration command handles legacy rows.
@@ -1421,9 +1467,11 @@ export const MIGRATIONS: Migration[] = [
       await ensureColumns(qi, ProductModel, ['publicationRequiresIntake']);
       await ensureColumns(qi, BuybackRequestModel, ['conditionCaseReviewNote']);
       await ensureColumns(qi, PawnContractModel, ['conditionCaseReviewNote']);
-      const indexes = await qi.showIndex('product') as { name: string }[];
-      if (!indexes.some(index => index.name === 'product_family_lookup')) await qi.addIndex('product', ['modelFamilyId', 'partnerId'], { name: 'product_family_lookup' });
-      if (!indexes.some(index => index.name === 'product_condition_nodes_gin')) await qi.addIndex('product', ['conditionNodeIds'], { name: 'product_condition_nodes_gin', using: 'gin' });
+      const indexes = (await qi.showIndex('product')) as { name: string }[];
+      if (!indexes.some((index) => index.name === 'product_family_lookup'))
+        await qi.addIndex('product', ['modelFamilyId', 'partnerId'], { name: 'product_family_lookup' });
+      if (!indexes.some((index) => index.name === 'product_condition_nodes_gin'))
+        await qi.addIndex('product', ['conditionNodeIds'], { name: 'product_condition_nodes_gin', using: 'gin' });
     },
   },
   {
@@ -1487,6 +1535,60 @@ export const MIGRATIONS: Migration[] = [
     up: async ({ context }) => {
       const qi = context.sequelize.getQueryInterface();
       await ensureColumns(qi, ProductModel, ['conditionPercent']);
+    },
+  },
+  {
+    name: '2026-10-28-60-pawn-and-hold-ledgers',
+    up: async ({ context }) => {
+      await ensureTables(MoneyOperationModel);
+      const qi = context.sequelize.getQueryInterface();
+      await ensureColumns(qi, UserModel, ['commerceScopes']);
+      await ensureColumns(qi, ProductModel, ['ownershipVerifiedAt', 'ownershipReference']);
+      await ensureColumns(qi, CouponModel, ['reservedHoldId']);
+      await ensureColumns(qi, PawnContractModel, ['governance']);
+      await ensureColumns(qi, PawnPaymentModel, ['creditAppliedVnd', 'metadata']);
+      await ensureColumns(qi, ReservationModel, [
+        'ruleVersion',
+        'acceptedTerms',
+        'originalMerchandiseVnd',
+        'discountVnd',
+        'benefitSnapshot',
+        'couponId',
+        'couponBudgetVnd',
+        'couponReserved',
+        'depositTransferredAt',
+        'depositTransferredVnd',
+        'disputed',
+        'paymentReversed',
+        'reconciliationRequired',
+      ]);
+      await ensureColumns(qi, ReservationPaymentModel, ['metadata']);
+      await ensureColumns(qi, OrderPaymentLinkModel, ['reservationId']);
+      await ensureColumns(qi, CommerceNotificationModel, ['availableAt', 'cancelledAt']);
+      await ensureColumns(qi, NotificationDeliveryModel, ['scheduledAt']);
+      await context.sequelize.query(`ALTER TABLE pawn_event ALTER COLUMN "actorUserId" DROP NOT NULL;
+        CREATE INDEX IF NOT EXISTS notification_due_idx ON notification_delivery (status, "scheduledAt");
+        ALTER TABLE reservation_payment DROP CONSTRAINT IF EXISTS reservation_payment_valid;
+        ALTER TABLE reservation_payment ADD CONSTRAINT reservation_payment_valid CHECK ("amountVnd" > 0 AND kind IN ('receipt','unallocated_receipt','refund','refund_request','refund_approved','reversal','forfeit'));
+        ALTER TABLE pawn_payment DROP CONSTRAINT IF EXISTS pawn_payment_amount_valid;
+        ALTER TABLE pawn_payment ADD CONSTRAINT pawn_payment_amount_valid CHECK ("amountVnd" > 0 AND "principalVnd" >= 0 AND "interestVnd" >= 0 AND "creditAppliedVnd" >= 0 AND (
+          (kind='disbursement' AND "amountVnd"="principalVnd" AND "interestVnd"=0 AND "creditAppliedVnd"=0) OR
+          (kind='redemption' AND "amountVnd"+"creditAppliedVnd"="principalVnd"+"interestVnd" AND "creditAppliedVnd"<="interestVnd") OR
+          (kind IN ('extension_credit','credit_refund') AND "principalVnd"=0 AND "interestVnd"=0 AND "creditAppliedVnd"=0)));
+        CREATE INDEX IF NOT EXISTS hold_payment_link_idx ON order_payment_link ("reservationId");
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='money_operation_requester_fk') THEN
+            ALTER TABLE money_operation ADD CONSTRAINT money_operation_requester_fk FOREIGN KEY ("requestedBy") REFERENCES "user"(id) ON DELETE RESTRICT;
+            ALTER TABLE money_operation ADD CONSTRAINT money_operation_reviewer_fk FOREIGN KEY ("approvedBy") REFERENCES "user"(id) ON DELETE RESTRICT;
+            ALTER TABLE money_operation ADD CONSTRAINT money_operation_valid CHECK ("amountVnd">0 AND version>=0 AND status IN ('requested','approved','completed','rejected','reconciliation'));
+          END IF;
+        END $$;
+        CREATE OR REPLACE FUNCTION protect_money_operation() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+          IF TG_OP = 'DELETE' THEN RAISE EXCEPTION 'Refund records are append-only'; END IF;
+          IF ROW(NEW.purpose,NEW."entityId",NEW."amountVnd",NEW."requestedBy",NEW."requestKey",NEW."requestDigest",NEW.details->'account',NEW.details->'accountHash',NEW.details->'reason') IS DISTINCT FROM ROW(OLD.purpose,OLD."entityId",OLD."amountVnd",OLD."requestedBy",OLD."requestKey",OLD."requestDigest",OLD.details->'account',OLD.details->'accountHash',OLD.details->'reason') THEN RAISE EXCEPTION 'Refund terms are immutable'; END IF;
+          RETURN NEW; END $$;
+        DROP TRIGGER IF EXISTS money_operation_protected ON money_operation;
+        CREATE TRIGGER money_operation_protected BEFORE UPDATE OR DELETE ON money_operation FOR EACH ROW EXECUTE FUNCTION protect_money_operation();`);
     },
   },
 ];

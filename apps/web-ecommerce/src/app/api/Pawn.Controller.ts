@@ -1,3 +1,4 @@
+import MoneyOperationsService from '../../core/server/services/MoneyOperationsService';
 import type { Request, Response } from 'express';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
 import { Get, Post } from '../../shared/server/decorators/router.decorator';
@@ -10,41 +11,81 @@ import HttpError from '../../shared/server/utils/HttpError';
 export default class PawnController extends ApiBaseController {
   @Post('/:id/condition-evidence')
   async conditionEvidence(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await new PawnService().addCaseEvidence(Number(req.params.id), this.user(req), req.body || {})); }
-    catch (error) { return this.handleError(res, error, 'Add pawn condition evidence'); }
+    try {
+      return this.sendSuccess(
+        res,
+        await new PawnService().addCaseEvidence(Number(req.params.id), this.user(req), req.body || {}),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Add pawn condition evidence');
+    }
   }
   private service = new PawnService();
-  private user(req: Request) { if (!req.user) throw HttpError.unauthorized(); return req.user.id; }
+  private user(req: Request) {
+    if (!req.user) throw HttpError.unauthorized();
+    return req.user.id;
+  }
   @Get('/')
   async list(req: Request, res: Response) {
-    try { return res.json(await this.service.list(this.user(req))); }
-    catch (error) { return this.handleError(res, error, 'Customer pawn requests'); }
+    try {
+      return res.json(await this.service.list(this.user(req)));
+    } catch (error) {
+      return this.handleError(res, error, 'Customer pawn requests');
+    }
   }
   @Get('/notifications')
   async notifications(req: Request, res: Response) {
-    try { return res.json(await this.service.notifications(this.user(req))); }
-    catch (error) { return this.handleError(res, error, 'Pawn deadline notifications'); }
+    try {
+      return res.json(await this.service.notifications(this.user(req)));
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn deadline notifications');
+    }
   }
   @Get('/:id')
   async detail(req: Request, res: Response) {
-    try { return res.json(await this.service.detail(Number(req.params.id), this.user(req))); }
-    catch (error) { return this.handleError(res, error, 'Customer pawn contract'); }
+    try {
+      return res.json(await this.service.detail(Number(req.params.id), this.user(req)));
+    } catch (error) {
+      return this.handleError(res, error, 'Customer pawn contract');
+    }
   }
   @Post('/')
   async create(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await this.service.create(this.user(req), req.body || {}), undefined, 201); }
-    catch (error) { return this.handleError(res, error, 'Pawn submission'); }
+    try {
+      return this.sendSuccess(res, await this.service.create(this.user(req), req.body || {}), undefined, 201);
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn submission');
+    }
+  }
+  @Post('/:id/credit-refund-request') async refundCredit(req: Request, res: Response) {
+    try {
+      return res.json(
+        await new MoneyOperationsService().request(
+          'pawn_credit_refund',
+          Number(req.params.id),
+          this.user(req),
+          req.body || {},
+        ),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn excess credit refund');
+    }
   }
   @Post('/:id/actions')
   async act(req: Request, res: Response) {
-    try { return this.sendSuccess(res, await this.service.act(Number(req.params.id), this.user(req), req.body || {})); }
-    catch (error) { return this.handleError(res, error, 'Pawn customer decision'); }
+    try {
+      return this.sendSuccess(res, await this.service.act(Number(req.params.id), this.user(req), req.body || {}));
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn customer decision');
+    }
   }
   @Post('/:id/disposal/decision')
   async disposalDecision(req: Request, res: Response) {
     try {
       await new PawnDisposalService().decide(Number(req.params.id), this.user(req), req.body || {});
       return this.sendSuccess(res, await this.service.detail(Number(req.params.id), this.user(req)));
-    } catch (error) { return this.handleError(res, error, 'Pawn disposal customer agreement'); }
+    } catch (error) {
+      return this.handleError(res, error, 'Pawn disposal customer agreement');
+    }
   }
 }

@@ -514,7 +514,7 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
     }
   });
 
-  it('an unpaid order past its payment deadline is cancelled with its stock back; an unanswered cancellation request is approved after 24 hours', async () => {
+  it('an unpaid order past its payment deadline is cancelled with its stock back; a paid cancellation request still requires staff review after 24 hours', async () => {
     const stock = (await product.reload()).stock;
     const unpaid = await place({ fulfillmentMethod: 'COURIER_COD', deliveryAddress: address });
     expect(unpaid.paymentDueAt).toBeTruthy();
@@ -538,11 +538,10 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
     });
     await new OrderSyncService().run();
     expect(await order.reload()).toMatchObject({
-      status: 'CANCELLED',
-      cancelledBy: 'system',
-      cancelRequest: { status: 'APPROVED' },
+      status: 'PROCESSING',
+      cancelRequest: { status: 'PENDING' },
     });
-    expect(await AdminAlertModel.count({ where: { orderId: paid.id, kind: 'refund_due' } })).toBe(1);
+    expect(await AdminAlertModel.count({ where: { orderId: paid.id, kind: 'refund_due' } })).toBe(0);
   });
 
   it('payOS for an existing order: only a verified payment counts, exactly once, and it creates the waybill automatically', async () => {
@@ -760,12 +759,12 @@ describe('deposit delivery and smart vouchers on disposable PostgreSQL', () => {
     expect(await CouponModel.count({ where: { kind: 'member', ownerUserId: { [Op.ne]: userId } } })).toBe(0);
   });
 
-  it('keeps 50% of the deposit when the customer gives a paid order up, and refunds everything for shop reasons', async () => {
+  it('never automatically forfeits customer deposits, including shop-fault cancellations', async () => {
     const order = await place({ fulfillmentMethod: 'COURIER_COD', deliveryAddress: address });
     await deposit(order);
     await orders.cancelForUser(userId, order.id, { reason: 'changed_mind' });
     const cancelled = await orders.updateStatus(order.id, 'CANCELLED', adminId, { reason: 'customer_request' });
-    const fee = Math.floor(order.upfrontDueVnd / 2);
+    const fee = 0;
     expect((await OrderModel.findByPk(order.id))!.cancellationFeeVnd).toBe(fee);
     expect(cancelled).toBeTruthy();
     const notice = await CommerceNotificationModel.findOne({ where: { entityId: order.id, kind: 'order_cancelled' } });

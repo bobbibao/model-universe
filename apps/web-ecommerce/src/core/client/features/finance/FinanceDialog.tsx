@@ -21,6 +21,13 @@ export default function FinanceDialog({
   return (
     <dialog
       className="finance-dialog"
+      style={{
+        width: 'min(680px, calc(100vw - 24px))',
+        maxHeight: '90dvh',
+        padding: 0,
+        border: '1px solid #e2e8f0',
+        borderRadius: 16,
+      }}
       ref={ref}
       aria-labelledby={titleId}
       onCancel={(e) => {
@@ -28,7 +35,7 @@ export default function FinanceDialog({
         onClose();
       }}
     >
-      <header>
+      <header className="flex items-center justify-between border-b border-slate-200 p-4 font-bold">
         <h2 id={titleId}>{title}</h2>
         <button type="button" aria-label="Đóng / Close" onClick={onClose}>
           ×

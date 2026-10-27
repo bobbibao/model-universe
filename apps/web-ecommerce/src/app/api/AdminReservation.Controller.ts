@@ -14,34 +14,66 @@ export default class AdminReservationController extends ApiBaseController {
   }
   @Get('/')
   async list(req: Request, res: Response) {
-    try { this.admin(req); return res.json(await this.reservations.list()); }
-    catch (error) { return this.handleError(res, error, 'Reservation queue'); }
+    try {
+      this.admin(req);
+      return res.json(await this.reservations.list());
+    } catch (error) {
+      return this.handleError(res, error, 'Reservation queue');
+    }
   }
   @Get('/expired')
   async expired(req: Request, res: Response) {
-    try { this.admin(req); return res.json(await this.reservations.expiryQueue()); }
-    catch (error) { return this.handleError(res, error, 'Expired reservation queue'); }
+    try {
+      this.admin(req);
+      return res.json(await this.reservations.expiryQueue());
+    } catch (error) {
+      return this.handleError(res, error, 'Expired reservation queue');
+    }
   }
   @Get('/:id')
   async detail(req: Request, res: Response) {
-    try { this.admin(req); return res.json(await this.reservations.detail(Number(req.params.id))); }
-    catch (error) { return this.handleError(res, error, 'Reservation audit'); }
+    try {
+      this.admin(req);
+      return res.json(await this.reservations.detail(Number(req.params.id)));
+    } catch (error) {
+      return this.handleError(res, error, 'Reservation audit');
+    }
   }
   @Post('/:id/:action')
   async act(req: Request, res: Response) {
     try {
-      const actor = this.admin(req), id = Number(req.params.id), data = req.body || {};
+      const actor = this.admin(req),
+        id = Number(req.params.id),
+        data = req.body || {};
       let result;
       switch (req.params.action) {
-        case 'payment': result = await this.reservations.confirmPayment(id, actor, data); break;
-        case 'refund': result = await this.reservations.confirmRefund(id, actor, data); break;
-        case 'forfeit': result = await this.reservations.confirmForfeit(id, actor, data); break;
-        case 'extend': result = await this.reservations.extend(id, actor, data); break;
-        case 'cancel': result = await this.reservations.cancel(id, actor, data); break;
-        case 'confirm-delivery': result = await this.reservations.confirmDelivery(id, actor); break;
-        default: throw HttpError.notFound('Reservation action not found.');
+        case 'review':
+          result = await this.reservations.review(id, actor, data);
+          break;
+        case 'payment':
+          result = await this.reservations.confirmPayment(id, actor, data);
+          break;
+        case 'refund':
+          result = await this.reservations.confirmRefund(id, actor, data);
+          break;
+        case 'forfeit':
+          result = await this.reservations.confirmForfeit(id, actor, data);
+          break;
+        case 'extend':
+          result = await this.reservations.extend(id, actor, data);
+          break;
+        case 'cancel':
+          result = await this.reservations.cancel(id, actor, data);
+          break;
+        case 'confirm-delivery':
+          result = await this.reservations.confirmDelivery(id, actor);
+          break;
+        default:
+          throw HttpError.notFound('Reservation action not found.');
       }
       return this.sendSuccess(res, result);
-    } catch (error) { return this.handleError(res, error, 'Reservation action'); }
+    } catch (error) {
+      return this.handleError(res, error, 'Reservation action');
+    }
   }
 }

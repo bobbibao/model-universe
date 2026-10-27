@@ -11,6 +11,7 @@ import { sendZaloText, sendZns, zaloMode, zaloRecipients, znsEnabled, znsPhone }
 export const MAX_DELIVERY_ATTEMPTS = 3;
 
 export interface CustomerMessage {
+  availableAt?: Date;
   userId: number | null;
   kind: string;
   entityId: number;
@@ -47,6 +48,7 @@ export default class NotificationDispatchService {
         kind: message.kind,
         entityId: message.entityId,
         details: message.details,
+        availableAt: message.availableAt || new Date(),
       },
       transaction,
     });
@@ -56,6 +58,7 @@ export default class NotificationDispatchService {
       await NotificationDeliveryModel.create(
         {
           channel: 'zns',
+          scheduledAt: message.availableAt || new Date(),
           sourceType: 'customer_notification',
           sourceId: row.id,
           recipient: phone,
@@ -75,6 +78,7 @@ export default class NotificationDispatchService {
       await NotificationDeliveryModel.create(
         {
           channel: 'email',
+          scheduledAt: message.availableAt || new Date(),
           sourceType: 'customer_notification',
           sourceId: row.id,
           recipient: user.email,
@@ -116,6 +120,7 @@ export default class NotificationDispatchService {
       const claimed = await NotificationDeliveryModel.sequelize!.transaction(async (transaction) => {
         const row = await NotificationDeliveryModel.findOne({
           where: {
+            scheduledAt: { [Op.lte]: new Date() },
             [Op.or]: [{ status: 'pending' }, { status: 'failed', attemptCount: { [Op.lt]: MAX_DELIVERY_ATTEMPTS } }],
           },
           order: [['id', 'ASC']],
@@ -134,6 +139,16 @@ export default class NotificationDispatchService {
   }
 
   private async send(row: NotificationDeliveryModel, transaction: Transaction) {
+    if (row.sourceType === 'customer_notification') {
+      const notice = await CommerceNotificationModel.findByPk(row.sourceId, { transaction });
+      if (
+        notice?.cancelledAt ||
+        (notice?.kind === 'pawn_due' && new Date(String(notice.details.dueAt)) <= new Date())
+      ) {
+        await row.update({ status: 'cancelled' }, { transaction });
+        return;
+      }
+    }
     const attemptCount = row.attemptCount + 1;
     try {
       if (row.channel === 'email') {

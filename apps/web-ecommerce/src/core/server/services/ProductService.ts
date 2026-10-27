@@ -1,3 +1,4 @@
+import ProductOwnershipService from './ProductOwnershipService';
 import { effectiveItemType } from '../../../shared/condition-tree';
 import { orderConditionOptions } from '../../../shared/product-condition-option';
 import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
@@ -11,7 +12,18 @@ import type { ProductDetail, ProductSummary } from '../../../shared/types/produc
 import PromotionAuditModel from '../database/client/models/PromotionAudit.Model';
 import { catalogPricing } from '../../../shared/sale-pricing';
 import { UUID_PATTERN } from '../../../shared/slug';
-import { FindOptions, Op, Order, QueryTypes, Transaction, UniqueConstraintError, WhereOptions, col, fn, literal } from 'sequelize';
+import {
+  FindOptions,
+  Op,
+  Order,
+  QueryTypes,
+  Transaction,
+  UniqueConstraintError,
+  WhereOptions,
+  col,
+  fn,
+  literal,
+} from 'sequelize';
 import ProductModel, {
   INVENTORY_STATUSES,
   InventoryStatus,
@@ -80,11 +92,18 @@ const ADMIN_SORTABLE_COLUMNS = ['id', 'name', 'price', 'stock', 'sold', 'created
 
 // Fields shown on product cards (cost price and supplier stay internal).
 const LIST_ATTRIBUTES = [
-  'modelFamilyId', 'itemTypeKey', 'conditionNodeIds', 'catalogReviewRequired',
+  'modelFamilyId',
+  'itemTypeKey',
+  'conditionNodeIds',
+  'catalogReviewRequired',
   'uuid',
   'slug',
   'partnerId',
-  'scale', 'modelCode', 'condition', 'conditionPercent', 'assemblyState',
+  'scale',
+  'modelCode',
+  'condition',
+  'conditionPercent',
+  'assemblyState',
   'id',
   'name',
   'brandName',
@@ -101,12 +120,42 @@ const LIST_ATTRIBUTES = [
 ];
 
 // Staff-only columns: never sent to the storefront (the received date included).
-const PRIVATE_ATTRIBUTES = ['importPrice', 'pricingReferenceMemberVnd', 'pricingReferencePreownedVnd', 'pricingIssueCount', 'buybackPriceVnd', 'supplierId', 'isArchived', 'inventoryStatus', 'listingRequestKey', 'listingRequestDigest', 'productionDate', 'parentProductId', 'targetPriceApprovedAt', 'targetPriceApprovedByUserId'];
+const PRIVATE_ATTRIBUTES = [
+  'importPrice',
+  'pricingReferenceMemberVnd',
+  'pricingReferencePreownedVnd',
+  'pricingIssueCount',
+  'buybackPriceVnd',
+  'supplierId',
+  'isArchived',
+  'inventoryStatus',
+  'listingRequestKey',
+  'listingRequestDigest',
+  'productionDate',
+  'parentProductId',
+  'targetPriceApprovedAt',
+  'targetPriceApprovedByUserId',
+];
 
 // What a condition option shares with its main listing: the model itself. Staff edit it on the main listing only.
-const IDENTITY_FIELDS = ['name', 'brandName', 'modelCode', 'scale', 'description', 'descriptionEn', 'descriptionVi', 'categoryId', 'supplierId', 'weight', 'dimensions', 'packaging'] as const;
+const IDENTITY_FIELDS = [
+  'name',
+  'brandName',
+  'modelCode',
+  'scale',
+  'description',
+  'descriptionEn',
+  'descriptionVi',
+  'categoryId',
+  'supplierId',
+  'weight',
+  'dimensions',
+  'packaging',
+] as const;
 const identityOf = (listing: ProductModel) =>
-  Object.fromEntries(IDENTITY_FIELDS.map((field) => [field, listing.get(field)])) as Partial<Record<(typeof IDENTITY_FIELDS)[number], unknown>>;
+  Object.fromEntries(IDENTITY_FIELDS.map((field) => [field, listing.get(field)])) as Partial<
+    Record<(typeof IDENTITY_FIELDS)[number], unknown>
+  >;
 
 // Units are shown in the order of their conditions (Admin > Products > Conditions); an unknown one last.
 const rankOf = (types: readonly ProductConditionType[]) => (condition: string) => {
@@ -116,7 +165,8 @@ const rankOf = (types: readonly ProductConditionType[]) => (condition: string) =
 const categoryInclude = { model: CategoryModel, as: 'category', attributes: ['id', 'name', 'slug'] };
 const imagesInclude = { model: ProductImageModel, as: 'images', attributes: ['id', 'url', 'sortOrder'] };
 
-const isImageUrl = (url: string) => url.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`) || url.startsWith('/images/catalog/') || isHttpUrl(url);
+const isImageUrl = (url: string) =>
+  url.startsWith(`${PUBLIC_UPLOAD_PREFIX}/`) || url.startsWith('/images/catalog/') || isHttpUrl(url);
 
 const galleryUrls = (product: ProductModel): string[] =>
   ((product.get('images') as ProductImageModel[] | undefined) || [])
@@ -124,7 +174,9 @@ const galleryUrls = (product: ProductModel): string[] =>
     .map((image) => image.url);
 
 const textList = (value: unknown): string[] | null =>
-  Array.isArray(value) && value.length <= MAX_CONDITION_ITEMS ? value.map((item) => asTrimmedString(item)).filter(Boolean) : null;
+  Array.isArray(value) && value.length <= MAX_CONDITION_ITEMS
+    ? value.map((item) => asTrimmedString(item)).filter(Boolean)
+    : null;
 
 type Row = Record<string, string | number | null>;
 
@@ -163,19 +215,33 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       if (values.length) conditions.push({ [field]: { [Op.in]: values } });
     }
     const itemTypes = parseFilterChoices(query.itemTypeKey);
-    if (itemTypes.some(type => !['new', 'preowned'].includes(type))) throw HttpError.badRequest('Loại hàng không hợp lệ.');
-    if (itemTypes.length) conditions.push({ [Op.or]: [
-      { modelFamilyId: { [Op.ne]: null }, itemTypeKey: { [Op.in]: itemTypes } },
-      { modelFamilyId: null, condition: itemTypes.includes('new') && itemTypes.includes('preowned') ? { [Op.ne]: null } : itemTypes.includes('new') ? 'new' : { [Op.ne]: 'new' } },
-    ] });
-    if (query.conditionNodeIds?.length) conditions.push({ [Op.or]: query.conditionNodeIds.map(id => ({ conditionNodeIds: { [Op.contains]: [id] } })) });
+    if (itemTypes.some((type) => !['new', 'preowned'].includes(type)))
+      throw HttpError.badRequest('Loại hàng không hợp lệ.');
+    if (itemTypes.length)
+      conditions.push({
+        [Op.or]: [
+          { modelFamilyId: { [Op.ne]: null }, itemTypeKey: { [Op.in]: itemTypes } },
+          {
+            modelFamilyId: null,
+            condition:
+              itemTypes.includes('new') && itemTypes.includes('preowned')
+                ? { [Op.ne]: null }
+                : itemTypes.includes('new')
+                  ? 'new'
+                  : { [Op.ne]: 'new' },
+          },
+        ],
+      });
+    if (query.conditionNodeIds?.length)
+      conditions.push({ [Op.or]: query.conditionNodeIds.map((id) => ({ conditionNodeIds: { [Op.contains]: [id] } })) });
     if (query.categoryId) conditions.push({ categoryId: query.categoryId });
     if (query.partnerId !== undefined) conditions.push({ partnerId: query.partnerId });
     if (query.minPrice !== undefined) conditions.push({ price: { [Op.gte]: query.minPrice } });
     if (query.maxPrice !== undefined) conditions.push({ price: { [Op.lte]: query.maxPrice } });
     const assemblies = parseFilterChoices(query.assemblyState);
     if (assemblies.length) {
-      if (assemblies.some((value) => !ASSEMBLY_STATES.includes(value as typeof ASSEMBLY_STATES[number]))) throw HttpError.badRequest('Invalid assembly state filter.');
+      if (assemblies.some((value) => !ASSEMBLY_STATES.includes(value as (typeof ASSEMBLY_STATES)[number])))
+        throw HttpError.badRequest('Invalid assembly state filter.');
       conditions.push({ assemblyState: { [Op.in]: assemblies } });
     }
     if (query.inStock) conditions.push({ stock: { [Op.gt]: 0 } });
@@ -194,18 +260,36 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       where,
       include: category ? [{ ...categoryInclude, attributes: [], where: { slug: category }, required: true }] : [],
     });
-    return units.map(unit => unit.id);
+    return units.map((unit) => unit.id);
   }
 
   // Each listing with the conditions it is offered in: units, stock and the lowest price the customer pays.
   private async withConditions<T extends { id: number }>(listings: T[], _where: WhereOptions = STOREFRONT_VISIBLE) {
     if (!listings.length) return [];
     const nodes = await new CatalogTreeService().nodes();
-    return listings.map(listing => {
+    return listings.map((listing) => {
       const row = listing as T & Record<string, any>;
       const ids: number[] = row.conditionNodeIds ?? [];
-      return { ...listing, itemTypeKey: effectiveItemType({ modelFamilyId: row.modelFamilyId, itemTypeKey: row.itemTypeKey, condition: row.condition }), conditionLabels: ids.map(id => conditionPath(id, nodes)),
-        conditions: [{ condition: row.modelFamilyId ? row.itemTypeKey : row.condition, units: 1, stock: row.stock, minSalePrice: row.salePrice, conditionPercent: row.conditionPercent ?? null }], groupStock: row.stock, conditionPercent: row.conditionPercent ?? null };
+      return {
+        ...listing,
+        itemTypeKey: effectiveItemType({
+          modelFamilyId: row.modelFamilyId,
+          itemTypeKey: row.itemTypeKey,
+          condition: row.condition,
+        }),
+        conditionLabels: ids.map((id) => conditionPath(id, nodes)),
+        conditions: [
+          {
+            condition: row.modelFamilyId ? row.itemTypeKey : row.condition,
+            units: 1,
+            stock: row.stock,
+            minSalePrice: row.salePrice,
+            conditionPercent: row.conditionPercent ?? null,
+          },
+        ],
+        groupStock: row.stock,
+        conditionPercent: row.conditionPercent ?? null,
+      };
     });
   }
 
@@ -214,10 +298,21 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   async listPublic(query: ProductListQuery) {
     if (query.conditionNodeIds?.length) {
       const nodes = await new CatalogTreeService().nodes();
-      if (query.conditionNodeIds.some(id => !Number.isSafeInteger(id) || !nodes.some(node => node.id === id))) throw HttpError.badRequest('Bộ lọc tình trạng không hợp lệ.');
-      query = { ...query, conditionNodeIds: nodes.filter(node => query.conditionNodeIds!.some(id => node.id === id || ancestors(node.id, nodes).includes(id))).map(node => node.id) };
+      if (query.conditionNodeIds.some((id) => !Number.isSafeInteger(id) || !nodes.some((node) => node.id === id)))
+        throw HttpError.badRequest('Bộ lọc tình trạng không hợp lệ.');
+      query = {
+        ...query,
+        conditionNodeIds: nodes
+          .filter((node) =>
+            query.conditionNodeIds!.some((id) => node.id === id || ancestors(node.id, nodes).includes(id)),
+          )
+          .map((node) => node.id),
+      };
     }
-    const ids = await this.matchingListingIds({ [Op.and]: [this.buildWhere(query), STOREFRONT_VISIBLE] }, query.category);
+    const ids = await this.matchingListingIds(
+      { [Op.and]: [this.buildWhere(query), STOREFRONT_VISIBLE] },
+      query.category,
+    );
 
     const rawSearch = asTrimmedString(query.q);
     if (rawSearch && !query.sort) {
@@ -270,7 +365,9 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       // Largest models first: 1/60, 1/72, 1/100, 1/144.
       scales: scales
         .map((row) => row.scale as string)
-        .sort((a, b) => (Number(a.split('/')[1]) || Infinity) - (Number(b.split('/')[1]) || Infinity) || a.localeCompare(b)),
+        .sort(
+          (a, b) => (Number(a.split('/')[1]) || Infinity) - (Number(b.split('/')[1]) || Infinity) || a.localeCompare(b),
+        ),
       priceRange: { min: Number(prices?.min || 0), max: Number(prices?.max || 0) },
     };
   }
@@ -280,7 +377,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   async getPublicById(key: number | string) {
     const where =
       typeof key === 'number' ? { id: key } : UUID_PATTERN.test(key) ? { uuid: key.toLowerCase() } : { slug: key };
-    const found = await ProductModel.findOne({ attributes: ['id', 'parentProductId', 'modelFamilyId', 'catalogCanonicalId'], where });
+    const found = await ProductModel.findOne({
+      attributes: ['id', 'parentProductId', 'modelFamilyId', 'catalogCanonicalId'],
+      where,
+    });
     const listingId = found?.catalogCanonicalId ?? found?.id;
     const product = listingId
       ? await ProductModel.findOne({
@@ -293,7 +393,12 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const id = product.id;
     const options = await ProductModel.findAll({
       attributes: { exclude: PRIVATE_ATTRIBUTES },
-      where: { ...STOREFRONT_VISIBLE, ...(product.modelFamilyId ? { modelFamilyId: product.modelFamilyId, partnerId: product.partnerId, id: { [Op.ne]: id } } : { parentProductId: id }) },
+      where: {
+        ...STOREFRONT_VISIBLE,
+        ...(product.modelFamilyId
+          ? { modelFamilyId: product.modelFamilyId, partnerId: product.partnerId, id: { [Op.ne]: id } }
+          : { parentProductId: id }),
+      },
       include: [imagesInclude],
     });
     const discounts = await this.discountService.getActive([id, ...options.map((option) => option.id)]);
@@ -306,8 +411,9 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       isMain,
       condition: row.modelFamilyId ? row.itemTypeKey : row.condition,
       conditionPercent: row.conditionPercent ?? null,
-      itemTypeKey: effectiveItemType(row), conditionNodeIds: row.conditionNodeIds,
-      conditionLabels: (row.conditionNodeIds ?? []).map(id => conditionPath(id, treeNodes)),
+      itemTypeKey: effectiveItemType(row),
+      conditionNodeIds: row.conditionNodeIds,
+      conditionLabels: (row.conditionNodeIds ?? []).map((id) => conditionPath(id, treeNodes)),
       conditionNote: row.conditionNote ?? null,
       missingAccessories: row.missingAccessories,
       defects: row.defects,
@@ -324,10 +430,16 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const optionUnits = options.map((option) => unit(option, false));
     return {
       ...product.get({ plain: true }),
-      conditionLabels: (product.conditionNodeIds ?? []).map(id => conditionPath(id, treeNodes)),
-      imageAttributions: mediaManifest.filter(entry => [product.imageUrl, ...galleryUrls(product)].includes(entry.path)).map(entry => ({
-        imageUrl: entry.path, creator: entry.creator, source: entry.source, license: entry.license, licenseUrl: entry.licenseUrl,
-      })),
+      conditionLabels: (product.conditionNodeIds ?? []).map((id) => conditionPath(id, treeNodes)),
+      imageAttributions: mediaManifest
+        .filter((entry) => [product.imageUrl, ...galleryUrls(product)].includes(entry.path))
+        .map((entry) => ({
+          imageUrl: entry.path,
+          creator: entry.creator,
+          source: entry.source,
+          license: entry.license,
+          licenseUrl: entry.licenseUrl,
+        })),
       ...toPricing(product.price, discounts.get(id)),
       images: galleryUrls(product),
       ratingDistribution: await this.reviewService.getDistribution(id),
@@ -338,29 +450,38 @@ export default class ProductService implements BaseServiceInterface<ProductModel
 
   // A bounded public candidate pool, reranked with current condition prices/stock. No admin fields or user data.
   async getRecommendations(key: number | string) {
-    const source = await this.getPublicById(key) as unknown as ProductDetail;
+    const source = (await this.getPublicById(key)) as unknown as ProductDetail;
     const availableIds = await this.matchingListingIds({ ...STOREFRONT_VISIBLE, stock: { [Op.gt]: 0 } });
     if (!availableIds.length) return [];
     const sequelize = ProductModel.sequelize!;
     const affinity = [
-      source.categoryId ? `CASE WHEN "ProductModel"."categoryId" = ${sequelize.escape(source.categoryId)} THEN 40 ELSE 0 END` : '0',
-      source.brandName ? `CASE WHEN "ProductModel"."brandName" = ${sequelize.escape(source.brandName)} THEN 25 ELSE 0 END` : '0',
+      source.categoryId
+        ? `CASE WHEN "ProductModel"."categoryId" = ${sequelize.escape(source.categoryId)} THEN 40 ELSE 0 END`
+        : '0',
+      source.brandName
+        ? `CASE WHEN "ProductModel"."brandName" = ${sequelize.escape(source.brandName)} THEN 25 ELSE 0 END`
+        : '0',
       source.scale ? `CASE WHEN "ProductModel"."scale" = ${sequelize.escape(source.scale)} THEN 18 ELSE 0 END` : '0',
     ].join(' + ');
     const rows = await ProductModel.findAll({
       attributes: LIST_ATTRIBUTES,
       where: { ...STOREFRONT_VISIBLE, [Op.and]: [{ id: availableIds }, { id: { [Op.ne]: source.id } }] },
       include: [categoryInclude],
-      order: [[literal(`(${affinity})`), 'DESC'], ['sold', 'DESC'], ['id', 'ASC']],
+      order: [
+        [literal(`(${affinity})`), 'DESC'],
+        ['sold', 'DESC'],
+        ['id', 'ASC'],
+      ],
       limit: 72,
     });
     const candidates = await this.withConditions(await this.discountService.withPricing(rows));
-    const preferred = new Map<string, typeof candidates[number]>();
+    const preferred = new Map<string, (typeof candidates)[number]>();
     for (const candidate of candidates) {
       if (source.modelFamilyId && candidate.modelFamilyId === source.modelFamilyId) continue;
       const key = candidate.modelFamilyId ? `family:${candidate.modelFamilyId}` : `sku:${candidate.id}`;
       const previous = preferred.get(key);
-      const distance = (item: typeof candidate) => (item.itemTypeKey === source.itemTypeKey ? 0 : 1000000000) + Math.abs(item.salePrice - source.salePrice);
+      const distance = (item: typeof candidate) =>
+        (item.itemTypeKey === source.itemTypeKey ? 0 : 1000000000) + Math.abs(item.salePrice - source.salePrice);
       if (!previous || distance(candidate) < distance(previous)) preferred.set(key, candidate);
     }
     return rankRelatedProducts(source, [...preferred.values()] as unknown as ProductSummary[]);
@@ -383,9 +504,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       limit: Math.max(12, Math.min(240, limit)),
     });
     const enriched = await this.withConditions(await this.discountService.withPricing(rows));
-    return enriched.map(row => {
-      const product = {...row} as Record<string, unknown>;
-      for (const key of ['importPrice', 'minPrice', 'pricingReferenceMemberVnd', 'parentProductId']) delete product[key];
+    return enriched.map((row) => {
+      const product = { ...row } as Record<string, unknown>;
+      for (const key of ['importPrice', 'minPrice', 'pricingReferenceMemberVnd', 'parentProductId'])
+        delete product[key];
       return product;
     }) as unknown as ProductSummary[];
   }
@@ -407,9 +529,27 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     if (query.status === 'held') status.push({ inventoryStatus: { [Op.ne]: 'available' } });
     const ids = await this.matchingListingIds(this.buildWhere(query));
     if (query.groupByModel) {
-      const all = await ProductModel.findAll({ attributes: [...LIST_ATTRIBUTES, 'sku', 'importPrice', 'pricingReferenceMemberVnd', 'isArchived', 'inventoryStatus', 'createdAt', 'updatedAt'], where: { [Op.and]: [...status, { id: ids }] }, order: [['id', 'DESC']] });
+      const all = await ProductModel.findAll({
+        attributes: [
+          ...LIST_ATTRIBUTES,
+          'sku',
+          'importPrice',
+          'pricingReferenceMemberVnd',
+          'isArchived',
+          'inventoryStatus',
+          'createdAt',
+          'updatedAt',
+        ],
+        where: { [Op.and]: [...status, { id: ids }] },
+        order: [['id', 'DESC']],
+      });
       const groups = new Map<string, ProductModel[]>();
-      for (const product of all) { const key = product.modelFamilyId ? `family:${product.partnerId ?? 'shop'}:${product.modelFamilyId}` : `legacy:${product.id}`; groups.set(key, [...(groups.get(key) ?? []), product]); }
+      for (const product of all) {
+        const key = product.modelFamilyId
+          ? `family:${product.partnerId ?? 'shop'}:${product.modelFamilyId}`
+          : `legacy:${product.id}`;
+        groups.set(key, [...(groups.get(key) ?? []), product]);
+      }
       const paged = [...groups.values()].slice(query.offset, query.offset + query.limit);
       const rows = [];
       for (const group of paged) {
@@ -420,7 +560,17 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     }
     const column = query.sortKey && ADMIN_SORTABLE_COLUMNS.includes(query.sortKey) ? query.sortKey : 'id';
     const { rows, count } = await ProductModel.findAndCountAll({
-      attributes: [...LIST_ATTRIBUTES, 'sku', 'importPrice', 'pricingReferenceMemberVnd', 'isArchived', 'inventoryStatus', 'createdAt', 'updatedAt', 'productionDate'],
+      attributes: [
+        ...LIST_ATTRIBUTES,
+        'sku',
+        'importPrice',
+        'pricingReferenceMemberVnd',
+        'isArchived',
+        'inventoryStatus',
+        'createdAt',
+        'updatedAt',
+        'productionDate',
+      ],
       where: { [Op.and]: [...status, { id: ids }] },
       include: [categoryInclude],
       order: [[column, query.sortDirection === 'desc' ? 'DESC' : 'ASC']],
@@ -428,7 +578,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       offset: query.offset,
       distinct: true,
     });
-    return { rows: await this.withConditions(await this.discountService.withPricing(rows), { isArchived: false }), count };
+    return {
+      rows: await this.withConditions(await this.discountService.withPricing(rows), { isArchived: false }),
+      count,
+    };
   }
 
   async getAdminById(id: number) {
@@ -438,15 +591,41 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         imagesInclude,
         { model: SupplierModel, as: 'supplier', attributes: ['id', 'name', 'contactPhone'] },
         // Catalog provenance (image status, verification, price basis) for staff; null for other products.
-        { model: ProductSourceModel, as: 'source', attributes: { exclude: ['id', 'productId', 'createdAt', 'updatedAt'] } },
+        {
+          model: ProductSourceModel,
+          as: 'source',
+          attributes: { exclude: ['id', 'productId', 'createdAt', 'updatedAt'] },
+        },
       ],
     });
     if (!product) throw HttpError.notFound('Không tìm thấy sản phẩm.');
     // The model's units: the main listing and its condition options (archived ones too), whichever one is open.
     const listingId = product.id;
     const units = await ProductModel.findAll({
-      attributes: ['id', 'sku', 'name', 'condition', 'conditionNote', 'missingAccessories', 'defects', 'price', 'pricingReferenceMemberVnd', 'importPrice', 'stock', 'sold', 'imageUrl', 'isArchived', 'inventoryStatus', 'parentProductId', 'modelFamilyId', 'itemTypeKey', 'conditionNodeIds'],
-      where: product.modelFamilyId ? { modelFamilyId: product.modelFamilyId, partnerId: product.partnerId } : { [Op.or]: [{ id: listingId }, { parentProductId: listingId }] },
+      attributes: [
+        'id',
+        'sku',
+        'name',
+        'condition',
+        'conditionNote',
+        'missingAccessories',
+        'defects',
+        'price',
+        'pricingReferenceMemberVnd',
+        'importPrice',
+        'stock',
+        'sold',
+        'imageUrl',
+        'isArchived',
+        'inventoryStatus',
+        'parentProductId',
+        'modelFamilyId',
+        'itemTypeKey',
+        'conditionNodeIds',
+      ],
+      where: product.modelFamilyId
+        ? { modelFamilyId: product.modelFamilyId, partnerId: product.partnerId }
+        : { [Op.or]: [{ id: listingId }, { parentProductId: listingId }] },
     });
     const conditionRank = rankOf(await this.conditions.all());
     const ordered = units.sort(
@@ -461,8 +640,12 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       ...product.get({ plain: true }),
       itemTypeKey: effectiveItemType(product),
       images: galleryUrls(product),
-      identityLocked: !!product.combinationKey && (product.stock > 0 || await productHasHistory(product.id)),
-      stockReceipts: await CatalogIntakeModel.findAll({ where: { productId: product.id }, order: [['id', 'DESC']], limit: 30 }),
+      identityLocked: !!product.combinationKey && (product.stock > 0 || (await productHasHistory(product.id))),
+      stockReceipts: await CatalogIntakeModel.findAll({
+        where: { productId: product.id },
+        order: [['id', 'DESC']],
+        limit: 30,
+      }),
       listing: listing ? { id: listing.id, name: listing.name, sku: listing.sku } : null,
       units: await this.withConditions(priced.map((unit) => ({ ...unit, isMain: unit.id === id }))),
     };
@@ -470,9 +653,14 @@ export default class ProductService implements BaseServiceInterface<ProductModel
 
   // Validates the admin form payload; returns the product columns and the gallery image URLs. The shop's own catalog is
   // priced by formula from a reference member price; a partner seller's listing (`sellerPrice`) keeps the seller's price.
-  async validateCatalogInput(data: Record<string, unknown>, currentId?: number, options: { sellerPrice?: boolean } = {}) {
+  async validateCatalogInput(
+    data: Record<string, unknown>,
+    currentId?: number,
+    options: { sellerPrice?: boolean } = {},
+  ) {
     const errors: string[] = [];
-    if (!options.sellerPrice && data.partnerId != null) throw HttpError.badRequest('Quản lý hàng đối tác qua luồng đăng bán của đối tác.');
+    if (!options.sellerPrice && data.partnerId != null)
+      throw HttpError.badRequest('Quản lý hàng đối tác qua luồng đăng bán của đối tác.');
     const name = asTrimmedString(data.name);
     const brandName = asTrimmedString(data.brandName);
     const sku = asTrimmedString(data.sku);
@@ -487,30 +675,50 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       ? undefined
       : (toInteger(data.pricingReferenceMemberVnd) ?? current?.pricingReferenceMemberVnd ?? undefined);
     // A product saved before S existed keeps its price until staff set one.
-    const keepsLegacyPrice = !options.sellerPrice && !target && !!current && (data.price == null || toInteger(data.price) === current.price);
+    const keepsLegacyPrice =
+      !options.sellerPrice && !target && !!current && (data.price == null || toInteger(data.price) === current.price);
     if (!options.sellerPrice && !keepsLegacyPrice) {
       if (!target) throw HttpError.badRequest('Cần giá bán thực S của sản phẩm.');
-      try { formula = catalogPricing(target); }
-      catch (error) { throw HttpError.badRequest((error as Error).message); }
+      try {
+        formula = catalogPricing(target);
+      } catch (error) {
+        throw HttpError.badRequest((error as Error).message);
+      }
       if (data.buybackPriceVnd != null && toInteger(data.buybackPriceVnd) !== formula.buybackPriceVnd)
         throw HttpError.badRequest('Giá thu B được tính tự động từ S. Không nhập đè giá thu.');
     }
-    const price = options.sellerPrice ? toInteger(data.price) : keepsLegacyPrice ? current?.price : formula?.listPriceVnd;
+    const price = options.sellerPrice
+      ? toInteger(data.price)
+      : keepsLegacyPrice
+        ? current?.price
+        : formula?.listPriceVnd;
     // The web price is never typed for the shop's own catalogue: an empty value (null) means "not sent".
     if (!options.sellerPrice && data.price != null && toInteger(data.price) !== price)
       throw HttpError.badRequest('Giá web R = S ÷ 0,9 được tính tự động. Không nhập đè giá bán.');
     // A new or changed S is approved by the admin saving it.
     const targetChanged =
-      !!formula && (formula.referenceMemberVnd !== current?.pricingReferenceMemberVnd || !current?.targetPriceApprovedAt);
+      !!formula &&
+      (formula.referenceMemberVnd !== current?.pricingReferenceMemberVnd || !current?.targetPriceApprovedAt);
     if (data.pricingReferencePreownedVnd != null && !options.sellerPrice)
       throw HttpError.badRequest('Mỗi sản phẩm chỉ có một giá S. Tạo/chọn sản phẩm 2hand với tổ hợp tương ứng.');
     const importPrice = current?.importPrice ?? toInteger(data.importPrice) ?? 0;
     const stock = toInteger(data.stock) ?? current?.stock ?? 0;
-    if (!options.sellerPrice && stock !== (current?.stock ?? 0)) throw HttpError.conflict('Tồn kho thay đổi qua phiếu nhập/điều chỉnh, không nhập trực tiếp trên sản phẩm.', 'STOCK_RECEIPT_REQUIRED');
+    if (!options.sellerPrice && stock !== (current?.stock ?? 0))
+      throw HttpError.conflict(
+        'Tồn kho thay đổi qua phiếu nhập/điều chỉnh, không nhập trực tiếp trên sản phẩm.',
+        'STOCK_RECEIPT_REQUIRED',
+      );
     const categoryId = toInteger(data.categoryId);
     const supplierId = toInteger(data.supplierId);
     const gunpla: Record<string, unknown> = {};
-    for (const field of ['scale', 'modelCode', 'boxCondition', 'conditionNote', 'descriptionEn', 'descriptionVi'] as const) {
+    for (const field of [
+      'scale',
+      'modelCode',
+      'boxCondition',
+      'conditionNote',
+      'descriptionEn',
+      'descriptionVi',
+    ] as const) {
       if (data[field] !== undefined) gunpla[field] = asTrimmedString(data[field]) || null;
     }
     if (data.condition !== undefined) {
@@ -519,7 +727,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       gunpla.condition = data.condition;
     }
     if (data.assemblyState !== undefined) {
-      if (!ASSEMBLY_STATES.includes(data.assemblyState as typeof ASSEMBLY_STATES[number])) errors.push('Invalid assembly state.');
+      if (!ASSEMBLY_STATES.includes(data.assemblyState as (typeof ASSEMBLY_STATES)[number]))
+        errors.push('Invalid assembly state.');
       gunpla.assemblyState = data.assemblyState;
     }
     const conditionPercentRaw = data.conditionPercent;
@@ -560,7 +769,12 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     if (!imageUrl || !isImageUrl(imageUrl)) errors.push('Vui lòng chọn ảnh chính cho sản phẩm.');
     if (images.length > MAX_GALLERY_IMAGES) errors.push(`Tối đa ${MAX_GALLERY_IMAGES} ảnh phụ.`);
     if (images.some((url) => !isImageUrl(url))) errors.push('Đường dẫn ảnh phụ không hợp lệ.');
-    if (!options.sellerPrice && !data.isArchived && (data.itemTypeKey ?? data.condition ?? current?.itemTypeKey) === 'preowned' && uniquePhotosMissing(stock, imageUrl)) {
+    if (
+      !options.sellerPrice &&
+      !data.isArchived &&
+      (data.itemTypeKey ?? data.condition ?? current?.itemTypeKey) === 'preowned' &&
+      uniquePhotosMissing(stock, imageUrl)
+    ) {
       errors.push('Hàng 2hand cần ít nhất một ảnh thật đã tải lên trước khi xuất bản.');
     }
     if (isNaN(productionDate.getTime())) errors.push('Ngày nhập không hợp lệ.');
@@ -605,7 +819,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         ...(packaging ? { packaging: packaging.value } : {}),
         ...(conditionPercent !== undefined ? { conditionPercent } : {}),
         productionDate,
-        serviceReferenceEnabled: data.serviceReferenceEnabled === undefined ? current?.serviceReferenceEnabled ?? true : data.serviceReferenceEnabled === true,
+        serviceReferenceEnabled:
+          data.serviceReferenceEnabled === undefined
+            ? (current?.serviceReferenceEnabled ?? true)
+            : data.serviceReferenceEnabled === true,
         isFeatured: data.isFeatured === true,
         isArchived: data.isArchived === true,
         listingStatus: data.isArchived === true ? (current?.listingStatus ?? 'draft') : 'published',
@@ -624,7 +841,22 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   }
 
   private auditCreate(product: ProductModel, actorUserId: number | undefined, transaction: Transaction) {
-    return PromotionAuditModel.create({ actorUserId: actorUserId ?? null, entityType: 'product_pricing', entityId: product.id, action: 'create', newValue: { referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd, listPriceVnd: product.price, actualCostVnd: product.importPrice, issues: product.pricingIssueCount } }, { transaction });
+    return PromotionAuditModel.create(
+      {
+        actorUserId: actorUserId ?? null,
+        entityType: 'product_pricing',
+        entityId: product.id,
+        action: 'create',
+        newValue: {
+          referenceMemberVnd: product.pricingReferenceMemberVnd,
+          buybackPriceVnd: product.buybackPriceVnd,
+          listPriceVnd: product.price,
+          actualCostVnd: product.importPrice,
+          issues: product.pricingIssueCount,
+        },
+      },
+      { transaction },
+    );
   }
 
   async create(data: Record<string, unknown>, actorUserId?: number) {
@@ -632,7 +864,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     try {
       const product = await DatabaseProvider.getInstance().transaction(async (transaction) => {
         const selection = await new CatalogTreeService().selection({ ...values, ...data }, null, transaction);
-        const created = await ProductModel.create({ ...values, ...selection, stock: 0, isArchived: true, parentProductId: null }, { transaction });
+        const created = await ProductModel.create(
+          { ...values, ...selection, stock: 0, isArchived: true, parentProductId: null },
+          { transaction },
+        );
         await new CatalogTreeService().remember(created.conditionNodeIds, 'product', created.id, transaction);
         await this.auditCreate(created, actorUserId, transaction);
         await this.replaceImages(created.id, images, transaction);
@@ -640,7 +875,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       });
       return this.getAdminById(product.id);
     } catch (error) {
-      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
+      if (error instanceof UniqueConstraintError)
+        throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
       throw error;
     }
   }
@@ -660,7 +896,11 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   async createConditionOption(listingId: number, data: Record<string, unknown>, actorUserId?: number) {
     const listing = await ProductModel.findByPk(listingId, { include: [imagesInclude] });
     if (!listing) throw HttpError.notFound('Model not found.');
-    if (listing.partnerId) throw HttpError.conflict('Review partner merchandise through its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
+    if (listing.partnerId)
+      throw HttpError.conflict(
+        'Review partner merchandise through its seller listing workflow.',
+        'PARTNER_LISTING_REQUIRED',
+      );
     const condition = String(data.itemTypeKey ?? data.condition ?? 'new');
     const ownImage = asTrimmedString(data.imageUrl);
     const { values, images } = await this.validateCatalogInput({
@@ -670,15 +910,37 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       sku: asTrimmedString(data.sku) || (await this.optionSku(listing, condition)),
       imageUrl: ownImage || listing.imageUrl,
       images: ownImage ? data.images : galleryUrls(listing),
-      isFeatured: false, isArchived: true, stock: 0,
+      isFeatured: false,
+      isArchived: true,
+      stock: 0,
     });
     try {
       const option = await DatabaseProvider.getInstance().transaction(async (transaction) => {
-        const sourceSelection = listing.modelFamilyId ? { modelFamilyId: listing.modelFamilyId } : await new CatalogTreeService().selection(listing.get({ plain: true }), listing, transaction);
+        const sourceSelection = listing.modelFamilyId
+          ? { modelFamilyId: listing.modelFamilyId }
+          : await new CatalogTreeService().selection(listing.get({ plain: true }), listing, transaction);
         if (!listing.modelFamilyId) await listing.update(sourceSelection, { transaction });
-        const selection = await new CatalogTreeService().selection({ ...values, ...data, ...sourceSelection, itemTypeKey: condition, conditionNodeIds: data.conditionNodeIds ?? [] }, null, transaction);
+        const selection = await new CatalogTreeService().selection(
+          {
+            ...values,
+            ...data,
+            ...sourceSelection,
+            itemTypeKey: condition,
+            conditionNodeIds: data.conditionNodeIds ?? [],
+          },
+          null,
+          transaction,
+        );
         const created = await ProductModel.create(
-          { ...values, ...identityOf(listing), ...selection, salesChannel: listing.salesChannel, parentProductId: null, stock: 0, isArchived: true },
+          {
+            ...values,
+            ...identityOf(listing),
+            ...selection,
+            salesChannel: listing.salesChannel,
+            parentProductId: null,
+            stock: 0,
+            isArchived: true,
+          },
           { transaction },
         );
         await new CatalogTreeService().remember(created.conditionNodeIds, 'product', created.id, transaction);
@@ -688,7 +950,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       });
       return this.getAdminById(option.id);
     } catch (error) {
-      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
+      if (error instanceof UniqueConstraintError)
+        throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
       throw error;
     }
   }
@@ -705,29 +968,86 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         await lockCatalog(transaction);
         const product = await ProductModel.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
         if (!product) throw HttpError.notFound('Model not found.');
-        if (product.partnerId) throw HttpError.conflict('Review partner merchandise through its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
-        if (product.publicationRequiresIntake && !values.isArchived) throw HttpError.conflict('Xuất bản từ hồ sơ thu/cầm sau khi nhập kho và kiểm hàng.', 'SOURCE_PUBLICATION_REQUIRED');
+        if (!values.isArchived) await ProductOwnershipService.assertSaleAllowed(id, transaction);
+        if (product.partnerId)
+          throw HttpError.conflict(
+            'Review partner merchandise through its seller listing workflow.',
+            'PARTNER_LISTING_REQUIRED',
+          );
+        if (product.publicationRequiresIntake && !values.isArchived)
+          throw HttpError.conflict(
+            'Xuất bản từ hồ sơ thu/cầm sau khi nhập kho và kiểm hàng.',
+            'SOURCE_PUBLICATION_REQUIRED',
+          );
         const selection = await new CatalogTreeService().selection({ ...values, ...data }, product, transaction);
         const identityChanged = product.combinationKey && selection.combinationKey !== product.combinationKey;
-        if (identityChanged && (product.stock > 0 || await productHasHistory(id, transaction)))
-          throw HttpError.conflict('Sản phẩm đã có hàng/giao dịch. Tạo tổ hợp khác và dùng chuyển tình trạng để giữ lịch sử.', 'SKU_IDENTITY_LOCKED');
-        if (!values.isArchived && selection.itemTypeKey === 'preowned' && uniquePhotosMissing(product.stock, values.imageUrl))
+        if (identityChanged && (product.stock > 0 || (await productHasHistory(id, transaction))))
+          throw HttpError.conflict(
+            'Sản phẩm đã có hàng/giao dịch. Tạo tổ hợp khác và dùng chuyển tình trạng để giữ lịch sử.',
+            'SKU_IDENTITY_LOCKED',
+          );
+        if (
+          !values.isArchived &&
+          selection.itemTypeKey === 'preowned' &&
+          uniquePhotosMissing(product.stock, values.imageUrl)
+        )
           throw HttpError.badRequest('Hàng 2hand cần ít nhất một ảnh thật đã tải lên trước khi xuất bản.');
-        if (values.stock !== product.stock && data.expectedStock !== product.stock) throw HttpError.conflict('Available stock changed. Reload before recording an inventory correction.','STOCK_CHANGED');
-        const oldPricing = { listPriceVnd: product.price, actualCostVnd: product.importPrice, referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd, issues: product.pricingIssueCount };
+        if (values.stock !== product.stock && data.expectedStock !== product.stock)
+          throw HttpError.conflict(
+            'Available stock changed. Reload before recording an inventory correction.',
+            'STOCK_CHANGED',
+          );
+        const oldPricing = {
+          listPriceVnd: product.price,
+          actualCostVnd: product.importPrice,
+          referenceMemberVnd: product.pricingReferenceMemberVnd,
+          buybackPriceVnd: product.buybackPriceVnd,
+          issues: product.pricingIssueCount,
+        };
         if (values.price !== product.price && data.expectedPrice !== product.price)
           throw HttpError.conflict('Giá vừa thay đổi. Vui lòng tải lại trước khi lưu mức giá mới.');
-        await product.update({ ...values, ...selection, stock: product.stock, importPrice: product.importPrice }, { transaction });
+        await product.update(
+          { ...values, ...selection, stock: product.stock, importPrice: product.importPrice },
+          { transaction },
+        );
         await new CatalogTreeService().remember(product.conditionNodeIds, 'product', id, transaction);
-        if (oldPricing.listPriceVnd !== product.price || oldPricing.actualCostVnd !== product.importPrice || oldPricing.referenceMemberVnd !== product.pricingReferenceMemberVnd || oldPricing.issues !== product.pricingIssueCount)
-          await PromotionAuditModel.create({ actorUserId: actorUserId ?? null, entityType: 'product_pricing', entityId: id, action: 'update', oldValue: oldPricing, newValue: { referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd, listPriceVnd: product.price, actualCostVnd: product.importPrice, issues: product.pricingIssueCount } }, { transaction });
+        if (
+          oldPricing.listPriceVnd !== product.price ||
+          oldPricing.actualCostVnd !== product.importPrice ||
+          oldPricing.referenceMemberVnd !== product.pricingReferenceMemberVnd ||
+          oldPricing.issues !== product.pricingIssueCount
+        )
+          await PromotionAuditModel.create(
+            {
+              actorUserId: actorUserId ?? null,
+              entityType: 'product_pricing',
+              entityId: id,
+              action: 'update',
+              oldValue: oldPricing,
+              newValue: {
+                referenceMemberVnd: product.pricingReferenceMemberVnd,
+                buybackPriceVnd: product.buybackPriceVnd,
+                listPriceVnd: product.price,
+                actualCostVnd: product.importPrice,
+                issues: product.pricingIssueCount,
+              },
+            },
+            { transaction },
+          );
         await this.replaceImages(id, images, transaction);
         const identity = familyIdentity(product.get({ plain: true }));
-        await ModelFamilyModel.update({ ...identity, identity }, { where: { id: selection.modelFamilyId }, transaction });
-        await ProductModel.update(identity, { where: { modelFamilyId: selection.modelFamilyId, id: { [Op.ne]: id } }, transaction });
+        await ModelFamilyModel.update(
+          { ...identity, identity },
+          { where: { id: selection.modelFamilyId }, transaction },
+        );
+        await ProductModel.update(identity, {
+          where: { modelFamilyId: selection.modelFamilyId, id: { [Op.ne]: id } },
+          transaction,
+        });
       });
     } catch (error) {
-      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
+      if (error instanceof UniqueConstraintError)
+        throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
       throw error;
     }
     // Retain old media: order snapshots and condition evidence may still reference it.
@@ -736,10 +1056,11 @@ export default class ProductService implements BaseServiceInterface<ProductModel
 
   // Archive SKUs to retain their canonical identity, source records and historical URLs.
   async remove(id: number): Promise<{ archived: boolean }> {
-    await DatabaseProvider.getInstance().transaction(async transaction => {
+    await DatabaseProvider.getInstance().transaction(async (transaction) => {
       const product = await ProductModel.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
       if (!product) throw HttpError.notFound('Model not found.');
-      if (product.partnerId) throw HttpError.conflict('Hide partner listings through moderation.', 'PARTNER_LISTING_REQUIRED');
+      if (product.partnerId)
+        throw HttpError.conflict('Hide partner listings through moderation.', 'PARTNER_LISTING_REQUIRED');
       await product.update({ isArchived: true, isFeatured: false }, { transaction });
     });
     return { archived: true };
@@ -749,7 +1070,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   // owner's sheet "Thống kê kho": units on hand, products declared, what the stock cost and what it would sell for.
   // Values are list price R × stock and S (the member price, "Giá bán ra") × stock; neither is revenue.
   async inventoryStats() {
-    const query = <T extends Row>(sql: string) => DatabaseProvider.getInstance().query<T>(sql, { type: QueryTypes.SELECT });
+    const query = <T extends Row>(sql: string) =>
+      DatabaseProvider.getInstance().query<T>(sql, { type: QueryTypes.SELECT });
     const scope = `FROM product p WHERE p."partnerId" IS NULL AND p."catalogCanonicalId" IS NULL AND NOT p."isArchived"`;
     const rank = rankOf(await this.conditions.all());
     const [totals] = await query(`
@@ -780,15 +1102,18 @@ export default class ProductService implements BaseServiceInterface<ProductModel
              COALESCE(SUM(p.stock), 0) AS stock
       ${scope} GROUP BY 1`);
     const numbers = (row: Row) =>
-      Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === 'string' && /^-?\d+(\.\d+)?$/.test(value) ? Number(value) : value]));
+      Object.fromEntries(
+        Object.entries(row).map(([key, value]) => [
+          key,
+          typeof value === 'string' && /^-?\d+(\.\d+)?$/.test(value) ? Number(value) : value,
+        ]),
+      );
     const memberValue = Number(totals.memberValue);
     const costValue = Number(totals.costValue);
     return {
       totals: { ...numbers(totals), marginValue: memberValue - costValue },
       brands: brands.map(numbers),
-      conditions: conditions
-        .map(numbers)
-        .sort((a, b) => rank(a.condition as string) - rank(b.condition as string)),
+      conditions: conditions.map(numbers).sort((a, b) => rank(a.condition as string) - rank(b.condition as string)),
     };
   }
 }

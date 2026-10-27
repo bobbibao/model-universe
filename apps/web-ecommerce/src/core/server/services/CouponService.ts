@@ -93,7 +93,9 @@ export const voucherTerms = (coupon: SmartCoupon): VoucherTerms => ({
 // A shop code as a v6.2 main voucher (src/shared/voucher-stack.ts): a percentage of the eligible list price with its
 // published cap, or a fixed amount.
 export const couponVoucher = (
-  coupon: SmartCoupon & Pick<CouponModel, 'code'> & Partial<Pick<CouponModel, 'expirationDate' | 'budgetVnd' | 'budgetUsedVnd'>>,
+  coupon: SmartCoupon &
+    Pick<CouponModel, 'code'> &
+    Partial<Pick<CouponModel, 'expirationDate' | 'budgetVnd' | 'budgetUsedVnd'>>,
 ): MainVoucher => ({
   code: coupon.code,
   ...(coupon.fixedAmountVnd
@@ -180,12 +182,13 @@ export const couponDiscount = (coupon: SmartCoupon, lines: PricedLine[]) => {
 export const assertCouponUsable = (coupon: CouponModel | null, subtotal: number, userId?: number): CouponModel => {
   const now = Date.now();
   if (!coupon) throw HttpError.badRequest('Mã giảm giá không tồn tại.');
-  if (isRetiredTimedCoupon(coupon.code)) throw HttpError.conflict('Mã ưu đãi theo giờ đã ngừng áp dụng.', 'PROMOTION_RETIRED');
+  if (isRetiredTimedCoupon(coupon.code))
+    throw HttpError.conflict('Mã ưu đãi theo giờ đã ngừng áp dụng.', 'PROMOTION_RETIRED');
   if (subtotal < 1)
     throw HttpError.conflict('This benefit requires eligible shop-owned merchandise.', 'BENEFIT_CONFLICT');
   if (coupon.ownerUserId && coupon.ownerUserId !== userId)
     throw HttpError.notFound('This reward belongs to another collector.');
-  if (coupon.source === 'loyalty' && (coupon.reservedOrderId || coupon.usedAt))
+  if (coupon.source === 'loyalty' && (coupon.reservedOrderId || coupon.reservedHoldId || coupon.usedAt))
     throw HttpError.conflict('This reward is already reserved or used.', 'REWARD_UNAVAILABLE');
   if (coupon.kind === 'member_template') throw HttpError.badRequest('Mã giảm giá không tồn tại.');
   if (!coupon.isActive) throw HttpError.badRequest('Mã giảm giá đã ngừng áp dụng.');

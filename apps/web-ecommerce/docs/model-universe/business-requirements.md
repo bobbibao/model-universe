@@ -6,22 +6,22 @@ Companion to the [refactor plan](./refactor-plan.md). These requirements come fr
 
 Original Vietnamese evidence is preserved byte-for-byte under English archive filenames. See [source register](../business/source-register.json) for original paths and SHA-256 checksums; canonical operational documents are in `docs/business/`.
 
-| ID | Supplied source | Proposed canonical English filename |
-|---|---|---|
-| S1 | [Purchase policy](<../business/source/vi/purchase-policy.md>) | `purchase-policy.md` |
-| S2 | [Reservation and deposit specification](<../business/source/vi/reservation-specification.md>) | `reservation-specification.md` |
-| S3 | [Buyback policy](<../business/source/vi/buyback-policy.md>) | `buyback-policy.md` |
-| S4 | [Pawn policy](<../business/source/vi/pawn-policy.md>) | `pawn-policy.md` |
-| S5 | [Pawn specification](<../business/source/vi/pawn-specification.md>) | `pawn-specification.md` |
-| S6 | [Member points policy](<../business/source/vi/membership-policy.md>) | `membership-policy.md` |
-| S7 | [Loyalty specification](<../business/source/vi/loyalty-specification.md>) | `loyalty-specification.md` |
-| S8 | [Partner marketplace policy](<../business/source/vi/partner-marketplace-policy.md>) | `partner-marketplace-policy.md` |
-| S3b | [Buyback policy 2.0](<../business/source/vi/buyback-policy.md>) and [buyback specification 2.0](<../business/source/vi/buyback-specification.md>), 2026-10-16 (supersede [S3 v1](<../business/source/vi/buyback-policy-v1.md>)) | `buyback-policy.md` |
-| S9 | [Deposit orders and automatic delivery](<../business/source/vi/deposit-delivery-specification.md>), 2026-10-16 | `deposit-delivery-specification.md` |
-| S10 | [Buyback price, member price and smart vouchers 4.0](<../business/source/vi/pricing-voucher-specification.md>), 2026-10-16 (5.0 on 2026-10-20, see S12) | `pricing-voucher-specification.md` |
-| S11 | [Unified rules v5.0 with appendix 13 and the v6.0 / v6.1 / v6.2 priority rules](<../business/source/vi/unified-business-rules-v5.md>), 2026-10-20 | `pricing-voucher-specification.md` (and every other canonical file) |
-| S12 | [Edits and appended v5.0–v6.2 sections of all eleven documents above](<../business/source/vi/drive-folder-addenda-2026-10-20.md>), 2026-10-20 | each canonical file |
-| S13 | Voucher & Loyalty v6.2: [BRD](<../business/source/vi/voucher-loyalty-v6.2-brd.md>), [SRS](<../business/source/vi/voucher-loyalty-v6.2-srs.md>), [rules and tests](<../business/source/vi/voucher-loyalty-v6.2-rules-and-tests.md>), 2026-10-20, proposed | `pricing-voucher-specification.md` |
+| ID  | Supplied source                                                                                                                                                                                                                                    | Proposed canonical English filename                                 |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| S1  | [Purchase policy](../business/source/vi/purchase-policy.md)                                                                                                                                                                                        | `purchase-policy.md`                                                |
+| S2  | [Reservation and deposit specification](../business/source/vi/reservation-specification.md)                                                                                                                                                        | `reservation-specification.md`                                      |
+| S3  | [Buyback policy](../business/source/vi/buyback-policy.md)                                                                                                                                                                                          | `buyback-policy.md`                                                 |
+| S4  | [Pawn policy](../business/source/vi/pawn-policy.md)                                                                                                                                                                                                | `pawn-policy.md`                                                    |
+| S5  | [Pawn specification](../business/source/vi/pawn-specification.md)                                                                                                                                                                                  | `pawn-specification.md`                                             |
+| S6  | [Member points policy](../business/source/vi/membership-policy.md)                                                                                                                                                                                 | `membership-policy.md`                                              |
+| S7  | [Loyalty specification](../business/source/vi/loyalty-specification.md)                                                                                                                                                                            | `loyalty-specification.md`                                          |
+| S8  | [Partner marketplace policy](../business/source/vi/partner-marketplace-policy.md)                                                                                                                                                                  | `partner-marketplace-policy.md`                                     |
+| S3b | [Buyback policy 2.0](../business/source/vi/buyback-policy.md) and [buyback specification 2.0](../business/source/vi/buyback-specification.md), 2026-10-16 (supersede [S3 v1](../business/source/vi/buyback-policy-v1.md))                          | `buyback-policy.md`                                                 |
+| S9  | [Deposit orders and automatic delivery](../business/source/vi/deposit-delivery-specification.md), 2026-10-16                                                                                                                                       | `deposit-delivery-specification.md`                                 |
+| S10 | [Buyback price, member price and smart vouchers 4.0](../business/source/vi/pricing-voucher-specification.md), 2026-10-16 (5.0 on 2026-10-20, see S12)                                                                                              | `pricing-voucher-specification.md`                                  |
+| S11 | [Unified rules v5.0 with appendix 13 and the v6.0 / v6.1 / v6.2 priority rules](../business/source/vi/unified-business-rules-v5.md), 2026-10-20                                                                                                    | `pricing-voucher-specification.md` (and every other canonical file) |
+| S12 | [Edits and appended v5.0–v6.2 sections of all eleven documents above](../business/source/vi/drive-folder-addenda-2026-10-20.md), 2026-10-20                                                                                                        | each canonical file                                                 |
+| S13 | Voucher & Loyalty v6.2: [BRD](../business/source/vi/voucher-loyalty-v6.2-brd.md), [SRS](../business/source/vi/voucher-loyalty-v6.2-srs.md), [rules and tests](../business/source/vi/voucher-loyalty-v6.2-rules-and-tests.md), 2026-10-20, proposed | `pricing-voucher-specification.md`                                  |
 
 Supplied business policies override old clothing assumptions where explicit. Source examples of database columns/statuses describe business meaning; adapt them to existing code rather than copying an incompatible schema. When sources conflict, retain the conflict in the decision register and keep dependent live behavior disabled until resolved.
 
@@ -40,66 +40,9 @@ Required:
 
 Existing return workflow is a reusable starting point, not proof that these new support outcomes already exist. The current 30-day window, manual refunds, free shipping and zero tax are legacy behavior; retain compatibility for old orders while deciding new-policy terms.
 
-## 3. Reservations and deposits — S2, including sections 35–50
+## 3. Reservations and deposits — owner update 28 October 2026
 
-### Monetary and time rules
-
-Let `P` be the locked eligible product amount and `D` the total confirmed payment allocated to it. Unconfirmed receipts do not count. For `0.5P <= D <= P`:
-
-```text
-completedSteps = floor((20 * D - 10 * P) / P)
-holdDays = 15 + completedSteps * 10
-remainingAmount = P - D
-baseExpiry = originalConfirmedStart + holdDays
-effectiveExpiry = baseExpiry + approvedExtensionDays
-```
-
-This integer-ratio formulation implements complete 5-percentage-point increments without floating-point boundary errors. Ensure intermediate arithmetic stays within supported integer range. Reject less than 50% for activation and more than 100% allocation. Do not derive eligibility from a rounded displayed percentage.
-
-| Confirmed percentage | Entitlement days |
-|---|---:|
-| 50% | 15 |
-| 55% | 25 |
-| 60% | 35 |
-| 65% | 45 |
-| 70% | 55 |
-| 75% | 65 |
-| 80% | 75 |
-| 85% | 85 |
-| 90% | 95 |
-| 95% | 105 |
-| 100% | 115, but the hold clock stops because the purchase is paid |
-
-The source's unrounded formula must be interpreted with its explicit section 6 rule: 52% still earns 15 days. A top-up recalculates from the original confirmed start, not the top-up date. Preserving approved extension days during recalculation is a proposed resolution of an unstated interaction; snapshot and test it once chosen.
-
-### State and fulfillment
-
-Proposed storage separates reservation, payment and fulfillment state; customer labels may combine them. Do not use `COD` as both payment method and lifecycle state.
-
-```text
-PENDING_DEPOSIT -> HOLDING -> PAID -> fulfillment -> COMPLETED
-                         -> DELIVERY_REQUESTED -> fulfillment -> COMPLETED
-                         -> EXPIRED -> admin extension or release/cancellation
-                         -> CANCELLED -> release allocation
-```
-
-- Start the clock when payment succeeds and the shop/system confirms it, not when the customer submits a request.
-- Reserve the specific item/quantity atomically upon valid confirmation. Pending requests must not let multiple confirmations sell one used item. Decide separately whether a short checkout allocation is needed before payment.
-- Record each initial deposit, top-up and balance payment separately. An additional deposit is a transaction event; a second long-lived reservation status is unnecessary.
-- At 100%, set remaining product balance to zero, mark paid and stop expiry/reminders. Keep the item allocated to this purchase until fulfillment; do not make it available for resale.
-- While holding and `now <= effectiveExpiry`, show **Request delivery / pickup** even below 100%.
-- Offer supported full remainder payment, COD remainder and optional in-store payment. Product COD is `P - D`, never the original product amount. Show any separately approved shipping/service charges distinctly; do not disguise them as a second product charge.
-- Shop confirmation of the request moves to `DELIVERY_REQUESTED` and stops reservation expiry. Shipping after the former expiry must not expire the order.
-- Cancelling an unshipped delivery request returns an unpaid order to `HOLDING` if time remains, otherwise `EXPIRED`. A fully paid order stays outside deposit-expiry logic.
-- Mark completed only after delivery/pickup and confirmed payment collection. Courier delivery alone does not prove COD reconciliation.
-- Expiry condition is `now > effectiveExpiry`, payment incomplete and reservation still `HOLDING`. Expiry does not delete records or automatically release the item: admin can extend, continue holding, cancel or release, with a reason/history.
-- Customer-initiated cancellation after a deposit normally forfeits it under the policy; record disposition separately from stock release. Shop-fault refunds require their own documented settlement, not deletion of payments.
-- Extensions require actor, reason, old/new expiry and added days. Never edit an expiry silently.
-- Notify on confirmation, top-up, three days remaining, one day remaining, expiry and payment completion. Deduplicate jobs across retries and restarts.
-
-Screens: public reservation estimator, customer payment/expiry timeline and top-up preview, delivery request form, admin holds queue, payment verification, extensions and overdue resolution.
-
-Acceptance: preserve S2's 15 source tests and add boundary/concurrency cases: 49.99%, 50%, 52%, 55%, 70%, 95%, 100%, overpayment, top-up from original start, duplicate confirmation, simultaneous last-unit purchase, manual extension plus top-up, expiry exactly at the boundary, cancelled delivery request, and stale/failed notification job. Verify 2,000,000 VND less 1,000,000 deposit yields 1,000,000 COD; 3,000,000 less 2,100,000 yields 900,000 COD.
+[Current canonical hold specification](../business/reservation-specification.md): 20–<40% = 10 days; 40–<50% = 15; 50–<60% = 25; 60–<70% = 30; 70–<100% = 45; exact 100% PAID_IN_FULL. Integer comparisons on net merchandise; activate only with verified funds and stock allocation, anchored at original start. Late/excess money needs reconciliation. No automatic forfeiture; refunds require independent approval and confirmed provider payout. See [operating/API detail](pawn-hold-ledgers.md).
 
 ## 4. Buyback — S3
 
@@ -116,24 +59,9 @@ Proposed statuses: `SUBMITTED`, `APPRAISING`, `QUOTED`, `AWAITING_ITEM`, `INSPEC
 
 Screens: Sell to Model Universe wizard, request timeline with accept/reject quote, staff intake/inspection/offer workspace, payout confirmation and return-shipment tracking.
 
-## 5. Pawn — S4/S5
+## 5. Pawn — owner update 28 October 2026
 
-Required flow: request -> appraisal -> customer agreement -> bilateral contract confirmation -> asset handover -> disbursement -> active contract -> redemption/extension or overdue contractual resolution.
-
-- Principal must be 50–80% of appraised asset value. Snapshot asset condition/photos, appraisal, selected ratio, principal, dates and contract terms.
-- Customer sees interest rate, expected interest, due date, redemption/extension and disposal conditions before confirming.
-- S5 specifies simple interest at **0.03% per day**, with the worked example 1,400,000 principal -> 420/day -> 12,600 over 30 days. S4 prose agrees, but its formula says **0.3%**. Decision D1 remains open until the owner confirms.
-- After D1, use `interest = min(principal, principal * approvedDailyRate * chargeableDays)` with explicit rounding/day-count policy. Interest starts at actual disbursement. Early redemption charges actual eligible days, not the entire agreed term.
-- Reaching the interest cap stops accrual; it does not transfer asset ownership or authorize resale.
-- Store custody separately from sellable stock. No buy/sell/agent action may use active pledged assets as available inventory.
-- Extensions need approval and recorded old/new due date. Overdue status sends notification; disposal requires contract eligibility plus recorded authorized decision.
-- Redemption requires confirmed payment and recorded asset handback. Keep payment completion and handback independently visible so a paid-but-not-returned item is not lost operationally.
-- Only permitted disposal can create a stock intake/listing, once, preserving custody and contract references.
-- Future loyalty/rate benefits are mentioned as future possibilities, not active overrides of the principal/rate rules.
-
-Screens: pawn request wizard, quote/terms confirmation, private contract summary, live redemption estimate, extension request, staff appraisal/custody/disbursement/redemption/disposal queues. Contract attachments and identity evidence are private; do not reuse public product uploads without access-control changes.
-
-Acceptance includes 50% and 80% boundaries, before-disbursement zero accrual, approved day-count/rounding, cap at principal, early redemption, extension, duplicate payment, overdue without disposal eligibility, authorized intake exactly once, and another customer's inability to access contract files.
+[Current canonical pawn specification](../business/pawn-specification.md). Exact approved SKU S gives C50=ROUND(S×0.5). New contracts simulate compound 0.3% per elapsed 24h, cumulative interest capped at original principal. Actual money requires completed legal approval and verified identity/ownership/custody. Partial repayments use cash-flow periods. Extensions require confirmed interest credit and the 80% valuation test before credit. T−10/T−5 outbox; due → 48h DUE_GRACE → OVERDUE_REVIEW. Disposal needs valid notice, independent Compliance/Finance, Admin authorization, completed title transfer and separate intake/publication. Historical snapshots remain unchanged.
 
 ## 6. Loyalty — S6/S7
 
@@ -141,15 +69,15 @@ Acceptance includes 50% and 80% boundaries, before-disbursement zero accrual, ap
 
 `earnedPoints = floor(eligibleNetProductAmount / 40000)` after `COMPLETED`: paid, delivered and no open dispute. Exclude shipping, COD fees, service fees, pawn interest, forfeited deposits, discounts, refunds and incomplete payments.
 
-| Tier | Qualifying lifetime points | Listed member discount |
-|---|---:|---:|
-| MEMBER | 0 | 0% |
-| BRONZE | 150 | 2% |
-| SILVER | 250 | 4% |
-| GOLD | 500 | 6% |
-| PLATINUM | 1,500 | 10% |
-| EMERALD | 3,500 | 12% |
-| DIAMOND | 10,000 | 15% |
+| Tier     | Qualifying lifetime points | Listed member discount |
+| -------- | -------------------------: | ---------------------: |
+| MEMBER   |                          0 |                     0% |
+| BRONZE   |                        150 |                     2% |
+| SILVER   |                        250 |                     4% |
+| GOLD     |                        500 |                     6% |
+| PLATINUM |                      1,500 |                    10% |
+| EMERALD  |                      3,500 |                    12% |
+| DIAMOND  |                     10,000 |                    15% |
 
 Separate qualifying lifetime points, available balance, used points and point debt. Redeeming points reduces availability, never qualifying lifetime points or tier. Invalidated purchases must be reversed with ledger entries; refund effects on qualifying tier totals require decision D7.
 
@@ -160,22 +88,22 @@ Each earn/reversal references its source event once. Completion replay must not 
 Proposed default is the table shared by S6 and S7 sections 10–11, rather than earlier/later illustrative alternatives. Activation depends on D2.
 
 | Points | Fixed voucher VND | Minimum order VND |
-|---:|---:|---:|
-| 60 | 50,000 | 500,000 |
-| 110 | 100,000 | 1,000,000 |
-| 160 | 150,000 | 1,500,000 |
-| 210 | 200,000 | 2,000,000 |
-| 500 | 500,000 | 5,000,000 |
-| 900 | 1,000,000 | 10,000,000 |
+| -----: | ----------------: | ----------------: |
+|     60 |            50,000 |           500,000 |
+|    110 |           100,000 |         1,000,000 |
+|    160 |           150,000 |         1,500,000 |
+|    210 |           200,000 |         2,000,000 |
+|    500 |           500,000 |         5,000,000 |
+|    900 |         1,000,000 |        10,000,000 |
 
 | Points | Percentage voucher | Maximum discount VND |
-|---:|---:|---:|
-| 50 | 2% | 100,000 |
-| 100 | 3% | 150,000 |
-| 200 | 5% | 250,000 |
-| 350 | 7% | 300,000 |
-| 500 | 10% | 500,000 |
-| 800 | 12% | 700,000 |
+| -----: | -----------------: | -------------------: |
+|     50 |                 2% |              100,000 |
+|    100 |                 3% |              150,000 |
+|    200 |                 5% |              250,000 |
+|    350 |                 7% |              300,000 |
+|    500 |                10% |              500,000 |
+|    800 |                12% |              700,000 |
 
 - Support finite-stock gift rewards, actual SKU inventory and fulfillment; illustrative gift values are not real stock.
 - Redemption atomically deducts points, records history, reserves reward quantity and issues the customer-owned voucher/gift claim. Failures leave no partial deduction.
@@ -226,21 +154,23 @@ Acceptance: seller isolation; hidden/unapproved listings absent from search; uni
 
 ## 9. Decision register
 
+**Update 28 October 2026:** earlier unresolved rate/day/hold decisions below are historical. New pawn uses compound 0.3% simulation, actual elapsed cash-flow periods, half-up VND, verified repayment stop and 48h grace; actual operations remain legally gated. New hold tiers are in section 3. No automatic deposit forfeiture.
+
 Planning can finish with open decisions. Implementation can proceed on independent phases, but cannot silently activate dependent financial policy. Ask focused questions when the relevant phase needs the answer; do not ask the owner to approve the entire plan again.
 
-| ID | Decision / conflict | Recommended draft | Activation gate |
-|---|---|---|---|
-| D1 | Pawn 0.03% prose/spec vs 0.3% formula | 0.03% matches both prose and detailed example; owner question sent, unanswered at drafting | No live interest calculation until confirmed |
-| D2 | Multiple reward tables and member benefit caps | S6 + S7 sections 10–11 tables above; caps/expiry remain explicit settings to approve | Reward redemption and tier discount activation |
-| D3 | Commission tiers, 6–7% ambiguity, trust weights, settlement delay/limits | Versioned manually assigned partner fee schedule initially; factual trust badges | Paid partner selling/settlement |
-| D4 | Hold price basis, rounding/day cutoff, multi-item holds, extension/top-up interaction | One item/quantity reservation with locked net merchandise price; preserve approved extension days | Reservation payment activation |
-| D5 | Payment providers, COD collection proof, shipping fee allocation/pickup, tax | Vietnam-first COD + verified manual transfer; configure actual shipping/pickup support | Checkout/provider and multi-seller fulfillment launch |
-| D6 | Pawn day count, rounding, accrual stop event, term, partial redemption, grace period, disposal authority and post-disposal debt/sale reconciliation | S4 ties interest to repayment plus physical handback; S5 describes repayment. Explicitly choose verified repayment or asset handback; no implicit stop on disposal, debt forgiveness, compounding or penalties. Record contract parameters and approve sale-proceeds allocation separately | Pawn contracts/disbursement/disposal and final financial reconciliation |
-| D7 | Refund effect on qualifying lifetime/tier, partial refund rounding, discount stacking | Reverse invalid earned points; redemption never reduces tier; one primary benefit | Loyalty refunds and checkout promotions |
-| D8 | New return window and order completion/dispute window vs legacy 30 days | Preserve historical promises; explicitly publish new terms | New purchase/partner support policies |
-| D9 | Final quote with inbound COD, shipping responsibilities on rejected buyback | Inspection + accepted final amount before completed acquisition | Remote buyback payout |
-| D10 | Actual brand facts, media rights, warehouse address, domain, contact and external services | Fill verified owner data; sample values stay demo-only | Publication and live transactions |
-| D11 | Vietnam-only vs international operations | Vietnam-first/VND with VI+EN; international shipping and FX are separate additions | Regional shipping/payment activation |
+| ID  | Decision / conflict                                                                                                                                 | Recommended draft                                                                                                                                                                                                                                                                          | Activation gate                                                         |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| D1  | Pawn 0.03% prose/spec vs 0.3% formula                                                                                                               | 0.03% matches both prose and detailed example; owner question sent, unanswered at drafting                                                                                                                                                                                                 | No live interest calculation until confirmed                            |
+| D2  | Multiple reward tables and member benefit caps                                                                                                      | S6 + S7 sections 10–11 tables above; caps/expiry remain explicit settings to approve                                                                                                                                                                                                       | Reward redemption and tier discount activation                          |
+| D3  | Commission tiers, 6–7% ambiguity, trust weights, settlement delay/limits                                                                            | Versioned manually assigned partner fee schedule initially; factual trust badges                                                                                                                                                                                                           | Paid partner selling/settlement                                         |
+| D4  | Hold price basis, rounding/day cutoff, multi-item holds, extension/top-up interaction                                                               | One item/quantity reservation with locked net merchandise price; preserve approved extension days                                                                                                                                                                                          | Reservation payment activation                                          |
+| D5  | Payment providers, COD collection proof, shipping fee allocation/pickup, tax                                                                        | Vietnam-first COD + verified manual transfer; configure actual shipping/pickup support                                                                                                                                                                                                     | Checkout/provider and multi-seller fulfillment launch                   |
+| D6  | Pawn day count, rounding, accrual stop event, term, partial redemption, grace period, disposal authority and post-disposal debt/sale reconciliation | S4 ties interest to repayment plus physical handback; S5 describes repayment. Explicitly choose verified repayment or asset handback; no implicit stop on disposal, debt forgiveness, compounding or penalties. Record contract parameters and approve sale-proceeds allocation separately | Pawn contracts/disbursement/disposal and final financial reconciliation |
+| D7  | Refund effect on qualifying lifetime/tier, partial refund rounding, discount stacking                                                               | Reverse invalid earned points; redemption never reduces tier; one primary benefit                                                                                                                                                                                                          | Loyalty refunds and checkout promotions                                 |
+| D8  | New return window and order completion/dispute window vs legacy 30 days                                                                             | Preserve historical promises; explicitly publish new terms                                                                                                                                                                                                                                 | New purchase/partner support policies                                   |
+| D9  | Final quote with inbound COD, shipping responsibilities on rejected buyback                                                                         | Inspection + accepted final amount before completed acquisition                                                                                                                                                                                                                            | Remote buyback payout                                                   |
+| D10 | Actual brand facts, media rights, warehouse address, domain, contact and external services                                                          | Fill verified owner data; sample values stay demo-only                                                                                                                                                                                                                                     | Publication and live transactions                                       |
+| D11 | Vietnam-only vs international operations                                                                                                            | Vietnam-first/VND with VI+EN; international shipping and FX are separate additions                                                                                                                                                                                                         | Regional shipping/payment activation                                    |
 
 | D12 | S9 chapter XIV: deposit deadline, preparation time, deposit refund on cancel, no-show, handover fee, carrier refusal, return-shipping payer, top-ups after a waybill, Zalo channel, the COD limit, a carrier allow-list | Configurable (`SUPERAI_*`, `SHIPPING_COD_LIMIT_VND`, `PAYOS_*`, `ZALO_*`); always the cheapest carrier; top-ups refused after a waybill; SuperAI live or simulated waybills; Zalo off with an admin alert list | Zalo sending, deposit forfeiture |
 | D13 | S10 cost profile beyond `importPrice` (repair, packaging, fees) and approved price versions | `importPrice` is C, fee rate 0; missing cost blocks guarded vouchers | Fee-aware profit guard |

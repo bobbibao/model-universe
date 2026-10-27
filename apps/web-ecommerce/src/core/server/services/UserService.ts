@@ -99,7 +99,7 @@ export default class UserService implements BaseServiceInterface<UserModel> {
     if (actorId === targetId) throw HttpError.badRequest('Bạn không thể thay đổi quyền của chính mình.');
     const user = await UserModel.findByPk(targetId);
     if (!user) throw HttpError.notFound('Không tìm thấy tài khoản.');
-    await user.update({ role });
+    await user.update({ role, commerceScopes: [] });
     return toPublicUser(user);
   }
 
