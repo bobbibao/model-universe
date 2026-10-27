@@ -599,45 +599,55 @@ export default class RecommendationService {
 
     // 4. Authenticated customer signals: Wishlist + Order history
     if (userId) {
-      const wishRows = await WishlistItemModel.findAll({
-        where: { userId },
-        order: [['createdAt', 'DESC']],
-        limit: 40,
-      });
-      for (const w of wishRows) {
-        wishlistItems.push(enrichSignal(w.productId, { ageDays: Math.max(0,(Date.now()-new Date(w.createdAt).getTime())/86400000) }));
-      }
-
-      const orders = await OrderModel.findAll({
-        attributes: ['id', 'createdAt', 'status'],
-        where: {
-          userId,
-          status: { [Op.notIn]: ['cancelled', 'rejected'] },
-        },
-        include: [
-          {
-            model: OrderItemModel,
-            as: 'items',
-            attributes: ['productId', 'unitPrice', 'quantity'],
-          },
-        ],
-        order: [['createdAt', 'DESC']],
-        limit: 25,
-      });
-
-      for (const order of orders) {
-        const items = (order.get('items') as OrderItemModel[] | undefined) ?? [];
-        for (const item of items) {
-          if (!item.productId) continue;
-          const candidate = candidateById.get(item.productId);
-          purchases.push(
-            enrichSignal(item.productId, {
-              priceVnd: item.unitPrice || (candidate ? effectivePrice(candidate) : null),
-              weight: Math.min(2, Math.max(1, item.quantity || 1)),
-              ageDays: Math.max(0,(Date.now()-new Date(order.createdAt).getTime())/86400000),
-            }),
+      try {
+        const wishRows = await WishlistItemModel.findAll({
+          where: { userId },
+          order: [['createdAt', 'DESC']],
+          limit: 40,
+        });
+        for (const w of wishRows) {
+          wishlistItems.push(
+            enrichSignal(w.productId, { ageDays: Math.max(0, (Date.now() - new Date(w.createdAt).getTime()) / 86400000) }),
           );
         }
+      } catch {
+        /* Ignore optional wishlist lookup errors */
+      }
+
+      try {
+        const orders = await OrderModel.findAll({
+          attributes: ['id', 'createdAt', 'status'],
+          where: {
+            userId,
+            status: { [Op.ne]: 'CANCELLED' },
+          },
+          include: [
+            {
+              model: OrderItemModel,
+              as: 'items',
+              attributes: ['productId', 'unitPrice', 'quantity'],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          limit: 25,
+        });
+
+        for (const order of orders) {
+          const items = (order.get('items') as OrderItemModel[] | undefined) ?? [];
+          for (const item of items) {
+            if (!item.productId) continue;
+            const candidate = candidateById.get(item.productId);
+            purchases.push(
+              enrichSignal(item.productId, {
+                priceVnd: item.unitPrice || (candidate ? effectivePrice(candidate) : null),
+                weight: Math.min(2, Math.max(1, item.quantity || 1)),
+                ageDays: Math.max(0, (Date.now() - new Date(order.createdAt).getTime()) / 86400000),
+              }),
+            );
+          }
+        }
+      } catch {
+        /* Ignore optional order history lookup errors */
       }
     }
 

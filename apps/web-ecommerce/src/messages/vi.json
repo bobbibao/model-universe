@@ -4146,19 +4146,27 @@
     "saveBadge": "Tiết kiệm {amount}",
     "preownedBadge": "Có bản 2hand sẵn kho",
     "personalizedBadge": "Dành cho người thích {brand}",
+    "signalActive": "Cá nhân hóa từ {count} tín hiệu hành vi",
+    "coldStartBadge": "Đang gợi ý theo ngữ cảnh & xu hướng cửa hàng (tự động học gu khi bạn xem/tìm kiếm)",
+    "brandSignal": "Gu hãng: {brands}",
+    "scaleSignal": "Tỉ lệ: {scales}",
+    "priceSignal": "Tầm giá: {range}",
+    "querySignal": "Từ khóa: \"{query}\"",
+    "budgetSignal": "Ngân sách ≤ {amount}",
+    "matchScore": "Độ hợp {score}%",
     "surfaceTitle": {
-      "home": "Hợp gu sưu tầm của bạn",
+      "home": "Gợi ý mô hình dành riêng cho bạn",
       "product_detail": "Khám phá mô hình phù hợp với bạn",
       "cart": "Mua kèm tối ưu Freeship & ưu đãi",
-      "catalog": "Hợp gu sưu tầm của bạn",
-      "wishlist": "Hợp gu sưu tầm của bạn"
+      "catalog": "Gợi ý thông minh theo nhu cầu & bộ lọc của bạn",
+      "wishlist": "Mô hình hợp với danh sách yêu thích của bạn"
     },
     "surfaceSubtitle": {
-      "home": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
-      "product_detail": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
-      "cart": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
-      "catalog": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng.",
-      "wishlist": "Gợi ý từ danh mục và các mẫu bạn quan tâm. Giá và ưu đãi được xác nhận tại giỏ hàng."
+      "home": "Kết hợp sở thích cá nhân, lịch sử tương tác, sản phẩm mua cùng và các lựa chọn tối ưu ngân sách.",
+      "product_detail": "So sánh mẫu tương tự, phụ kiện/mô hình mua cùng và phiên bản 2hand tiết kiệm.",
+      "cart": "Các mẫu vừa tầm giá giúp hoàn thiện bộ sưu tập và mở khóa ưu đãi vận chuyển.",
+      "catalog": "Tự động cập nhật theo từ khóa tìm kiếm, danh mục đang xem, tầm giá và hành vi sưu tầm của bạn.",
+      "wishlist": "Gợi ý dựa trên các mẫu bạn đã lưu và xu hướng của người chơi cùng phân khúc."
     }
   },
   "adminRecommendations": {

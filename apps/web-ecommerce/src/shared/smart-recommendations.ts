@@ -922,11 +922,11 @@ export function buildSurfaceRecommendationSections<T extends ProductSummary>(
   baseContext: Omit<RankSmartContext, 'strategy'>,
 ): SmartRecommendationSection<T>[] {
   const strategiesBySurface: Record<RecommendationSurface, RecommendationStrategy[]> = {
-    product_detail: ['similar', 'bought_together', 'budget_alternative', 'for_you'],
-    home: ['for_you', 'trending', 'budget_alternative'],
-    cart: ['cart_addon', 'bought_together', 'budget_alternative'],
-    catalog: ['for_you', 'trending', 'budget_alternative'],
-    wishlist: ['for_you', 'budget_alternative', 'bought_together'],
+    product_detail: ['similar', 'related', 'bought_together', 'budget_alternative', 'for_you'],
+    home: ['for_you', 'trending', 'budget_alternative', 'bought_together'],
+    cart: ['cart_addon', 'bought_together', 'budget_alternative', 'for_you'],
+    catalog: ['for_you', 'trending', 'related', 'budget_alternative'],
+    wishlist: ['for_you', 'similar', 'budget_alternative', 'bought_together'],
   };
 
   const strategies = strategiesBySurface[surface] ?? ['for_you', 'trending'];

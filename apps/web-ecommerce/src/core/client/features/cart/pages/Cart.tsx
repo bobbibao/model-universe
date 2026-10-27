@@ -475,6 +475,7 @@ const Cart = () => {
             <AdminIcon name="arrow" size={16} />
           </Link>
         </EmptyState>
+        <SmartRecommendationRail surface="cart" defaultStrategy="for_you" limit={4} eager />
       </section>
     );
   }
