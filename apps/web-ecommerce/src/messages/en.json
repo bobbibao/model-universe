@@ -4146,19 +4146,27 @@
     "saveBadge": "Save {amount}",
     "preownedBadge": "Pre-owned unit in stock",
     "personalizedBadge": "For fans of {brand}",
+    "signalActive": "Personalized from {count} behavior signals",
+    "coldStartBadge": "Contextual & store-trending picks (adapts as you browse and search)",
+    "brandSignal": "Top brands: {brands}",
+    "scaleSignal": "Preferred scale: {scales}",
+    "priceSignal": "Price range: {range}",
+    "querySignal": "Keyword: \"{query}\"",
+    "budgetSignal": "Budget ≤ {amount}",
+    "matchScore": "{score}% match",
     "surfaceTitle": {
-      "home": "Matches your collector profile",
+      "home": "Smart recommendations picked for you",
       "product_detail": "Discover models tailored to your build",
-      "cart": "Smart add-ons for Free Shipping",
-      "catalog": "Matches your collector profile",
-      "wishlist": "Matches your collector profile"
+      "cart": "Smart add-ons for Free Shipping & bundles",
+      "catalog": "Smart picks tailored to your search & filters",
+      "wishlist": "Models matching your saved wishlist"
     },
     "surfaceSubtitle": {
-      "home": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
-      "product_detail": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
-      "cart": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
-      "catalog": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart.",
-      "wishlist": "Based on the catalog and your interests. Prices and benefits are confirmed in the cart."
+      "home": "Blends personal affinity, recent browsing signals, co-purchased kits and budget-friendly options.",
+      "product_detail": "Compare similar models, frequently bought together kits and inspected pre-owned alternatives.",
+      "cart": "Right-sized kits that complement your bag and help unlock shipping benefits.",
+      "catalog": "Dynamically adapts to your active search query, category filter, price range and collector profile.",
+      "wishlist": "Inspired by the models you saved and what fellow collectors pair with them."
     }
   },
   "adminRecommendations": {

@@ -152,12 +152,13 @@ export default function Wishlist() {
           })}
         </div>
       )}
-      {!loading && !failed && (
+      {!loading && (
         <SmartRecommendationRail
           surface="wishlist"
           defaultStrategy="for_you"
           productId={items?.[0]?.productId}
           limit={4}
+          eager
         />
       )}
     </section>

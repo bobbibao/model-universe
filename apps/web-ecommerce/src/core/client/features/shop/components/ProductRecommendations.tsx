@@ -22,6 +22,12 @@ export default function ProductRecommendations({ productId }: { productId: numbe
   const [rows, setRows] = useState<ProductRecommendation[]>();
   const [sections, setSections] = useState<RecommendationSection[]>([]);
   const [activeStrategy, setActiveStrategy] = useState<RecommendationStrategy>('similar');
+  const [profileSummary, setProfileSummary] = useState<{
+    topBrands: string[];
+    topScales: string[];
+    preferredPriceBand: { min: number; median: number; max: number } | null;
+    signalCount: number;
+  } | null>(null);
   const trackedImpressionsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -48,6 +54,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
         const filteredBase = baseItems.filter(({ product }) => product.id !== productId).slice(0, 4);
         if (smartRes && smartRes.enabled && smartRes.sections.length > 0) {
           setSections(smartRes.sections);
+          setProfileSummary(smartRes.profileSummary || null);
           setActiveStrategy(smartRes.sections[0].strategy);
           const initialItems = smartRes.sections[0].items.slice(0, 4);
           setRows(
@@ -79,7 +86,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
                 load();
               }
             },
-            { rootMargin: '400px' },
+            { rootMargin: '600px' },
           );
     if (observer && anchor.current) observer.observe(anchor.current);
     else load();
@@ -117,17 +124,35 @@ export default function ProductRecommendations({ productId }: { productId: numbe
 
   if (rows?.length === 0 && (!activeSmartItems || activeSmartItems.length === 0)) return null;
 
+  const headingTitle = sections.length > 0 ? tSmart(`sections.${activeStrategy}.title`) : t('relatedProducts');
+  const headingSubtitle =
+    sections.length > 0 ? tSmart(`sections.${activeStrategy}.subtitle`) : t('relatedProductsNote');
+
   return (
     <section
       ref={anchor}
-      className="product-recommendations"
+      className="product-recommendations smart-recommendations-rail"
       aria-labelledby="product-recommendations-title"
       aria-busy={!rows}
+      data-surface="product_detail"
+      data-strategy={activeStrategy}
     >
       <header className="smart-recommendations-header">
-        <div>
-          <h2 id="product-recommendations-title">{t('relatedProducts')}</h2>
-          <p>{t('relatedProductsNote')}</p>
+        <div className="smart-recommendations-copy">
+          <div className="smart-recommendations-eyebrow">
+            <span className="smart-rec-spark" aria-hidden="true">✦</span>
+            <span>{tSmart(`sections.${activeStrategy}.eyebrow`)}</span>
+            <span className="smart-rec-surface-tag">{tSmart('pdpEyebrow')}</span>
+            {profileSummary && profileSummary.signalCount > 0 && (
+              <span className="smart-rec-personalized-pill">
+                {tSmart('personalizedBadge', {
+                  brand: profileSummary.topBrands[0] || profileSummary.topScales[0] || 'Gunpla',
+                })}
+              </span>
+            )}
+          </div>
+          <h2 id="product-recommendations-title">{headingTitle}</h2>
+          <p>{headingSubtitle}</p>
         </div>
         <div className="smart-recommendations-controls">
           {sections.length > 1 && (
@@ -149,7 +174,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
               })}
             </div>
           )}
-          <Link href="/cua-hang">
+          <Link href="/cua-hang" className="smart-explore-link">
             {t('exploreCatalog')} <span aria-hidden="true">↗</span>
           </Link>
         </div>
@@ -158,7 +183,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
         {activeSmartItems
           ? activeSmartItems.map((item) => (
               <div
-                className="product-recommendation"
+                className="product-recommendation smart-recommendation-item"
                 key={`${item.strategy}-${item.product.id}`}
                 onClickCapture={() => {
                   trackRecommendationEvent({
@@ -172,7 +197,9 @@ export default function ProductRecommendations({ productId }: { productId: numbe
                 }}
               >
                 <div className="product-recommendation-badges">
-                  <p className="product-recommendation-reason">{t(`relatedReason.${item.reason}`)}</p>
+                  <p className="product-recommendation-reason">
+                    <span aria-hidden="true">✦</span> {t(`relatedReason.${item.reason}`)}
+                  </p>
                   {item.savingsVnd && item.savingsVnd >= 20_000 ? (
                     <span className="smart-rec-saving-badge">
                       {tSmart('saveBadge', { amount: formatPrice(item.savingsVnd) })}
@@ -188,7 +215,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
           : rows
             ? rows.map(({ product, reason }) => (
                 <div
-                  className="product-recommendation"
+                  className="product-recommendation smart-recommendation-item"
                   key={product.id}
                   onClickCapture={() => {
                     trackRecommendationEvent({
@@ -201,7 +228,11 @@ export default function ProductRecommendations({ productId }: { productId: numbe
                     });
                   }}
                 >
-                  <p className="product-recommendation-reason">{t(`relatedReason.${reason}`)}</p>
+                  <div className="product-recommendation-badges">
+                    <p className="product-recommendation-reason">
+                      <span aria-hidden="true">✦</span> {t(`relatedReason.${reason}`)}
+                    </p>
+                  </div>
                   <ProductCard product={product} />
                 </div>
               ))
