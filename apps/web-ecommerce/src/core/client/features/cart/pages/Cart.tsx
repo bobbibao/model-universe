@@ -475,7 +475,6 @@ const Cart = () => {
             <AdminIcon name="arrow" size={16} />
           </Link>
         </EmptyState>
-        <SmartRecommendationRail surface="cart" defaultStrategy="for_you" limit={4} eager />
       </section>
     );
   }
@@ -702,13 +701,6 @@ const Cart = () => {
           </section>
         </aside>
       </div>
-      <SmartRecommendationRail
-        surface="cart"
-        defaultStrategy="cart_addon"
-        cartProductIds={entries.map(({ item }) => item.productId)}
-        cartSubtotalVnd={merchandiseTotal}
-        limit={4}
-      />
       {/* Phones: the total and the action stay on screen above the tab bar (TikTok-style). */}
       <div className="cart-mobile-bar">
         <div>

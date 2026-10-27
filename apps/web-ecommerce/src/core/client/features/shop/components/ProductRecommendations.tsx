@@ -22,12 +22,6 @@ export default function ProductRecommendations({ productId }: { productId: numbe
   const [rows, setRows] = useState<ProductRecommendation[]>();
   const [sections, setSections] = useState<RecommendationSection[]>([]);
   const [activeStrategy, setActiveStrategy] = useState<RecommendationStrategy>('similar');
-  const [profileSummary, setProfileSummary] = useState<{
-    topBrands: string[];
-    topScales: string[];
-    preferredPriceBand: { min: number; median: number; max: number } | null;
-    signalCount: number;
-  } | null>(null);
   const trackedImpressionsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -54,7 +48,6 @@ export default function ProductRecommendations({ productId }: { productId: numbe
         const filteredBase = baseItems.filter(({ product }) => product.id !== productId).slice(0, 4);
         if (smartRes && smartRes.enabled && smartRes.sections.length > 0) {
           setSections(smartRes.sections);
-          setProfileSummary(smartRes.profileSummary || null);
           setActiveStrategy(smartRes.sections[0].strategy);
           const initialItems = smartRes.sections[0].items.slice(0, 4);
           setRows(
@@ -138,22 +131,9 @@ export default function ProductRecommendations({ productId }: { productId: numbe
       data-strategy={activeStrategy}
     >
       <header className="smart-recommendations-header">
-        <div className="smart-recommendations-copy">
-          <div className="smart-recommendations-eyebrow">
-            <span className="smart-rec-spark" aria-hidden="true">✦</span>
-            <span>{tSmart(`sections.${activeStrategy}.eyebrow`)}</span>
-            <span className="smart-rec-surface-tag">{tSmart('pdpEyebrow')}</span>
-            {profileSummary && profileSummary.signalCount > 0 && (
-              <span className="smart-rec-personalized-pill">
-                {tSmart('personalizedBadge', {
-                  brand: profileSummary.topBrands[0] || profileSummary.topScales[0] || 'Gunpla',
-                })}
-              </span>
-            )}
-          </div>
-          <h2 id="product-recommendations-title">{headingTitle}</h2>
-          <p>{headingSubtitle}</p>
-        </div>
+        <h2 id="product-recommendations-title" className="smart-recommendations-title">
+          {headingTitle}
+        </h2>
         <div className="smart-recommendations-controls">
           {sections.length > 1 && (
             <div className="smart-strategy-tabs" role="tablist" aria-label={tSmart('strategySwitcherLabel')}>
@@ -183,7 +163,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
         {activeSmartItems
           ? activeSmartItems.map((item) => (
               <div
-                className="product-recommendation smart-recommendation-item"
+                className="product-recommendation"
                 key={`${item.strategy}-${item.product.id}`}
                 onClickCapture={() => {
                   trackRecommendationEvent({
@@ -196,26 +176,13 @@ export default function ProductRecommendations({ productId }: { productId: numbe
                   });
                 }}
               >
-                <div className="product-recommendation-badges">
-                  <p className="product-recommendation-reason">
-                    <span aria-hidden="true">✦</span> {t(`relatedReason.${item.reason}`)}
-                  </p>
-                  {item.savingsVnd && item.savingsVnd >= 20_000 ? (
-                    <span className="smart-rec-saving-badge">
-                      {tSmart('saveBadge', { amount: formatPrice(item.savingsVnd) })}
-                    </span>
-                  ) : null}
-                  {item.hasPreownedOption ? (
-                    <span className="smart-rec-preowned-badge">{tSmart('preownedBadge')}</span>
-                  ) : null}
-                </div>
                 <ProductCard product={item.product} />
               </div>
             ))
           : rows
-            ? rows.map(({ product, reason }) => (
+            ? rows.map(({ product }) => (
                 <div
-                  className="product-recommendation smart-recommendation-item"
+                  className="product-recommendation"
                   key={product.id}
                   onClickCapture={() => {
                     trackRecommendationEvent({
@@ -228,11 +195,6 @@ export default function ProductRecommendations({ productId }: { productId: numbe
                     });
                   }}
                 >
-                  <div className="product-recommendation-badges">
-                    <p className="product-recommendation-reason">
-                      <span aria-hidden="true">✦</span> {t(`relatedReason.${reason}`)}
-                    </p>
-                  </div>
                   <ProductCard product={product} />
                 </div>
               ))
