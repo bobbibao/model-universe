@@ -1,3 +1,4 @@
+param([switch]$LocalOnly)
 $ErrorActionPreference = 'Stop'
 $appDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $runtimeDirectory = $env:MODEL_UNIVERSE_RUNTIME_DIR
@@ -21,5 +22,6 @@ if (Test-Path -LiteralPath $lockFile) {
     }
 }
 $nodePath = (Get-Command node -ErrorAction Stop).Source
-Start-Process -FilePath $nodePath -ArgumentList @('scripts/production-runtime.cjs', 'run') -WorkingDirectory $appDirectory -WindowStyle Hidden -RedirectStandardOutput (Join-Path $runtimeDirectory 'supervisor.log') -RedirectStandardError (Join-Path $runtimeDirectory 'supervisor-error.log')
+$runtimeMode = if ($LocalOnly) { 'run-local' } else { 'run' }
+Start-Process -FilePath $nodePath -ArgumentList @('scripts/production-runtime.cjs', $runtimeMode) -WorkingDirectory $appDirectory -WindowStyle Hidden -RedirectStandardOutput (Join-Path $runtimeDirectory 'supervisor.log') -RedirectStandardError (Join-Path $runtimeDirectory 'supervisor-error.log')
 Write-Output 'Production runtime starting. Run yarn production:status to see the public URL.'

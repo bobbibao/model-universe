@@ -17,7 +17,9 @@ yarn production:restart
 yarn production:stop
 ```
 
-`start:production` mở supervisor ẩn, kiểm tra khóa chống chạy trùng và cổng 6050 trước khi mở server. `production:status` hiển thị URL HTTPS hiện tại, source, commit và PID. `production:restart` chỉ thay process web bằng release đã build, giữ nguyên tunnel, URL và Agent. `production:stop` dừng web và Agent do supervisor sở hữu, giữ tunnel để lần start sau dùng lại URL; không dừng PostgreSQL hoặc Antigravity.
+Theo lựa chọn mới của chủ shop, `yarn start:production` mặc định chỉ chạy web/Agent thật trên localhost, không tạo tunnel. `production:status` ghi `localOnly: true`. Chỉ mở public khi chủ shop yêu cầu sau; không tự tạo lại Quick Tunnel đã mất.
+
+`start:production` mở supervisor ẩn, kiểm tra khóa chống chạy trùng và cổng 6050 trước khi mở server. `production:status` hiển thị URL đang chạy, source, commit và PID. `production:restart` chỉ thay process web bằng release đã build, giữ Agent và tunnel (nếu có). `production:stop` dừng web và Agent do supervisor sở hữu, giữ tunnel nếu có; không dừng PostgreSQL hoặc Antigravity.
 
 `START_AGENT_RUNTIME=true`, `AGENT_POSTGRES_CONTAINER` và `AGENT_REDIS_CONTAINER` trong cấu hình riêng máy bật phần Agent. PostgreSQL/Redis được khởi động từ container đã cấu hình, giữ volume hiện có; dừng website không xóa database hoặc queue. Supervisor dừng process Agent mà nó sở hữu khi dừng runtime; restart riêng web giữ Agent. Python và thư viện dùng từ `apps/agent-service/.venv`; Aegra chạy uvicorn không reload, với SelectorEventLoop theo cấu hình Windows của Aegra. Ollama cần đang hoạt động với model `bge-m3`; log Agent ở `D:/ModelUniverseRuntime/agent.log`. Không tự cài lịch monitor/ingest trong đợt triển khai này.
 

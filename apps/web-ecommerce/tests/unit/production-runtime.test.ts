@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import { EventEmitter } from 'node:events';
 
 // Exercise the supervisor without starting processes, opening ports or touching shop data.
-function harness(tunnelAlive = true) {
+function harness(tunnelAlive = true, mode = 'run') {
   const app = path.resolve(__dirname, '../..');
   const home = path.join(app, '.runtime-test');
   const files = new Map<string, string>([
@@ -26,7 +26,7 @@ function harness(tunnelAlive = true) {
   const context = {
     __dirname: path.join(app, 'scripts'),
     process: {
-      pid: 100, platform: 'linux', execPath: 'node', argv: ['node', 'runtime', 'run'],
+      pid: 100, platform: 'linux', execPath: 'node', argv: ['node', 'runtime', mode],
       env: { MODEL_UNIVERSE_RUNTIME_DIR: home, DB_NAME: 'shop' }, on() {}, exit() {},
       kill(pid: number) { if (pid === 500 && tunnelAlive) return; throw new Error('No such process'); },
     },
@@ -62,6 +62,14 @@ function harness(tunnelAlive = true) {
 const settle = async () => { for (let i = 0; i < 30; i++) await Promise.resolve(); };
 
 describe('production tunnel lifecycle', () => {
+  it('runs locally without creating or reclaiming a public tunnel', async () => {
+    const runtime = harness(false, 'run-local'); await settle();
+    expect(runtime.state()).toMatchObject({ phase: 'running', localOnly: true, publicUrl: 'http://localhost:6050' });
+    expect(runtime.state().tunnelPid).toBeUndefined();
+    expect(runtime.spawn).toHaveBeenCalledTimes(1);
+    expect(runtime.errors).toEqual([]);
+  });
+
   it('restarts only the web process while preserving the tunnel URL and PID', async () => {
     const runtime = harness(); await settle();
     const before = runtime.state();

@@ -25,7 +25,7 @@
     "catalog:tree:migrate": "ts-node scripts/migrate-condition-catalog.ts",
     "seed:condition-demo": "ts-node scripts/seed-condition-demo.ts",
     "test:condition-db": "node scripts/test-condition-catalog.cjs",
-    "start:production": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-production.ps1",
+    "start:production": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-production.ps1 -LocalOnly",
     "production:status": "node scripts/production-runtime.cjs status",
     "production:restart": "node scripts/production-runtime.cjs restart",
     "production:stop": "node scripts/production-runtime.cjs stop",

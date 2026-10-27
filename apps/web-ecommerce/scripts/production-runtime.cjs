@@ -28,7 +28,8 @@ if (command === 'status') {
   if (!current || !alive(current.pid)) throw new Error('Start the production runtime first.');
   fs.writeFileSync(restartFile, 'restart');
   console.log('Web restart requested. The existing tunnel and agent stay alive.');
-} else if (command === 'run') {
+} else if (command === 'run' || command === 'run-local') {
+  const localOnly = command === 'run-local';
   let server, agent, restarting = false, stopping = false, ownsLock = false, state = {};
   const output = fs.createWriteStream(path.join(home, 'web.log'), { flags: 'a' });
   const agentOutput = fs.createWriteStream(path.join(home, 'agent.log'), { flags: 'a' });
@@ -115,7 +116,9 @@ if (command === 'status') {
     const named = !!env.TUNNEL_TOKEN;
     if (named && !/^https:\/\//.test(env.SHOP_PUBLIC_URL || '')) throw new Error('A named tunnel requires SHOP_PUBLIC_URL=https://your-domain.');
     let connection;
-    if (fs.existsSync(tunnelStateFile)) {
+    if (localOnly) {
+      connection = { publicUrl: 'http://localhost:6050', temporaryUrl: false };
+    } else if (fs.existsSync(tunnelStateFile)) {
       connection = JSON.parse(fs.readFileSync(tunnelStateFile, 'utf8'));
       if (!alive(connection.pid)) throw new Error('The saved tunnel has stopped. Its Quick Tunnel URL cannot be reclaimed. Configure a named tunnel or explicitly remove tunnel-state.json to request a new temporary URL.');
     } else {
@@ -146,9 +149,9 @@ if (command === 'status') {
       } catch (error) { child.kill(); throw error; }
     }
     const url = connection.publicUrl;
-    if (!/^https:\/\/[a-z0-9.-]+$/.test(url)) throw new Error('Invalid saved tunnel URL.');
+    if (!localOnly && !/^https:\/\/[a-z0-9.-]+$/.test(url)) throw new Error('Invalid saved tunnel URL.');
     env.SHOP_PUBLIC_URL = url; env.WEBHOOK_PUBLIC_URL = url;
-    state = { ...state, tunnelPid: connection.pid, agentPid: agent?.pid, phase: 'starting',
+    state = { ...state, tunnelPid: connection.pid, agentPid: agent?.pid, phase: 'starting', localOnly,
       source: app, database: env.DB_NAME, port: 6050, localUrl: 'http://localhost:6050', publicUrl: url, temporaryUrl: connection.temporaryUrl };
     const startWeb = (version) => {
       const child = spawn(process.execPath, [path.join(app, version.nextDist, 'server.js')],
@@ -196,10 +199,10 @@ if (command === 'status') {
     state.phase = 'running'; save();
     const check = setInterval(() => {
       if (fs.existsSync(stopFile)) { clearInterval(check); stop(); return; }
-      if (!alive(connection.pid)) { clearInterval(check); fail(new Error('Tunnel stopped; the previous temporary URL cannot be reused. No replacement URL was created.')); return; }
+      if (!localOnly && !alive(connection.pid)) { clearInterval(check); fail(new Error('Tunnel stopped; the previous temporary URL cannot be reused. No replacement URL was created.')); return; }
       if (fs.existsSync(restartFile)) void restartWeb();
     }, 1000);
     console.log(`MODEL UNIVERSE: ${url} — local http://localhost:6050; source ${app}`);
     for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { clearInterval(check); stop(); });
   })().catch(fail);
-} else { throw new Error('Use run, status, restart or stop.'); }
+} else { throw new Error('Use run, run-local, status, restart or stop.'); }
