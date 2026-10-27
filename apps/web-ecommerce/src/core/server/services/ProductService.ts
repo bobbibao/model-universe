@@ -1,4 +1,5 @@
 import { effectiveItemType } from '../../../shared/condition-tree';
+import { orderConditionOptions } from '../../../shared/product-condition-option';
 import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
 import CatalogTreeService, { familyIdentity, lockCatalog } from './catalog/CatalogTreeService';
 import { ancestors, conditionPath } from '../../../shared/condition-tree';
@@ -265,7 +266,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   }
 
   // A storefront product by its id, public UUID or SEO slug. A condition option's key opens its main listing with that
-  // option selected; `conditionOptions` lists every unit the customer can choose (the main listing first).
+  // option selected; every sibling URL returns the same fixed SKU order.
   async getPublicById(key: number | string) {
     const where =
       typeof key === 'number' ? { id: key } : UUID_PATTERN.test(key) ? { uuid: key.toLowerCase() } : { slug: key };
@@ -309,10 +310,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       listPriceVerified: row.listPriceVerified,
       ...toPricing(row.price, discounts.get(row.id)),
     });
-    const conditionRank = rankOf(await this.conditions.all());
-    const optionUnits = options
-      .map((option) => unit(option, false))
-      .sort((a, b) => conditionRank(a.condition) - conditionRank(b.condition) || a.salePrice - b.salePrice || a.id - b.id);
+    const optionUnits = options.map((option) => unit(option, false));
     return {
       ...product.get({ plain: true }),
       conditionLabels: (product.conditionNodeIds ?? []).map(id => conditionPath(id, treeNodes)),
@@ -322,7 +320,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       ...toPricing(product.price, discounts.get(id)),
       images: galleryUrls(product),
       ratingDistribution: await this.reviewService.getDistribution(id),
-      conditionOptions: [unit(product, true), ...optionUnits],
+      conditionOptions: orderConditionOptions([unit(product, true), ...optionUnits]),
       selectedOptionId: product.id,
     };
   }

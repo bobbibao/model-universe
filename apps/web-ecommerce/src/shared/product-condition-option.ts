@@ -12,3 +12,8 @@ export function initialConditionOptionId(
     routeOptionId
   );
 }
+
+// Creation order is shared by every sibling URL; price, stock and selection never move a row.
+export function orderConditionOptions<T extends { id: number }>(options: readonly T[]): T[] {
+  return [...options].sort((a, b) => a.id - b.id);
+}

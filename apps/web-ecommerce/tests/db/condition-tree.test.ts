@@ -102,9 +102,15 @@ describe('condition catalog integration', () => {
     expect(detail.id).toBe(source.id);
     expect(detail.selectedOptionId).toBe(source.id);
     expect(detail.conditionOptions).toHaveLength(5);
+    const expectedIds = detail.conditionOptions.map(option => option.id).sort((a, b) => a - b);
+    for (const id of expectedIds) {
+      const sibling = await products.getPublicById(id);
+      expect(sibling.selectedOptionId).toBe(id);
+      expect(sibling.conditionOptions.map(option => option.id)).toEqual(expectedIds);
+    }
     const listing = await products.listPublic({ q: source.name, limit: 100, offset: 0 });
     expect(listing.rows.filter((row) => row.modelFamilyId === source.modelFamilyId)).toHaveLength(5);
-  });
+  }, 30000);
   it('rejects duplicate creation and direct stock editing', async () => {
     await expect(
       products.createConditionOption(

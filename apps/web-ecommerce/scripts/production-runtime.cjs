@@ -11,6 +11,8 @@ const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(app, '.runtime'
 fs.mkdirSync(home, { recursive: true });
 const stateFile = path.join(home, 'state.json');
 const stopFile = path.join(home, 'stop');
+const restartFile = path.join(home, 'restart-web');
+const tunnelStateFile = path.join(home, 'tunnel-state.json');
 const lockFile = path.join(home, 'lock');
 const readState = () => { try { return JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch { return null; } };
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch { return false; } };
@@ -20,18 +22,21 @@ if (command === 'status') {
   console.log(JSON.stringify({ ...state, running: !!state && fs.existsSync(lockFile) && alive(state.pid) }, null, 2));
 } else if (command === 'stop') {
   fs.writeFileSync(stopFile, 'stop');
-  console.log('Shutdown requested. The supervisor will stop its web server and tunnel.');
+  console.log('Shutdown requested for web and agent. The tunnel stays alive to preserve its URL.');
+} else if (command === 'restart') {
+  const current = readState();
+  if (!current || !alive(current.pid)) throw new Error('Start the production runtime first.');
+  fs.writeFileSync(restartFile, 'restart');
+  console.log('Web restart requested. The existing tunnel and agent stay alive.');
 } else if (command === 'run') {
-  let server, tunnel, agent, stopping = false, ownsLock = false, state = {};
+  let server, agent, restarting = false, stopping = false, ownsLock = false, state = {};
   const output = fs.createWriteStream(path.join(home, 'web.log'), { flags: 'a' });
-  const tunnelOutput = fs.createWriteStream(path.join(home, 'tunnel.log'), { flags: 'a' });
   const agentOutput = fs.createWriteStream(path.join(home, 'agent.log'), { flags: 'a' });
   const save = () => fs.writeFileSync(stateFile, JSON.stringify(state, null, 2));
   const stop = (code = 0) => {
     if (stopping) return;
     stopping = true;
     server?.kill();
-    tunnel?.kill();
     if (agent && agent.exitCode === null) {
       if (process.platform === 'win32') {
         // A Windows venv Python launcher owns a second Python process; stop the owned tree.
@@ -42,7 +47,7 @@ if (command === 'status') {
     if (ownsLock) { fs.rmSync(lockFile, { force: true }); fs.rmSync(stopFile, { force: true }); }
     state = { ...state, stoppedAt: new Date().toISOString() };
     if (ownsLock) save();
-    output.end(); tunnelOutput.end(); agentOutput.end();
+    output.end(); agentOutput.end();
     process.exitCode = code;
     setTimeout(() => process.exit(code), 1500).unref();
   };
@@ -57,11 +62,16 @@ if (command === 'status') {
     state = { pid: process.pid, source: app, port: 6050, phase: 'starting', startedAt: new Date().toISOString() };
     save();
     fs.rmSync(stopFile, { force: true });
-    const release = JSON.parse(fs.readFileSync(path.join(home, 'release.json'), 'utf8'));
-    if (!/^dist\/\.next-live-[a-f0-9]+-\d+$/.test(release.nextDist)) throw new Error('Invalid production release directory.');
-    const serverPath = path.join(app, release.nextDist, 'server.js');
-    if (!fs.existsSync(path.join(app, release.nextDist, 'BUILD_ID')) || !fs.existsSync(serverPath))
-      throw new Error('Run yarn build:production to publish a complete release first.');
+    fs.rmSync(restartFile, { force: true });
+    const readRelease = () => {
+      const release = JSON.parse(fs.readFileSync(path.join(home, 'release.json'), 'utf8'));
+      if (!/^dist\/\.next-live-[a-f0-9]+-\d+$/.test(release.nextDist) ||
+          !fs.existsSync(path.join(app, release.nextDist, 'BUILD_ID')) ||
+          !fs.existsSync(path.join(app, release.nextDist, 'server.js')))
+        throw new Error('Run yarn build:production to publish a complete release first.');
+      return release;
+    };
+    const release = readRelease();
     if (!process.env.DB_NAME || /(_demo|_test)$/.test(process.env.DB_NAME))
       throw new Error('Production requires the existing shop database, never a demo/test database.');
     await new Promise((resolve, reject) => {
@@ -104,36 +114,92 @@ if (command === 'status') {
     }
     const named = !!env.TUNNEL_TOKEN;
     if (named && !/^https:\/\//.test(env.SHOP_PUBLIC_URL || '')) throw new Error('A named tunnel requires SHOP_PUBLIC_URL=https://your-domain.');
-    let resolveUrl, rejectUrl;
-    const urlPromise = new Promise((resolve, reject) => { resolveUrl = resolve; rejectUrl = reject; });
-    if (named) resolveUrl(env.SHOP_PUBLIC_URL);
-    tunnel = spawn(env.CLOUDFLARED_PATH || 'cloudflared', named
-      ? ['tunnel', '--no-autoupdate', 'run']
-      : ['tunnel', '--no-autoupdate', '--url', 'http://127.0.0.1:6050'],
-    { env, cwd: app, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
-    tunnel.on('error', rejectUrl);
-    let buffer = '';
-    const collect = (chunk) => {
-      tunnelOutput.write(chunk); buffer = (buffer + chunk.toString()).slice(-8000);
-      const match = buffer.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
-      if (match) resolveUrl(match[0]);
-    };
-    tunnel.stdout.on('data', collect); tunnel.stderr.on('data', collect);
-    tunnel.on('exit', (code) => { rejectUrl(new Error(`Tunnel stopped (${code}). See tunnel.log.`)); if (!stopping) fail(new Error('Tunnel disconnected; production runtime stopped. Restart to reconnect.')); });
-    const timer = setTimeout(() => rejectUrl(new Error('Tunnel URL timed out. See tunnel.log.')), 60000);
-    const url = named ? env.SHOP_PUBLIC_URL : await urlPromise;
-    clearTimeout(timer);
+    let connection;
+    if (fs.existsSync(tunnelStateFile)) {
+      connection = JSON.parse(fs.readFileSync(tunnelStateFile, 'utf8'));
+      if (!alive(connection.pid)) throw new Error('The saved tunnel has stopped. Its Quick Tunnel URL cannot be reclaimed. Configure a named tunnel or explicitly remove tunnel-state.json to request a new temporary URL.');
+    } else {
+      // Detached process with file handles survives supervisor/web restarts.
+      const fd = fs.openSync(path.join(home, 'tunnel.log'), 'a');
+      const offset = fs.fstatSync(fd).size;
+      let child;
+      try {
+        child = spawn(env.CLOUDFLARED_PATH || 'cloudflared', named
+          ? ['tunnel', '--no-autoupdate', 'run']
+          : ['tunnel', '--no-autoupdate', '--url', 'http://127.0.0.1:6050'],
+        { env, cwd: app, detached: true, windowsHide: true, stdio: ['ignore', fd, fd] });
+      } finally { fs.closeSync(fd); }
+      let spawnError;
+      child.on('error', error => { spawnError = error; });
+      child.unref();
+      try {
+        for (let attempt = 0; attempt < 60; attempt++) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          if (spawnError) throw spawnError;
+          if (!alive(child.pid)) throw new Error('Tunnel stopped during startup. See tunnel.log.');
+          const log = fs.readFileSync(path.join(home, 'tunnel.log')).subarray(offset).toString();
+          const url = named ? env.SHOP_PUBLIC_URL : log.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/)?.[0];
+          if (url) { connection = { pid: child.pid, publicUrl: url, temporaryUrl: !named }; break; }
+        }
+        if (!connection) throw new Error('Tunnel URL timed out. See tunnel.log.');
+        fs.writeFileSync(tunnelStateFile, JSON.stringify(connection, null, 2));
+      } catch (error) { child.kill(); throw error; }
+    }
+    const url = connection.publicUrl;
+    if (!/^https:\/\/[a-z0-9.-]+$/.test(url)) throw new Error('Invalid saved tunnel URL.');
     env.SHOP_PUBLIC_URL = url; env.WEBHOOK_PUBLIC_URL = url;
-    const commit = release.commit;
-    state = { pid: process.pid, tunnelPid: tunnel.pid, agentPid: agent?.pid, phase: 'running', startedAt: state.startedAt, commit,
-      source: app, database: env.DB_NAME, port: 6050, localUrl: 'http://localhost:6050', publicUrl: url, temporaryUrl: !named };
-    server = spawn(process.execPath, [serverPath], { cwd: app, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
-    state.serverPid = server.pid; save();
-    server.stdout.pipe(output, { end: false }); server.stderr.pipe(output, { end: false });
-    server.on('error', fail);
-    server.on('exit', (code) => { if (!stopping) fail(new Error(`Web server exited (${code}). See web.log.`)); });
-    const check = setInterval(() => { if (fs.existsSync(stopFile)) { clearInterval(check); stop(); } }, 1000);
+    state = { ...state, tunnelPid: connection.pid, agentPid: agent?.pid, phase: 'starting',
+      source: app, database: env.DB_NAME, port: 6050, localUrl: 'http://localhost:6050', publicUrl: url, temporaryUrl: connection.temporaryUrl };
+    const startWeb = (version) => {
+      const child = spawn(process.execPath, [path.join(app, version.nextDist, 'server.js')],
+        { cwd: app, env: { ...env, NEXT_DIST_DIR: version.nextDist }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+      server = child;
+      state = { ...state, serverPid: child.pid, commit: version.commit, nextDist: version.nextDist };
+      save();
+      child.stdout.pipe(output, { end: false }); child.stderr.pipe(output, { end: false });
+      child.on('error', fail);
+      child.on('exit', (code) => { if (!stopping && server === child) fail(new Error(`Web server exited (${code}). See web.log. The tunnel is still running.`)); });
+    };
+    const waitForWeb = async () => {
+      for (let attempt = 0; attempt < 90 && !stopping; attempt++) {
+        try {
+          if ((await fetch('http://127.0.0.1:6050/api/products/filters', { signal: AbortSignal.timeout(1500) })).ok) return;
+        } catch { /* Starting. */ }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      throw new Error('Web startup timed out. See web.log. The tunnel is still running.');
+    };
+    const restartWeb = async () => {
+      if (restarting || stopping) return;
+      restarting = true;
+      try {
+        const version = readRelease(); // Validate before stopping the working release.
+        fs.rmSync(restartFile, { force: true });
+        state.phase = 'restarting'; save();
+        const previous = server;
+        server = undefined; // Its expected exit must not stop the supervisor.
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('Previous web process did not stop.')), 15000);
+          previous.once('exit', () => { clearTimeout(timer); resolve(); });
+          previous.kill();
+        });
+        startWeb(version);
+        await waitForWeb();
+        state.phase = 'running'; state.restartedAt = new Date().toISOString(); save();
+        console.log(`Web restarted at ${url}; tunnel PID ${connection.pid} unchanged.`);
+      } catch (error) { fail(error); }
+      finally { restarting = false; }
+    };
+    startWeb(release);
+    await waitForWeb();
+    if (stopping) return;
+    state.phase = 'running'; save();
+    const check = setInterval(() => {
+      if (fs.existsSync(stopFile)) { clearInterval(check); stop(); return; }
+      if (!alive(connection.pid)) { clearInterval(check); fail(new Error('Tunnel stopped; the previous temporary URL cannot be reused. No replacement URL was created.')); return; }
+      if (fs.existsSync(restartFile)) void restartWeb();
+    }, 1000);
     console.log(`MODEL UNIVERSE: ${url} — local http://localhost:6050; source ${app}`);
     for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => { clearInterval(check); stop(); });
   })().catch(fail);
-} else { throw new Error('Use run, status or stop.'); }
+} else { throw new Error('Use run, status, restart or stop.'); }

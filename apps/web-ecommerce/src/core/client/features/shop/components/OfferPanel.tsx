@@ -103,22 +103,22 @@ export default function OfferPanel({ product }: { product: ProductDetail }) {
           size="detail"
           showMemberPrice={shopOwned}
         />
-        {(product.sold > 0 || (product.stock > 0 && product.stock <= 3)) && (
-          <p className="offer-proof">
-            {product.sold > 0 && (
-              <span>
-                <PromoIcon name="bag" size={15} />
-                {en ? `${compactCount(product.sold, 'en')} sold` : `Đã bán ${compactCount(product.sold, 'vi')}`}
-              </span>
-            )}
-            {product.stock > 0 && product.stock <= 3 && (
-              <span className="is-scarce">
-                <i aria-hidden="true" />
-                {en ? `Only ${product.stock} left in stock` : `Chỉ còn ${product.stock} sản phẩm`}
-              </span>
-            )}
-          </p>
-        )}
+        <p className="offer-proof">
+          {product.sold > 0 && (
+            <span>
+              <PromoIcon name="bag" size={15} />
+              {en ? `${compactCount(product.sold, 'en')} sold` : `Đã bán ${compactCount(product.sold, 'vi')}`}
+            </span>
+          )}
+          <span className={product.stock > 0 && product.stock <= 3 ? 'is-scarce' : undefined}>
+            {product.stock > 0 && product.stock <= 3 && <i aria-hidden="true" />}
+            {product.stock <= 0
+              ? (en ? 'Awaiting restock' : 'Chờ có hàng')
+              : product.stock <= 3
+                ? (en ? `Only ${product.stock} left in stock` : `Chỉ còn ${product.stock} sản phẩm`)
+                : (en ? 'In stock' : 'Có sẵn hàng')}
+          </span>
+        </p>
         {onSale && (
           <p className="offer-saving">
             {en ? 'You save' : 'Tiết kiệm'} <strong>{money(product.price - product.salePrice)}</strong>

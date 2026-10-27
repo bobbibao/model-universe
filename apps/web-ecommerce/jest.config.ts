@@ -4,6 +4,7 @@ import type { Config } from 'jest';
 const shared = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  modulePathIgnorePatterns: ['<rootDir>/.runtime/'],
   moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
   // Faker v10 is ESM. Transform its JavaScript using the existing ts-jest compiler on supported Node 22.
   transformIgnorePatterns: ['node_modules/(?!@faker-js/).+'],

@@ -13,16 +13,17 @@ Chạy trong `apps/web-ecommerce`:
 ```powershell
 yarn start:production
 yarn production:status
+yarn production:restart
 yarn production:stop
 ```
 
-`start:production` mở supervisor ẩn, kiểm tra khóa chống chạy trùng và cổng 6050 trước khi mở server. `production:status` hiển thị URL HTTPS hiện tại, source, commit và PID. `production:stop` yêu cầu supervisor dừng đúng server/tunnel do nó tạo; không dừng PostgreSQL, Antigravity hay tiến trình khác.
+`start:production` mở supervisor ẩn, kiểm tra khóa chống chạy trùng và cổng 6050 trước khi mở server. `production:status` hiển thị URL HTTPS hiện tại, source, commit và PID. `production:restart` chỉ thay process web bằng release đã build, giữ nguyên tunnel, URL và Agent. `production:stop` dừng web và Agent do supervisor sở hữu, giữ tunnel để lần start sau dùng lại URL; không dừng PostgreSQL hoặc Antigravity.
 
-`START_AGENT_RUNTIME=true`, `AGENT_POSTGRES_CONTAINER` và `AGENT_REDIS_CONTAINER` trong cấu hình riêng máy bật phần Agent. PostgreSQL/Redis được khởi động từ container đã cấu hình, giữ volume hiện có; dừng website không xóa database hoặc queue. Supervisor dừng process Agent mà nó sở hữu cùng web/tunnel. Python và thư viện dùng từ `apps/agent-service/.venv`; Aegra chạy uvicorn không reload, với SelectorEventLoop theo cấu hình Windows của Aegra. Ollama cần đang hoạt động với model `bge-m3`; log Agent ở `D:/ModelUniverseRuntime/agent.log`. Không tự cài lịch monitor/ingest trong đợt triển khai này.
+`START_AGENT_RUNTIME=true`, `AGENT_POSTGRES_CONTAINER` và `AGENT_REDIS_CONTAINER` trong cấu hình riêng máy bật phần Agent. PostgreSQL/Redis được khởi động từ container đã cấu hình, giữ volume hiện có; dừng website không xóa database hoặc queue. Supervisor dừng process Agent mà nó sở hữu khi dừng runtime; restart riêng web giữ Agent. Python và thư viện dùng từ `apps/agent-service/.venv`; Aegra chạy uvicorn không reload, với SelectorEventLoop theo cấu hình Windows của Aegra. Ollama cần đang hoạt động với model `bge-m3`; log Agent ở `D:/ModelUniverseRuntime/agent.log`. Không tự cài lịch monitor/ingest trong đợt triển khai này.
 
 Cấu hình riêng máy nằm trong `.env` và `.env.production.local` (git-ignored). Build/cache ở `D:/ModelUniverseRuntime/dist`, liên kết qua `apps/web-ecommerce/dist`; log, backup và trạng thái ở `D:/ModelUniverseRuntime`. `MODEL_UNIVERSE_RUNTIME_DIR` cho phép đổi nơi lưu trạng thái. Không đưa các file này, ảnh kiểm hàng riêng hoặc bí mật vào Git/image Docker.
 
-Để build lại: dừng runtime, chạy `yarn build:production`, xác minh kiểm thử cần thiết, rồi khởi động lại. Mỗi lần mở Quick Tunnel có thể tạo URL mới; dùng lệnh status để lấy đúng link. Các URL webhook sinh cho giao dịch mới sử dụng URL runtime hiện tại; callback Google OAuth và webhook đã đăng ký cố định ở nhà cung cấp phải được cập nhật khi đổi URL.
+Để triển khai lại: commit đúng các file của tác vụ, chạy `yarn build:production` khi website cũ vẫn hoạt động, sau đó `yarn production:restart`. Không khởi động lại cloudflared khi cập nhật web. Tunnel được lưu riêng trong `tunnel-state.json`; start tái sử dụng PID/link đó. Nếu tunnel đã dừng, runtime báo lỗi và không tự tạo link thay thế. Quick Tunnel đã mất không thể đăng ký lại đúng tên; chỉ xóa trạng thái tunnel khi chủ shop chấp nhận tạo link mới. Các URL webhook sinh cho giao dịch mới sử dụng URL runtime hiện tại; callback Google OAuth và webhook đã đăng ký cố định ở nhà cung cấp phải được cập nhật khi đổi URL.
 
 Build production được đóng gói thành bản phát hành riêng ở `D:/ModelUniverseRuntime/releases/<commit>-<timestamp>`, liên kết qua `dist/.next-live-*`. `release.json` chỉ được thay sau khi Next/Express build thành công và kiểm tra các import backend. Runtime không đọc `dist/.next` đang được các công cụ phát triển build lại.
 
@@ -41,7 +42,7 @@ Theo yêu cầu chủ shop, chỉ commit các file thuộc tác vụ đang làm;
 
 ## Truy cập Internet
 
-Theo lựa chọn của chủ shop, runtime hiện dùng Cloudflare Quick Tunnel. Link HTTPS truy cập được ngoài LAN khi máy, PostgreSQL, supervisor và Internet còn hoạt động. Đây là URL tạm, không phải hosting 24/7 hoặc tên miền cố định; Quick Tunnel không hỗ trợ SSE và không có cam kết uptime. Luồng Agent streaming cần named tunnel trước khi nghiệm thu vận hành lâu dài.
+Theo lựa chọn của chủ shop, runtime hiện dùng Cloudflare Quick Tunnel. Link HTTPS truy cập được ngoài LAN khi máy, PostgreSQL, supervisor và Internet còn hoạt động. Link hiện được giữ qua các lần restart website bằng cách giữ process cloudflared. Tắt máy hoặc tunnel chết vẫn có thể làm mất link; không thể cam kết cùng URL Quick Tunnel qua những trường hợp đó. Đây là URL tạm, không phải hosting 24/7 hoặc tên miền cố định; Quick Tunnel không hỗ trợ SSE và không có cam kết uptime. Luồng Agent streaming cần named tunnel trước khi nghiệm thu vận hành lâu dài.
 
 Khi có tên miền/named tunnel, đặt `TUNNEL_TOKEN` và `SHOP_PUBLIC_URL=https://ten-mien` trong cấu hình riêng rồi khởi động lại. Token được truyền qua environment, không đưa vào command line hay Git. Không mở PostgreSQL qua tunnel. Tham khảo [Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
 

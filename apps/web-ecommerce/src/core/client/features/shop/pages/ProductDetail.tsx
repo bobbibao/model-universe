@@ -1,5 +1,5 @@
 'use client';
-import { initialConditionOptionId } from '@/shared/product-condition-option';
+import { initialConditionOptionId, orderConditionOptions } from '@/shared/product-condition-option';
 
 import { rememberViewed } from '@/shared/client/recentlyViewed';
 import { trackRecommendationEvent } from '@/shared/client/behaviorTracker';
@@ -46,7 +46,7 @@ const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) =
 // listing itself).
 const unitsOf = (product: ProductDetailType): ProductConditionOption[] =>
   product.conditionOptions?.length
-    ? product.conditionOptions
+    ? orderConditionOptions(product.conditionOptions)
     : [
         {
           id: product.id,
