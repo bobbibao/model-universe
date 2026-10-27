@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
+import Carousel from '@/components/Carousel';
+import PromoIcon from '@/components/PromoIcon';
+import ProductCard from '@/core/client/features/shop/components/ProductCard';
 import RecommendationApi from '@/core/client/api/Recommendation';
 import { trackRecommendationEvent } from '@/shared/client/behaviorTracker';
 import type {
@@ -11,8 +14,6 @@ import type {
   RecommendationSurface,
   SmartRecommendedProduct,
 } from '@/shared/smart-recommendations';
-import ProductCard from '@/core/client/features/shop/components/ProductCard';
-import { formatVND as formatPrice } from '@/shared/server/utils/utils';
 
 export interface SmartRecommendationRailProps {
   surface: RecommendationSurface;
@@ -40,12 +41,12 @@ export default function SmartRecommendationRail({
   categoryId,
   q,
   maxPrice,
-  limit = 4,
+  limit = 10,
   title,
   className = '',
   eager,
 }: SmartRecommendationRailProps) {
-  const t = useTranslations('commerceUX');
+  const en = useLocale() === 'en';
   const tSmart = useTranslations('smartRecs');
   const anchorRef = useRef<HTMLElement>(null);
 
@@ -171,20 +172,28 @@ export default function SmartRecommendationRail({
 
   if (loaded && activeItems.length === 0) return null;
 
-  const headingTitle = title || tSmart(`surfaceTitle.${surface}`);
+  const activeSection = sections.find((s) => s.strategy === activeStrategy);
+  const headingTitle = title || (activeSection ? tSmart(`sections.${activeStrategy}.title`) : (en ? 'Recommended for you' : 'Gợi ý dành riêng cho bạn'));
+  const headingSubtitle = activeSection ? tSmart(`sections.${activeStrategy}.subtitle`) : (en ? 'Personalized based on your browsing style & favorite kits.' : 'Tuyển chọn từ lịch sử xem và gu sưu tầm của bạn.');
 
   return (
     <section
       ref={anchorRef}
-      className={`product-recommendations smart-recommendations-rail ${className}`.trim()}
+      className={`product-rail smart-recommendations-rail mu-wrap ${className}`.trim()}
       aria-busy={!loaded}
       data-surface={surface}
       data-strategy={activeStrategy}
     >
-      <header className="smart-recommendations-header">
-        <h2 className="smart-recommendations-title">{headingTitle}</h2>
-        <div className="smart-recommendations-controls">
-          {sections.length > 1 && (
+      <header className="product-rail-head smart-recommendations-head">
+        <span className="product-rail-icon">
+          <PromoIcon name="star" size={20} />
+        </span>
+        <div>
+          <h2>{headingTitle}</h2>
+          {headingSubtitle && <p>{headingSubtitle}</p>}
+        </div>
+        {sections.length > 1 && (
+          <div className="smart-recommendations-controls">
             <div className="smart-strategy-tabs" role="tablist" aria-label={tSmart('strategySwitcherLabel')}>
               {sections.map((sec) => {
                 const isSelected = sec.strategy === activeStrategy;
@@ -197,45 +206,52 @@ export default function SmartRecommendationRail({
                     className={`smart-strategy-tab ${isSelected ? 'is-active' : ''}`}
                     onClick={() => setActiveStrategy(sec.strategy)}
                   >
-                    {tSmart(`strategy.${sec.strategy}`)}
+                    {tSmart(`tabLabels.${sec.strategy}`)}
                   </button>
                 );
               })}
             </div>
-          )}
-          {surface !== 'catalog' && (
-            <Link href="/cua-hang" className="smart-explore-link">
-              {t('exploreCatalog')} <span aria-hidden="true">↗</span>
-            </Link>
-          )}
-        </div>
+          </div>
+        )}
+        <Link href="/cua-hang" className="product-rail-more">
+          {en ? 'See all' : 'Xem tất cả'} <PromoIcon name="arrow" size={14} />
+        </Link>
       </header>
 
-      <div className="product-recommendations-track">
-        {loaded
-          ? activeItems.map((item) => (
-              <div
-                className="product-recommendation"
-                key={`${item.strategy}-${item.product.id}`}
-                onClickCapture={() => {
-                  trackRecommendationEvent({
-                    eventType: 'rec_click',
-                    productId: item.product.id,
-                    sourceProductId: typeof productId === 'number' ? productId : null,
-                    strategy: item.strategy,
-                    surface,
-                    priceVnd: item.product.salePrice ?? item.product.price,
-                  });
-                }}
-              >
-                <ProductCard product={item.product} />
-              </div>
-            ))
-          : Array.from({ length: limit }, (_, index) => (
-              <div key={index} className="product-recommendation-skeleton" aria-hidden="true" />
-            ))}
-      </div>
+      {loaded ? (
+        <Carousel
+          label={headingTitle}
+          className="product-rail-carousel"
+          autoplayMs={4500}
+          dots={false}
+          loop={activeItems.length > 5}
+        >
+          {activeItems.map((item) => (
+            <div
+              key={`${item.strategy}-${item.product.id}`}
+              className="product-rail-item"
+              onClickCapture={() => {
+                trackRecommendationEvent({
+                  eventType: 'rec_click',
+                  productId: item.product.id,
+                  sourceProductId: typeof productId === 'number' ? productId : null,
+                  strategy: item.strategy,
+                  surface,
+                  priceVnd: item.product.salePrice ?? item.product.price,
+                });
+              }}
+            >
+              <ProductCard product={item.product} />
+            </div>
+          ))}
+        </Carousel>
+      ) : (
+        <div className="product-rail-skeleton" aria-busy="true">
+          {Array.from({ length: 5 }, (_, index) => (
+            <span key={index} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
-

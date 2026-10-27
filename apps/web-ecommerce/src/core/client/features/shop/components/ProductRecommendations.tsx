@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
+import Carousel from '@/components/Carousel';
+import PromoIcon from '@/components/PromoIcon';
+import ProductCard from './ProductCard';
 import ProductApi from '@/core/client/api/Product';
 import RecommendationApi from '@/core/client/api/Recommendation';
 import { trackRecommendationEvent } from '@/shared/client/behaviorTracker';
@@ -12,10 +15,9 @@ import type {
   RecommendationStrategy,
   SmartRecommendedProduct,
 } from '@/shared/smart-recommendations';
-import { formatVND as formatPrice } from '@/shared/server/utils/utils';
-import ProductCard from './ProductCard';
 
 export default function ProductRecommendations({ productId }: { productId: number }) {
+  const en = useLocale() === 'en';
   const t = useTranslations('commerceUX');
   const tSmart = useTranslations('smartRecs');
   const anchor = useRef<HTMLElement>(null);
@@ -37,19 +39,18 @@ export default function ProductRecommendations({ productId }: { productId: numbe
       void Promise.all([
         ProductApi.getRecommendations(productId, controller.signal),
         RecommendationApi.getSmartRecommendations(
-          { surface: 'product_detail', strategy: 'similar', productId, limit: 4 },
+          { surface: 'product_detail', strategy: 'similar', productId, limit: 10 },
           controller.signal,
         ),
       ]).then(([baseItems, smartRes]) => {
-        // A timed-out optional section disappears; navigation/unmount never restores old results.
         if (!active || controller.signal.aborted) return;
         clearTimeout(timer);
 
-        const filteredBase = baseItems.filter(({ product }) => product.id !== productId).slice(0, 4);
+        const filteredBase = baseItems.filter(({ product }) => product.id !== productId).slice(0, 10);
         if (smartRes && smartRes.enabled && smartRes.sections.length > 0) {
           setSections(smartRes.sections);
           setActiveStrategy(smartRes.sections[0].strategy);
-          const initialItems = smartRes.sections[0].items.slice(0, 4);
+          const initialItems = smartRes.sections[0].items.slice(0, 10);
           setRows(
             initialItems.length > 0
               ? initialItems.map((item) => ({ product: item.product, reason: item.reason as ProductRecommendation['reason'] }))
@@ -94,7 +95,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
   const activeSmartItems: SmartRecommendedProduct[] | null = useMemo(() => {
     if (!sections.length) return null;
     const sec = sections.find((s) => s.strategy === activeStrategy) ?? sections[0];
-    return sec ? sec.items.slice(0, 4) : null;
+    return sec ? sec.items.slice(0, 10) : null;
   }, [sections, activeStrategy]);
 
   useEffect(() => {
@@ -121,21 +122,37 @@ export default function ProductRecommendations({ productId }: { productId: numbe
   const headingSubtitle =
     sections.length > 0 ? tSmart(`sections.${activeStrategy}.subtitle`) : t('relatedProductsNote');
 
+  const items = activeSmartItems
+    ? activeSmartItems
+    : rows
+      ? rows.map((r) => ({
+          product: r.product,
+          reason: r.reason,
+          strategy: 'similar' as const,
+          score: 1,
+          breakdown: { relevance: 1, preference: 0, recentBehavior: 0, popularity: 0, inStock: 1, marginOrBusiness: 0 },
+        }))
+      : null;
+
   return (
     <section
       ref={anchor}
-      className="product-recommendations smart-recommendations-rail"
+      className="product-rail product-recommendations smart-recommendations-rail"
       aria-labelledby="product-recommendations-title"
-      aria-busy={!rows}
+      aria-busy={!items}
       data-surface="product_detail"
       data-strategy={activeStrategy}
     >
-      <header className="smart-recommendations-header">
-        <h2 id="product-recommendations-title" className="smart-recommendations-title">
-          {headingTitle}
-        </h2>
-        <div className="smart-recommendations-controls">
-          {sections.length > 1 && (
+      <header className="product-rail-head smart-recommendations-head">
+        <span className="product-rail-icon">
+          <PromoIcon name="star" size={20} />
+        </span>
+        <div>
+          <h2 id="product-recommendations-title">{headingTitle}</h2>
+          {headingSubtitle && <p>{headingSubtitle}</p>}
+        </div>
+        {sections.length > 1 && (
+          <div className="smart-recommendations-controls">
             <div className="smart-strategy-tabs" role="tablist" aria-label={tSmart('strategySwitcherLabel')}>
               {sections.map((sec) => {
                 const isSelected = sec.strategy === activeStrategy;
@@ -148,60 +165,52 @@ export default function ProductRecommendations({ productId }: { productId: numbe
                     className={`smart-strategy-tab ${isSelected ? 'is-active' : ''}`}
                     onClick={() => setActiveStrategy(sec.strategy)}
                   >
-                    {tSmart(`strategy.${sec.strategy}`)}
+                    {tSmart(`tabLabels.${sec.strategy}`)}
                   </button>
                 );
               })}
             </div>
-          )}
-          <Link href="/cua-hang" className="smart-explore-link">
-            {t('exploreCatalog')} <span aria-hidden="true">↗</span>
-          </Link>
-        </div>
+          </div>
+        )}
+        <Link href="/cua-hang" className="product-rail-more">
+          {en ? 'See all' : 'Xem tất cả'} <PromoIcon name="arrow" size={14} />
+        </Link>
       </header>
-      <div className="product-recommendations-track">
-        {activeSmartItems
-          ? activeSmartItems.map((item) => (
-              <div
-                className="product-recommendation"
-                key={`${item.strategy}-${item.product.id}`}
-                onClickCapture={() => {
-                  trackRecommendationEvent({
-                    eventType: 'rec_click',
-                    productId: item.product.id,
-                    sourceProductId: productId,
-                    strategy: item.strategy,
-                    surface: 'product_detail',
-                    priceVnd: item.product.salePrice ?? item.product.price,
-                  });
-                }}
-              >
-                <ProductCard product={item.product} />
-              </div>
-            ))
-          : rows
-            ? rows.map(({ product }) => (
-                <div
-                  className="product-recommendation"
-                  key={product.id}
-                  onClickCapture={() => {
-                    trackRecommendationEvent({
-                      eventType: 'rec_click',
-                      productId: product.id,
-                      sourceProductId: productId,
-                      strategy: 'similar',
-                      surface: 'product_detail',
-                      priceVnd: product.salePrice ?? product.price,
-                    });
-                  }}
-                >
-                  <ProductCard product={product} />
-                </div>
-              ))
-            : Array.from({ length: 4 }, (_, index) => (
-                <div key={index} className="product-recommendation-skeleton" aria-hidden="true" />
-              ))}
-      </div>
+
+      {items ? (
+        <Carousel
+          label={headingTitle}
+          className="product-rail-carousel"
+          autoplayMs={4500}
+          dots={false}
+          loop={items.length > 5}
+        >
+          {items.map((item) => (
+            <div
+              key={`${item.strategy}-${item.product.id}`}
+              className="product-rail-item"
+              onClickCapture={() => {
+                trackRecommendationEvent({
+                  eventType: 'rec_click',
+                  productId: item.product.id,
+                  sourceProductId: productId,
+                  strategy: item.strategy,
+                  surface: 'product_detail',
+                  priceVnd: item.product.salePrice ?? item.product.price,
+                });
+              }}
+            >
+              <ProductCard product={item.product} />
+            </div>
+          ))}
+        </Carousel>
+      ) : (
+        <div className="product-rail-skeleton" aria-busy="true">
+          {Array.from({ length: 5 }, (_, index) => (
+            <span key={index} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

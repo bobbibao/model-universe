@@ -4075,6 +4075,15 @@
     "send": "Send {count} models"
   },
   "smartRecs": {
+    "tabLabels": {
+      "for_you": "For You",
+      "trending": "Trending",
+      "budget_alternative": "Budget Friendly",
+      "bought_together": "Bought Together",
+      "similar": "Similar",
+      "related": "Related",
+      "cart_addon": "Add-ons"
+    },
     "personalizedPill": "Personalized for you",
     "savesVnd": "Save {amount}",
     "preownedOption": "Pre-owned unit in stock",

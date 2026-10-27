@@ -4075,6 +4075,15 @@
     "send": "Gửi {count} mô hình"
   },
   "smartRecs": {
+    "tabLabels": {
+      "for_you": "Dành cho bạn",
+      "trending": "Xu hướng",
+      "budget_alternative": "Hợp ngân sách",
+      "bought_together": "Mua cùng nhau",
+      "similar": "Tương tự",
+      "related": "Liên quan",
+      "cart_addon": "Mua kèm"
+    },
     "personalizedPill": "Cá nhân hóa cho bạn",
     "savesVnd": "Tiết kiệm {amount}",
     "preownedOption": "Có bản 2hand sẵn kho",

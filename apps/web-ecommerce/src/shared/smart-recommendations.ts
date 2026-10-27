@@ -92,7 +92,7 @@ export const DEFAULT_RECOMMENDATION_CONFIG: RecommendationConfig = {
   maxPerBrandScale: 2,
   preferInStockPreowned: true,
   budgetRatio: 0.85,
-  defaultLimit: 4,
+  defaultLimit: 10,
   enableFreeshipGapAddons: true,
   freeshipThresholdVnd: FREESHIP_TIERS[0]?.minOrderVnd ?? 1000000,
 };

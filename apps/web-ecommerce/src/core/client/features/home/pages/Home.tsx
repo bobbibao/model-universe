@@ -31,9 +31,7 @@ const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
       <AnnouncementTicker />
       <HomePromotions products={initialProducts} />
       <SaleShelf />
-      <div className="mu-wrap">
-        <SmartRecommendationRail surface="home" defaultStrategy="for_you" limit={4} />
-      </div>
+      <SmartRecommendationRail surface="home" defaultStrategy="for_you" limit={10} />
       <ProductRail
         ranked
         tone="hot"
