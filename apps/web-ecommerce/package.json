@@ -28,7 +28,7 @@
     "start:production": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-production.ps1",
     "production:status": "node scripts/production-runtime.cjs status",
     "production:stop": "node scripts/production-runtime.cjs stop",
-    "build:production": "cross-env NODE_ENV=production next build --no-lint && tsc --project tsconfig.server.json"
+    "build:production": "node scripts/build-production.cjs"
   },
   "dependencies": {
     "@expo-google-fonts/be-vietnam-pro": "0.4.1",

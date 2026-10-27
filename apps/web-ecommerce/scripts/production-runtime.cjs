@@ -57,8 +57,11 @@ if (command === 'status') {
     state = { pid: process.pid, source: app, port: 6050, phase: 'starting', startedAt: new Date().toISOString() };
     save();
     fs.rmSync(stopFile, { force: true });
-    if (!fs.existsSync(path.join(app, 'dist/.next/BUILD_ID')) || !fs.existsSync(path.join(app, 'dist/.next/server.js')))
-      throw new Error('Build the production application and Express server first.');
+    const release = JSON.parse(fs.readFileSync(path.join(home, 'release.json'), 'utf8'));
+    if (!/^dist\/\.next-live-[a-f0-9]+-\d+$/.test(release.nextDist)) throw new Error('Invalid production release directory.');
+    const serverPath = path.join(app, release.nextDist, 'server.js');
+    if (!fs.existsSync(path.join(app, release.nextDist, 'BUILD_ID')) || !fs.existsSync(serverPath))
+      throw new Error('Run yarn build:production to publish a complete release first.');
     if (!process.env.DB_NAME || /(_demo|_test)$/.test(process.env.DB_NAME))
       throw new Error('Production requires the existing shop database, never a demo/test database.');
     await new Promise((resolve, reject) => {
@@ -67,7 +70,7 @@ if (command === 'status') {
     });
     const env = { ...process.env, NODE_ENV: 'production', PORT: '6050', HOST: '127.0.0.1',
       LOGGER: 'CONSOLE', LOG_LEVEL: 'info',
-      NEXT_DIST_DIR: '', REAL_COMMERCE: 'true', SEED_DATA: 'false', DROP_TABLES: 'false',
+      NEXT_DIST_DIR: release.nextDist, REAL_COMMERCE: 'true', SEED_DATA: 'false', DROP_TABLES: 'false',
       COOKIE_SECURE: 'true', DISABLE_BACKGROUND_JOBS: 'false', SUPERAI_ORDER_MODE: 'live' };
     if (env.START_AGENT_RUNTIME === 'true') {
       const agentApp = path.resolve(app, '../agent-service');
@@ -121,11 +124,10 @@ if (command === 'status') {
     const url = named ? env.SHOP_PUBLIC_URL : await urlPromise;
     clearTimeout(timer);
     env.SHOP_PUBLIC_URL = url; env.WEBHOOK_PUBLIC_URL = url;
-    let commit = 'unknown';
-    try { commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: app, encoding: 'utf8', windowsHide: true }).trim(); } catch { /* Git may be unavailable in a packaged deployment. */ }
+    const commit = release.commit;
     state = { pid: process.pid, tunnelPid: tunnel.pid, agentPid: agent?.pid, phase: 'running', startedAt: state.startedAt, commit,
       source: app, database: env.DB_NAME, port: 6050, localUrl: 'http://localhost:6050', publicUrl: url, temporaryUrl: !named };
-    server = spawn(process.execPath, [path.join(app, 'dist/.next/server.js')], { cwd: app, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+    server = spawn(process.execPath, [serverPath], { cwd: app, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     state.serverPid = server.pid; save();
     server.stdout.pipe(output, { end: false }); server.stderr.pipe(output, { end: false });
     server.on('error', fail);

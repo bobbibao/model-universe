@@ -24,6 +24,8 @@ Cấu hình riêng máy nằm trong `.env` và `.env.production.local` (git-igno
 
 Để build lại: dừng runtime, chạy `yarn build:production`, xác minh kiểm thử cần thiết, rồi khởi động lại. Mỗi lần mở Quick Tunnel có thể tạo URL mới; dùng lệnh status để lấy đúng link. Các URL webhook sinh cho giao dịch mới sử dụng URL runtime hiện tại; callback Google OAuth và webhook đã đăng ký cố định ở nhà cung cấp phải được cập nhật khi đổi URL.
 
+Build production hiện được đóng gói thành bản phát hành riêng ở `D:/ModelUniverseRuntime/releases/<commit>-<timestamp>`, liên kết qua `dist/.next-live-*`. `release.json` chỉ được thay sau khi Next/Express build thành công, kiểm tra các import backend và xác nhận source không đổi trong lúc build. Runtime chạy đúng bản đã phát hành, không đọc `dist/.next` đang được các công cụ phát triển build lại. Nhờ vậy lượt build khác không xóa mất module của website đang chạy. Source phải commit sạch trước `yarn build:production`; `production:status` báo commit của bản thực sự đang chạy. Chế độ REAL_COMMERCE từ chối mở website trên cổng khác 6050.
+
 ## Dữ liệu và kết nối thật
 
 - Có bản sao lưu PostgreSQL trước chuyển đổi tại `D:/ModelUniverseRuntime/backups`. Báo cáo và quyết định đối chiếu lưu tại `D:/ModelUniverseRuntime/catalog-*.json`.

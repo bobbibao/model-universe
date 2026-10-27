@@ -3,6 +3,8 @@ export function assertSessionConfiguration(environment: NodeJS.ProcessEnv) {
   if (environment.NODE_ENV === 'production' && (!environment.JWT_SECRET || new TextEncoder().encode(environment.JWT_SECRET).length < 32))
     throw new Error('Production requires JWT_SECRET with at least 32 bytes.');
   if (environment.REAL_COMMERCE === 'true') {
+    if (environment.PORT && environment.PORT !== '6050')
+      throw new Error('Real commerce uses the single website port 6050.');
     if (environment.SEED_DATA === 'true' || environment.DROP_TABLES === 'true')
       throw new Error('Real commerce cannot seed or drop shop data.');
     if (!environment.DB_NAME || /(_demo|_test)$/.test(environment.DB_NAME))
