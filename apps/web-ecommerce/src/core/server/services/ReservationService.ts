@@ -169,7 +169,15 @@ export default class ReservationService {
       { userId, couponCode: data.couponCode, shippingFeeVnd: 0 },
     );
     if (quote.lines.some((line) => line.status !== 'OK')) throw HttpError.conflict('Mẫu không còn đủ tồn khả dụng.');
+    if (!Number.isSafeInteger(quote.total) || quote.total < 1 || quote.total > 2147483647)
+      throw HttpError.badRequest('Invalid net merchandise amount.');
+    const product = await ProductModel.findByPk(Number(data.productId));
+    const eligible = !!product?.ownershipVerifiedAt && !product.partnerId && isSellable(product);
     return {
+      eligible,
+      blockedReason: eligible
+        ? null
+        : 'Shop chưa mở giữ hàng cho SKU này. Cần hoàn tất xác minh quyền sở hữu trước khi nhận cọc.',
       totalVnd: quote.total,
       merchandiseVnd: quote.subtotal,
       discountVnd: quote.discount,

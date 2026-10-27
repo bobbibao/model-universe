@@ -21,6 +21,8 @@ fs.mkdirSync(out, { recursive: true });
   await ctx.route('**/api/**', (route) => {
     const req = route.request(),
       url = new URL(req.url());
+    if (url.pathname === '/api/recommendations/events') return route.fulfill({ json: { recorded: true } });
+    if (url.pathname === '/api/admin/agent/server/threads/search') return route.continue();
     if (req.method() !== 'GET' && !['/api/auth/login', '/api/reservations/quote'].includes(url.pathname)) {
       writes.push(url.pathname);
       return route.abort();
@@ -228,6 +230,7 @@ fs.mkdirSync(out, { recursive: true });
   await page.getByRole('button', { name: 'Gửi yêu cầu hoàn tiền', exact: true }).click();
   await expect.poll(() => refunds).toBe(1);
   await expect(page.getByText('Chờ duyệt', { exact: true })).toBeVisible();
+  await expect(page.getByText('Tiền chờ đối soát', { exact: true })).toBeVisible();
   await page.screenshot({ path: path.join(out, 'hold-mobile.png'), fullPage: true });
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Hold fits mobile width');
   await page.setViewportSize({ width: 1440, height: 1000 });

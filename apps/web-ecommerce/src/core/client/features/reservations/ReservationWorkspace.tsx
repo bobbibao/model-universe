@@ -178,13 +178,35 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
                 </div>
                 <dl className="grid grid-cols-2 gap-3">
                   <div>
-                    <dt className="mu-note">{t('remaining')}</dt>
-                    <dd className="text-xl font-bold">{money(selected.remainingVnd)}</dd>
+                    <dt className="mu-note">
+                      {['cancelled', 'expired'].includes(selected.status)
+                        ? 'Tiền chờ đối soát'
+                        : selected.status === 'cancel_requested'
+                          ? 'Tiền đã xác nhận'
+                          : t('remaining')}
+                    </dt>
+                    <dd className="text-xl font-bold">
+                      {money(
+                        ['cancelled', 'expired'].includes(selected.status)
+                          ? selected.unresolvedDepositVnd || 0
+                          : selected.status === 'cancel_requested'
+                            ? selected.paidVnd
+                            : selected.remainingVnd,
+                      )}
+                    </dd>
                   </div>
                   <div>
                     <dt className="mu-note">{t('deadline')}</dt>
                     <dd>
-                      {selected.expiresAt ? new Date(selected.expiresAt).toLocaleString(locale) : t('notStarted')}
+                      {selected.status === 'cancelled'
+                        ? 'Giữ hàng đã kết thúc'
+                        : ['fully_paid', 'PAID_IN_FULL'].includes(selected.status)
+                          ? t('status.PAID_IN_FULL')
+                          : ['fulfilling', 'completed'].includes(selected.status)
+                            ? 'Đã chuyển vào đơn mua'
+                            : selected.expiresAt
+                              ? new Date(selected.expiresAt).toLocaleString(locale)
+                              : t('notStarted')}
                     </dd>
                   </div>
                 </dl>
@@ -348,7 +370,10 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
                   />
                 )}
                 {(selected.disputed || selected.reconciliationRequired) && (
-                  <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm">
+                  <p
+                    role="status"
+                    className="rounded-lg bg-amber-50 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100 p-3 text-sm"
+                  >
                     Hồ sơ đang chờ đối soát hoặc xử lý tranh chấp. Thanh toán không tự kích hoạt lại giữ hàng.
                   </p>
                 )}

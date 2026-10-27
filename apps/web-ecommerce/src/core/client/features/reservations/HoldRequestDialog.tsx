@@ -5,6 +5,8 @@ import FinanceDialog from '../finance/FinanceDialog';
 import { formatVND } from '@/shared/server/utils/utils';
 import { useRouter } from '@/i18n/navigation';
 interface Quote {
+  eligible: boolean;
+  blockedReason?: string;
   totalVnd: number;
   merchandiseVnd: number;
   discountVnd: number;
@@ -130,11 +132,19 @@ export default function HoldRequestDialog({
               ))}
             </div>
             <p className="mu-note whitespace-pre-line">{quote.terms}</p>
+            {!quote.eligible && (
+              <p
+                role="status"
+                className="rounded-lg bg-amber-50 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100 p-3 text-sm"
+              >
+                {quote.blockedReason}
+              </p>
+            )}
             <label className="flex items-start gap-2 text-sm">
               <input type="checkbox" required />
               Tôi đã đọc và chấp thuận điều khoản giữ hàng ở trên.
             </label>
-            <button className="mu-button w-full" disabled={busy}>
+            <button className="mu-button w-full" disabled={busy || !quote.eligible}>
               Tạo yêu cầu giữ hàng
             </button>
           </form>

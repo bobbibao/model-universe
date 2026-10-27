@@ -8,6 +8,7 @@ import crypto from 'node:crypto';
 import { Op } from 'sequelize';
 import type { Sequelize } from 'sequelize-typescript';
 import { seedTestDatabase } from './support/testDb';
+import ProductService from '../../src/core/server/services/ProductService';
 import ReservationService from '../../src/core/server/services/ReservationService';
 import PawnService from '../../src/core/server/services/PawnService';
 import PawnReminderService from '../../src/core/server/services/PawnReminderService';
@@ -148,6 +149,7 @@ describe('2026 pawn and hold money/stock invariants on disposable Postgres', () 
       holds.create(customer, { productId: product.id, quantity: 1, expectedTotal: total, requestKey: key() }),
     ).rejects.toMatchObject({ statusCode: 400 });
     await product.update({ ownershipVerifiedAt: null });
+    expect((await holds.quote(customer, { productId: product.id, quantity: 1 })).eligible).toBe(false);
     await expect(create()).rejects.toMatchObject({ statusCode: 409 });
     await product.update({ ownershipVerifiedAt: new Date() });
   });
@@ -572,5 +574,11 @@ describe('2026 pawn and hold money/stock invariants on disposable Postgres', () 
       true,
     );
     expect(row.governance.titleTransfer.reference).toContain('Completed transfer');
+  });
+  it('keeps ownership evidence private while reporting hold eligibility', async () => {
+    const visible = await new ProductService().getPublicById(product.id);
+    expect(visible).not.toHaveProperty('ownershipReference');
+    await product.update({ stock: 100 });
+    expect((await holds.quote(customer, { productId: product.id, quantity: 1 })).eligible).toBe(true);
   });
 });

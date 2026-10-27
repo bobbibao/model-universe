@@ -121,6 +121,7 @@ const LIST_ATTRIBUTES = [
 
 // Staff-only columns: never sent to the storefront (the received date included).
 const PRIVATE_ATTRIBUTES = [
+  'ownershipReference',
   'importPrice',
   'pricingReferenceMemberVnd',
   'pricingReferencePreownedVnd',

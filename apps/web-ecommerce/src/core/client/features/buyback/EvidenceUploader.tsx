@@ -21,7 +21,13 @@ export default function EvidenceUploader({
   onFiles,
   allowVideo = false,
   onBusy,
+  minimumPhotos = 3,
+  title,
+  hint,
 }: {
+  minimumPhotos?: number;
+  title?: string;
+  hint?: string;
   purpose: 'buyback' | 'pawn';
   files: UploadedEvidence[];
   onFiles: (update: (files: UploadedEvidence[]) => UploadedEvidence[]) => void;
@@ -59,10 +65,12 @@ export default function EvidenceUploader({
   return (
     <div className="evidence-uploader">
       <div className="evidence-head">
-        <strong>{t('photos')}</strong>
-        <span className={photos >= 3 ? 'is-ok' : ''}>{t('photoCount', { count: photos })}</span>
+        <strong>{title || t('photos')}</strong>
+        <span className={photos >= minimumPhotos ? 'is-ok' : ''}>
+          {minimumPhotos === 3 ? t('photoCount', { count: photos }) : `${photos} / ${minimumPhotos}`}
+        </span>
       </div>
-      <p className="evidence-hint">{t(allowVideo ? 'photosHintVideo' : 'photosHint')}</p>
+      <p className="evidence-hint">{hint || t(allowVideo ? 'photosHintVideo' : 'photosHint')}</p>
       <ul className="evidence-grid">
         {files.map((file) => (
           <li key={file.id}>

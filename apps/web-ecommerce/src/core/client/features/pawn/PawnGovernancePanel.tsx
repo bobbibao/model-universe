@@ -64,7 +64,7 @@ export default function PawnGovernancePanel({
     <div className="space-y-4">
       <div
         role="status"
-        className={`rounded-xl border p-4 text-sm ${legal ? 'border-slate-200 bg-slate-50' : 'border-amber-200 bg-amber-50'}`}
+        className={`rounded-xl border p-4 text-sm ${legal ? 'border-slate-200 bg-slate-50 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100' : 'border-amber-200 bg-amber-50 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100'}`}
       >
         <strong>
           {legal
@@ -236,7 +236,17 @@ export default function PawnGovernancePanel({
                 Đã hoàn tất chuyển quyền sở hữu có căn cứ
               </label>
             )}
-            {needsFiles && <EvidenceUploader purpose="pawn" files={files} onFiles={setFiles} onBusy={setBusy} />}
+            {needsFiles && (
+              <EvidenceUploader
+                minimumPhotos={1}
+                title="Giấy tờ và bằng chứng riêng tư"
+                hint="Ít nhất một ảnh bằng chứng cho thao tác này. Chỉ người có quyền mới được xem hồ sơ."
+                purpose="pawn"
+                files={files}
+                onFiles={setFiles}
+                onBusy={setBusy}
+              />
+            )}
             <label className="mu-field">
               Căn cứ / nội dung kiểm tra
               <textarea name="details" required rows={2} maxLength={1000} />

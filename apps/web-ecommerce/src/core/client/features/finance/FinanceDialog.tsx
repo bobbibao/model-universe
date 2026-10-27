@@ -35,7 +35,7 @@ export default function FinanceDialog({
         onClose();
       }}
     >
-      <header className="flex items-center justify-between border-b border-slate-200 p-4 font-bold">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-inherit p-4 font-bold">
         <h2 id={titleId}>{title}</h2>
         <button type="button" aria-label="Đóng / Close" onClick={onClose}>
           ×

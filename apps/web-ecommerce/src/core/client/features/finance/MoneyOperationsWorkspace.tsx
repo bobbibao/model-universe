@@ -39,12 +39,12 @@ export default function MoneyOperationsWorkspace() {
       </div>
       {error && (
         <p role="alert">
-          Không tải được hàng đợi. Cần quyền Finance; chủ shop có thể cấp quyền trong quản lý chính sách.
+          Không tải được hàng đợi. Cần quyền Finance; nhờ chủ shop cấp quyền tại Tài chính → Duyệt hoàn tiền.
         </p>
       )}
       {data && (
         <>
-          <p className="rounded-lg bg-amber-50 p-3 text-sm">
+          <p className="rounded-lg bg-amber-50 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100 p-3 text-sm">
             {data.bankConfirmationConfigured
               ? 'Đã cấu hình khóa tiếp nhận xác nhận ngân hàng.'
               : 'Chưa cấu hình bộ tiếp nhận ngân hàng: yêu cầu chỉ dừng ở chờ chuyển tiền, không tự ghi đã hoàn.'}
