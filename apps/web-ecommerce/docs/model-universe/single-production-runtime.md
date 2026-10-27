@@ -44,7 +44,7 @@ Theo yêu cầu chủ shop, chỉ commit các file thuộc tác vụ đang làm;
 
 ## Truy cập Internet
 
-Theo lựa chọn của chủ shop, runtime hiện dùng Cloudflare Quick Tunnel. Link HTTPS truy cập được ngoài LAN khi máy, PostgreSQL, supervisor và Internet còn hoạt động. Link hiện được giữ qua các lần restart website bằng cách giữ process cloudflared. Tắt máy hoặc tunnel chết vẫn có thể làm mất link; không thể cam kết cùng URL Quick Tunnel qua những trường hợp đó. Đây là URL tạm, không phải hosting 24/7 hoặc tên miền cố định; Quick Tunnel không hỗ trợ SSE và không có cam kết uptime. Luồng Agent streaming cần named tunnel trước khi nghiệm thu vận hành lâu dài.
+Hiện runtime chỉ chạy localhost theo yêu cầu chủ shop; không có tunnel public đang hoạt động. Khi chủ shop yêu cầu mở Internet sau, có thể dùng Cloudflare Quick Tunnel. Link HTTPS truy cập được ngoài LAN khi máy, PostgreSQL, supervisor và Internet còn hoạt động. Link hiện được giữ qua các lần restart website bằng cách giữ process cloudflared. Tắt máy hoặc tunnel chết vẫn có thể làm mất link; không thể cam kết cùng URL Quick Tunnel qua những trường hợp đó. Đây là URL tạm, không phải hosting 24/7 hoặc tên miền cố định; Quick Tunnel không hỗ trợ SSE và không có cam kết uptime. Luồng Agent streaming cần named tunnel trước khi nghiệm thu vận hành lâu dài.
 
 Khi có tên miền/named tunnel, đặt `TUNNEL_TOKEN` và `SHOP_PUBLIC_URL=https://ten-mien` trong cấu hình riêng rồi khởi động lại. Token được truyền qua environment, không đưa vào command line hay Git. Không mở PostgreSQL qua tunnel. Tham khảo [Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
 
