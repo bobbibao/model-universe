@@ -12,7 +12,7 @@ export default class ConditionNodeModel extends Model {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false }) selectable!: boolean;
   @Column({ type: DataType.STRING(12), allowNull: false, defaultValue: 'multiple' }) selectionMode!:
     'multiple' | 'single';
-  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: ['new', 'preowned'] }) itemTypes!: ItemTypeKey[];
+  @Column({ type: DataType.JSONB, allowNull: false, defaultValue: ['preowned'] }) itemTypes!: ItemTypeKey[];
   @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 }) sortOrder!: number;
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true }) isActive!: boolean;
   @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 }) version!: number;

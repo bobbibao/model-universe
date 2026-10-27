@@ -3,12 +3,27 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync, execFileSync } = require('node:child_process');
 const { createRequire } = require('node:module');
-const app = path.resolve(__dirname, '..');
+const sourceApp = path.resolve(__dirname, '..');
+let app = sourceApp;
 process.env.NODE_ENV = 'production';
-require('@next/env').loadEnvConfig(app, false);
-const git = (...args) => execFileSync('git', args, { cwd: app, encoding: 'utf8', windowsHide: true }).trim();
+require('@next/env').loadEnvConfig(sourceApp, false);
+const git = (...args) => execFileSync('git', args, { cwd: sourceApp, encoding: 'utf8', windowsHide: true }).trim();
 const commit = git('rev-parse', 'HEAD');
+const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(sourceApp, '.runtime');
+const committedSnapshot = !!git('status', '--porcelain', '--untracked-files=no');
+if (committedSnapshot) {
+  // Build only the committed revision; leave another editor's pending changes untouched.
+  const staging = path.join(home, 'build-sources', `${commit.slice(0, 7)}-${Date.now()}`);
+  fs.mkdirSync(staging, { recursive: true });
+  const archive = path.join(staging, 'source.tar');
+  execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, commit, 'apps/web-ecommerce'], { cwd: sourceApp, windowsHide: true });
+  execFileSync('tar', ['-xf', archive, '-C', staging], { windowsHide: true });
+  app = path.join(staging, 'apps/web-ecommerce');
+  fs.symlinkSync(path.join(sourceApp, 'node_modules'), path.join(app, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');
+  console.log(`Building committed snapshot ${commit.slice(0, 7)}; pending source changes are preserved.`);
+}
 const unchanged = () => {
+  if (committedSnapshot) return;
   if (git('rev-parse', 'HEAD') !== commit || git('status', '--porcelain', '--untracked-files=no'))
     throw new Error('Source changed during the build. Commit the reviewed changes and rebuild before publishing.');
 };
@@ -21,7 +36,6 @@ for (const args of [
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 unchanged();
-const home = process.env.MODEL_UNIVERSE_RUNTIME_DIR || path.join(app, '.runtime');
 const name = `${commit.slice(0, 7)}-${Date.now()}`;
 const releases = path.join(home, 'releases');
 const release = path.join(releases, name);
@@ -59,7 +73,7 @@ const verify = directory => {
 verify(path.join(release, 'src'));
 unchanged();
 const nextDist = `dist/.next-live-${name}`;
-fs.symlinkSync(release, path.join(app, nextDist), process.platform === 'win32' ? 'junction' : 'dir');
+fs.symlinkSync(release, path.join(sourceApp, nextDist), process.platform === 'win32' ? 'junction' : 'dir');
 const manifest = { commit: commit.slice(0, 7), nextDist, buildId: fs.readFileSync(path.join(release, 'BUILD_ID'), 'utf8').trim(), publishedAt: new Date().toISOString() };
 fs.writeFileSync(path.join(home, 'release.pending.json'), JSON.stringify(manifest, null, 2));
 fs.renameSync(path.join(home, 'release.pending.json'), path.join(home, 'release.json'));

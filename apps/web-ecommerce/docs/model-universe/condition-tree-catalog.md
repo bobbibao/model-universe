@@ -149,3 +149,9 @@ Theo xác nhận mới của chủ shop, toàn bộ 101 SKU ban đầu thuộc l
 Manifest trên máy: `D:/ModelUniverseRuntime/owner-2hand-options.json`; SKU mới #287–292. Thao tác có mã phiên ổn định; chạy lại không nhân bản SKU. Icon mở cây dùng chung SVG 16px, xoay theo `aria-expanded`, căn giữa ô bấm 26 × tối thiểu 44px, áp dụng cả picker và cây quản trị.
 
 Kiểm tra tổ hợp hết hàng phát hiện lỗi giao diện tự chọn SKU còn hàng sau điều hướng. Đã sửa ưu tiên SKU trong URL (hoặc query tình trạng cũ hợp lệ), kể cả tồn 0; giá, lựa chọn và hành động mua/nhận thông báo giữ đúng SKU. Có regression test cho SKU hết hàng, link tình trạng cũ và ID lựa chọn không tồn tại.
+
+## Thu gọn cây theo yêu cầu tiếp theo — 27/10/2026
+
+Đã xóa SKU tổ hợp #289–292 của Blade King và Triệu Vân sau khi xác minh tồn/số đã bán bằng 0 và không có tham chiếu giao dịch. Giữ sản phẩm gốc #245, #135 và hai tổ hợp Ngao Bính #287–288. Không xóa các file ảnh dùng chung với sản phẩm gốc. Có backup trước thao tác và audit `owner_delete_unused_option`.
+
+Chủ shop xác nhận giữ nhóm Khớp. Cây đang dùng còn **Hộp, Phụ kiện, Khớp, Lắp ráp**: 32 nhánh, chỉ áp dụng `preowned`/`2hand`. Đã xóa 24 nhánh không có lịch sử; giữ 4 nhánh Ngoại hình/Trầy xước/Phần tay/Tróc sơn ở trạng thái ngừng dùng vì có tham chiếu lịch sử. Admin mặc định ẩn các nhánh này, có nút xem lại. Lựa chọn mới mặc định chỉ dùng cho 2hand. Không sửa snapshot của hồ sơ cũ. Audit `owner_prune_tree_keep_joints_20261027`, manifest `D:/ModelUniverseRuntime/owner-pruned-tree.json`.

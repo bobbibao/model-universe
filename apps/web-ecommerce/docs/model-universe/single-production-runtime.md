@@ -24,7 +24,11 @@ Cấu hình riêng máy nằm trong `.env` và `.env.production.local` (git-igno
 
 Để build lại: dừng runtime, chạy `yarn build:production`, xác minh kiểm thử cần thiết, rồi khởi động lại. Mỗi lần mở Quick Tunnel có thể tạo URL mới; dùng lệnh status để lấy đúng link. Các URL webhook sinh cho giao dịch mới sử dụng URL runtime hiện tại; callback Google OAuth và webhook đã đăng ký cố định ở nhà cung cấp phải được cập nhật khi đổi URL.
 
-Build production hiện được đóng gói thành bản phát hành riêng ở `D:/ModelUniverseRuntime/releases/<commit>-<timestamp>`, liên kết qua `dist/.next-live-*`. `release.json` chỉ được thay sau khi Next/Express build thành công, kiểm tra các import backend và xác nhận source không đổi trong lúc build. Runtime chạy đúng bản đã phát hành, không đọc `dist/.next` đang được các công cụ phát triển build lại. Nhờ vậy lượt build khác không xóa mất module của website đang chạy. Source phải commit sạch trước `yarn build:production`; `production:status` báo commit của bản thực sự đang chạy. Chế độ REAL_COMMERCE từ chối mở website trên cổng khác 6050.
+Build production được đóng gói thành bản phát hành riêng ở `D:/ModelUniverseRuntime/releases/<commit>-<timestamp>`, liên kết qua `dist/.next-live-*`. `release.json` chỉ được thay sau khi Next/Express build thành công và kiểm tra các import backend. Runtime không đọc `dist/.next` đang được các công cụ phát triển build lại.
+
+Nếu source có thay đổi chưa commit của editor khác, `yarn build:production` tự tạo bản sao build từ đúng commit HEAD bằng `git archive` trong thư mục artifact `build-sources`, dùng dependencies hiện có. Đây chỉ là đầu vào build, không phải worktree/source chỉnh sửa mới. Thay đổi chưa commit không được đưa vào bản phát hành, không bị stash hoặc ghi đè. Khi source sạch, script build trực tiếp và từ chối phát hành nếu source đổi giữa chừng. `production:status` báo commit của bản thực sự đang chạy. Chế độ REAL_COMMERCE từ chối mở website trên cổng khác 6050.
+
+Theo yêu cầu chủ shop, chỉ commit các file thuộc tác vụ đang làm; không tự commit/merge phần của Antigravity. Antigravity tự merge công việc của mình vào `main`.
 
 ## Dữ liệu và kết nối thật
 

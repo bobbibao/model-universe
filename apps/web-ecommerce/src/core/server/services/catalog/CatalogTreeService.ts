@@ -119,7 +119,7 @@ export default class CatalogTreeService {
       const label = (key: string) => String(data[key] ?? current?.get(key) ?? '').trim();
       const nameVi = label('nameVi'),
         nameEn = label('nameEn') || nameVi;
-      const itemTypes = data.itemTypes ?? current?.itemTypes ?? [...ITEM_TYPES];
+      const itemTypes = data.itemTypes ?? current?.itemTypes ?? ['preowned'];
       if (
         !nameVi ||
         nameVi.length > 120 ||

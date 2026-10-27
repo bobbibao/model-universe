@@ -30,7 +30,7 @@ const empty: Draft = {
   description: '',
   selectable: true,
   selectionMode: 'multiple',
-  itemTypes: ['new', 'preowned'],
+  itemTypes: ['preowned'],
   sortOrder: 0,
   isActive: true,
 };
@@ -43,6 +43,7 @@ export default function ProductConditionList() {
   const selected = tree.nodes.find((node) => node.id === selectedId);
   const [draft, setDraft] = useState<Draft>(empty);
   const [query, setQuery] = useState('');
+  const [showRetired, setShowRetired] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
   useEffect(() => {
     if (tree.nodes.length && !initialized.current) {
@@ -61,18 +62,19 @@ export default function ProductConditionList() {
   };
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((current) => ({ ...current, [key]: value }));
   const rows = useMemo(() => {
+    const visibleNodes = tree.nodes.filter((node) => showRetired || node.isActive);
     const walk = (parentId: number | null, depth: number): { node: ConditionNode; depth: number }[] =>
-      tree.nodes
+      visibleNodes
         .filter((node) => node.parentId === parentId)
         .flatMap((node) => [{ node, depth }, ...(collapsed.has(node.id) ? [] : walk(node.id, depth + 1))]);
     return query.trim()
-      ? tree.nodes
+      ? visibleNodes
           .filter((node) =>
             conditionPath(node.id, tree.nodes, en).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
           )
           .map((node) => ({ node, depth: 0 }))
       : walk(null, 0);
-  }, [tree.nodes, collapsed, query, en]);
+  }, [tree.nodes, collapsed, query, en, showRetired]);
   const save = async (confirmed = false) => {
     if (
       selected &&
@@ -160,6 +162,9 @@ export default function ProductConditionList() {
             </button>
           )}
           <div className="catalog-tree-selection-bar">
+            <button type="button" aria-pressed={showRetired} onClick={() => setShowRetired((current) => !current)}>
+              {showRetired ? (en ? 'Hide retired branches' : 'Ẩn nhánh ngừng dùng') : (en ? 'Show retired branches' : 'Hiện nhánh ngừng dùng')}
+            </button>
             <span>
               {selectedIds.size
                 ? `${selectedIds.size} ${en ? 'selected · edit one at a time' : 'nhánh đã chọn · sửa từng nhánh'}`
