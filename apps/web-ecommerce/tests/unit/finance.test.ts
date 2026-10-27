@@ -109,13 +109,14 @@ describe('management finance in integer VND', () => {
       netRevenueVnd: 0,
       orders: 0,
       verifiedCashNetVnd: 920000,
-      profitVnd: null,
+      profitVnd: -55000,
     });
   });
   it('excludes cancelled sales while retaining their actual recorded expenses and cash ledger', () => {
     expect(calculate(data({ orders: [order({ status: 'CANCELLED', deliveredAt: null })] }))).toMatchObject({
       netRevenueVnd: 0,
       expenseVnd: 55000,
+      profitVnd: -55000,
       cancelledOrders: 1,
     });
   });

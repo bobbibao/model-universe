@@ -162,7 +162,7 @@ export function financePeriod(data: FinanceData, from: string, to: string) {
     unreviewedOrders === 0 &&
     partnerUnits === 0 &&
     mismatchOrders === 0 &&
-    (delivered.length > 0 || restocks.length > 0);
+    (delivered.length > 0 || restocks.length > 0 || refunds.length > 0 || expenses.length > 0);
   const profitVnd = complete ? netRevenueVnd - cogsVnd - expenseVnd : null;
   const voucherVnd = sum(delivered, (o) => Math.min(o.discount, Number(o.benefitSnapshot?.voucher?.discountVnd ?? 0)));
   const rankVnd = sum(delivered, (o) =>

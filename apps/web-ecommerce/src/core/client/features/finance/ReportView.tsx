@@ -170,7 +170,15 @@ export default function ReportView({ report, onReconcile }: { report: Report; on
             prior: previous.profitVnd,
             detail:
               current.profitVnd === null
-                ? t('Chưa đủ giá vốn / chưa đối soát', 'Missing cost basis or reconciliation')
+                ? current.orders === 0 &&
+                  current.refundedOrders === 0 &&
+                  current.expenseVnd === 0 &&
+                  q.missingDeliveryDates === 0
+                  ? t(
+                      'Chưa có hàng giao hoặc chi phí ghi nhận trong kỳ',
+                      'No deliveries or recorded expenses in this period',
+                    )
+                  : t('Chưa đủ hồ sơ đối soát', 'Incomplete reconciliation records')
                 : t('Chưa bao gồm thuế thu nhập và chi phí chưa nhập', 'Before income tax and unrecorded costs'),
           },
         ].map((metric, i) => (

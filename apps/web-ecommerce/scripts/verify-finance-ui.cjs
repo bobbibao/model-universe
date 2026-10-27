@@ -120,6 +120,7 @@ const getJson = async (ctx, path) => {
       .getByRole('button', { name: 'Đối soát', exact: true })
       .click();
     dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Giá vốn / SP · dòng #' + order.items[0].id).fill('');
     await expect(dialog.getByRole('checkbox')).toBeDisabled();
     for (const line of order.items) await dialog.getByLabel('Giá vốn / SP · dòng #' + line.id).fill('200000');
     await expect(dialog.getByRole('checkbox')).toBeEnabled();
@@ -134,7 +135,11 @@ const getJson = async (ctx, path) => {
     results.push('Order review, unknown-cost completion guard, revision history and unchanged order totals');
     await page.getByRole('tab', { name: 'Tổng quan', exact: true }).click();
     await expect(page.locator('.finance-kpi')).toHaveCount(4);
-    for (const close of await page.locator('.Toastify__close-button').all()) await close.click();
+    while (await page.locator('.Toastify__close-button').count()) {
+      const count = await page.locator('.Toastify__close-button').count();
+      await page.locator('.Toastify__close-button').first().click();
+      await expect(page.locator('.Toastify__close-button')).toHaveCount(count - 1);
+    }
     for (const viewport of [
       { width: 390, height: 844 },
       { width: 768, height: 1024 },
