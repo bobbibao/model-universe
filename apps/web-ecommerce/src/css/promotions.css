@@ -363,6 +363,24 @@
   text-decoration-thickness: 2px;
 }
 
+/* Keep the condition choices stationary when mobile prices have different digit widths. */
+@media (max-width: 480px) {
+  .price-tag.is-detail .price-tag-list {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 6px 8px;
+  }
+  .price-tag.is-detail .price-tag-list > small,
+  .price-tag.is-detail .price-tag-was {
+    white-space: nowrap;
+  }
+  .price-tag.is-detail .price-tag-save {
+    grid-column: 1 / -1;
+    justify-self: start;
+    white-space: nowrap;
+  }
+}
+
 /* --- Product tile -------------------------------------------------------------------------------------------- */
 .mu-shell .mu-product.product-tile {
   position: relative;
