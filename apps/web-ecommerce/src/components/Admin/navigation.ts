@@ -3,16 +3,7 @@ export const adminNavigation = [
     name: 'overview',
     items: [
       { label: 'dashboard', route: '/admin/dashboard', icon: 'dashboard' },
-      {
-        label: 'charts',
-        route: '/admin/charts/bar',
-        icon: 'chart',
-        children: [
-          { label: 'bar', route: '/admin/charts/bar' },
-          { label: 'pie', route: '/admin/charts/pie' },
-          { label: 'line', route: '/admin/charts/line' },
-        ],
-      },
+      { label: 'finance', route: '/admin/finance', icon: 'chart' },
     ],
   },
   {

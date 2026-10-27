@@ -48,6 +48,7 @@ export default class DirectSaleService {
       id: product.id,
       name: product.name,
       sku: product.sku,
+              financeListUnitVnd: product.price,
       imageUrl: product.imageUrl,
       condition: product.condition, modelFamilyId: product.modelFamilyId, itemTypeKey: effectiveItemType(product), conditionNodeIds: product.conditionNodeIds,
       conditionNote: product.conditionNote,

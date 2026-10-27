@@ -463,6 +463,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
               const product = products.get(line.productId) as ProductModel;
               return {
                 sku: product.sku,
+                financeListUnitVnd: product.price,
                 partnerId: product.partnerId,
                 listingVersion: product.listingVersion,
                 shopBenefitEligible: !product.partnerId,

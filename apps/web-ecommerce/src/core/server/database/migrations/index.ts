@@ -1,3 +1,4 @@
+import { FinanceCostTypeModel, FinanceExpenseModel, FinanceOrderReviewModel, FinanceConfigAuditModel } from '../client/models/Finance.Model';
 import SaleCampaignModel from '../client/models/SaleCampaign.Model';
 import UserModel from '../internal/models/User.Model';
 import OrderRefundModel from '../client/models/OrderRefund.Model';
@@ -1440,6 +1441,33 @@ export const MIGRATIONS: Migration[] = [
           ON "recommendation_event" ("productId", "eventType", "createdAt");
         CREATE INDEX IF NOT EXISTS "recommendation_event_type_created_idx"
           ON "recommendation_event" ("eventType", "createdAt");
+      `);
+    },
+  },
+  {
+    name: '2026-10-27-57-finance-workspace',
+    up: async ({ context }) => {
+      await ensureTables(FinanceCostTypeModel, FinanceExpenseModel, FinanceOrderReviewModel, FinanceConfigAuditModel);
+      await ensureColumns(context.sequelize.getQueryInterface(), FinanceExpenseModel, ['unitSnapshot']);
+      await context.sequelize.query(`
+        CREATE OR REPLACE FUNCTION finance_immutable_record() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN RAISE EXCEPTION 'Finance history is append-only; post a reversal or a new revision.'; END; $$;
+        DO $$ DECLARE t text; BEGIN
+          FOREACH t IN ARRAY ARRAY['finance_expense','finance_order_review','finance_config_audit'] LOOP
+            IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = t || '_immutable') THEN
+              EXECUTE format('CREATE TRIGGER %I BEFORE UPDATE OR DELETE ON %I FOR EACH ROW EXECUTE FUNCTION finance_immutable_record()', t || '_immutable', t);
+            END IF;
+          END LOOP;
+        END; $$;
+        CREATE INDEX IF NOT EXISTS finance_delivered_idx ON "order" ("deliveredAt") WHERE status = 'DELIVERED';
+        CREATE INDEX IF NOT EXISTS finance_order_created_idx ON "order" ("createdAt");
+        CREATE INDEX IF NOT EXISTS finance_order_items_idx ON order_item ("orderId");
+        CREATE INDEX IF NOT EXISTS finance_refund_created_idx ON order_refund ("createdAt");
+        CREATE INDEX IF NOT EXISTS finance_receipt_created_idx ON order_receipt ("createdAt");
+        CREATE INDEX IF NOT EXISTS finance_prepayment_created_idx ON order_prepayment ("createdAt");
+        CREATE INDEX IF NOT EXISTS finance_reservation_payment_created_idx ON reservation_payment ("createdAt");
+        CREATE INDEX IF NOT EXISTS finance_restock_date_idx ON return_item ("restockedAt") WHERE "restockedAt" IS NOT NULL;
+        CREATE INDEX IF NOT EXISTS finance_import_product_idx ON stock_import_item ("productId");
       `);
     },
   },
