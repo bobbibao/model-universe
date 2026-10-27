@@ -1,0 +1,384 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Verified Product and Character Name Aliases Registry for Model Universe search",
+  "entities": [
+    {
+      "id": "ao-bing",
+      "canonicalName": "Ao Bing",
+      "vietnameseName": "Ngao Bính",
+      "modelCodes": ["MNP-XH03", "MNP-XH03E", "MNP-XH03T", "MNP-XH03W", "MNQ-XH03"],
+      "aliases": [
+        "Ao Bing",
+        "aobing",
+        "AoBing",
+        "Ao Bính",
+        "ao binh",
+        "Ngao Bính",
+        "ngao bính",
+        "Ngao Binh",
+        "ngao binh",
+        "ngaobinh",
+        "NgaoBinh",
+        "Hàn Long Tử",
+        "Han Long Tu",
+        "Địa Hội Tinh",
+        "Dia Hoi Tinh"
+      ]
+    },
+    {
+      "id": "ne-zha",
+      "canonicalName": "Ne Zha",
+      "vietnameseName": "Na Tra",
+      "modelCodes": ["MNP-XH04", "MNP-XH04T", "MNP-XH04W"],
+      "aliases": [
+        "Ne Zha",
+        "Nezha",
+        "nezha",
+        "NeZha",
+        "Na Tra",
+        "Natra",
+        "natra",
+        "NaTra",
+        "na tra",
+        "Nát Tra",
+        "nat tra",
+        "nattra",
+        "Na Tra Thái Tử",
+        "na tra thai tu",
+        "Nezha Thai Tu"
+      ]
+    },
+    {
+      "id": "bai-qi",
+      "canonicalName": "Bai Qi",
+      "vietnameseName": "Bạch Khởi",
+      "modelCodes": ["MNP-XH01", "MNP-XH01E", "MNP-XH01W"],
+      "aliases": [
+        "Bai Qi",
+        "Baiqi",
+        "bai qi",
+        "baiqi",
+        "Bạch Khởi",
+        "bach khoi",
+        "bachkhoi",
+        "Bạch Khoi"
+      ]
+    },
+    {
+      "id": "cao-ren",
+      "canonicalName": "Cao Ren",
+      "vietnameseName": "Tào Nhân",
+      "modelCodes": ["MNP-XH02A", "MNP-XH02CE", "MNP-XH02E"],
+      "aliases": [
+        "Cao Ren",
+        "Caoren",
+        "cao ren",
+        "caoren",
+        "Tào Nhân",
+        "tao nhan",
+        "taonhan",
+        "Tào Nhan"
+      ]
+    },
+    {
+      "id": "zhao-yun",
+      "canonicalName": "Zhao Yun",
+      "vietnameseName": "Triệu Vân",
+      "modelCodes": ["MNP-XH05", "MNP-XH05XP"],
+      "aliases": [
+        "Zhao Yun",
+        "Zhaoyun",
+        "zhao yun",
+        "zhaoyun",
+        "Triệu Vân",
+        "trieu van",
+        "trieuvan",
+        "Triệu Tử Long",
+        "trieu tu long",
+        "Zilong"
+      ]
+    },
+    {
+      "id": "wei-yuan",
+      "canonicalName": "Wei Yuan",
+      "vietnameseName": "Vệ Uyên",
+      "modelCodes": ["MNP-XH06", "MNP-XH07", "MNP-XH13"],
+      "aliases": [
+        "Wei Yuan",
+        "Weiyuan",
+        "wei yuan",
+        "weiyuan",
+        "Vệ Uyên",
+        "ve uyen",
+        "veuyen"
+      ]
+    },
+    {
+      "id": "gan-jiang",
+      "canonicalName": "Gan Jiang",
+      "vietnameseName": "Can Tương",
+      "modelCodes": ["MNP-XH12", "MNP-XH12W"],
+      "aliases": [
+        "Gan Jiang",
+        "Ganjiang",
+        "gan jiang",
+        "ganjiang",
+        "Can Tương",
+        "can tuong",
+        "cantuong"
+      ]
+    },
+    {
+      "id": "mo-li-qing",
+      "canonicalName": "Mo Li Qing",
+      "vietnameseName": "Ma Lễ Thanh",
+      "modelCodes": ["MNP-XH14A"],
+      "aliases": [
+        "Mo Li Qing",
+        "Moliqing",
+        "mo li qing",
+        "moliqing",
+        "Ma Lễ Thanh",
+        "ma le thanh",
+        "malethanh"
+      ]
+    },
+    {
+      "id": "lu-bu",
+      "canonicalName": "Lu Bu",
+      "vietnameseName": "Lữ Bố",
+      "modelCodes": ["MNP-XH15"],
+      "aliases": [
+        "Lu Bu",
+        "Lubu",
+        "lu bu",
+        "lubo",
+        "Lữ Bố",
+        "lu bo",
+        "Phụng Tiên",
+        "phung tien",
+        "Fengxian"
+      ]
+    },
+    {
+      "id": "dian-wei",
+      "canonicalName": "Dian Wei",
+      "vietnameseName": "Điển Vi",
+      "modelCodes": ["MNP-XH16A"],
+      "aliases": [
+        "Dian Wei",
+        "Dianwei",
+        "dian wei",
+        "dienvi",
+        "Điển Vi",
+        "dien vi"
+      ]
+    },
+    {
+      "id": "ma-chao",
+      "canonicalName": "Ma Chao",
+      "vietnameseName": "Mã Siêu",
+      "modelCodes": ["MNP-XH17A"],
+      "aliases": [
+        "Ma Chao",
+        "Machao",
+        "ma chao",
+        "masieu",
+        "Mã Siêu",
+        "ma sieu",
+        "Mạnh Khởi",
+        "manh khoi",
+        "Mengqi"
+      ]
+    },
+    {
+      "id": "yue-fei",
+      "canonicalName": "Yue Fei",
+      "vietnameseName": "Nhạc Phi",
+      "modelCodes": ["MNP-XH19A"],
+      "aliases": [
+        "Yue Fei",
+        "Yuefei",
+        "yue fei",
+        "nhacphi",
+        "Nhạc Phi",
+        "nhac phi"
+      ]
+    },
+    {
+      "id": "huo-qubing",
+      "canonicalName": "Huo Qubing",
+      "vietnameseName": "Hoắc Khứ Bệnh",
+      "modelCodes": ["MNP-XH21"],
+      "aliases": [
+        "Huo Qubing",
+        "Huoqubing",
+        "huo qubing",
+        "huoqubing",
+        "Hoắc Khứ Bệnh",
+        "hoac khu benh",
+        "hoackhubenh"
+      ]
+    },
+    {
+      "id": "huan-ci",
+      "canonicalName": "Huan Ci",
+      "vietnameseName": "Hoàn Tí",
+      "modelCodes": ["MNP-CR01"],
+      "aliases": [
+        "Huan Ci",
+        "Huanci",
+        "huan ci",
+        "huanci",
+        "Hoàn Tí",
+        "hoan ti",
+        "hoanti",
+        "Hoàn Tỷ",
+        "Huan Chi"
+      ]
+    },
+    {
+      "id": "ji-hu",
+      "canonicalName": "JiHu",
+      "vietnameseName": "Cơ Hổ",
+      "modelCodes": ["MNP-CR02A"],
+      "aliases": [
+        "JiHu",
+        "Ji Hu",
+        "jihu",
+        "ji hu",
+        "Cơ Hổ",
+        "co ho",
+        "coho"
+      ]
+    },
+    {
+      "id": "qin-shi-huang",
+      "canonicalName": "Qin Shi Huang",
+      "vietnameseName": "Tần Thủy Hoàng",
+      "modelCodes": [],
+      "aliases": [
+        "Tần Thủy Hoàng",
+        "tan thuy hoang",
+        "Doanh Chính",
+        "doanh chinh",
+        "Doanh Chinh",
+        "Qin Shi Huang",
+        "DoanhChinh"
+      ]
+    },
+    {
+      "id": "hou-yi",
+      "canonicalName": "Hou Yi",
+      "vietnameseName": "Hậu Nghệ",
+      "modelCodes": ["ZY0015"],
+      "aliases": [
+        "Hou Yi",
+        "Houyi",
+        "hou yi",
+        "houyi",
+        "Hậu Nghệ",
+        "hau nghe",
+        "haunghe"
+      ]
+    },
+    {
+      "id": "takeda-shingen",
+      "canonicalName": "Takeda Shingen",
+      "vietnameseName": "Vũ Điền Tín Huyền",
+      "modelCodes": ["ZY0001"],
+      "aliases": [
+        "Takeda Shingen",
+        "Takeda",
+        "Shingen",
+        "Vũ Điền Tín Huyền",
+        "vu dien tin huyen"
+      ]
+    },
+    {
+      "id": "date-masamune",
+      "canonicalName": "Date Masamune",
+      "vietnameseName": "Y Đạt Chính Tông",
+      "modelCodes": ["ZY0002"],
+      "aliases": [
+        "Date Masamune",
+        "Date",
+        "Masamune",
+        "Độc Nhãn Long",
+        "doc nhan long",
+        "Y Đạt Chính Tông",
+        "y dat chinh tong"
+      ]
+    },
+    {
+      "id": "sun-wukong",
+      "canonicalName": "Sun Wukong",
+      "vietnameseName": "Tôn Ngộ Không",
+      "modelCodes": [],
+      "aliases": [
+        "Wukong",
+        "Sun Wukong",
+        "Ngộ Không",
+        "ngo khong",
+        "ngokhong",
+        "Tôn Ngộ Không",
+        "ton ngo khong",
+        "tonngokhong",
+        "Monkey King",
+        "Tề Thiên Đại Thánh"
+      ]
+    },
+    {
+      "id": "yang-jian",
+      "canonicalName": "Yang Jian",
+      "vietnameseName": "Dương Tiễn",
+      "modelCodes": [],
+      "aliases": [
+        "Yang Jian",
+        "Yangjian",
+        "yang jian",
+        "yangjian",
+        "Dương Tiễn",
+        "duong tien",
+        "duongtien",
+        "Nhị Lang Thần",
+        "Erlang Shen"
+      ]
+    }
+  ],
+  "brands": [
+    {
+      "canonical": "Motor Nuclear",
+      "aliases": ["Motor Nuclear", "MN", "MotorNuclear", "motor nuclear"]
+    },
+    {
+      "canonical": "Bandai",
+      "aliases": ["Bandai", "Ban Dai", "Băng Đai", "bandai"]
+    },
+    {
+      "canonical": "MOSHOW",
+      "aliases": ["MOSHOW", "Moshow Toys", "Mo Show", "moshow"]
+    },
+    {
+      "canonical": "In Era+",
+      "aliases": ["In Era+", "In Era", "InEra", "InEra+", "in era"]
+    },
+    {
+      "canonical": "Hemoxian",
+      "aliases": ["Hemoxian", "He Mo Xian", "hemoxian"]
+    },
+    {
+      "canonical": "SNAA",
+      "aliases": ["SNAA", "Super Nova", "snaa", "super nova"]
+    },
+    {
+      "canonical": "Mingjiang x Sunday Hobby",
+      "aliases": ["Mingjiang", "Sunday Hobby", "Mingjiang x Sunday Hobby"]
+    }
+  ],
+  "productSpecificAliases": {
+    "MNP-XH03": ["Ao Bing", "aobing", "AoBing", "Ngao Bính", "ngao bính", "Ngao Binh", "ngao binh"],
+    "MNQ-XH03": ["Ao Bing Metal Build", "Ao Bing Figure", "aobing figure", "figure aobing", "Ngao Bính Metal Build", "Ngao Bính Figure"],
+    "MNP-XH04": ["Ne Zha", "Nezha", "nezha", "Na Tra", "Natra", "natra", "NaTra", "na tra mô hình", "mô hình natra"]
+  }
+}

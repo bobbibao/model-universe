@@ -29,6 +29,7 @@ import ReviewService from './ReviewService';
 import ProductDiscountService, { toPricing } from './ProductDiscountService';
 import FileStorageService, { PUBLIC_UPLOAD_PREFIX } from './FileStorageService';
 import { productHasHistory } from './catalog/ProductHistory';
+import ProductSearchService from './catalog/ProductSearchService';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { asTrimmedString, isHttpUrl, toInteger } from '../../../shared/server/utils/ValidationUtils';
 import { ASSEMBLY_STATES } from '../../../shared/gunpla';
@@ -151,14 +152,9 @@ export default class ProductService implements BaseServiceInterface<ProductModel
 
   private buildWhere(query: ProductListQuery): WhereOptions {
     const conditions: WhereOptions[] = [];
-    // Every word must appear in some searchable column, in any order: "Dynames custom" finds
-    // "Gundam Dynames — custom painted display". Hyphens stay inside codes such as "MS-06F".
-    const words = asTrimmedString(query.q).split(/[^\p{L}\p{N}-]+/u).filter(Boolean).slice(0, 8);
-    for (const word of words) {
-      const pattern = `%${word.replace(/[\\%_]/g, '\\$&')}%`;
-      conditions.push({
-        [Op.or]: ['name', 'brandName', 'sku', 'modelCode'].map((column) => ({ [column]: { [Op.iLike]: pattern } })),
-      });
+    const rawSearch = asTrimmedString(query.q);
+    if (rawSearch) {
+      conditions.push(ProductSearchService.buildSearchConditions(rawSearch));
     }
     const brands = parseFilterChoices(query.brand);
     if (brands.length) conditions.push({ brandName: { [Op.in]: brands } });
@@ -222,6 +218,20 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       query = { ...query, conditionNodeIds: nodes.filter(node => query.conditionNodeIds!.some(id => node.id === id || ancestors(node.id, nodes).includes(id))).map(node => node.id) };
     }
     const ids = await this.matchingListingIds({ [Op.and]: [this.buildWhere(query), STOREFRONT_VISIBLE] }, query.category);
+
+    const rawSearch = asTrimmedString(query.q);
+    if (rawSearch && !query.sort) {
+      const allMatching = await ProductModel.findAll({
+        attributes: LIST_ATTRIBUTES,
+        where: { ...STOREFRONT_VISIBLE, id: ids },
+        include: [categoryInclude],
+      });
+      const ranked = ProductSearchService.rankCandidates(allMatching, rawSearch);
+      const count = ranked.length;
+      const paged = ranked.slice(query.offset, query.offset + query.limit);
+      return { rows: await this.withConditions(await this.discountService.withPricing(paged)), count };
+    }
+
     const { rows, count } = await ProductModel.findAndCountAll({
       attributes: LIST_ATTRIBUTES,
       where: { ...STOREFRONT_VISIBLE, id: ids },
