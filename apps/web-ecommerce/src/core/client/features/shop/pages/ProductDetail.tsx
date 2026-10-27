@@ -270,10 +270,11 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
       </nav>
 
       <div className="product-detail-layout">
-        <div className="product-detail-media">
+        <div className={`product-detail-media ${!inStock ? 'is-out-of-stock' : ''}`}>
           <ProductGallery
             images={[unit.imageUrl, ...unit.images]}
             alt={`${product.name} · ${conditionTypes.label(unit.condition)}`}
+            isSoldOut={!inStock}
           />
           {!!product.imageAttributions?.length && (
             <details className="mt-4 text-xs text-body">
@@ -308,13 +309,27 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
           )}
 
           <div
-            className="product-purchase"
+            className={`product-purchase ${!inStock ? 'is-out-of-stock' : ''}`}
             id="product-purchase"
             ref={purchaseRef}
             role="group"
             aria-label={ux('purchaseActions')}
             tabIndex={-1}
           >
+            {!inStock && (
+              <div className="product-detail-soldout-banner mb-4" role="status">
+                <div className="soldout-banner-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
+                </div>
+                <div className="soldout-banner-info">
+                  <strong>{locale === 'en' ? 'Temporarily Out of Stock' : 'Mô hình này hiện đang tạm hết hàng'}</strong>
+                  <p>{locale === 'en' ? 'Click below to be notified immediately when restocked.' : 'Bật thông báo bên dưới để nhận tin ngay khi mô hình có hàng trở lại.'}</p>
+                </div>
+              </div>
+            )}
             {inStock && (
               <div className="product-purchase-quantity">
                 <span className="mb-2 block font-medium">{t('quantity')}</span>
@@ -350,7 +365,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                   {t('addToCart')}
                 </button>
               ) : (
-                <RestockAlert key={unit.id} productId={unit.id} className="mu-button" />
+                <RestockAlert key={unit.id} productId={unit.id} className="product-detail-alert-btn" />
               )}
               <button
                 onClick={toggleWishlist}
@@ -360,6 +375,12 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 {wishlistItem ? t('unsave') : t('save')}
               </button>
             </div>
+            {!inStock && (
+              <p className="detail-restock-hint mt-3">
+                <PromoIcon name="info" size={14} />
+                <span>{locale === 'en' ? 'Free notification · No pre-payment or deposit required' : 'Thông báo miễn phí · Không cần đặt cọc hay thanh toán trước'}</span>
+              </p>
+            )}
             {inStock && (
               <div className="product-purchase-feedback" role="status" aria-live="polite">
                 {addedUnit === unit.id ? (

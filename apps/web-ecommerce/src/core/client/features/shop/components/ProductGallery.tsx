@@ -7,7 +7,7 @@ import ProductStage from '@/components/ProductStage';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import Modal from '@/components/Modal/Modal';
 
-const ProductGallery = ({ images, alt }: { images: string[]; alt: string }) => {
+const ProductGallery = ({ images, alt, isSoldOut }: { images: string[]; alt: string; isSoldOut?: boolean }) => {
   const t = useTranslations('catalog');
   const [current, setCurrent] = useState(0);
   const [zoomed, setZoomed] = useState(false);
@@ -42,17 +42,22 @@ const ProductGallery = ({ images, alt }: { images: string[]; alt: string }) => {
       </div>
       <button
         type="button"
-        className="product-gallery-expand"
+        className={`product-gallery-expand ${isSoldOut ? 'is-soldout' : ''}`}
         aria-label={ux('enlargePhoto')}
         onClick={() => setZoomed(true)}
       >
         <ProductStage
           src={photos[index]}
           alt={alt}
-          className="studio-detail-stage"
+          className={`studio-detail-stage ${isSoldOut ? 'is-soldout' : ''}`}
           priority
           sizes="(min-width: 1024px) 50vw, 100vw"
         />
+        {isSoldOut && (
+          <div className="detail-stage-soldout-overlay" aria-hidden="true">
+            <span className="detail-stage-soldout-badge">{t('soldOut')}</span>
+          </div>
+        )}
         <span className="product-gallery-expand-label">
           <AdminIcon name="search" size={16} />
           {ux('enlargePhoto')}

@@ -87,7 +87,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
   };
 
   return (
-    <div className="mu-product product-tile group flex flex-col">
+    <div className={`mu-product product-tile group flex flex-col ${groupStock <= 0 ? 'is-out-of-stock is-soldout' : ''}`}>
       <Link href={href} className="mu-product-photo overflow-hidden">
         <ProductStage
           src={product.imageUrl}
@@ -95,6 +95,11 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
           sizes="(min-width: 1440px) 320px, (min-width: 1024px) 28vw, (min-width: 640px) 33vw, 50vw"
           className="studio-card-stage"
         />
+        {groupStock <= 0 && (
+          <div className="tile-soldout-wash" aria-hidden="true">
+            <span className="tile-soldout-pill">{t('soldOut')}</span>
+          </div>
+        )}
         <div className="product-tile-badges">
           <div className="tile-condition-badges">
             <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>{isNew ? t('new') : '2hand'}</span>
@@ -164,7 +169,14 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
             )}
           </div>
           <div className="product-tile-availability">
-            {(sold > 0 || scarce) && (
+            {groupStock <= 0 ? (
+              <p className="tile-meta">
+                <span className="tile-stock-status is-empty">
+                  <i className="status-dot is-empty" aria-hidden="true" />
+                  {en ? 'Out of stock' : 'Tạm hết hàng'}
+                </span>
+              </p>
+            ) : (sold > 0 || scarce) ? (
               <p className="tile-meta">
                 {sold > 0 && (
                   <span>{en ? `${compactCount(sold, 'en')} sold` : `Đã bán ${compactCount(sold, 'vi')}`}</span>
@@ -176,7 +188,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
                   </span>
                 )}
               </p>
-            )}
+            ) : null}
             {soon && (
               <p className="tile-countdown">
                 <PromoIcon name="clock" size={13} />

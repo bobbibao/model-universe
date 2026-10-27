@@ -110,13 +110,20 @@ export default function OfferPanel({ product }: { product: ProductDetail }) {
               {en ? `${compactCount(product.sold, 'en')} sold` : `Đã bán ${compactCount(product.sold, 'vi')}`}
             </span>
           )}
-          <span className={product.stock > 0 && product.stock <= 3 ? 'is-scarce' : undefined}>
-            {product.stock > 0 && product.stock <= 3 && <i aria-hidden="true" />}
-            {product.stock <= 0
-              ? (en ? 'Awaiting restock' : 'Chờ có hàng')
-              : product.stock <= 3
-                ? (en ? `Only ${product.stock} left in stock` : `Chỉ còn ${product.stock} sản phẩm`)
-                : (en ? 'In stock' : 'Có sẵn hàng')}
+          <span className={product.stock <= 0 ? 'is-soldout' : product.stock > 0 && product.stock <= 3 ? 'is-scarce' : undefined}>
+            {product.stock <= 0 ? (
+              <>
+                <i className="soldout-dot" aria-hidden="true" />
+                {en ? 'Temporarily out of stock' : 'Tạm hết hàng'}
+              </>
+            ) : product.stock <= 3 ? (
+              <>
+                <i aria-hidden="true" />
+                {en ? `Only ${product.stock} left in stock` : `Chỉ còn ${product.stock} sản phẩm`}
+              </>
+            ) : (
+              en ? 'In stock' : 'Có sẵn hàng'
+            )}
           </span>
         </p>
         {onSale && (

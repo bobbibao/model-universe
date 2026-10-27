@@ -983,15 +983,15 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
   min-height: 38px;
   padding: 8px 12px;
   border-radius: 10px;
-  background: #fbf9fe;
-  border: 1px solid #e2d9f3;
-  color: #6541b7;
-  font-size: 12px;
-  font-weight: 600;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  border: 1px solid #5b21b6 !important;
+  color: #ffffff !important;
+  font-size: 12.5px;
+  font-weight: 700;
   line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(101, 65, 183, 0.05);
+  box-shadow: 0 3px 12px rgba(109, 40, 217, 0.28);
   transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
 }
@@ -1000,56 +1000,53 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: inherit;
+  color: #ffffff !important;
   transition: transform 200ms ease;
 }
 .product-tile-alert-btn .restock-alert-icon svg {
-  stroke: currentColor;
+  stroke: #ffffff !important;
 }
 .product-tile-alert-btn .restock-alert-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: inherit;
+  color: #ffffff !important;
 }
 .product-tile-alert-btn:hover,
 .product-tile-alert-btn:focus-visible {
-  background: #f0ebfa !important;
-  border-color: #c4b5fd !important;
-  color: #512da8 !important;
-  box-shadow: 0 3px 10px rgba(101, 65, 183, 0.14);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
+  border-color: #4c1d95 !important;
+  color: #ffffff !important;
+  box-shadow: 0 5px 16px rgba(109, 40, 217, 0.4);
+  transform: translateY(-1.5px);
 }
 .product-tile-alert-btn:hover .restock-alert-label,
 .product-tile-alert-btn:focus-visible .restock-alert-label,
 .product-tile-alert-btn:hover .restock-alert-icon,
 .product-tile-alert-btn:focus-visible .restock-alert-icon {
-  color: #512da8 !important;
+  color: #ffffff !important;
 }
 .product-tile-alert-btn:hover .restock-alert-icon {
-  transform: rotate(14deg) scale(1.12);
+  transform: rotate(15deg) scale(1.15);
 }
 .product-tile-alert-btn:active {
-  transform: scale(0.98) translateY(0);
+  transform: scale(0.97) translateY(0);
 }
 .product-tile-alert-btn[aria-pressed='true'] {
-  background: #ecfdf5 !important;
-  border-color: #a7f3d0 !important;
-  color: #047857 !important;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  border-color: #065f46 !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(5, 150, 105, 0.3) !important;
 }
 .product-tile-alert-btn[aria-pressed='true'] .restock-alert-label,
 .product-tile-alert-btn[aria-pressed='true'] .restock-alert-icon {
-  color: #047857 !important;
+  color: #ffffff !important;
 }
 .product-tile-alert-btn[aria-pressed='true']:hover,
 .product-tile-alert-btn[aria-pressed='true']:focus-visible {
-  background: #d1fae5 !important;
-  border-color: #6ee7b7 !important;
-  color: #065f46 !important;
-}
-.product-tile-alert-btn[aria-pressed='true']:hover .restock-alert-label,
-.product-tile-alert-btn[aria-pressed='true']:hover .restock-alert-icon {
-  color: #065f46 !important;
+  background: linear-gradient(135deg, #047857 0%, #064e3b 100%) !important;
+  border-color: #064e3b !important;
+  color: #ffffff !important;
 }
 
 /* --- Add to Cart Button (In Stock) --- */
@@ -1549,17 +1546,248 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
 }
 .product-tile-badges .tile-soldout {
   margin-left: auto;
-  color: #494550;
-  background: #ffffffed;
-  border-color: #dedbe3;
-  font-size: 11px;
-  font-weight: 600;
+  color: #ffffff;
+  background: #1e293b;
+  border-color: #0f172a;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
 }
 .product-tile-badges .tile-ribbon {
   margin-left: auto;
   color: #a42135;
   background: #fff1f2;
   border-color: #efc4cb;
+}
+
+/* --- Out-of-Stock / Disabled Product Card Styling --- */
+.product-tile.is-out-of-stock {
+  background: #fbfbfc;
+  border-color: #e2e8f0;
+}
+.product-tile.is-out-of-stock .mu-product-photo {
+  background: #edf0f5;
+}
+.product-tile.is-out-of-stock .mu-product-photo img,
+.product-tile.is-out-of-stock .studio-card-stage {
+  filter: grayscale(88%) contrast(90%);
+  opacity: 0.78;
+  transition: filter 240ms ease, opacity 240ms ease;
+}
+.product-tile.is-out-of-stock:hover .mu-product-photo img,
+.product-tile.is-out-of-stock:hover .studio-card-stage {
+  filter: grayscale(50%) contrast(95%);
+  opacity: 0.88;
+}
+.product-tile .tile-soldout-wash {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.12);
+  pointer-events: none;
+  z-index: 2;
+}
+.product-tile .tile-soldout-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+.product-tile.is-out-of-stock .product-tile-name {
+  color: #64748b;
+}
+.product-tile.is-out-of-stock .product-tile-brand {
+  color: #94a3b8;
+}
+.product-tile.is-out-of-stock .product-tile-tags > span {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+}
+.product-tile.is-out-of-stock .product-tile-tags > .is-condition-percent {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+.product-tile.is-out-of-stock .product-tile-price .price-tag-now,
+.product-tile.is-out-of-stock .product-tile-price .price-tag-list {
+  color: #94a3b8 !important;
+}
+.product-tile.is-out-of-stock .price-tag-member,
+.product-tile.is-out-of-stock .price-tag-member > span {
+  color: #94a3b8 !important;
+}
+.tile-stock-status.is-empty {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 11.5px;
+  font-weight: 650;
+}
+.tile-stock-status.is-empty .status-dot.is-empty {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+/* --- Product Detail Out of Stock Styling --- */
+.product-detail-media.is-out-of-stock .studio-detail-stage {
+  filter: grayscale(70%) contrast(92%);
+  opacity: 0.85;
+}
+.detail-stage-soldout-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.1);
+  pointer-events: none;
+  z-index: 2;
+}
+.detail-stage-soldout-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 22px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.32);
+}
+.product-detail-soldout-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.product-detail-soldout-banner .soldout-banner-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #ede9fe;
+  color: #7c3aed;
+}
+.product-detail-soldout-banner .soldout-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.product-detail-soldout-banner .soldout-banner-info strong {
+  font-size: 14.5px;
+  font-weight: 750;
+  color: #1e293b;
+}
+.product-detail-soldout-banner .soldout-banner-info p {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+.product-detail-alert-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  flex: 1;
+  min-height: 48px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  border: 1px solid #5b21b6 !important;
+  color: #ffffff !important;
+  font-size: 15px;
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(109, 40, 217, 0.32);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.product-detail-alert-btn .restock-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff !important;
+  transition: transform 200ms ease;
+}
+.product-detail-alert-btn .restock-alert-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: #ffffff !important;
+}
+.product-detail-alert-btn .restock-alert-label {
+  color: #ffffff !important;
+}
+.product-detail-alert-btn:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(109, 40, 217, 0.45);
+}
+.product-detail-alert-btn:hover .restock-alert-icon {
+  transform: rotate(15deg) scale(1.15);
+}
+.product-detail-alert-btn[aria-pressed='true'] {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  border-color: #065f46 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3) !important;
+}
+.product-detail-alert-btn[aria-pressed='true'] .restock-alert-label,
+.product-detail-alert-btn[aria-pressed='true'] .restock-alert-icon {
+  color: #ffffff !important;
+}
+.product-detail-alert-btn[aria-pressed='true']:hover {
+  background: linear-gradient(135deg, #047857 0%, #064e3b 100%) !important;
+}
+.detail-restock-hint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.offer-proof .is-soldout {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #64748b !important;
+  font-weight: 700;
+}
+.offer-proof .is-soldout .soldout-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+  display: inline-block;
 }
 @media (max-width: 420px) {
   .product-tile-badges {

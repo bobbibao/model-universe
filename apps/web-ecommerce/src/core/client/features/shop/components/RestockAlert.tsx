@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
+import { toast } from 'react-toastify';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useRestockAlerts } from '@/shared/client/providers/RestockAlertsProvider';
 
@@ -14,18 +15,19 @@ export default function RestockAlert({
   returnTo?: string;
   className?: string;
 }) {
-  const t = useTranslations('customerTools'),
-    { user } = useCurrentUser(),
-    { rows, loading, save } = useRestockAlerts();
-  const [busy, setBusy] = useState(false),
-    [failed, setFailed] = useState(false);
+  const t = useTranslations('customerTools');
+  const locale = useLocale();
+  const { user } = useCurrentUser();
+  const { rows, loading, save } = useRestockAlerts();
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   const active = rows.some((row) => row.productId === productId && row.active);
 
   const bellIcon = (
     <span className="restock-alert-icon" aria-hidden="true">
       <svg
-        width="15"
-        height="15"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill={active ? 'currentColor' : 'none'}
         stroke="currentColor"
@@ -45,6 +47,7 @@ export default function RestockAlert({
         <Link
           className={className}
           href={'/auth/signin?redirect=' + encodeURIComponent(returnTo || '/shop/product/' + productId)}
+          title={t('startAlert')}
         >
           {bellIcon}
           <span className="restock-alert-label">{t('startAlert')}</span>
@@ -58,10 +61,32 @@ export default function RestockAlert({
           onClick={async () => {
             setBusy(true);
             setFailed(false);
+            const nextActive = !active;
             try {
-              await save(productId, !active);
+              await save(productId, nextActive);
+              if (nextActive) {
+                toast.success(
+                  locale === 'en'
+                    ? '🔔 Restock notification enabled! You will be notified when available.'
+                    : '🔔 Đã bật thông báo! Bạn sẽ nhận tin ngay khi mô hình có hàng trở lại.',
+                  { toastId: `restock-${productId}` },
+                );
+              } else {
+                toast.info(
+                  locale === 'en'
+                    ? 'Restock notification turned off.'
+                    : 'Đã tắt nhận thông báo có hàng cho sản phẩm này.',
+                  { toastId: `restock-${productId}` },
+                );
+              }
             } catch {
               setFailed(true);
+              toast.error(
+                locale === 'en'
+                  ? 'Could not update restock alert. Please try again.'
+                  : 'Không thể cập nhật thông báo. Vui lòng thử lại.',
+                { toastId: `restock-err-${productId}` },
+              );
             } finally {
               setBusy(false);
             }
