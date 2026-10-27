@@ -191,19 +191,7 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         </div>
         <div className="product-tile-footer">
           {groupStock <= 0 ? (
-            <>
-              <RestockAlert productId={product.id} returnTo={href} className="product-tile-alert-btn" />
-              <Link
-                href={href}
-                className="product-tile-action product-tile-detail-btn"
-                aria-label={ux('viewProduct', { name: product.name })}
-                title={ux('viewProduct', { name: product.name })}
-              >
-                <span className="product-tile-detail-icon" aria-hidden="true">
-                  ↗
-                </span>
-              </Link>
-            </>
+            <RestockAlert productId={product.id} returnTo={href} className="product-tile-alert-btn" />
           ) : otherConditionOnly ? (
             <Link
               href={href}
@@ -216,59 +204,47 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
               </span>
             </Link>
           ) : (
-            <>
-              <button
-                type="button"
-                className={`product-tile-cart-btn ${added ? 'is-added' : ''}`}
-                onClick={handleAddToCart}
-                aria-label={added ? (en ? 'Added to bag' : 'Đã thêm vào giỏ') : (en ? 'Add to bag' : 'Thêm vào giỏ')}
-              >
-                <span className="product-tile-cart-icon" aria-hidden="true">
-                  {added ? (
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="9" cy="21" r="1" />
-                      <circle cx="20" cy="21" r="1" />
-                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                    </svg>
-                  )}
-                </span>
-                <span className="product-tile-cart-text">
-                  {added ? (en ? 'Added!' : 'Đã thêm!') : (en ? 'Add to bag' : 'Thêm vào giỏ')}
-                </span>
-              </button>
-              <Link
-                href={href}
-                className="product-tile-action product-tile-detail-btn"
-                aria-label={ux('viewProduct', { name: product.name })}
-                title={ux('chooseProduct')}
-              >
-                <span className="product-tile-detail-icon" aria-hidden="true">
-                  ↗
-                </span>
-              </Link>
-            </>
+            <button
+              type="button"
+              className={`product-tile-cart-btn ${added ? 'is-added' : ''}`}
+              onClick={handleAddToCart}
+              aria-label={added ? (en ? 'Added to bag' : 'Đã thêm vào giỏ') : (en ? 'Add to bag' : 'Thêm vào giỏ')}
+            >
+              <span className="product-tile-cart-icon" aria-hidden="true">
+                {added ? (
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="9" cy="21" r="1" />
+                    <circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                  </svg>
+                )}
+              </span>
+              <span className="product-tile-cart-text">
+                {added ? (en ? 'Added!' : 'Đã thêm!') : (en ? 'Add to bag' : 'Thêm vào giỏ')}
+              </span>
+            </button>
           )}
         </div>
       </div>

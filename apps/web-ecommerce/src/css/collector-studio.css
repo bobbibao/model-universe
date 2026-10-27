@@ -463,7 +463,7 @@
   font-size: 15px;
   line-height: 1.4;
 }
-.mu-shell .mu-product button {
+.mu-shell .mu-product button:not(.product-tile-cart-btn):not(.product-tile-alert-btn) {
   color: #6f48cc;
 }
 .studio-service-grid {
