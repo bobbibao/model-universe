@@ -9,11 +9,15 @@ export default function FilterMultiSelect({
   options,
   values,
   onChange,
+  placeholder,
+  clearLabel,
 }: {
   label: string;
   options: { value: string; label: string }[];
   values: string[];
   onChange: (values: string[]) => void;
+  placeholder?: string;
+  clearLabel?: string;
 }) {
   const t = useTranslations('catalog');
   const common = useTranslations('common');
@@ -58,7 +62,7 @@ export default function FilterMultiSelect({
         onClick={() => setOpen(!open)}
       >
         <span id={`${id}-value`} title={chosen.join(', ')}>
-          {chosen.length ? chosen.join(', ') : t('all')}
+          {chosen.length ? chosen.join(', ') : (placeholder ?? t('all'))}
         </span>
         {chosen.length > 0 && <b aria-hidden="true">{chosen.length}</b>}
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true">
@@ -96,7 +100,7 @@ export default function FilterMultiSelect({
           </div>
           <div className="filter-multi-footer">
             <button type="button" disabled={!values.length} onClick={() => onChange([])}>
-              {t('all')}
+              {clearLabel ?? t('all')}
             </button>
             <button
               type="button"

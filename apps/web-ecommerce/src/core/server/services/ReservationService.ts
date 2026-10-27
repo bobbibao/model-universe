@@ -1,3 +1,4 @@
+import { effectiveItemType } from '../../../shared/condition-tree';
 import { Op, Transaction, UniqueConstraintError, col, fn, where } from 'sequelize';
 import ReservationModel from '../database/client/models/Reservation.Model';
 import ReservationPaymentModel from '../database/client/models/ReservationPayment.Model';
@@ -103,7 +104,7 @@ export default class ReservationService {
         if (product.partnerId) throw HttpError.conflict('Collector reservations apply to shop-owned models.');
         if (!product.modelCode) throw HttpError.badRequest('Only verified model listings can be reserved.');
         const row = await ReservationModel.create({ userId, productId, quantity, productName: product.name, imageUrl: product.imageUrl, unitPriceVnd: line.product?.salePrice, totalVnd: line.lineTotal, requestKey: key, policyVersion: policy.version,
-          modelSnapshot: { sku: product.sku, scale: product.scale, modelCode: product.modelCode, condition: product.condition, conditionNote: product.conditionNote ?? null, assemblyState: product.assemblyState, boxCondition: product.boxCondition, includedAccessories: product.includedAccessories, missingAccessories: product.missingAccessories, defects: product.defects } }, { transaction });
+          modelSnapshot: { sku: product.sku, scale: product.scale, modelCode: product.modelCode, condition: product.condition, modelFamilyId: product.modelFamilyId, itemTypeKey: effectiveItemType(product), conditionNodeIds: product.conditionNodeIds, conditionLabels: line.product?.conditionLabels ?? [], conditionNote: product.conditionNote ?? null, assemblyState: product.assemblyState, boxCondition: product.boxCondition, includedAccessories: product.includedAccessories, missingAccessories: product.missingAccessories, defects: product.defects } }, { transaction });
         await this.audit(row, userId, 'requested', 'Customer accepted the model and locked merchandise quote.', transaction);
         return this.view(row);
       });

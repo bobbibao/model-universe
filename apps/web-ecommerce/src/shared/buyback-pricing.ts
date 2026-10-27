@@ -12,6 +12,7 @@
 // is quoted again under this rule.
 
 export const BUYBACK_RULE_VERSION = 'buyback-margin-2026-10-26';
+export const CONDITION_BUYBACK_RULE_VERSION = 'buyback-condition-combination-2026-10-27';
 export const MISREAD_BUYBACK_RULE_VERSION = 'buyback-tiers-2026-10-26';
 export const BUYBACK_TIERS_BPS: readonly { maxTargetVnd: number; bps: number }[] = [
   { maxTargetVnd: 500_000, bps: 3000 },
@@ -124,6 +125,7 @@ export const estimateBuyback = (
   options: {
     seriousDamage?: boolean;
     approved?: boolean;
+    conditionMatched?: boolean;
     quoted?: Pick<BuybackEstimate, 'baseDeductionVnd' | 'ruleVersion'> | null;
   } = {},
 ): BuybackEstimate => {
@@ -131,12 +133,13 @@ export const estimateBuyback = (
   if (
     options.quoted?.ruleVersion &&
     options.quoted.ruleVersion !== BUYBACK_RULE_VERSION &&
+    options.quoted.ruleVersion !== CONDITION_BUYBACK_RULE_VERSION &&
     options.quoted.ruleVersion !== MISREAD_BUYBACK_RULE_VERSION
   )
     return estimateLegacyBuyback(referencePriceVnd, issues, options);
   const issueCount = countIssues(issues);
   const common = {
-    ruleVersion: BUYBACK_RULE_VERSION,
+    ruleVersion: options.conditionMatched || options.quoted?.ruleVersion === CONDITION_BUYBACK_RULE_VERSION ? CONDITION_BUYBACK_RULE_VERSION : BUYBACK_RULE_VERSION,
     referencePriceVnd: referencePriceVnd && referencePriceVnd > 0 ? referencePriceVnd : null,
     baseDeductionVnd: null,
     issueCount,
@@ -146,7 +149,7 @@ export const estimateBuyback = (
   if (!common.referencePriceVnd) return { ...common, estimateVnd: null, manualReview: 'no_reference_price' };
   if (!options.approved) return { ...common, estimateVnd: null, manualReview: 'reference_not_approved' };
   if (options.seriousDamage) return { ...common, estimateVnd: null, manualReview: 'serious_damage' };
-  if (issueCount > 0) return { ...common, estimateVnd: null, manualReview: 'issues_declared' };
+  if (issueCount > 0 && !options.conditionMatched) return { ...common, estimateVnd: null, manualReview: 'issues_declared' };
   // S ≤ 100,000 or a margin ≥ S: nothing would be left to pay.
   if (common.referencePriceVnd <= MIN_MARGIN_VND || buybackMargin(common.referencePriceVnd) >= common.referencePriceVnd)
     return { ...common, estimateVnd: null, manualReview: 'price_too_low' };

@@ -30,7 +30,7 @@ export function parseProductBulk(value: unknown): ProductBulkRequest {
     })
     .sort((a, b) => a.id - b.id);
   if (new Set(items.map((item) => item.id)).size !== items.length || !record(value.changes)) throw invalid();
-  const keys = ['condition', 'isFeatured'] as const;
+  const keys = ['condition', 'conditionNodeIds', 'isFeatured'] as const;
   if (
     !Object.keys(value.changes).length ||
     Object.keys(value.changes).some((key) => !(keys as readonly string[]).includes(key))
@@ -40,7 +40,13 @@ export function parseProductBulk(value: unknown): ProductBulkRequest {
   if (Object.prototype.hasOwnProperty.call(value.changes, 'condition')) {
     const next = value.changes.condition;
     if (typeof next !== 'string' || !next.trim() || next.trim().length > 80) throw invalid();
+    if (!['new', 'preowned'].includes(next.trim())) throw invalid();
     changes.condition = next.trim();
+  }
+  if (Object.prototype.hasOwnProperty.call(value.changes, 'conditionNodeIds')) {
+    const ids = value.changes.conditionNodeIds;
+    if (!Array.isArray(ids) || ids.length > 100 || ids.some(id => !Number.isSafeInteger(id) || id < 1)) throw invalid();
+    changes.conditionNodeIds = [...new Set(ids)].sort((a, b) => a - b);
   }
   if (Object.prototype.hasOwnProperty.call(value.changes, 'isFeatured')) {
     if (typeof value.changes.isFeatured !== 'boolean') throw invalid();

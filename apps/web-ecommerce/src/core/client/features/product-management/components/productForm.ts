@@ -9,6 +9,8 @@ export interface ProductFormValues {
   scale: string;
   modelCode: string;
   condition: ModelCondition;
+  conditionNodeIds: number[];
+  serviceReferenceEnabled: boolean;
   assemblyState: AssemblyState;
   boxCondition: string;
   conditionNote: string;
@@ -23,8 +25,6 @@ export interface ProductFormValues {
   categoryId: string;
   price: string;
   pricingReferenceMemberVnd: string;
-  // S 2hand: optional, below S; the services price a customer's 2hand unit from it.
-  pricingReferencePreownedVnd: string;
   // Read only here: an admin approves S and the real list price R on the pricing approvals page.
   targetPriceApproved: boolean;
   listPriceVerified: boolean;
@@ -53,6 +53,8 @@ export const emptyProductForm: ProductFormValues = {
   scale: '',
   modelCode: '',
   condition: 'new',
+  conditionNodeIds: [],
+  serviceReferenceEnabled: true,
   assemblyState: 'unassembled',
   boxCondition: '',
   conditionNote: '',
@@ -67,7 +69,6 @@ export const emptyProductForm: ProductFormValues = {
   categoryId: '',
   price: '',
   pricingReferenceMemberVnd: '',
-  pricingReferencePreownedVnd: '',
   targetPriceApproved: false,
   listPriceVerified: false,
   importPrice: '',
@@ -84,7 +85,7 @@ export const emptyProductForm: ProductFormValues = {
   productionDate: '',
   supplierId: '',
   isFeatured: false,
-  isArchived: false,
+  isArchived: true,
   inventoryStatus: 'available',
 };
 
@@ -94,7 +95,9 @@ export const INVENTORY_STATUS_VALUES: InventoryStatus[] = ['available', 'quarant
 export const toFormValues = (product: AdminProduct): ProductFormValues => ({
   scale: product.scale || '',
   modelCode: product.modelCode || '',
-  condition: product.condition || 'new',
+  condition: product.modelFamilyId ? product.itemTypeKey ?? 'new' : product.condition === 'new' ? 'new' : 'preowned',
+  conditionNodeIds: product.conditionNodeIds ?? [],
+  serviceReferenceEnabled: product.serviceReferenceEnabled ?? true,
   assemblyState: product.assemblyState || 'unassembled',
   boxCondition: product.boxCondition || '',
   conditionNote: product.conditionNote || '',
@@ -109,7 +112,6 @@ export const toFormValues = (product: AdminProduct): ProductFormValues => ({
   categoryId: product.categoryId ? String(product.categoryId) : '',
   price: String(product.price),
   pricingReferenceMemberVnd: product.pricingReferenceMemberVnd ? String(product.pricingReferenceMemberVnd) : '',
-  pricingReferencePreownedVnd: product.pricingReferencePreownedVnd ? String(product.pricingReferencePreownedVnd) : '',
   targetPriceApproved: !!product.targetPriceApprovedAt,
   listPriceVerified: product.listPriceVerified ?? false,
   importPrice: String(product.importPrice),
@@ -143,16 +145,25 @@ export const lines = (value: string) =>
 export const conditionRules = (types: readonly ProductConditionType[], key: string) =>
   types.find((type) => type.key === key) ?? BUILT_IN_CONDITIONS.find((type) => type.key === key);
 
+type PhotoInput = { url?: string; file?: File };
+// Validate before uploading/saving, so the editor can open the image tab and keep the draft intact.
+export const validateProductImages = (
+  values: ProductFormValues,
+  mainImage: PhotoInput | null,
+  types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
+): ProductFormErrors => {
+  if (!mainImage) return { mainImage: 'mainImageRequired' };
+  if (values.isArchived || values.condition !== 'preowned') return {};
+  if (!mainImage.file && !mainImage.url?.startsWith('/uploads/')) return { mainImage: 'actualPhotosRequired' };
+  return {};
+};
+
 // What makes a unit incomplete or defective is shown to customers, so it must be written down.
 export const validateCondition = (
   values: ProductFormValues,
   types: readonly ProductConditionType[] = BUILT_IN_CONDITIONS,
 ): ProductFormErrors => {
   const errors: ProductFormErrors = {};
-  const rules = conditionRules(types, values.condition);
-  if (rules?.requiresMissingAccessories && lines(values.missingAccessories).length === 0)
-    errors.missingAccessories = 'missingAccessoriesRequired';
-  if (rules?.requiresDefects && lines(values.defects).length === 0) errors.defects = 'defectsRequired';
   return errors;
 };
 
@@ -176,12 +187,6 @@ export const validatePricing = (values: ProductFormValues): ProductFormErrors =>
     } catch {
       errors.price = 'priceInvalid';
     }
-  if (
-    values.pricingReferencePreownedVnd &&
-    (!isWholeNumber(values.pricingReferencePreownedVnd, 1) ||
-      Number(values.pricingReferencePreownedVnd) >= Number(values.pricingReferenceMemberVnd))
-  )
-    errors.pricingReferencePreownedVnd = 'preownedPriceInvalid';
   if (values.importPrice && !isWholeNumber(values.importPrice, 0)) errors.importPrice = 'importPriceInvalid';
   return errors;
 };
@@ -198,8 +203,6 @@ export const validateInventory = (
   const errors: ProductFormErrors = {};
   if (!values.sku.trim()) errors.sku = 'skuRequired';
   if (!isWholeNumber(values.stock, 0)) errors.stock = 'stockInvalid';
-  else if (conditionRules(types, values.condition)?.uniqueUnit && Number(values.stock) > 1)
-    errors.stock = 'preownedStockInvalid';
   Object.assign(errors, validateReceivedDate(values));
   const pack = [values.packLengthCm, values.packWidthCm, values.packHeightCm, values.packWeightGram];
   if (pack.some((value) => value.trim())) {
@@ -232,6 +235,8 @@ export const pricingPayload = (values: ProductFormValues) => {
 
 export const conditionPayload = (values: ProductFormValues) => ({
   condition: values.condition,
+  itemTypeKey: values.condition === 'new' ? 'new' as const : 'preowned' as const,
+  conditionNodeIds: values.conditionNodeIds,
   assemblyState: values.assemblyState,
   boxCondition: values.boxCondition || null,
   conditionNote: values.conditionNote.trim() || null,
@@ -253,7 +258,6 @@ export const buildProductPayload = (values: ProductFormValues, imageUrl: string,
   categoryId: values.categoryId ? Number(values.categoryId) : null,
   supplierId: values.supplierId ? Number(values.supplierId) : null,
   ...pricingPayload(values),
-  pricingReferencePreownedVnd: values.pricingReferencePreownedVnd ? Number(values.pricingReferencePreownedVnd) : null,
   importPrice: values.importPrice ? Number(values.importPrice) : 0,
   stock: Number(values.stock),
   weight: values.weight.trim(),
@@ -274,4 +278,5 @@ export const buildProductPayload = (values: ProductFormValues, imageUrl: string,
   isFeatured: values.isFeatured,
   isArchived: values.isArchived,
   inventoryStatus: values.inventoryStatus,
+  serviceReferenceEnabled: values.serviceReferenceEnabled,
 });

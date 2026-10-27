@@ -1,3 +1,8 @@
+import { effectiveItemType } from '../../../shared/condition-tree';
+import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
+import CatalogTreeService, { familyIdentity, lockCatalog } from './catalog/CatalogTreeService';
+import { ancestors, conditionPath } from '../../../shared/condition-tree';
+import ModelFamilyModel from '../database/client/models/ModelFamily.Model';
 import { uniquePhotosMissing } from './catalog/ProductConditionValidation';
 import { parseFilterChoices } from './catalog/ProductFilterInput';
 import { rankRelatedProducts } from '../../../shared/product-recommendations';
@@ -36,6 +41,8 @@ export interface ProductListQuery {
   assemblyState?: string | string[];
   scale?: string | string[];
   condition?: string | string[];
+  itemTypeKey?: string | string[];
+  conditionNodeIds?: number[];
   q?: string;
   category?: string;
   categoryId?: number;
@@ -46,6 +53,7 @@ export interface ProductListQuery {
   featured?: boolean;
   channel?: string;
   status?: string;
+  groupByModel?: boolean;
   sort?: string;
   limit: number;
   offset: number;
@@ -70,6 +78,7 @@ const ADMIN_SORTABLE_COLUMNS = ['id', 'name', 'price', 'stock', 'sold', 'created
 
 // Fields shown on product cards (cost price and supplier stay internal).
 const LIST_ATTRIBUTES = [
+  'modelFamilyId', 'itemTypeKey', 'conditionNodeIds', 'catalogReviewRequired',
   'uuid',
   'slug',
   'partnerId',
@@ -156,6 +165,13 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       const values = parseFilterChoices(query[field]);
       if (values.length) conditions.push({ [field]: { [Op.in]: values } });
     }
+    const itemTypes = parseFilterChoices(query.itemTypeKey);
+    if (itemTypes.some(type => !['new', 'preowned'].includes(type))) throw HttpError.badRequest('Loại hàng không hợp lệ.');
+    if (itemTypes.length) conditions.push({ [Op.or]: [
+      { modelFamilyId: { [Op.ne]: null }, itemTypeKey: { [Op.in]: itemTypes } },
+      { modelFamilyId: null, condition: itemTypes.includes('new') && itemTypes.includes('preowned') ? { [Op.ne]: null } : itemTypes.includes('new') ? 'new' : { [Op.ne]: 'new' } },
+    ] });
+    if (query.conditionNodeIds?.length) conditions.push({ [Op.or]: query.conditionNodeIds.map(id => ({ conditionNodeIds: { [Op.contains]: [id] } })) });
     if (query.categoryId) conditions.push({ categoryId: query.categoryId });
     if (query.partnerId !== undefined) conditions.push({ partnerId: query.partnerId });
     if (query.minPrice !== undefined) conditions.push({ price: { [Op.gte]: query.minPrice } });
@@ -181,43 +197,33 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       where,
       include: category ? [{ ...categoryInclude, attributes: [], where: { slug: category }, required: true }] : [],
     });
-    return [...new Set(units.map((unit) => unit.parentProductId ?? unit.id))];
+    return units.map(unit => unit.id);
   }
 
   // Each listing with the conditions it is offered in: units, stock and the lowest price the customer pays.
-  private async withConditions<T extends { id: number }>(listings: T[], where: WhereOptions = STOREFRONT_VISIBLE) {
-    if (listings.length === 0) return [];
-    const types = await this.conditions.all();
-    const ids = listings.map((listing) => listing.id);
-    const units = await this.discountService.withPricing(
-      await ProductModel.findAll({
-        attributes: ['id', 'parentProductId', 'condition', 'price', 'stock'],
-        where: { [Op.and]: [where, { [Op.or]: [{ id: ids }, { parentProductId: ids }] }] },
-      }),
-    );
-    return listings.map((listing) => {
-      const group = units.filter((unit) => (unit.parentProductId ?? unit.id) === listing.id);
-      const conditions = types.map(({ key: condition }) => {
-        const same = group.filter((unit) => unit.condition === condition);
-        const available = same.filter((unit) => unit.stock > 0);
-        return {
-          condition,
-          units: same.length,
-          stock: same.reduce((sum, unit) => sum + unit.stock, 0),
-          minSalePrice: Math.min(...(available.length ? available : same).map((unit) => unit.salePrice)),
-        };
-      }).filter((summary) => summary.units > 0);
-      return { ...listing, conditions, groupStock: group.reduce((sum, unit) => sum + unit.stock, 0) };
+  private async withConditions<T extends { id: number }>(listings: T[], _where: WhereOptions = STOREFRONT_VISIBLE) {
+    if (!listings.length) return [];
+    const nodes = await new CatalogTreeService().nodes();
+    return listings.map(listing => {
+      const row = listing as T & Record<string, any>;
+      const ids: number[] = row.conditionNodeIds ?? [];
+      return { ...listing, itemTypeKey: effectiveItemType({ modelFamilyId: row.modelFamilyId, itemTypeKey: row.itemTypeKey, condition: row.condition }), conditionLabels: ids.map(id => conditionPath(id, nodes)),
+        conditions: [{ condition: row.modelFamilyId ? row.itemTypeKey : row.condition, units: 1, stock: row.stock, minSalePrice: row.salePrice }], groupStock: row.stock };
     });
   }
 
-  // Storefront listing: one card per model (its main listing); archived or held-back units are never returned.
+  // Storefront listing: one card per SKU; archived or held-back units are never returned.
   // Prices include running discounts.
   async listPublic(query: ProductListQuery) {
+    if (query.conditionNodeIds?.length) {
+      const nodes = await new CatalogTreeService().nodes();
+      if (query.conditionNodeIds.some(id => !Number.isSafeInteger(id) || !nodes.some(node => node.id === id))) throw HttpError.badRequest('Bộ lọc tình trạng không hợp lệ.');
+      query = { ...query, conditionNodeIds: nodes.filter(node => query.conditionNodeIds!.some(id => node.id === id || ancestors(node.id, nodes).includes(id))).map(node => node.id) };
+    }
     const ids = await this.matchingListingIds({ [Op.and]: [this.buildWhere(query), STOREFRONT_VISIBLE] }, query.category);
     const { rows, count } = await ProductModel.findAndCountAll({
       attributes: LIST_ATTRIBUTES,
-      where: { ...STOREFRONT_VISIBLE, id: ids, parentProductId: null },
+      where: { ...STOREFRONT_VISIBLE, id: ids },
       include: [categoryInclude],
       order: PUBLIC_SORTS[query.sort || ''] || PUBLIC_SORTS.newest,
       limit: query.limit,
@@ -263,8 +269,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   async getPublicById(key: number | string) {
     const where =
       typeof key === 'number' ? { id: key } : UUID_PATTERN.test(key) ? { uuid: key.toLowerCase() } : { slug: key };
-    const found = await ProductModel.findOne({ attributes: ['id', 'parentProductId'], where: { ...where, ...STOREFRONT_VISIBLE } });
-    const listingId = found?.parentProductId ?? found?.id;
+    const found = await ProductModel.findOne({ attributes: ['id', 'parentProductId', 'modelFamilyId', 'catalogCanonicalId'], where });
+    const listingId = found?.catalogCanonicalId ?? found?.id;
     const product = listingId
       ? await ProductModel.findOne({
           attributes: { exclude: PRIVATE_ATTRIBUTES },
@@ -276,17 +282,20 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const id = product.id;
     const options = await ProductModel.findAll({
       attributes: { exclude: PRIVATE_ATTRIBUTES },
-      where: { parentProductId: id, ...STOREFRONT_VISIBLE },
+      where: { ...STOREFRONT_VISIBLE, ...(product.modelFamilyId ? { modelFamilyId: product.modelFamilyId, partnerId: product.partnerId, id: { [Op.ne]: id } } : { parentProductId: id }) },
       include: [imagesInclude],
     });
     const discounts = await this.discountService.getActive([id, ...options.map((option) => option.id)]);
+    const treeNodes = await new CatalogTreeService().nodes();
     const unit = (row: ProductModel, isMain: boolean) => ({
       id: row.id,
       uuid: row.uuid,
       slug: row.slug,
       sku: row.sku,
       isMain,
-      condition: row.condition,
+      condition: row.modelFamilyId ? row.itemTypeKey : row.condition,
+      itemTypeKey: effectiveItemType(row), conditionNodeIds: row.conditionNodeIds,
+      conditionLabels: (row.conditionNodeIds ?? []).map(id => conditionPath(id, treeNodes)),
       conditionNote: row.conditionNote ?? null,
       missingAccessories: row.missingAccessories,
       defects: row.defects,
@@ -306,6 +315,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       .sort((a, b) => conditionRank(a.condition) - conditionRank(b.condition) || a.salePrice - b.salePrice || a.id - b.id);
     return {
       ...product.get({ plain: true }),
+      conditionLabels: (product.conditionNodeIds ?? []).map(id => conditionPath(id, treeNodes)),
       imageAttributions: mediaManifest.filter(entry => [product.imageUrl, ...galleryUrls(product)].includes(entry.path)).map(entry => ({
         imageUrl: entry.path, creator: entry.creator, source: entry.source, license: entry.license, licenseUrl: entry.licenseUrl,
       })),
@@ -313,7 +323,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       images: galleryUrls(product),
       ratingDistribution: await this.reviewService.getDistribution(id),
       conditionOptions: [unit(product, true), ...optionUnits],
-      selectedOptionId: found.id,
+      selectedOptionId: product.id,
     };
   }
 
@@ -330,14 +340,21 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     ].join(' + ');
     const rows = await ProductModel.findAll({
       attributes: LIST_ATTRIBUTES,
-      where: { ...STOREFRONT_VISIBLE, parentProductId: null, [Op.and]: [{ id: availableIds }, { id: { [Op.ne]: source.id } }] },
+      where: { ...STOREFRONT_VISIBLE, [Op.and]: [{ id: availableIds }, { id: { [Op.ne]: source.id } }] },
       include: [categoryInclude],
       order: [[literal(`(${affinity})`), 'DESC'], ['sold', 'DESC'], ['id', 'ASC']],
       limit: 72,
     });
     const candidates = await this.withConditions(await this.discountService.withPricing(rows));
-    const active = source.conditionOptions?.filter((unit) => unit.stock > 0) ?? [];
-    return rankRelatedProducts({ ...source, salePrice: active.length ? Math.min(...active.map((unit) => unit.salePrice)) : source.salePrice }, candidates as unknown as ProductSummary[]);
+    const preferred = new Map<string, typeof candidates[number]>();
+    for (const candidate of candidates) {
+      if (source.modelFamilyId && candidate.modelFamilyId === source.modelFamilyId) continue;
+      const key = candidate.modelFamilyId ? `family:${candidate.modelFamilyId}` : `sku:${candidate.id}`;
+      const previous = preferred.get(key);
+      const distance = (item: typeof candidate) => (item.itemTypeKey === source.itemTypeKey ? 0 : 1000000000) + Math.abs(item.salePrice - source.salePrice);
+      if (!previous || distance(candidate) < distance(previous)) preferred.set(key, candidate);
+    }
+    return rankRelatedProducts(source, [...preferred.values()] as unknown as ProductSummary[]);
   }
 
   // Public sellable main listings with active discounts and condition summaries for multi-strategy smart recommendations.
@@ -369,17 +386,29 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   // Admin listing: one row per model (its main listing, filtered by its own status), found through any of its units,
   // with every condition it is stocked in.
   async listAdmin(query: ProductListQuery & { sortKey?: string; sortDirection?: string }) {
-    const status: WhereOptions[] = [];
+    const status: WhereOptions[] = [{ catalogCanonicalId: null }];
     if (query.status === 'active') status.push({ isArchived: false });
     if (query.status === 'archived') status.push({ isArchived: true });
     if (query.status === 'featured') status.push({ isFeatured: true });
     // Held back by a shop agent inventory adjustment (quarantine, donation, recycling).
     if (query.status === 'held') status.push({ inventoryStatus: { [Op.ne]: 'available' } });
     const ids = await this.matchingListingIds(this.buildWhere(query));
+    if (query.groupByModel) {
+      const all = await ProductModel.findAll({ attributes: [...LIST_ATTRIBUTES, 'sku', 'importPrice', 'pricingReferenceMemberVnd', 'isArchived', 'inventoryStatus', 'createdAt', 'updatedAt'], where: { [Op.and]: [...status, { id: ids }] }, order: [['id', 'DESC']] });
+      const groups = new Map<string, ProductModel[]>();
+      for (const product of all) { const key = product.modelFamilyId ? `family:${product.partnerId ?? 'shop'}:${product.modelFamilyId}` : `legacy:${product.id}`; groups.set(key, [...(groups.get(key) ?? []), product]); }
+      const paged = [...groups.values()].slice(query.offset, query.offset + query.limit);
+      const rows = [];
+      for (const group of paged) {
+        const units = await this.withConditions(await this.discountService.withPricing(group));
+        rows.push({ ...units[0], familyUnits: units });
+      }
+      return { rows, count: groups.size };
+    }
     const column = query.sortKey && ADMIN_SORTABLE_COLUMNS.includes(query.sortKey) ? query.sortKey : 'id';
     const { rows, count } = await ProductModel.findAndCountAll({
       attributes: [...LIST_ATTRIBUTES, 'sku', 'importPrice', 'pricingReferenceMemberVnd', 'isArchived', 'inventoryStatus', 'createdAt', 'updatedAt', 'productionDate'],
-      where: { [Op.and]: [...status, { id: ids, parentProductId: null }] },
+      where: { [Op.and]: [...status, { id: ids }] },
       include: [categoryInclude],
       order: [[column, query.sortDirection === 'desc' ? 'DESC' : 'ASC']],
       limit: query.limit,
@@ -401,10 +430,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     });
     if (!product) throw HttpError.notFound('Không tìm thấy sản phẩm.');
     // The model's units: the main listing and its condition options (archived ones too), whichever one is open.
-    const listingId = product.parentProductId ?? product.id;
+    const listingId = product.id;
     const units = await ProductModel.findAll({
-      attributes: ['id', 'sku', 'name', 'condition', 'conditionNote', 'missingAccessories', 'defects', 'price', 'pricingReferenceMemberVnd', 'importPrice', 'stock', 'sold', 'imageUrl', 'isArchived', 'inventoryStatus', 'parentProductId'],
-      where: { [Op.or]: [{ id: listingId }, { parentProductId: listingId }] },
+      attributes: ['id', 'sku', 'name', 'condition', 'conditionNote', 'missingAccessories', 'defects', 'price', 'pricingReferenceMemberVnd', 'importPrice', 'stock', 'sold', 'imageUrl', 'isArchived', 'inventoryStatus', 'parentProductId', 'modelFamilyId', 'itemTypeKey', 'conditionNodeIds'],
+      where: product.modelFamilyId ? { modelFamilyId: product.modelFamilyId, partnerId: product.partnerId } : { [Op.or]: [{ id: listingId }, { parentProductId: listingId }] },
     });
     const conditionRank = rankOf(await this.conditions.all());
     const ordered = units.sort(
@@ -417,9 +446,12 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const listing = units.find((unit) => unit.id === listingId);
     return {
       ...product.get({ plain: true }),
+      itemTypeKey: effectiveItemType(product),
       images: galleryUrls(product),
+      identityLocked: !!product.combinationKey && (product.stock > 0 || await productHasHistory(product.id)),
+      stockReceipts: await CatalogIntakeModel.findAll({ where: { productId: product.id }, order: [['id', 'DESC']], limit: 30 }),
       listing: listing ? { id: listing.id, name: listing.name, sku: listing.sku } : null,
-      units: priced.map((unit) => ({ ...unit, isMain: unit.parentProductId === null })),
+      units: await this.withConditions(priced.map((unit) => ({ ...unit, isMain: unit.id === id }))),
     };
   }
 
@@ -427,6 +459,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   // priced by formula from a reference member price; a partner seller's listing (`sellerPrice`) keeps the seller's price.
   async validateCatalogInput(data: Record<string, unknown>, currentId?: number, options: { sellerPrice?: boolean } = {}) {
     const errors: string[] = [];
+    if (!options.sellerPrice && data.partnerId != null) throw HttpError.badRequest('Quản lý hàng đối tác qua luồng đăng bán của đối tác.');
     const name = asTrimmedString(data.name);
     const brandName = asTrimmedString(data.brandName);
     const sku = asTrimmedString(data.sku);
@@ -456,15 +489,11 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     // A new or changed S is approved by the admin saving it.
     const targetChanged =
       !!formula && (formula.referenceMemberVnd !== current?.pricingReferenceMemberVnd || !current?.targetPriceApprovedAt);
-    // S 2hand (owner request of 2026-10-26): optional, below S, approved with it; an empty value clears it.
-    let preowned: number | null | undefined;
-    if (!options.sellerPrice && data.pricingReferencePreownedVnd !== undefined) {
-      preowned = data.pricingReferencePreownedVnd === null || data.pricingReferencePreownedVnd === '' ? null : toInteger(data.pricingReferencePreownedVnd);
-      if (preowned !== null && (!preowned || preowned < 1 || (target && preowned >= target)))
-        throw HttpError.badRequest('Giá bán thực S 2hand phải là số nguyên dương và thấp hơn S.');
-    }
-    const importPrice = toInteger(data.importPrice) ?? 0;
-    const stock = toInteger(data.stock) ?? 0;
+    if (data.pricingReferencePreownedVnd != null && !options.sellerPrice)
+      throw HttpError.badRequest('Mỗi sản phẩm chỉ có một giá S. Tạo/chọn sản phẩm 2hand với tổ hợp tương ứng.');
+    const importPrice = current?.importPrice ?? toInteger(data.importPrice) ?? 0;
+    const stock = toInteger(data.stock) ?? current?.stock ?? 0;
+    if (!options.sellerPrice && stock !== (current?.stock ?? 0)) throw HttpError.conflict('Tồn kho thay đổi qua phiếu nhập/điều chỉnh, không nhập trực tiếp trên sản phẩm.', 'STOCK_RECEIPT_REQUIRED');
     const categoryId = toInteger(data.categoryId);
     const supplierId = toInteger(data.supplierId);
     const gunpla: Record<string, unknown> = {};
@@ -487,13 +516,6 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         else gunpla[field] = list;
       }
     }
-    // What makes a unit incomplete or defective is shown to the customer: it must be written down.
-    // The rules come from the condition (Admin > Products > Conditions), not its name.
-    const conditionType = await this.conditions.get(gunpla.condition ?? current?.condition ?? 'new');
-    if (conditionType?.requiresMissingAccessories && !((gunpla.missingAccessories ?? current?.missingAccessories) as string[] | undefined)?.length)
-      errors.push(`Liệt kê phụ kiện còn thiếu của sản phẩm "${conditionType.nameVi}".`);
-    if (conditionType?.requiresDefects && !((gunpla.defects ?? current?.defects) as string[] | undefined)?.length)
-      errors.push(`Mô tả lỗi của sản phẩm "${conditionType.nameVi}".`);
     const images = Array.isArray(data.images) ? data.images.map((url) => asTrimmedString(url)).filter(Boolean) : [];
     // The received date ("Ngày nhập"): the day the product is added unless staff give another one.
     const productionDate = asTrimmedString(data.productionDate)
@@ -511,8 +533,8 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     if (!imageUrl || !isImageUrl(imageUrl)) errors.push('Vui lòng chọn ảnh chính cho sản phẩm.');
     if (images.length > MAX_GALLERY_IMAGES) errors.push(`Tối đa ${MAX_GALLERY_IMAGES} ảnh phụ.`);
     if (images.some((url) => !isImageUrl(url))) errors.push('Đường dẫn ảnh phụ không hợp lệ.');
-    if (data.condition !== undefined && conditionType?.uniqueUnit && uniquePhotosMissing(stock, imageUrl, images)) {
-      errors.push('Each one-of-a-kind collectible requires unique inventory and at least three uploaded actual-item photos.');
+    if (!options.sellerPrice && !data.isArchived && (data.itemTypeKey ?? data.condition ?? current?.itemTypeKey) === 'preowned' && uniquePhotosMissing(stock, imageUrl)) {
+      errors.push('Hàng 2hand cần ít nhất một ảnh thật đã tải lên trước khi xuất bản.');
     }
     if (isNaN(productionDate.getTime())) errors.push('Ngày nhập không hợp lệ.');
     if (inventoryStatus !== undefined && !INVENTORY_STATUSES.includes(inventoryStatus)) {
@@ -544,7 +566,6 @@ export default class ProductService implements BaseServiceInterface<ProductModel
               pricingIssueCount: 0,
               buybackPriceVnd: formula.buybackPriceVnd,
               listPriceVerified: true,
-              ...(preowned !== undefined ? { pricingReferencePreownedVnd: preowned } : {}),
               ...(targetChanged ? { targetPriceApprovedAt: new Date(), targetPriceApprovedByUserId: null } : {}),
             }
           : {}),
@@ -556,8 +577,10 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         dimensions: asTrimmedString(data.dimensions) || null,
         ...(packaging ? { packaging: packaging.value } : {}),
         productionDate,
+        serviceReferenceEnabled: data.serviceReferenceEnabled === undefined ? current?.serviceReferenceEnabled ?? true : data.serviceReferenceEnabled === true,
         isFeatured: data.isFeatured === true,
         isArchived: data.isArchived === true,
+        listingStatus: data.isArchived === true ? (current?.listingStatus ?? 'draft') : 'published',
         ...(inventoryStatus !== undefined ? { inventoryStatus } : {}),
       },
       images,
@@ -577,17 +600,19 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   }
 
   async create(data: Record<string, unknown>, actorUserId?: number) {
-    const { values, images } = await this.validateCatalogInput(data);
+    const { values, images } = await this.validateCatalogInput({ ...data, isArchived: true, stock: 0 });
     try {
       const product = await DatabaseProvider.getInstance().transaction(async (transaction) => {
-        const created = await ProductModel.create(values, { transaction });
+        const selection = await new CatalogTreeService().selection({ ...values, ...data }, null, transaction);
+        const created = await ProductModel.create({ ...values, ...selection, stock: 0, isArchived: true, parentProductId: null }, { transaction });
+        await new CatalogTreeService().remember(created.conditionNodeIds, 'product', created.id, transaction);
         await this.auditCreate(created, actorUserId, transaction);
         await this.replaceImages(created.id, images, transaction);
         return created;
       });
       return this.getAdminById(product.id);
     } catch (error) {
-      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU đã tồn tại.');
+      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
       throw error;
     }
   }
@@ -608,8 +633,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const listing = await ProductModel.findByPk(listingId, { include: [imagesInclude] });
     if (!listing) throw HttpError.notFound('Model not found.');
     if (listing.partnerId) throw HttpError.conflict('Review partner merchandise through its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
-    if (listing.parentProductId) throw HttpError.badRequest('Thêm tình trạng vào sản phẩm chính, không vào một tình trạng khác.');
-    const condition = typeof data.condition === 'string' && data.condition ? data.condition : 'new';
+    const condition = String(data.itemTypeKey ?? data.condition ?? 'new');
     const ownImage = asTrimmedString(data.imageUrl);
     const { values, images } = await this.validateCatalogInput({
       ...data,
@@ -618,21 +642,25 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       sku: asTrimmedString(data.sku) || (await this.optionSku(listing, condition)),
       imageUrl: ownImage || listing.imageUrl,
       images: ownImage ? data.images : galleryUrls(listing),
-      isFeatured: false,
+      isFeatured: false, isArchived: true, stock: 0,
     });
     try {
       const option = await DatabaseProvider.getInstance().transaction(async (transaction) => {
+        const sourceSelection = listing.modelFamilyId ? { modelFamilyId: listing.modelFamilyId } : await new CatalogTreeService().selection(listing.get({ plain: true }), listing, transaction);
+        if (!listing.modelFamilyId) await listing.update(sourceSelection, { transaction });
+        const selection = await new CatalogTreeService().selection({ ...values, ...data, ...sourceSelection, itemTypeKey: condition, conditionNodeIds: data.conditionNodeIds ?? [] }, null, transaction);
         const created = await ProductModel.create(
-          { ...values, ...identityOf(listing), salesChannel: listing.salesChannel, parentProductId: listing.id },
+          { ...values, ...identityOf(listing), ...selection, salesChannel: listing.salesChannel, parentProductId: null, stock: 0, isArchived: true },
           { transaction },
         );
+        await new CatalogTreeService().remember(created.conditionNodeIds, 'product', created.id, transaction);
         await this.auditCreate(created, actorUserId, transaction);
         await this.replaceImages(created.id, images, transaction);
         return created;
       });
       return this.getAdminById(option.id);
     } catch (error) {
-      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU đã tồn tại.');
+      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
       throw error;
     }
   }
@@ -641,67 +669,52 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     const target = await ProductModel.findByPk(id);
     if (!target) throw HttpError.notFound('Model not found.');
     // A condition option keeps its listing's model; edits to the model are made on the listing.
-    const listing = target.parentProductId ? await ProductModel.findByPk(target.parentProductId) : null;
+    const listing = null;
     const input = listing ? { ...data, ...identityOf(listing) } : data;
     const { values, images } = await this.validateCatalogInput(input, id);
     try {
       await DatabaseProvider.getInstance().transaction(async (transaction) => {
+        await lockCatalog(transaction);
         const product = await ProductModel.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
         if (!product) throw HttpError.notFound('Model not found.');
         if (product.partnerId) throw HttpError.conflict('Review partner merchandise through its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
-        // Omitting condition must not bypass the existing unique-item identity or photo requirements.
-        const was = await this.conditions.get(product.condition, transaction);
-        const next = await this.conditions.get(data.condition || product.condition, transaction);
-        if (was?.uniqueUnit && (data.condition !== undefined && data.condition !== product.condition || values.stock > product.stock))
-          throw HttpError.conflict('Retain this unique collectible identity; use its inspected intake or verified return workflow for stock.', 'UNIQUE_ITEM_INTAKE_REQUIRED');
-        if (next?.uniqueUnit && uniquePhotosMissing(values.stock, values.imageUrl, images))
-          throw HttpError.badRequest('Each one-of-a-kind collectible requires unique inventory and at least three distinct uploaded actual-item photos.');
+        if (product.publicationRequiresIntake && !values.isArchived) throw HttpError.conflict('Xuất bản từ hồ sơ thu/cầm sau khi nhập kho và kiểm hàng.', 'SOURCE_PUBLICATION_REQUIRED');
+        const selection = await new CatalogTreeService().selection({ ...values, ...data }, product, transaction);
+        const identityChanged = product.combinationKey && selection.combinationKey !== product.combinationKey;
+        if (identityChanged && (product.stock > 0 || await productHasHistory(id, transaction)))
+          throw HttpError.conflict('Sản phẩm đã có hàng/giao dịch. Tạo tổ hợp khác và dùng chuyển tình trạng để giữ lịch sử.', 'SKU_IDENTITY_LOCKED');
+        if (!values.isArchived && selection.itemTypeKey === 'preowned' && uniquePhotosMissing(product.stock, values.imageUrl))
+          throw HttpError.badRequest('Hàng 2hand cần ít nhất một ảnh thật đã tải lên trước khi xuất bản.');
         if (values.stock !== product.stock && data.expectedStock !== product.stock) throw HttpError.conflict('Available stock changed. Reload before recording an inventory correction.','STOCK_CHANGED');
         const oldPricing = { listPriceVnd: product.price, actualCostVnd: product.importPrice, referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd, issues: product.pricingIssueCount };
         if (values.price !== product.price && data.expectedPrice !== product.price)
           throw HttpError.conflict('Giá vừa thay đổi. Vui lòng tải lại trước khi lưu mức giá mới.');
-        await product.update(values, { transaction });
+        await product.update({ ...values, ...selection, stock: product.stock, importPrice: product.importPrice }, { transaction });
+        await new CatalogTreeService().remember(product.conditionNodeIds, 'product', id, transaction);
         if (oldPricing.listPriceVnd !== product.price || oldPricing.actualCostVnd !== product.importPrice || oldPricing.referenceMemberVnd !== product.pricingReferenceMemberVnd || oldPricing.issues !== product.pricingIssueCount)
           await PromotionAuditModel.create({ actorUserId: actorUserId ?? null, entityType: 'product_pricing', entityId: id, action: 'update', oldValue: oldPricing, newValue: { referenceMemberVnd: product.pricingReferenceMemberVnd, buybackPriceVnd: product.buybackPriceVnd, listPriceVnd: product.price, actualCostVnd: product.importPrice, issues: product.pricingIssueCount } }, { transaction });
         await this.replaceImages(id, images, transaction);
-        if (!product.parentProductId) {
-          // The listing's options follow its model; a discontinued model takes its options off sale too.
-          await ProductModel.update(
-            { ...identityOf(product), ...(product.isArchived ? { isArchived: true, isFeatured: false } : {}) },
-            { where: { parentProductId: id }, transaction },
-          );
-        }
+        const identity = familyIdentity(product.get({ plain: true }));
+        await ModelFamilyModel.update({ ...identity, identity }, { where: { id: selection.modelFamilyId }, transaction });
+        await ProductModel.update(identity, { where: { modelFamilyId: selection.modelFamilyId, id: { [Op.ne]: id } }, transaction });
       });
     } catch (error) {
-      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU đã tồn tại.');
+      if (error instanceof UniqueConstraintError) throw HttpError.conflict('SKU hoặc tổ hợp tình trạng đã tồn tại.', 'COMBINATION_EXISTS');
       throw error;
     }
     // Retain old media: order snapshots and condition evidence may still reference it.
     return this.getAdminById(id);
   }
 
-  // Products that appear in orders or stock imports are archived instead of deleted (history keeps pointing at them).
-  // A listing with condition options on sale is neither: its options are archived or deleted first.
+  // Archive SKUs to retain their canonical identity, source records and historical URLs.
   async remove(id: number): Promise<{ archived: boolean }> {
-    let files: string[] = [];
-    const archived = await DatabaseProvider.getInstance().transaction(async transaction => {
-      const product = await ProductModel.findByPk(id, { transaction, lock:transaction.LOCK.UPDATE });
+    await DatabaseProvider.getInstance().transaction(async transaction => {
+      const product = await ProductModel.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
       if (!product) throw HttpError.notFound('Model not found.');
-      if (product.partnerId) throw HttpError.conflict('Retain partner listing history and hide the listing through moderation.', 'PARTNER_LISTING_REQUIRED');
-      const options = await ProductModel.count({ where: { parentProductId: id }, transaction });
-      if (await ProductModel.count({ where: { parentProductId: id, isArchived: false }, transaction }))
-        throw HttpError.conflict('Lưu trữ hoặc xóa các tình trạng khác của sản phẩm này trước.', 'CONDITION_OPTIONS_EXIST');
-      if (options > 0 || (await productHasHistory(id, transaction))) { await product.update({isArchived:true,isFeatured:false},{transaction}); return true; }
-      const gallery = await ProductImageModel.findAll({where:{productId:id},transaction});
-      const listing = product.parentProductId ? await ProductModel.findByPk(product.parentProductId, { include: [imagesInclude], transaction }) : null;
-      // An option showing its listing's photos must not delete them.
-      const shared = new Set(listing ? [listing.imageUrl, ...galleryUrls(listing)] : []);
-      files = [product.imageUrl,...gallery.map(image => image.url)].filter((url) => !shared.has(url));
-      await product.destroy({transaction});
-      return false;
+      if (product.partnerId) throw HttpError.conflict('Hide partner listings through moderation.', 'PARTNER_LISTING_REQUIRED');
+      await product.update({ isArchived: true, isFeatured: false }, { transaction });
     });
-    if (!archived) await this.fileStorageService.removeFiles(files);
-    return {archived};
+    return { archived: true };
   }
 
   // Inventory figures of the shop's own catalogue (partner merchandise and archived products excluded), as in the
@@ -709,11 +722,11 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   // Values are list price R × stock and S (the member price, "Giá bán ra") × stock; neither is revenue.
   async inventoryStats() {
     const query = <T extends Row>(sql: string) => DatabaseProvider.getInstance().query<T>(sql, { type: QueryTypes.SELECT });
-    const scope = `FROM product p WHERE p."partnerId" IS NULL AND NOT p."isArchived"`;
+    const scope = `FROM product p WHERE p."partnerId" IS NULL AND p."catalogCanonicalId" IS NULL AND NOT p."isArchived"`;
     const rank = rankOf(await this.conditions.all());
     const [totals] = await query(`
-      SELECT COUNT(*) FILTER (WHERE p."parentProductId" IS NULL) AS listings,
-             COUNT(*) FILTER (WHERE p."parentProductId" IS NOT NULL) AS options,
+      SELECT COUNT(DISTINCT COALESCE(p."modelFamilyId"::text, 'legacy-' || p.id::text)) AS listings,
+             COUNT(*) - COUNT(DISTINCT COALESCE(p."modelFamilyId"::text, 'legacy-' || p.id::text)) AS options,
              COUNT(DISTINCT lower(p.name)) AS names,
              COUNT(*) FILTER (WHERE p.stock > 0) AS "unitsInStock",
              COUNT(*) FILTER (WHERE p.stock = 0) AS "unitsOutOfStock",
@@ -728,7 +741,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
       ${scope}`);
     const brands = await query(`
       SELECT p."brandName" AS brand,
-             COUNT(*) FILTER (WHERE p."parentProductId" IS NULL) AS listings,
+             COUNT(DISTINCT COALESCE(p."modelFamilyId"::text, 'legacy-' || p.id::text)) AS listings,
              COUNT(*) FILTER (WHERE p.stock > 0) AS "unitsInStock",
              COALESCE(SUM(p.stock), 0) AS stock,
              COALESCE(SUM(p."importPrice"::bigint * p.stock), 0) AS "costValue",

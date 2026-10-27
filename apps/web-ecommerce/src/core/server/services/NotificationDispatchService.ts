@@ -171,6 +171,7 @@ export default class NotificationDispatchService {
 
   // Fire-and-forget after a committed change; the background job picks up anything left.
   dispatchSoon() {
+    if (process.env.DISABLE_BACKGROUND_JOBS === 'true') return;
     void this.dispatch().catch((error) => Logger.ERROR('Notification dispatch failed:', error));
   }
 

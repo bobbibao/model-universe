@@ -1,33 +1,24 @@
 'use client';
-
-import { useLocale, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import ConditionStockTransfer from './ConditionStockTransfer';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
 import Modal from '@/components/Modal/Modal';
-import ProductImage from '@/components/ProductImage';
-import AdminIcon from '@/components/Admin/AdminIcon';
 import TextField from '@/components/FormElements/TextField';
+import SelectField from '@/components/FormElements/SelectField';
+import ConditionTreePicker from '@/components/Store/ConditionTreePicker';
+import ProductImage from '@/components/ProductImage';
 import ProductApi from '@/core/client/api/Product';
-import { formatVND } from '@/shared/server/utils/utils';
+import Api from '@/core/client/api/Api';
 import type { AdminProduct } from '@/shared/types/product';
-import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
-import ProductImagesField, { ImageItem, uploadPendingImages } from './ProductImagesField';
-import { ConditionFields, PricingFields } from './ProductFormSections';
-import {
-  ProductFormErrors,
-  ProductFormValues,
-  conditionPayload,
-  emptyProductForm,
-  pricingPayload,
-  conditionRules,
-  validateCondition,
-  validatePricing,
-  validateReceivedDate,
-} from './productForm';
+import type { ItemTypeKey } from '@/shared/condition-tree';
+import { itemTypeLabel } from '@/shared/condition-tree';
+import { catalogPricing } from '@/shared/sale-pricing';
+import { formatVND } from '@/shared/server/utils/utils';
+import ProductImagesField, { type ImageItem, imageFromUrl, uploadPendingImages } from './ProductImagesField';
 
-// The model's units in Admin: the main listing and each condition option with its own SKU, price, stock and status,
-// and a dialog to add another condition (its photos default to the main listing's).
-const ProductConditions = ({
+export default function ProductConditions({
   product,
   onCreated,
   onEditCurrent,
@@ -35,278 +26,320 @@ const ProductConditions = ({
   product: AdminProduct;
   onCreated: () => void;
   onEditCurrent: () => void;
-}) => {
-  const t = useTranslations('adminProducts'),
-    catalog = useTranslations('catalog'),
-    locale = useLocale();
-  const conditions = useProductConditions();
-  const listingId = product.listing?.id ?? product.id;
-  const units = product.units ?? [];
-  const activeUnits = units.filter((unit) => !unit.isArchived);
-  const totalStock = activeUnits.reduce((total, unit) => total + unit.stock, 0);
+}) {
+  const locale = useLocale(),
+    en = locale === 'en';
+  const createRequested = useSearchParams().get('create') === '1';
   const [open, setOpen] = useState(false);
-  const [values, setValues] = useState<ProductFormValues>({ ...emptyProductForm, condition: 'incomplete' });
-  const [sku, setSku] = useState('');
-  const [errors, setErrors] = useState<ProductFormErrors>({});
+  const [type, setType] = useState<ItemTypeKey>('preowned');
+  const [ids, setIds] = useState<number[]>([]);
+  const [price, setPrice] = useState('');
   const [mainImage, setMainImage] = useState<ImageItem | null>(null);
   const [gallery, setGallery] = useState<ImageItem[]>([]);
-  const [saving, setSaving] = useState(false);
-  const onChange = <K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) =>
-    setValues((current) => ({ ...current, [key]: value }));
-
+  const [busy, setBusy] = useState(false);
+  const [matching, setMatching] = useState(false);
+  const [existingId, setExistingId] = useState<number | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (!open || !product.modelFamilyId) return;
+    let current = true;
+    setMatching(true);
+    Api.post('/product-condition-tree/match', {
+      modelFamilyId: product.modelFamilyId,
+      itemTypeKey: type,
+      conditionNodeIds: ids,
+    })
+      .then((response) => {
+        if (current) setExistingId(response.data.productId);
+      })
+      .catch(() => {
+        if (current) {
+          setExistingId(null);
+          setError(en ? 'Could not check this combination. Retry.' : 'Không kiểm tra được tổ hợp. Vui lòng thử lại.');
+        }
+      })
+      .finally(() => {
+        if (current) setMatching(false);
+      });
+    return () => {
+      current = false;
+    };
+  }, [open, product.modelFamilyId, type, ids, en]);
+  let pricing: ReturnType<typeof catalogPricing> | undefined;
+  try {
+    if (price) pricing = catalogPricing(Number(price));
+  } catch {
+    /* validation appears on submit */
+  }
   const start = () => {
-    setValues({
-      ...emptyProductForm,
-      condition: 'incomplete',
-      assemblyState: product.assemblyState || 'unassembled',
-      includedAccessories: (product.includedAccessories || []).join('\n'),
-      importPrice: String(product.importPrice || ''),
-    });
-    setSku('');
-    setErrors({});
-    setMainImage(null);
-    setGallery([]);
+    setType(product.itemTypeKey ?? 'preowned');
+    setIds(product.conditionNodeIds ?? []);
+    setPrice('');
+    setMainImage(imageFromUrl(product.imageUrl));
+    setGallery((product.images ?? []).map(imageFromUrl));
+    setError('');
+    setExistingId(null);
     setOpen(true);
   };
-
+  useEffect(() => {
+    if (createRequested) start();
+  }, [createRequested, product.id]);
   const create = async () => {
-    const formErrors: ProductFormErrors = {
-      ...validateCondition(values, conditions.all),
-      ...validatePricing(values),
-      ...validateReceivedDate(values),
-    };
-    if (!values.pricingReferenceMemberVnd) formErrors.price = 'priceInvalid';
-    if (!/^\d+$/.test(values.stock.trim())) formErrors.stock = 'stockInvalid';
-    else if (conditionRules(conditions.all, values.condition)?.uniqueUnit && Number(values.stock) > 1)
-      formErrors.stock = 'preownedStockInvalid';
-    setErrors(formErrors);
-    if (Object.keys(formErrors).length > 0) return;
-    setSaving(true);
-    const urls = mainImage ? await uploadPendingImages([mainImage, ...gallery]) : [];
-    const created = urls
-      ? await ProductApi.createConditionOption(listingId, {
-          ...conditionPayload(values),
-          ...pricingPayload(values),
-          importPrice: values.importPrice ? Number(values.importPrice) : 0,
-          stock: Number(values.stock),
-          productionDate: values.productionDate || null,
-          ...(sku.trim() ? { sku: sku.trim() } : {}),
-          ...(urls.length > 0 ? { imageUrl: urls[0], images: urls.slice(1) } : {}),
-        })
-      : undefined;
-    setSaving(false);
-    if (created) {
-      setOpen(false);
-      onCreated();
+    if (!pricing || !mainImage) {
+      setError(
+        en ? 'Enter a positive whole VND price and choose an image.' : 'Nhập giá S nguyên dương và chọn ảnh đại diện.',
+      );
+      return;
     }
+    setBusy(true);
+    setError('');
+    const uploaded = await uploadPendingImages([mainImage, ...gallery]);
+    if (uploaded) {
+      setMainImage(imageFromUrl(uploaded[0]));
+      setGallery(uploaded.slice(1).map(imageFromUrl));
+      const result = await ProductApi.createConditionOption(product.id, {
+        condition: type,
+        itemTypeKey: type,
+        conditionNodeIds: ids,
+        pricingReferenceMemberVnd: Number(price),
+        stock: 0,
+        importPrice: 0,
+        productionDate: null,
+        imageUrl: uploaded[0],
+        images: uploaded.slice(1),
+      });
+      if (result) {
+        setOpen(false);
+        onCreated();
+      }
+    }
+    setBusy(false);
   };
-
   return (
-    <div className="condition-management">
-      <div className="condition-listings">
-        <div className="condition-listings-toolbar">
-          <div>
-            <h3>
-              {t('conditionListings')} <span>{units.length}</span>
-            </h3>
-            <p>{t('conditionsHint')}</p>
-          </div>
-          <button type="button" onClick={start} className="condition-add-button">
-            <AdminIcon name="plus" size={16} /> {t('addCondition')}
+    <section className="catalog-variants">
+      <div className="catalog-section-toolbar">
+        <div>
+          <h3>{en ? 'Products of this model' : 'Các sản phẩm của mẫu này'}</h3>
+          <p>
+            {en
+              ? 'Each condition combination has its own price and stock.'
+              : 'Mỗi tổ hợp tình trạng có giá và tồn kho riêng.'}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <ConditionStockTransfer product={product} onFinished={onCreated} />
+          <button type="button" className="mu-button" onClick={start}>
+            {en ? '+ Add combination' : '+ Thêm tổ hợp'}
           </button>
         </div>
-        <div className="condition-table-scroll" tabIndex={0} role="region" aria-label={t('conditionListings')}>
-          <table className="condition-listing-table">
-            <caption className="sr-only">{t('conditionListings')}</caption>
-            <thead>
-              <tr className="border-b border-stroke text-body dark:border-strokedark">
-                <th className="py-2 pr-3 font-medium">{t('unit')}</th>
-                <th className="py-2 pr-3 font-medium">{t('conditionColumn')}</th>
-                <th className="py-2 pr-3 font-medium">{t('price')}</th>
-                <th className="py-2 pr-3 font-medium">{t('stock')}</th>
-                <th className="py-2 pr-3 font-medium">{t('status')}</th>
-                <th className="py-2">
-                  <span className="sr-only">{t('openUnit')}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {units.map((unit) => (
-                <tr key={unit.id} className={unit.id === product.id ? 'is-current' : ''}>
-                  <td className="py-3 pr-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-gray-2 dark:bg-meta-4">
-                        <ProductImage src={unit.imageUrl} alt={unit.sku} sizes="40px" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{unit.sku}</p>
-                        <p className="text-xs text-body">{unit.isMain ? t('mainListing') : t('conditionOption')}</p>
-                        {unit.id === product.id && <span className="condition-current-label">{t('editingUnit')}</span>}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 pr-3">
-                    <span className={`condition-chip is-${unit.condition}`}>{conditions.label(unit.condition)}</span>
-                    {(unit.conditionNote || unit.missingAccessories.length > 0 || unit.defects.length > 0) && (
-                      <p className="mt-1 max-w-[260px] text-xs text-body">
-                        {[unit.conditionNote, ...unit.missingAccessories, ...unit.defects].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                  </td>
-                  <td className="condition-price-cell">
-                    <strong>{formatVND(unit.salePrice, locale)}</strong>
-                    {unit.salePrice < unit.price && <s>{formatVND(unit.price, locale)}</s>}
-                  </td>
-                  <td className="condition-stock-cell">
-                    <span className={`condition-stock-value${unit.stock === 0 ? ' is-empty' : ''}`}>{unit.stock}</span>
-                  </td>
-                  <td className="py-3 pr-3">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        unit.isArchived || unit.inventoryStatus !== 'available'
-                          ? 'bg-danger/10 text-danger'
-                          : 'bg-success/10 text-success'
-                      }`}
-                    >
-                      {unit.isArchived
-                        ? t('archived')
-                        : unit.inventoryStatus !== 'available'
-                          ? t(`inventoryStates.${unit.inventoryStatus}`)
-                          : t('active')}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right">
-                    {unit.id !== product.id ? (
-                      <Link
-                        href={`/admin/products/${unit.id}?section=conditions`}
-                        className="condition-edit-action"
-                        aria-label={`${t('openUnit')} · ${unit.sku}`}
-                      >
-                        <AdminIcon name="edit" size={16} /> {t('openUnit')}
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={onEditCurrent}
-                        className="condition-edit-action"
-                        aria-label={`${t('openUnit')} · ${unit.sku}`}
-                      >
-                        <AdminIcon name="edit" size={16} /> {t('openUnit')}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
-      <aside className="condition-inventory" aria-label={t('conditionInventory')}>
-        <h3>
-          <AdminIcon name="box" size={18} />
-          {t('conditionInventory')}
-        </h3>
-        <div className="condition-inventory-total">
-          <span>{t('groupStock')}</span>
-          <strong>{totalStock}</strong>
-        </div>
-        <dl>
-          {conditions.all
-            .map((type) => type.key)
-            .filter((condition) => activeUnits.some((unit) => unit.condition === condition))
-            .map((condition) => (
-              <div key={condition}>
-                <dt>
-                  <span className={`condition-dot is-${condition}`}>{conditions.label(condition)}</span>
-                </dt>
-                <dd>
-                  {activeUnits
-                    .filter((unit) => unit.condition === condition)
-                    .reduce((total, unit) => total + unit.stock, 0)}
-                </dd>
-              </div>
+      <div className="catalog-variant-table-wrap">
+        <table className="catalog-variant-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>{en ? 'Type / conditions' : 'Loại hàng / tình trạng'}</th>
+              <th>{en ? 'Real price S' : 'Giá bán thực S'}</th>
+              <th>{en ? 'Stock' : 'Tồn kho'}</th>
+              <th>{en ? 'Visibility' : 'Hiển thị'}</th>
+              <th>
+                <span className="sr-only">{en ? 'Edit' : 'Chỉnh sửa'}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {(product.units ?? []).map((unit) => (
+              <tr key={unit.id} className={unit.id === product.id ? 'is-current' : ''}>
+                <td>{unit.sku}</td>
+                <td>
+                  <span className={`condition-chip is-${unit.itemTypeKey ?? unit.condition}`}>
+                    {itemTypeLabel(unit.itemTypeKey ?? unit.condition)}
+                  </span>
+                  <span className="catalog-combination-label">
+                    {unit.conditionLabels?.join(' · ') || (en ? 'No issues recorded' : 'Không ghi nhận lỗi')}
+                  </span>
+                </td>
+                <td className="catalog-money">{formatVND(unit.pricingReferenceMemberVnd ?? 0, locale)}</td>
+                <td>{unit.stock}</td>
+                <td>
+                  <span className={`catalog-status ${unit.isArchived ? 'is-draft' : ''}`}>
+                    {unit.isArchived ? (en ? 'Draft / hidden' : 'Nháp / ẩn') : en ? 'Published' : 'Đang bán'}
+                  </span>
+                </td>
+                <td>
+                  {unit.id === product.id ? (
+                    <button type="button" onClick={onEditCurrent}>
+                      {en ? 'Edit' : 'Sửa'}
+                    </button>
+                  ) : (
+                    <Link href={`/admin/products/${unit.id}`}>{en ? 'Edit' : 'Sửa'}</Link>
+                  )}
+                </td>
+              </tr>
             ))}
-        </dl>
-        <p>{t('conditionInventoryHint')}</p>
-      </aside>
-
+          </tbody>
+        </table>
+      </div>
+      {!!product.stockReceipts?.length && (
+        <details className="catalog-image-disclosure mt-5">
+          <summary>
+            {en ? 'Stock receipt / condition transfer history' : 'Lịch sử nhập hàng / chuyển tình trạng'}
+          </summary>
+          <div className="catalog-variant-table-wrap mt-3">
+            <table className="catalog-variant-table">
+              <thead>
+                <tr>
+                  <th>{en ? 'Source' : 'Nguồn hàng'}</th>
+                  <th>{en ? 'Quantity' : 'Số lượng'}</th>
+                  <th>{en ? 'Unit cost' : 'Giá vốn / món'}</th>
+                  <th>{en ? 'Recorded at' : 'Ngày ghi nhận'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {product.stockReceipts.map((receipt) => (
+                  <tr key={receipt.id}>
+                    <td>
+                      {receipt.sourceType === 'buyback' || receipt.sourceType === 'pawn' ? (
+                        <Link href={`/admin/${receipt.sourceType}`}>
+                          {receipt.sourceType} #{receipt.sourceId} ↗
+                        </Link>
+                      ) : (
+                        `${receipt.sourceType} #${receipt.sourceId}`
+                      )}
+                    </td>
+                    <td>
+                      {receipt.quantity > 0 ? '+' : ''}
+                      {receipt.quantity}
+                    </td>
+                    <td className="catalog-money">{formatVND(receipt.unitCostVnd, locale)}</td>
+                    <td>{new Date(receipt.createdAt).toLocaleDateString(locale)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
       <Modal
         open={open}
-        title={`${t('addCondition')} · ${product.listing?.name ?? product.name}`}
+        title={en ? 'Create a new condition combination' : 'Tạo sản phẩm với tổ hợp mới'}
         size="lg"
         onClose={() => {
-          if (!saving) setOpen(false);
+          if (!busy) setOpen(false);
         }}
         footer={
           <>
             <button
               type="button"
+              className="mu-button mu-button-secondary"
+              disabled={busy}
               onClick={() => setOpen(false)}
-              disabled={saving}
-              className="rounded-md border border-stroke px-5 py-2 font-medium dark:border-strokedark"
             >
-              {t('cancel')}
+              {en ? 'Cancel' : 'Hủy'}
             </button>
             <button
               type="button"
+              className="mu-button"
+              disabled={busy || matching || !!existingId || !product.modelFamilyId}
               onClick={create}
-              disabled={saving}
-              className="rounded-md bg-brand px-5 py-2 font-semibold text-brand-ink hover:bg-brand-hover disabled:opacity-60"
             >
-              {saving ? t('saving') : t('createOption')}
+              {busy ? '…' : en ? 'Save draft · stock 0' : 'Lưu nháp · tồn 0'}
             </button>
           </>
         }
       >
-        <fieldset disabled={saving} className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <ConditionFields values={values} errors={errors} onChange={onChange} />
-          </div>
-          <PricingFields values={values} errors={errors} onChange={onChange} />
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            <TextField
-              label={t('stock')}
-              name="optionStock"
-              type="number"
-              min={0}
-              max={conditionRules(conditions.all, values.condition)?.uniqueUnit ? 1 : undefined}
-              step={1}
-              required
-              inputMode="numeric"
-              value={values.stock}
-              onChange={(event) => onChange('stock', event.target.value)}
-              error={errors.stock ? t(`validation.${errors.stock}`) : undefined}
-            />
-            <TextField
-              label={t('optionSku')}
-              name="optionSku"
-              value={sku}
-              onChange={(event) => setSku(event.target.value)}
-            />
-            <TextField
-              label={t('receivedDate')}
-              name="optionReceivedDate"
-              type="date"
-              error={errors.productionDate ? t(`validation.${errors.productionDate}`) : undefined}
-              value={values.productionDate}
-              onChange={(event) => onChange('productionDate', event.target.value)}
-            />
-          </div>
+        <div className="catalog-inherited-model">
+          <span className="catalog-model-thumb">
+            <ProductImage src={product.imageUrl} alt="" sizes="56px" className="object-contain" />
+          </span>
           <div>
-            <p className="mb-1 font-medium text-black dark:text-white">{t('optionImages')}</p>
-            <p className="mb-3 text-sm text-body">{t('optionImagesHint')}</p>
+            <strong>{product.name}</strong>
+            <p>
+              {product.brandName} · {product.scale} · {product.modelCode}
+            </p>
+          </div>
+        </div>
+        {!product.modelFamilyId && (
+          <p role="alert" className="catalog-inline-notice">
+            {en
+              ? 'Reconcile this legacy product and save its type/conditions first.'
+              : 'Đối chiếu và lưu loại hàng/tình trạng của sản phẩm cũ trước khi tạo tổ hợp.'}
+          </p>
+        )}
+        <fieldset disabled={busy} className="catalog-variant-form">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField
+              label={en ? 'Item type' : 'Loại hàng'}
+              name="variantType"
+              options={[
+                { value: 'new', label: 'New' },
+                { value: 'preowned', label: '2hand' },
+              ]}
+              value={type}
+              onChange={(event) => {
+                setType(event.target.value as ItemTypeKey);
+                setIds([]);
+              }}
+            />
+            <TextField
+              label={en ? 'Real selling price S (VND)' : 'Giá bán thực S (đ)'}
+              name="variantSalePrice"
+              type="number"
+              min={1}
+              step={1}
+              value={price}
+              required
+              onChange={(event) => setPrice(event.target.value)}
+            />
+          </div>
+          <ConditionTreePicker value={ids} itemType={type} onChange={setIds} />
+          {matching && <p role="status">{en ? 'Checking combination…' : 'Đang kiểm tra tổ hợp…'}</p>}
+          {existingId && (
+            <div className="catalog-inline-notice">
+              <strong>{en ? 'This combination already exists.' : 'Tổ hợp này đã có sản phẩm.'}</strong>
+              <Link href={`/admin/products/${existingId}`}>
+                {en ? 'Open product' : 'Mở sản phẩm'} #{existingId}
+              </Link>
+              <Link href="/admin/stock">{en ? 'Receive more stock' : 'Nhập thêm hàng'} ↗</Link>
+            </div>
+          )}
+          {pricing && (
+            <dl className="catalog-derived-prices">
+              <div>
+                <dt>{en ? 'Web price' : 'Giá web'}</dt>
+                <dd>{formatVND(pricing.listPriceVnd, locale)}</dd>
+              </div>
+              <div>
+                <dt>{en ? 'Buyback estimate' : 'Giá thu dự kiến'}</dt>
+                <dd>{formatVND(pricing.buybackPriceVnd, locale)}</dd>
+              </div>
+              <div>
+                <dt>C50</dt>
+                <dd>{formatVND(pricing.pawnPriceVnd, locale)}</dd>
+              </div>
+            </dl>
+          )}
+          <details className="catalog-image-disclosure">
+            <summary>{en ? 'Inherited images · change if needed' : 'Ảnh kế thừa · thay đổi nếu cần'}</summary>
+            <p>
+              {en
+                ? 'A 2hand product needs an actual uploaded photo before publication.'
+                : 'Sản phẩm 2hand cần ảnh thật đã tải lên trước khi xuất bản.'}
+            </p>
             <ProductImagesField
-              required={false}
               mainImage={mainImage}
               gallery={gallery}
               onMainImageChange={setMainImage}
               onGalleryChange={setGallery}
             />
-          </div>
+          </details>
+          {error && (
+            <p className="text-sm text-red-600" role="alert">
+              {error}
+            </p>
+          )}
         </fieldset>
       </Modal>
-    </div>
+    </section>
   );
-};
-
-export default ProductConditions;
+}

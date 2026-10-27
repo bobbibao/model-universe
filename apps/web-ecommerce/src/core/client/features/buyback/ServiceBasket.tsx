@@ -1,5 +1,9 @@
 'use client';
 
+import ServiceConditionSelector from './ServiceConditionSelector';
+import type { ConditionCaseSnapshot } from '@/shared/condition-tree';
+import { tierBuyback, buybackMargin } from '@/shared/buyback-pricing';
+import { pawnC50 } from '@/shared/pawn-rules';
 import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
@@ -13,19 +17,14 @@ import type { PawnEstimate } from '@/shared/pawn-rules';
 import type { ReferenceCondition } from '@/shared/sale-pricing';
 import type { ProductSummary } from '@/shared/types/product';
 import CatalogCombobox from './CatalogCombobox';
-import ConditionFields, {
-  NameField,
-  NEW_CONDITION_VALUE,
-  useConditionPayload,
-  type ConditionValue,
-} from './ConditionFields';
+import { NameField, NEW_CONDITION_VALUE, useConditionPayload, type ConditionValue } from './ConditionFields';
 import EvidenceUploader, { type UploadedEvidence } from './EvidenceUploader';
 import ServiceRequestPanel from './ServiceRequestPanel';
 import './quick-valuation.css';
 
 export type ServiceKind = 'sell' | 'trade' | 'pawn';
 // New and 2hand are priced on the web; "other" (anything more complicated) is described and quoted by the shop.
-type RowCondition = ReferenceCondition | 'other';
+type RowCondition = ReferenceCondition;
 
 interface Quote {
   buyback: BuybackEstimate;
@@ -41,6 +40,9 @@ interface Row {
   product: ProductSummary | null;
   condition: RowCondition;
   valuation?: Valuation | null;
+  conditionNodeIds: number[];
+  otherCondition: string;
+  matchedCase?: ConditionCaseSnapshot | null;
   details: ConditionValue;
   files: UploadedEvidence[];
 }
@@ -52,7 +54,9 @@ let nextKey = 0;
 const newRow = (product: ProductSummary | null): Row => ({
   key: `row-${++nextKey}`,
   product,
-  condition: product ? 'new' : 'other',
+  condition: product?.itemTypeKey ?? 'new',
+  conditionNodeIds: product?.conditionNodeIds ?? [],
+  otherCondition: '',
   details: NEW_CONDITION_VALUE,
   files: [],
 });
@@ -86,39 +90,25 @@ export default function ServiceBasket({
     setRows((current) => current.map((row) => (row.key === key ? { ...row, ...change } : row)));
   const chosen = useRef(new Set<number>());
   const add = (product: ProductSummary | null) => {
-    if (product && chosen.current.has(product.id)) return;
     if (product) chosen.current.add(product.id);
     const row = newRow(product);
     setRows((current) => [...current, row]);
-    if (!product) return;
-    Api.get(`/valuation/${product.id}`)
-      .then(({ data }) => update(row.key, { valuation: data }))
-      .catch(() => update(row.key, { valuation: null }));
   };
 
   useEffect(() => {
     if (!initialProductId) return;
-    Api.get(`/valuation/${initialProductId}`)
-      .then(({ data }: { data: Valuation }) =>
-        add({
-          id: data.product.id,
-          name: data.product.name,
-          brandName: data.product.brandName,
-          imageUrl: data.product.imageUrl,
-          price: data.product.listPriceVnd,
-          modelCode: data.product.modelCode,
-        } as ProductSummary),
-      )
+    Api.get(`/products/${initialProductId}`)
+      .then(({ data }) => add(data))
       .catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialProductId]);
 
   // The web price of one row in this service, or null when the shop quotes it.
   const priceOf = (row: Row) => {
-    if (row.condition === 'other' || !row.valuation) return null;
-    const quote = row.valuation.conditions[row.condition];
-    if (kind === 'pawn') return quote.pawn.amountVnd;
-    return quote.buyback.manualReview ? null : quote.buyback.estimateVnd;
+    const price = row.matchedCase?.salePriceVnd;
+    if (!price || !row.matchedCase?.approvedAt) return null;
+    if (kind === 'pawn') return pawnC50(price);
+    return price > 100000 && buybackMargin(price) < price ? tierBuyback(price) : null;
   };
   const priced = rows.map(priceOf);
   const known = priced.filter((price): price is number => price !== null);
@@ -139,7 +129,7 @@ export default function ServiceBasket({
     const failed: string[] = [];
     for (const [index, row] of rows.entries()) {
       const reference = row.product ? { name: row.product.name, modelCode: row.product.modelCode ?? null } : null;
-      const described = row.condition === 'other';
+      const described = !row.product || !!row.otherCondition.trim();
       const built = payload(
         described
           ? row.details
@@ -151,10 +141,18 @@ export default function ServiceBasket({
       );
       const referenceCondition: ReferenceCondition = row.condition === 'preowned' ? 'preowned' : 'new';
       const common = {
-        asset: built.asset,
+        asset: {
+          ...built.asset,
+          defects:
+            [...(row.matchedCase?.labels ?? []), row.otherCondition].filter(Boolean).join('; ') || built.asset.defects,
+        },
         evidenceIds: row.files.map((file) => file.id),
-        referenceProductId: row.product?.id ?? null,
+        referenceProductId: row.product?.modelFamilyId ? null : (row.product?.id ?? null),
         referenceCondition,
+        modelFamilyId: row.product?.modelFamilyId ?? null,
+        itemTypeKey: row.condition,
+        conditionNodeIds: row.conditionNodeIds,
+        otherCondition: row.otherCondition,
       };
       const data =
         kind === 'pawn'
@@ -220,26 +218,18 @@ export default function ServiceBasket({
                   </span>
                   <div className="sb-row-copy">
                     <strong>{row.product?.name ?? t('otherModel')}</strong>
-                    {row.product ? (
-                      <div className="sb-segment" role="radiogroup" aria-label={t('condition')}>
-                        {(['new', 'preowned', 'other'] as const).map((condition) => (
-                          <button
-                            key={condition}
-                            type="button"
-                            role="radio"
-                            aria-checked={row.condition === condition}
-                            onClick={() => update(row.key, { condition })}
-                          >
-                            {t(`conditions.${condition}`)}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <small>{t('otherModelNote')}</small>
-                    )}
+                    <ServiceConditionSelector
+                      kind={kind}
+                      familyId={row.product?.modelFamilyId}
+                      type={row.condition}
+                      ids={row.conditionNodeIds}
+                      other={row.otherCondition}
+                      onChange={(change) => update(row.key, { ...change, matchedCase: null })}
+                      onMatch={(matchedCase) => update(row.key, { matchedCase })}
+                    />
                   </div>
                   <span className={`sb-row-price${priced[index] === null ? ' is-quote' : ''}`}>
-                    {row.product && row.valuation === undefined
+                    {row.matchedCase === undefined
                       ? '…'
                       : priced[index] !== null
                         ? money(priced[index]!)
@@ -259,6 +249,7 @@ export default function ServiceBasket({
                 </article>
               ))}
               <CatalogCombobox
+                familyMode
                 label={rows.length ? t('addAnother') : t('addFirst')}
                 value={null}
                 onChange={(product) => product && add(product)}
@@ -321,7 +312,9 @@ export default function ServiceBasket({
                       : difference === 0
                         ? t('even')
                         : money(Math.abs(difference))
-                    : money(ownTotal)}
+                    : quotedByShop
+                      ? t('afterQuote')
+                      : money(ownTotal)}
                 </strong>
                 {kind === 'trade' && !quotedByShop && difference !== 0 && items.length > 0 && (
                   <span className="qv-direction">{t(difference > 0 ? 'youPay' : 'shopPays')}</span>
@@ -330,6 +323,12 @@ export default function ServiceBasket({
                   {t('count', { count: rows.length })}
                   {quotedByShop > 0 && ` · ${t('quotedCount', { count: quotedByShop })}`}
                 </p>
+                {quotedByShop > 0 && known.length > 0 && (
+                  <p className="qv-fineprint">
+                    {locale === 'en' ? 'Priced items subtotal: ' : 'Tạm tính các món đã có giá: '}
+                    {money(ownTotal)}
+                  </p>
+                )}
                 <p className="qv-fineprint">{t(`${kind}.note`)}</p>
               </>
             )}
@@ -360,7 +359,7 @@ export default function ServiceBasket({
             {rows.map((row, index) => (
               <section key={row.key} className="service-form-section">
                 <h3 className="sb-request-title">
-                  {index + 1}. {row.product?.name ?? t('otherModel')} · {t(`conditions.${row.condition}`)}
+                  {index + 1}. {row.product?.name ?? t('otherModel')} · {row.condition === 'new' ? 'New' : '2hand'}
                   {priced[index] !== null && ` · ${money(priced[index]!)}`}
                   {kind === 'trade' && items[index] && ` → ${items[index].name}`}
                 </h3>
@@ -370,13 +369,6 @@ export default function ServiceBasket({
                   </p>
                 )}
                 {!row.product && <NameField value={row.details} onChange={(details) => update(row.key, { details })} />}
-                {row.condition === 'other' && (
-                  <ConditionFields
-                    value={row.details}
-                    onChange={(details) => update(row.key, { details })}
-                    reference={row.product}
-                  />
-                )}
                 <EvidenceUploader
                   purpose={kind === 'pawn' ? 'pawn' : 'buyback'}
                   files={row.files}

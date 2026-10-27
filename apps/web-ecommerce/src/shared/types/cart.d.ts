@@ -1,3 +1,4 @@
+import type { ConditionSelection } from '../condition-tree';
 import type { ProductPricing } from './product';
 import type { ModelCondition } from '../gunpla';
 
@@ -21,7 +22,7 @@ export type CartLine = {
   message?: string;
   availableStock: number;
   lineTotal: number;
-  product: ({ id: number; name: string; brandName: string; imageUrl: string; price: number; partnerId?: number | null; condition?: ModelCondition } & ProductPricing) | null;
+  product: ({ id: number; name: string; brandName: string; imageUrl: string; price: number; partnerId?: number | null; condition?: ModelCondition } & ProductPricing & ConditionSelection) | null;
 };
 
 export type CartQuote = {

@@ -1,8 +1,11 @@
+import type { ConditionCaseSnapshot } from '../condition-tree';
 import type { BuybackAsset } from './buyback';
 import type { PawnEstimate, PawnInterestPolicy } from '../pawn-rules';
 import type { PawnDisposalStatement, PawnDisposalSummary } from './pawn-disposal';
 export type PawnStatus = 'submitted' | 'quoted' | 'accepted' | 'contract_confirmed' | 'in_custody' | 'active' | 'repaid' | 'returned' | 'cancelled' | 'disposed';
 export interface PawnTerms {
+  conditionCase?: ConditionCaseSnapshot | null;
+  conditionCaseReviewNote?: string | null;
   appraisalVnd: number;
   principalVnd: number;
   termDays: number;
@@ -12,6 +15,9 @@ export interface PawnTerms {
   policy: PawnInterestPolicy;
 }
 export interface PawnContract {
+  conditionCase?: ConditionCaseSnapshot | null;
+  conditionCaseReviewNote?: string | null;
+  conditionCaseStatus?: 'pending' | 'resolved' | 'needs_evidence' | 'rejected' | null;
   id: number;
   userId: number;
   status: PawnStatus;

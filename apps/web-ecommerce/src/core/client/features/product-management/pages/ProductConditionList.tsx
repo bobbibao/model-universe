@@ -1,333 +1,462 @@
 'use client';
-
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
-import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
-import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
-import Modal from '@/components/Modal/Modal';
-import ConfirmModal from '@/components/Modal/ConfirmModal';
-import TextField from '@/components/FormElements/TextField';
-import TextAreaField from '@/components/FormElements/TextAreaField';
+import Link from '@/i18n/navigation';
 import Api from '@/core/client/api/Api';
-import { reloadProductConditions } from '@/shared/client/hooks/useProductConditions';
-import type { ProductConditionType } from '@/shared/product-conditions';
+import { conditionSelected } from '@/shared/condition-selection';
+import { useConditionTree } from '@/shared/client/hooks/useConditionTree';
+import { ancestors, conditionPath, nodeLabel, type ConditionNode, type ItemTypeKey } from '@/shared/condition-tree';
+import TextField from '@/components/FormElements/TextField';
+import SelectField from '@/components/FormElements/SelectField';
+import Modal from '@/components/Modal/Modal';
 
-type Row = ProductConditionType & { productCount: number };
-type Editing = Partial<Row> & { isNew?: boolean };
-
-const RULES = ['uniqueUnit', 'requiresMissingAccessories', 'requiresDefects'] as const;
-
-// Admin > Products > Conditions: the conditions a unit can be sold in. Staff add new ones with the rules a unit in them
-// must meet, rename, describe and order every one, retire one no longer used for new units, and remove an added one
-// no product has. The four built-in conditions keep their rules.
-const ProductConditionList = () => {
+type Draft = Pick<
+  ConditionNode,
+  | 'parentId'
+  | 'nameVi'
+  | 'nameEn'
+  | 'description'
+  | 'selectable'
+  | 'selectionMode'
+  | 'itemTypes'
+  | 'sortOrder'
+  | 'isActive'
+>;
+const empty: Draft = {
+  parentId: null,
+  nameVi: '',
+  nameEn: '',
+  description: '',
+  selectable: true,
+  selectionMode: 'multiple',
+  itemTypes: ['new', 'preowned'],
+  sortOrder: 0,
+  isActive: true,
+};
+export default function ProductConditionList() {
   const en = useLocale() === 'en';
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<Editing | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [removing, setRemoving] = useState<Row | null>(null);
-  const ruleLabel: Record<(typeof RULES)[number], string> = en
-    ? {
-        uniqueUnit: 'One of a kind (one piece, 3 real photos, stock only through intake)',
-        requiresMissingAccessories: 'Must list the missing accessories',
-        requiresDefects: 'Must describe each defect',
-      }
-    : {
-        uniqueUnit: 'Mỗi chiếc là duy nhất (1 chiếc, 3 ảnh thật, chỉ nhập kho qua thu mua/cầm)',
-        requiresMissingAccessories: 'Bắt buộc liệt kê phụ kiện còn thiếu',
-        requiresDefects: 'Bắt buộc mô tả từng lỗi',
-      };
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      setRows((await Api.get('/admin/product-conditions')).data);
-    } catch {
-      /* The toast explains it. */
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const tree = useConditionTree(true);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const initialized = useRef(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const selected = tree.nodes.find((node) => node.id === selectedId);
+  const [draft, setDraft] = useState<Draft>(empty);
+  const [query, setQuery] = useState('');
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
   useEffect(() => {
-    void load();
-  }, [load]);
-
-  const changed = async () => {
-    await reloadProductConditions();
-    await load();
+    if (tree.nodes.length && !initialized.current) {
+      setCollapsed(new Set(tree.nodes.map((node) => node.id)));
+      initialized.current = true;
+    }
+  }, [tree.nodes]);
+  const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState<'save' | 'delete' | null>(null);
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [message, setMessage] = useState('');
+  const edit = (node?: ConditionNode, parentId?: number | null) => {
+    setSelectedId(node?.id ?? null);
+    setDraft(node ? { ...node } : { ...empty, parentId: parentId ?? null, sortOrder: tree.nodes.length * 10 });
+    setMessage('');
   };
-
-  const save = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!editing) return;
-    setSaving(true);
-    const body = {
-      nameVi: editing.nameVi,
-      nameEn: editing.nameEn,
-      descriptionVi: editing.descriptionVi ?? '',
-      descriptionEn: editing.descriptionEn ?? '',
-      skuSuffix: editing.skuSuffix || undefined,
-      sortOrder: editing.sortOrder,
-      ...(editing.isSystem ? {} : Object.fromEntries(RULES.map((rule) => [rule, !!editing[rule]]))),
-      ...(editing.isNew && editing.key ? { key: editing.key } : {}),
-    };
+  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((current) => ({ ...current, [key]: value }));
+  const rows = useMemo(() => {
+    const walk = (parentId: number | null, depth: number): { node: ConditionNode; depth: number }[] =>
+      tree.nodes
+        .filter((node) => node.parentId === parentId)
+        .flatMap((node) => [{ node, depth }, ...(collapsed.has(node.id) ? [] : walk(node.id, depth + 1))]);
+    return query.trim()
+      ? tree.nodes
+          .filter((node) =>
+            conditionPath(node.id, tree.nodes, en).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
+          )
+          .map((node) => ({ node, depth: 0 }))
+      : walk(null, 0);
+  }, [tree.nodes, collapsed, query, en]);
+  const save = async (confirmed = false) => {
+    if (
+      selected &&
+      (selected.productCount ?? 0) > 0 &&
+      (draft.parentId !== selected.parentId || draft.isActive !== selected.isActive) &&
+      !confirmed
+    ) {
+      setConfirm('save');
+      return;
+    }
+    setBusy(true);
     try {
-      if (editing.isNew) await Api.post('/admin/product-conditions', body);
-      else await Api.put(`/admin/product-conditions/${editing.key}`, body);
-      setEditing(null);
-      await changed();
+      const payload = { ...draft, expectedVersion: selected?.version, confirmImpact: confirmed };
+      const response = selected
+        ? await Api.put(`/admin/product-condition-tree/${selected.id}`, payload)
+        : await Api.post('/admin/product-condition-tree', payload);
+      setSelectedId(response.data.id);
+      setSelectedIds((current) => new Set([...current, response.data.id]));
+      setDraft(response.data);
+      setMessage(en ? 'Saved' : 'Đã lưu');
+      tree.reload();
+      setConfirm(null);
     } catch {
-      /* The toast explains it. */
+      /* API displays the server validation, draft remains intact. */
     } finally {
-      setSaving(false);
+      setBusy(false);
     }
   };
-
-  const toggle = async (row: Row) => {
-    try {
-      await Api.put(`/admin/product-conditions/${row.key}`, { isActive: !row.isActive });
-      await changed();
-    } catch {
-      /* The toast explains it. */
-    }
-  };
-
   const remove = async () => {
-    if (!removing) return;
+    if (!selected) return;
+    setBusy(true);
     try {
-      await Api.delete(`/admin/product-conditions/${removing.key}`);
-      await changed();
+      await Api.delete(`/admin/product-condition-tree/${selected.id}`, { data: { expectedVersion: selected.version } });
+      setSelectedIds((current) => new Set([...current].filter((id) => id !== selected.id)));
+      edit();
+      tree.reload();
+      setConfirm(null);
     } catch {
-      /* The toast explains it. */
+      /* The shared API displays validation; keep the draft for retry. */
     } finally {
-      setRemoving(null);
+      setBusy(false);
     }
   };
-
-  const columns: DataTableColumn<Row>[] = [
-    {
-      key: 'name',
-      header: en ? 'Condition' : 'Tình trạng',
-      className: 'min-w-[220px]',
-      render: (row) => (
-        <span className="flex flex-col gap-0.5">
-          <span className={`condition-chip is-${row.key} self-start`}>{en ? row.nameEn : row.nameVi}</span>
-          <small className="text-body">
-            {en ? row.nameVi : row.nameEn} · <code>{row.key}</code> · SKU -{row.skuSuffix}
-          </small>
-        </span>
-      ),
-    },
-    {
-      key: 'rules',
-      header: en ? 'Rules' : 'Quy tắc',
-      render: (row) => (
-        <span className="flex flex-col gap-1 text-xs">
-          {RULES.filter((rule) => row[rule]).map((rule) => (
-            <span key={rule}>• {ruleLabel[rule]}</span>
-          ))}
-          {!RULES.some((rule) => row[rule]) && <span className="text-body">—</span>}
-        </span>
-      ),
-    },
-    { key: 'productCount', header: en ? 'Products' : 'Sản phẩm' },
-    { key: 'sortOrder', header: en ? 'Order' : 'Thứ tự' },
-    {
-      key: 'status',
-      header: en ? 'Status' : 'Trạng thái',
-      render: (row) =>
-        row.isActive ? (
-          <span className="text-success">{en ? 'In use' : 'Đang dùng'}</span>
-        ) : (
-          <span className="text-body">{en ? 'Retired' : 'Ngừng dùng'}</span>
-        ),
-    },
-    {
-      key: 'actions',
-      header: '',
-      render: (row) => (
-        <div className="flex justify-end gap-4 whitespace-nowrap">
-          <button onClick={() => setEditing({ ...row })} className="font-medium text-brand-hover hover:underline">
-            {en ? 'Edit' : 'Sửa'}
-          </button>
-          {row.key !== 'new' && (
-            <button onClick={() => void toggle(row)} className="font-medium text-body hover:underline">
-              {row.isActive ? (en ? 'Retire' : 'Ngừng dùng') : en ? 'Use again' : 'Dùng lại'}
-            </button>
-          )}
-          {!row.isSystem && row.productCount === 0 && (
-            <button onClick={() => setRemoving(row)} className="font-medium text-danger hover:underline">
-              {en ? 'Remove' : 'Xoá'}
-            </button>
-          )}
-        </div>
-      ),
-    },
-  ];
-
+  const parents = tree.nodes.filter(
+    (node) => node.id !== selectedId && (!selectedId || !ancestors(node.id, tree.nodes).includes(selectedId)),
+  );
   return (
-    <>
-      <Breadcrumb pageName={en ? 'Product conditions' : 'Tình trạng sản phẩm'} />
-      <p className="mb-4 max-w-3xl text-sm text-body">
-        {en
-          ? 'The conditions a unit can be sold in. Add a new one with the rules a unit in it must meet; it appears in the product form, the storefront filters and on product pages. A retired condition stays on the units that have it but cannot be chosen for new ones.'
-          : 'Các tình trạng một sản phẩm có thể được bán. Thêm tình trạng mới cùng quy tắc sản phẩm đó phải đáp ứng; tình trạng sẽ xuất hiện trong form sản phẩm, bộ lọc cửa hàng và trang sản phẩm. Tình trạng ngừng dùng vẫn giữ trên các sản phẩm đang có nhưng không chọn được cho sản phẩm mới.'}
-      </p>
-      <DataTable
-        title={en ? 'Conditions' : 'Danh sách tình trạng'}
-        actions={
-          <button
-            onClick={() =>
-              setEditing({
-                isNew: true,
-                nameVi: '',
-                nameEn: '',
-                descriptionVi: '',
-                descriptionEn: '',
-                sortOrder: Math.max(0, ...rows.map((row) => row.sortOrder)) + 10,
-              })
-            }
-            className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-ink hover:bg-brand-hover"
-          >
-            + {en ? 'Add a condition' : 'Thêm tình trạng'}
-          </button>
-        }
-        columns={columns}
-        data={rows}
-        rowKey={(row) => row.key}
-        loading={loading}
-        emptyText={en ? 'No conditions.' : 'Chưa có tình trạng.'}
-      />
-
-      <Modal
-        open={!!editing}
-        title={editing?.isNew ? (en ? 'Add a condition' : 'Thêm tình trạng') : en ? 'Edit condition' : 'Sửa tình trạng'}
-        onClose={() => setEditing(null)}
-        size="lg"
-      >
-        {editing && (
-          <form onSubmit={save} className="grid gap-4 md:grid-cols-2" noValidate>
-            <TextField
-              label={en ? 'Name (Vietnamese)' : 'Tên tiếng Việt'}
-              name="nameVi"
-              required
-              maxLength={80}
-              value={editing.nameVi ?? ''}
-              onChange={(event) => setEditing({ ...editing, nameVi: event.target.value })}
-              autoFocus
-            />
-            <TextField
-              label={en ? 'Name (English)' : 'Tên tiếng Anh'}
-              name="nameEn"
-              required
-              maxLength={80}
-              value={editing.nameEn ?? ''}
-              onChange={(event) => setEditing({ ...editing, nameEn: event.target.value })}
-            />
-            <TextAreaField
-              rows={2}
-              label={en ? 'Description for customers (Vietnamese)' : 'Mô tả cho khách (tiếng Việt)'}
-              name="descriptionVi"
-              maxLength={500}
-              value={editing.descriptionVi ?? ''}
-              onChange={(event) => setEditing({ ...editing, descriptionVi: event.target.value })}
-            />
-            <TextAreaField
-              rows={2}
-              label={en ? 'Description for customers (English)' : 'Mô tả cho khách (tiếng Anh)'}
-              name="descriptionEn"
-              maxLength={500}
-              value={editing.descriptionEn ?? ''}
-              onChange={(event) => setEditing({ ...editing, descriptionEn: event.target.value })}
-            />
-            {editing.isNew && (
-              <TextField
-                label={en ? 'Code (empty: from the English name)' : 'Mã (để trống: tạo từ tên tiếng Anh)'}
-                name="key"
-                placeholder="like-new"
-                maxLength={40}
-                value={editing.key ?? ''}
-                onChange={(event) => setEditing({ ...editing, key: event.target.value.toLowerCase() })}
-              />
-            )}
-            <TextField
-              label={en ? 'SKU suffix' : 'Hậu tố SKU'}
-              name="skuSuffix"
-              placeholder="LN"
-              maxLength={8}
-              value={editing.skuSuffix ?? ''}
-              onChange={(event) => setEditing({ ...editing, skuSuffix: event.target.value.toUpperCase() })}
-            />
-            <TextField
-              label={en ? 'Display order' : 'Thứ tự hiển thị'}
-              name="sortOrder"
-              type="number"
-              min={0}
-              step={1}
-              value={String(editing.sortOrder ?? 0)}
-              onChange={(event) => setEditing({ ...editing, sortOrder: Number(event.target.value) || 0 })}
-            />
-            <fieldset className="md:col-span-2">
-              <legend className="mb-2 text-sm font-semibold">
-                {en ? 'Rules for a unit in this condition' : 'Quy tắc cho sản phẩm ở tình trạng này'}
-              </legend>
-              {RULES.map((rule) => (
-                <label key={rule} className="mb-2 flex items-start gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    disabled={editing.isSystem}
-                    checked={!!editing[rule]}
-                    onChange={(event) => setEditing({ ...editing, [rule]: event.target.checked })}
-                  />
-                  {ruleLabel[rule]}
-                </label>
-              ))}
-              {editing.isSystem && (
-                <p className="text-xs text-body">
-                  {en
-                    ? 'A built-in condition keeps its rules: buy-back intake, partner listings and the catalogue rely on them.'
-                    : 'Tình trạng có sẵn giữ nguyên quy tắc: thu mua, tin đăng đối tác và danh mục chủ shop dựa vào chúng.'}
-                </p>
-              )}
-            </fieldset>
-            <div className="flex justify-end gap-3 md:col-span-2">
+    <div className="catalog-tree-workspace">
+      <div className="catalog-section-toolbar">
+        <div>
+          <h1>{en ? 'Condition library' : 'Cây tình trạng'}</h1>
+          <p>
+            {en ? 'Shared across products, buyback, trade and pawn.' : 'Dùng chung cho sản phẩm, thu, trade và cầm.'}
+          </p>
+        </div>
+        <button
+          className="mu-button"
+          type="button"
+          onClick={() => {
+            setSelectedIds(new Set());
+            edit();
+          }}
+        >
+          {en ? '+ Add root' : '+ Thêm nhánh gốc'}
+        </button>
+      </div>
+      <div className="catalog-tree-admin">
+        <aside className="catalog-tree-browser" aria-label={en ? 'Condition library' : 'Thư viện tình trạng'}>
+          <input
+            className="catalog-tree-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={en ? 'Find a branch…' : 'Tìm nhánh tình trạng…'}
+            aria-label={en ? 'Search conditions' : 'Tìm tình trạng'}
+          />
+          {tree.loading && (
+            <p role="status" className="condition-tree-empty">
+              {en ? 'Loading…' : 'Đang tải…'}
+            </p>
+          )}
+          {tree.failed && (
+            <button type="button" className="condition-tree-empty" onClick={tree.reload}>
+              {en ? 'Retry' : 'Thử lại'}
+            </button>
+          )}
+          <div className="catalog-tree-selection-bar">
+            <span>
+              {selectedIds.size
+                ? `${selectedIds.size} ${en ? 'selected · edit one at a time' : 'nhánh đã chọn · sửa từng nhánh'}`
+                : en
+                  ? 'Select a branch to edit'
+                  : 'Chọn nhánh để chỉnh sửa'}
+            </span>
+            {selectedIds.size > 0 && (
               <button
                 type="button"
-                onClick={() => setEditing(null)}
-                className="px-4 py-2 font-medium text-body hover:underline"
+                onClick={() => {
+                  setSelectedIds(new Set());
+                  edit();
+                }}
               >
-                {en ? 'Cancel' : 'Huỷ'}
+                {en ? 'Clear' : 'Bỏ chọn'}
               </button>
-              <button
-                type="submit"
-                disabled={saving || !editing.nameVi?.trim() || !editing.nameEn?.trim()}
-                className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-ink hover:bg-brand-hover disabled:opacity-60"
+            )}
+          </div>
+          <div className="catalog-tree-definition-rows">
+            {rows.map(({ node, depth }) => (
+              <div
+                key={node.id}
+                draggable={!busy}
+                onDragStart={() => setDragId(node.id)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const dragged = tree.nodes.find((item) => item.id === dragId);
+                  if (!dragged || dragged.id === node.id || ancestors(node.id, tree.nodes).includes(dragged.id)) return;
+                  // Drop in the top third (or Shift-drop) to sort before a sibling; elsewhere creates a child.
+                  const bounds = event.currentTarget.getBoundingClientRect();
+                  const before = event.shiftKey || event.clientY < bounds.top + bounds.height / 3;
+                  edit(dragged);
+                  setDraft({
+                    ...dragged,
+                    parentId: before ? node.parentId : node.id,
+                    sortOrder: before
+                      ? node.sortOrder - 1
+                      : tree.nodes
+                          .filter((item) => item.parentId === node.id)
+                          .reduce((max, item) => Math.max(max, item.sortOrder + 10), 0),
+                  });
+                  setMessage(
+                    before
+                      ? en
+                        ? `Review sorting before ${nodeLabel(node, en)} and save.`
+                        : `Kiểm tra thứ tự trước ${nodeLabel(node, en)} rồi lưu.`
+                      : en
+                        ? 'Review the destination and save the move.'
+                        : 'Kiểm tra nhánh đích và bấm lưu để di chuyển.',
+                  );
+                  setDragId(null);
+                }}
+                className={`catalog-tree-definition-row${conditionSelected(node.id, [...selectedIds], tree.nodes) ? ' is-active' : ''}${selectedId === node.id ? ' is-editing' : ''}${!node.isActive ? ' is-retired' : ''}`}
+                style={{ paddingInlineStart: `${8 + Math.min(depth, 8) * 16}px` }}
               >
-                {saving ? (en ? 'Saving…' : 'Đang lưu...') : en ? 'Save' : 'Lưu'}
+                {tree.nodes.some((item) => item.parentId === node.id) ? (
+                  <button
+                    type="button"
+                    className="condition-tree-expand"
+                    aria-label={`${en ? 'Expand' : 'Mở nhánh'} ${nodeLabel(node, en)}`}
+                    aria-expanded={!collapsed.has(node.id)}
+                    onClick={() =>
+                      setCollapsed((current) => {
+                        const next = new Set(current);
+                        if (next.has(node.id)) next.delete(node.id);
+                        else next.add(node.id);
+                        return next;
+                      })
+                    }
+                  >
+                    {collapsed.has(node.id) ? '›' : '⌄'}
+                  </button>
+                ) : (
+                  <span className="condition-tree-expand" />
+                )}
+                <button
+                  type="button"
+                  className="catalog-tree-node"
+                  aria-current={selectedId === node.id ? 'true' : undefined}
+                  aria-pressed={conditionSelected(node.id, [...selectedIds], tree.nodes)}
+                  onClick={() => {
+                    const checked = conditionSelected(node.id, [...selectedIds], tree.nodes);
+                    const next = new Set(
+                      [...selectedIds].filter(
+                        (id) => !checked || (id !== node.id && !ancestors(id, tree.nodes).includes(node.id)),
+                      ),
+                    );
+                    if (!checked) {
+                      ancestors(node.id, tree.nodes).forEach((id) => next.delete(id));
+                      next.add(node.id);
+                    }
+                    setSelectedIds(next);
+                    if (!checked) edit(node);
+                    else if (selectedId === node.id)
+                      edit(tree.nodes.find((item) => item.id === [...next].slice(-1)[0]));
+                  }}
+                >
+                  <span>{query ? conditionPath(node.id, tree.nodes, en) : nodeLabel(node, en)}</span>
+                  <small>{node.productCount ? node.productCount : ''}</small>
+                  <span className="catalog-tree-tick" aria-hidden="true">
+                    {conditionSelected(node.id, [...selectedIds], tree.nodes) ? '✓' : ''}
+                  </span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </aside>
+        <form
+          className="catalog-tree-editor"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void save();
+          }}
+        >
+          <div className="catalog-section-toolbar">
+            <h2>{selected ? nodeLabel(selected, en) : en ? 'New branch' : 'Nhánh mới'}</h2>
+            {selected && (
+              <button type="button" className="catalog-child-action" onClick={() => edit(undefined, selected.id)}>
+                {en ? 'Add child' : 'Thêm nhánh con'}
               </button>
+            )}
+          </div>
+          {selectedIds.size > 1 && (
+            <div className="catalog-tree-review-selection">
+              {[...selectedIds].map((id) => {
+                const node = tree.nodes.find((row) => row.id === id);
+                return node ? (
+                  <button type="button" key={id} aria-pressed={selectedId === id} onClick={() => edit(node)}>
+                    {nodeLabel(node, en)}
+                  </button>
+                ) : null;
+              })}
             </div>
-          </form>
-        )}
-      </Modal>
-
-      <ConfirmModal
-        open={!!removing}
-        title={en ? 'Remove condition' : 'Xoá tình trạng'}
-        message={
+          )}
+          <fieldset disabled={busy} className="grid gap-5 sm:grid-cols-2">
+            <TextField
+              name="nameVi"
+              label={en ? 'Vietnamese label' : 'Tên tiếng Việt'}
+              required
+              maxLength={120}
+              value={draft.nameVi}
+              onChange={(event) => set('nameVi', event.target.value)}
+            />
+            <TextField
+              name="nameEn"
+              label={en ? 'English label' : 'Tên tiếng Anh'}
+              maxLength={120}
+              value={draft.nameEn}
+              onChange={(event) => set('nameEn', event.target.value)}
+            />
+            <SelectField
+              name="parentId"
+              label={en ? 'Parent branch / move to' : 'Nhánh cha / di chuyển đến'}
+              value={String(draft.parentId ?? '')}
+              placeholder={en ? 'Root branch' : 'Nhánh gốc'}
+              options={parents.map((node) => ({
+                value: String(node.id),
+                label: conditionPath(node.id, tree.nodes, en),
+              }))}
+              onChange={(event) => set('parentId', event.target.value ? Number(event.target.value) : null)}
+            />
+            <TextField
+              name="sortOrder"
+              label={en ? 'Display order' : 'Thứ tự hiển thị'}
+              type="number"
+              min={-2147483648}
+              max={2147483647}
+              step={1}
+              value={draft.sortOrder}
+              onChange={(event) => set('sortOrder', Number(event.target.value))}
+            />
+            <SelectField
+              name="selectable"
+              label={en ? 'Branch purpose' : 'Vai trò của nhánh'}
+              value={draft.selectable ? 'condition' : 'group'}
+              options={[
+                { value: 'group', label: en ? 'Group · organize branches' : 'Nhóm · gom các nhánh' },
+                { value: 'condition', label: en ? 'Condition · can be selected' : 'Tình trạng · được chọn' },
+              ]}
+              onChange={(event) => set('selectable', event.target.value === 'condition')}
+            />
+            <SelectField
+              name="selectionMode"
+              label={en ? 'Child selection' : 'Quy tắc chọn nhánh con'}
+              value={draft.selectionMode}
+              options={[
+                { value: 'multiple', label: en ? 'Multiple branches' : 'Chọn nhiều nhánh' },
+                { value: 'single', label: en ? 'One branch only' : 'Chỉ chọn một nhánh' },
+              ]}
+              onChange={(event) => set('selectionMode', event.target.value as Draft['selectionMode'])}
+            />
+            <div>
+              <p className="mb-2 text-sm font-medium">{en ? 'Applies to' : 'Loại hàng áp dụng'}</p>
+              <div className="flex gap-5">
+                {(['new', 'preowned'] as ItemTypeKey[]).map((type) => (
+                  <label key={type} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={draft.itemTypes.includes(type)}
+                      onChange={(event) =>
+                        set(
+                          'itemTypes',
+                          event.target.checked
+                            ? [...draft.itemTypes, type]
+                            : draft.itemTypes.filter((item) => item !== type),
+                        )
+                      }
+                    />
+                    {type === 'new' ? 'New' : '2hand'}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <SelectField
+              name="isActive"
+              label={en ? 'Availability' : 'Sử dụng'}
+              value={draft.isActive ? 'active' : 'inactive'}
+              options={[
+                { value: 'active', label: en ? 'Available for new selections' : 'Cho phép chọn mới' },
+                { value: 'inactive', label: en ? 'Retired · retain history' : 'Ngừng dùng · giữ lịch sử' },
+              ]}
+              onChange={(event) => set('isActive', event.target.value === 'active')}
+            />
+          </fieldset>
+          <div className="catalog-tree-editor-footer">
+            <span role="status">
+              {message ||
+                (selected
+                  ? `${selected.productCount ?? 0} ${en ? 'products use this branch' : 'sản phẩm dùng nhánh này'}`
+                  : '')}
+            </span>
+            {selected && (
+              <button
+                type="button"
+                disabled={busy}
+                className="catalog-danger-link"
+                onClick={() => setConfirm('delete')}
+              >
+                {en ? 'Delete unused branch' : 'Xóa nhánh chưa dùng'}
+              </button>
+            )}
+            <button className="mu-button" disabled={busy} type="submit">
+              {busy ? '…' : en ? 'Save branch' : 'Lưu nhánh'}
+            </button>
+          </div>
+          <p className="catalog-form-note">
+            {en
+              ? 'New / 2hand is an independent item attribute. Moving a branch keeps product identities and historical snapshots.'
+              : 'New / 2hand là thuộc tính riêng của sản phẩm. Di chuyển nhánh giữ nguyên tổ hợp sản phẩm và snapshot lịch sử.'}
+          </p>
+          <Link href="/admin/products">{en ? 'Back to products' : 'Về danh sách sản phẩm'} →</Link>
+        </form>
+      </div>
+      <Modal
+        open={!!confirm}
+        title={
+          confirm === 'delete'
+            ? en
+              ? 'Delete branch'
+              : 'Xóa nhánh'
+            : en
+              ? 'Review affected products'
+              : 'Xác nhận ảnh hưởng'
+        }
+        onClose={() => {
+          if (!busy) setConfirm(null);
+        }}
+        footer={
           <>
-            {en ? 'Remove the condition' : 'Xoá tình trạng'}{' '}
-            <strong>{removing && (en ? removing.nameEn : removing.nameVi)}</strong>?
+            <button
+              type="button"
+              disabled={busy}
+              className="mu-button mu-button-secondary"
+              onClick={() => setConfirm(null)}
+            >
+              {en ? 'Cancel' : 'Hủy'}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              className="mu-button"
+              onClick={() => (confirm === 'delete' ? void remove() : void save(true))}
+            >
+              {en ? 'Confirm' : 'Xác nhận'}
+            </button>
           </>
         }
-        confirmLabel={en ? 'Remove' : 'Xoá'}
-        danger
-        onConfirm={remove}
-        onClose={() => setRemoving(null)}
-      />
-    </>
+      >
+        <p>
+          {confirm === 'delete'
+            ? en
+              ? 'Only a branch without products, history or children can be deleted. Retire used branches instead.'
+              : 'Chỉ xóa nhánh chưa có sản phẩm, lịch sử hoặc nhánh con. Nhánh đã dùng cần ngừng dùng để giữ lịch sử.'
+            : `${selected?.productCount ?? 0} ${en ? 'products are affected by this branch. Their selections are retained; historical requests keep their snapshots.' : 'sản phẩm đang dùng nhánh này. Giữ nguyên lựa chọn của sản phẩm; yêu cầu cũ giữ snapshot đã chốt.'}`}
+        </p>
+      </Modal>
+    </div>
   );
-};
-
-export default ProductConditionList;
+}

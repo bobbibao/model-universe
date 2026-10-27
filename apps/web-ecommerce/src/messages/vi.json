@@ -1198,7 +1198,10 @@
       "qc_passed": "QC trước đăng bán: đạt",
       "qc_failed": "QC trước đăng bán: chưa đạt",
       "published": "Đã đăng bán sau kiểm tra cuối",
-      "approve_trade_refund": "Admin duyệt khoản shop trả lại"
+      "approve_trade_refund": "Admin duyệt khoản shop trả lại",
+      "condition_case_resolved": "Đã duyệt tổ hợp tình trạng",
+      "condition_case_needs_evidence": "Yêu cầu bổ sung ảnh tình trạng",
+      "condition_case_rejected": "Từ chối đề xuất tình trạng"
     },
     "historyDetails": "Xem báo giá và quyết định đã lưu",
     "paidByCustomer": "Đã nhận khoản chênh lệch",
@@ -1869,12 +1872,12 @@
     "notFound": "Không tìm thấy sản phẩm.",
     "backToList": "Quay lại danh sách",
     "summary": "Sản phẩm #{id} · Đã bán / tổng số lượng: {sold} / {total}",
-    "remove": "Xoá sản phẩm",
+    "remove": "Ngừng bán sản phẩm",
     "cancel": "Huỷ thay đổi",
     "saving": "Đang lưu…",
     "save": "Lưu thay đổi",
-    "deleteConfirm": "Xoá {name}? Không thể hoàn tác. Chọn Tạm ngưng nếu chỉ muốn ẩn sản phẩm khỏi cửa hàng.",
-    "deleteLabel": "Xoá",
+    "deleteConfirm": "Ẩn {name} khỏi cửa hàng? SKU, lịch sử kho và liên kết đơn hàng cũ được giữ lại.",
+    "deleteLabel": "Ngừng bán",
     "review": "Xác nhận sản phẩm",
     "exit": "Thoát",
     "back": "Quay lại",
@@ -1917,6 +1920,7 @@
       "stockInvalid": "Tồn kho phải là số nguyên không âm.",
       "skuRequired": "Vui lòng nhập SKU.",
       "mainImageRequired": "Vui lòng chọn ảnh chính.",
+      "actualPhotosRequired": "Hàng 2hand cần ảnh chính là ảnh thật của sản phẩm đã tải lên.",
       "packagingInvalid": "Nhập đủ dài, rộng, cao (cm) và cân nặng (g) bằng số nguyên dương, hoặc để trống cả bốn.",
       "missingAccessoriesRequired": "Liệt kê phụ kiện còn thiếu.",
       "defectsRequired": "Mô tả ít nhất một lỗi.",
@@ -2004,7 +2008,7 @@
     "conditionInventoryHint": "Tổng các listing chưa lưu trữ. Trạng thái kho được hiển thị riêng tại từng listing.",
     "fieldGuide": {
       "stockIdentity": "Mã hàng & tồn kho",
-      "stock": "Số lượng có thể bán. Nhập số nguyên từ 0.",
+      "stock": "Chỉ đọc. Nhập, bán hoặc điều chỉnh tồn qua nghiệp vụ kho có lưu lịch sử.",
       "uniqueStock": "Hàng 2hand không tăng tồn tại đây; dùng luồng nhập hoặc hoàn trả đã kiểm định.",
       "displayMetadata": "Thông số mô tả",
       "displayMetadataHint": "Nội dung tham khảo cho sản phẩm và trợ lý. Phí vận chuyển dùng nhóm kích thước đóng gói phía trên; hai nhóm được lưu riêng.",
@@ -3758,12 +3762,12 @@
     "issues": {
       "retired": "Tình trạng không còn được chọn. Hãy tải lại danh sách.",
       "uniqueIdentity": "Hàng một chiếc không được đổi sang loại khác; cần dùng luồng kiểm định riêng.",
-      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ít nhất 3 ảnh thật đã tải lên.",
+      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ảnh chính là ảnh thật đã tải lên.",
       "missingAccessories": "Chưa liệt kê phụ kiện còn thiếu. Hãy bổ sung trong trang sửa sản phẩm.",
       "defects": "Chưa mô tả lỗi. Hãy bổ sung trong trang sửa sản phẩm."
     },
     "requirements": {
-      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ít nhất 3 ảnh thật đã tải lên.",
+      "photos": "Hàng một chiếc cần tồn kho tối đa 1 và ảnh chính là ảnh thật đã tải lên.",
       "missingAccessories": "Mỗi sản phẩm phải có danh sách phụ kiện còn thiếu trước khi đổi tình trạng.",
       "defects": "Mỗi sản phẩm phải có mô tả lỗi trước khi đổi tình trạng."
     }
@@ -4034,7 +4038,7 @@
       "note": "Lãi 0,3%/ngày hiện chỉ mô phỏng, chưa áp dụng. Chốt sau khi shop kiểm tra hàng.",
       "terms": "Giá cầm bằng 50% giá bán thực của shop cho đúng tình trạng, chốt sau khi kiểm hàng. Shop giữ mô hình đến khi bạn chuộc lại theo hợp đồng ký hai bên."
     },
-    "intro": "Thêm một hoặc nhiều mô hình, chọn tình trạng Mới hoặc 2hand để xem giá ngay. Tình trạng phức tạp hơn chọn \"Khác\" để shop báo giá.",
+    "intro": "Chọn mẫu và loại hàng New/2hand. Dùng tổ hợp có báo giá hoặc khai báo tình trạng để shop kiểm tra và báo giá riêng.",
     "models": "Mô hình của bạn",
     "yourModels": "Mô hình bạn đưa",
     "shopItems": "Món bạn muốn nhận",
@@ -4046,7 +4050,7 @@
     },
     "otherModel": "Mẫu shop không bán",
     "otherModelNote": "Shop báo giá sau khi xem ảnh",
-    "shopQuotes": "Shop báo giá",
+    "shopQuotes": "Báo giá riêng",
     "remove": "Bỏ",
     "addFirst": "Chọn mô hình",
     "addAnother": "Thêm mô hình khác",
@@ -4055,7 +4059,7 @@
     "memberPrice": "Giá thành viên",
     "oneItemPerModel": "Mỗi món nhận đổi với một mô hình của bạn: thêm mô hình để chọn thêm món.",
     "empty": "Chọn mô hình để xem giá.",
-    "afterQuote": "Chốt sau báo giá",
+    "afterQuote": "Báo giá sau kiểm hàng",
     "even": "Ngang giá",
     "youPay": "bạn trả thêm",
     "shopPays": "shop trả lại bạn",

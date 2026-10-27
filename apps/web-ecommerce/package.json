@@ -22,7 +22,11 @@
     "images:import": "ts-node scripts/import-product-images.ts",
     "images:watermark": "ts-node scripts/watermark-product-images.ts",
     "partners:seed": "ts-node scripts/seed-partners.ts",
-    "payos:test-webhook": "ts-node scripts/payos-test-webhook.ts"
+    "payos:test-webhook": "ts-node scripts/payos-test-webhook.ts",
+    "catalog:tree:migrate": "ts-node scripts/migrate-condition-catalog.ts",
+    "seed:condition-demo": "ts-node scripts/seed-condition-demo.ts",
+    "start:condition-demo": "node scripts/start-condition-demo.cjs",
+    "test:condition-db": "node scripts/test-condition-catalog.cjs"
   },
   "dependencies": {
     "@expo-google-fonts/be-vietnam-pro": "0.4.1",

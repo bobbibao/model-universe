@@ -11,6 +11,7 @@ const LISTED_FIELDS = [
   'price',
   'pricingReferenceMemberVnd',
   'condition',
+  'modelFamilyId', 'itemTypeKey', 'conditionNodeIds',
   'conditionNote',
   'missingAccessories',
   'defects',

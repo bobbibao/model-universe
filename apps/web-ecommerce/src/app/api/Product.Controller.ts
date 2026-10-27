@@ -36,6 +36,8 @@ export default class ProductController extends ApiBaseController {
       const { rows, count } = await service.listPublic({
         scale: parseFilterChoices(req.query.scale),
         condition: parseFilterChoices(req.query.condition),
+        itemTypeKey: parseFilterChoices(req.query.itemTypeKey),
+        conditionNodeIds: parseFilterChoices(req.query.conditionNodeIds).map(Number),
         assemblyState: parseFilterChoices(req.query.assemblyState),
         q: req.query.q as string | undefined,
         category: req.query.category as string | undefined,

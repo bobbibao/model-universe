@@ -4,6 +4,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Category } from '@/shared/types/product';
 import type { ProductFilterValues } from './ProductFilters';
+import { useConditionTree } from '@/shared/client/hooks/useConditionTree';
+import { conditionPath } from '@/shared/condition-tree';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 
 // Applied values come from the URL, never the unsent search draft.
@@ -22,6 +24,7 @@ export default function AppliedFilters({
   const ux = useTranslations('commerceUX');
   const locale = useLocale();
   const conditions = useProductConditions();
+  const tree = useConditionTree();
   const chips: { key: keyof ProductFilterValues; value?: string; label: string }[] = [];
   if (values.q) chips.push({ key: 'q', label: `“${values.q}”` });
   if (values.category)
@@ -33,6 +36,7 @@ export default function AppliedFilters({
         value,
         label: key === 'condition' ? conditions.label(value) : key === 'assemblyState' ? t(value) : value,
       });
+  for (const id of values.conditionNodeIds ?? []) chips.push({ key: 'conditionNodeIds', value: id, label: conditionPath(Number(id), tree.nodes, locale === 'en') || `#${id}` });
   if (values.minPrice) chips.push({ key: 'minPrice', label: `≥ ${formatVND(values.minPrice, locale)}` });
   if (values.maxPrice !== undefined) chips.push({ key: 'maxPrice', label: `≤ ${formatVND(values.maxPrice, locale)}` });
   if (values.inStock) chips.push({ key: 'inStock', label: t('inStock') });

@@ -1,5 +1,7 @@
+import { createHash } from 'crypto';
+import PromotionAuditModel from '../database/client/models/PromotionAudit.Model';
 import { Op } from 'sequelize';
-import ProductConditionService from './ProductConditionService';
+import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
 import StockImportModel from '../database/client/models/StockImport.Model';
 import StockImportItemModel from '../database/client/models/StockImportItem.Model';
 import ProductModel from '../database/client/models/Product.Model';
@@ -61,6 +63,8 @@ export default class StockImportService implements BaseServiceInterface<StockImp
   // Records a goods receipt: adds the quantities to the product stock and keeps the latest import price
   // as the product cost, in one transaction.
   async create(createdBy: number, data: Record<string, unknown>) {
+    const requestKey = data.requestKey == null ? null : String(data.requestKey);
+    if (requestKey && !/^[a-f0-9-]{36}$/i.test(requestKey)) throw HttpError.badRequest('Mã thao tác nhập kho không hợp lệ.');
     const supplierId = toInteger(data.supplierId);
     const note = asTrimmedString(data.note) || null;
     const rawItems = Array.isArray(data.items) ? data.items : [];
@@ -89,7 +93,17 @@ export default class StockImportService implements BaseServiceInterface<StockImp
     else if (!supplier.isActive) errors.push('Nhà cung cấp đã ngừng hợp tác.');
     if (errors.length > 0) throw HttpError.badRequest('Thông tin nhập kho chưa hợp lệ.', errors);
 
+    const digest = createHash('sha256').update(JSON.stringify({ supplierId, note, items })).digest('hex');
     const stockImportId = await DatabaseProvider.getInstance().transaction(async (transaction) => {
+      const actor = await UserModel.findByPk(createdBy, { transaction, lock: transaction.LOCK.UPDATE });
+      if (!actor?.isActive || actor.role !== 'ADMIN') throw HttpError.forbidden();
+      if (requestKey) {
+        const previous = await PromotionAuditModel.findOne({ where: { entityType: 'stock_import_request', entityId: createdBy, action: requestKey }, transaction });
+        if (previous) {
+          if (previous.newValue?.digest !== digest) throw HttpError.conflict('Mã thao tác đã dùng cho phiếu nhập khác.');
+          return Number(previous.newValue.stockImportId);
+        }
+      }
       const products = await ProductModel.findAll({
         where: { id: { [Op.in]: productIds } },
         order: [['id', 'ASC']],
@@ -98,8 +112,8 @@ export default class StockImportService implements BaseServiceInterface<StockImp
       });
       if (products.length !== productIds.length) throw HttpError.badRequest('Có sản phẩm không tồn tại.');
       if (products.some(product => product.partnerId)) throw HttpError.conflict('Partner inventory belongs to its seller listing workflow.', 'PARTNER_LISTING_REQUIRED');
-      const conditions = await new ProductConditionService().all(transaction);
-      if (products.some(product => conditions.find((type) => type.key === product.condition)?.uniqueUnit)) throw HttpError.conflict('Receive each unique one-of-a-kind collectible through its inspected intake record.', 'UNIQUE_ITEM_INTAKE_REQUIRED');
+      if (products.some(product => !product.combinationKey || product.catalogReviewRequired)) throw HttpError.conflict('Đối chiếu loại hàng và tổ hợp trước khi nhập kho.', 'CATALOG_REVIEW_REQUIRED');
+      if (products.some(product => product.itemTypeKey === 'preowned' && !product.imageUrl.startsWith('/uploads/'))) throw HttpError.conflict('Hàng 2hand cần ảnh đại diện thật trước khi nhập kho.');
       const productById = new Map(products.map((product) => [product.id, product]));
 
       const stockImport = await StockImportModel.create(
@@ -111,14 +125,16 @@ export default class StockImportService implements BaseServiceInterface<StockImp
         },
         { transaction },
       );
-      await StockImportItemModel.bulkCreate(
+      const received = await StockImportItemModel.bulkCreate(
         items.map((item) => ({ ...item, stockImportId: stockImport.id })),
         { transaction },
       );
-      for (const item of items) {
+      for (const [index, item] of items.entries()) {
+        await CatalogIntakeModel.create({ productId: item.productId, sourceType: 'supplier', sourceId: String(received[index].id), quantity: item.quantity, unitCostVnd: item.importPrice, actorUserId: createdBy, snapshot: { stockImportId: stockImport.id } }, { transaction });
         const product = productById.get(item.productId) as ProductModel;
         await product.update({ stock: product.stock + item.quantity, importPrice: item.importPrice }, { transaction });
       }
+      if (requestKey) await PromotionAuditModel.create({ actorUserId: createdBy, entityType: 'stock_import_request', entityId: createdBy, action: requestKey, newValue: { digest, stockImportId: stockImport.id } }, { transaction });
       return stockImport.id;
     });
     return this.get(stockImportId);

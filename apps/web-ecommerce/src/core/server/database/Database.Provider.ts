@@ -16,6 +16,10 @@ import ProductCostProfileModel from './client/models/ProductCostProfile.Model';
 import ProductPriceApprovalModel from './client/models/ProductPriceApproval.Model';
 import PromotionReconciliationModel from './client/models/PromotionReconciliation.Model';
 import ProductConditionTypeModel from './client/models/ProductConditionType.Model';
+import ModelFamilyModel from './client/models/ModelFamily.Model';
+import ConditionNodeModel from './client/models/ConditionNode.Model';
+import ConditionUsageModel from './client/models/ConditionUsage.Model';
+import CatalogIntakeModel from './client/models/CatalogIntake.Model';
 import ProductModel from './client/models/Product.Model';
 import ProductImageModel from './client/models/ProductImage.Model';
 import ProductSourceModel from './client/models/ProductSource.Model';
@@ -101,6 +105,8 @@ import { failIfStrict, seedData } from './client/seeders/Seeder';
 import { beginSeeding } from './client/seeders/SeedClock';
 import { applyAnalyticsViews } from './analytics/AnalyticsViews';
 import { MIGRATION_TABLE, runMigrations } from './migrations/Migrator';
+import { SequelizeStorage } from 'umzug';
+import { MIGRATIONS } from './migrations';
 
 export default class DatabaseProvider {
   // Dependency order: referenced tables come before the tables that point to them.
@@ -111,7 +117,11 @@ export default class DatabaseProvider {
     CategoryModel,
     SupplierModel,
     ProductConditionTypeModel,
+    ModelFamilyModel,
+    ConditionNodeModel,
+    ConditionUsageModel,
     ProductModel,
+    CatalogIntakeModel,
     ProductImageModel,
     ProductSourceModel,
     ReviewModel,
@@ -519,6 +529,25 @@ export default class DatabaseProvider {
       // Load models, set up associations, etc.
     }
     return DatabaseProvider.instance;
+  }
+
+  // An empty, dedicated demo/test database. Never executes the shop's synthetic-history seed or drops tables.
+  public static async initializeDemoSchema() {
+    if (!/_(condition_demo|test)$/.test(process.env.DB_NAME ?? '')) throw new Error('Use a dedicated *_condition_demo or *_test database.');
+    process.env.SEED_DATA = 'false';
+    process.env.DROP_TABLES = 'false';
+    const sequelize = DatabaseProvider.getInstance();
+    await sequelize.authenticate();
+    await DatabaseProvider.loadModels(sequelize);
+    await sequelize.sync();
+    // Current models create the whole empty schema. Baseline historical migrations instead of replaying old
+    // owner-catalog imports, placeholder prices and synthetic financial policies into an unrelated demo database.
+    await MIGRATIONS.find(migration => migration.name === '2026-10-27-54-product-condition-tree')!.up({ context: { sequelize } });
+    const storage = new SequelizeStorage({ sequelize, tableName: MIGRATION_TABLE });
+    const executed = new Set(await storage.executed());
+    for (const migration of MIGRATIONS) if (!executed.has(migration.name)) await storage.logMigration({ name: migration.name });
+    await applyAnalyticsViews(sequelize);
+    return sequelize;
   }
 
   public static async initialize() {

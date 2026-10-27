@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import Stepper from '@/components/Stepper/Stepper';
 import SelectField from '@/components/FormElements/SelectField';
@@ -39,6 +39,7 @@ const validateLines = (lines: ImportLine[]): string[] =>
   });
 
 const StockImport = () => {
+  const attempt = useRef<{ signature: string; key: string } | undefined>(undefined);
   const [step, setStep] = useState(0);
   const [lines, setLines] = useState<ImportLine[]>([emptyLine()]);
   const [suppliers, setSuppliers] = useState<SupplierOption[]>([]);
@@ -72,7 +73,7 @@ const StockImport = () => {
 
   const finish = async () => {
     setSaving(true);
-    const created = await StockImportApi.createStockImport({
+    const payload = {
       supplierId: Number(supplierId),
       note,
       items: lines.map((line) => ({
@@ -80,9 +81,13 @@ const StockImport = () => {
         quantity: Number(line.quantity),
         importPrice: Number(line.importPrice),
       })),
-    });
+    };
+    const signature = JSON.stringify(payload);
+    if (attempt.current?.signature !== signature) attempt.current = { signature, key: crypto.randomUUID() };
+    const created = await StockImportApi.createStockImport({ ...payload, requestKey: attempt.current.key });
     setSaving(false);
     if (created) {
+      attempt.current = undefined;
       reset();
       setHistoryKey((key) => key + 1);
     }

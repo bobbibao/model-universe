@@ -7,6 +7,7 @@ import ProductBulkService from '../../core/server/services/ProductBulkService';
 import type ProductService from '../../core/server/services/ProductService';
 import { apiProductMessage } from '../../shared/server/utils/ApiLocale';
 import HttpError from '../../shared/server/utils/HttpError';
+import ConditionStockService from '../../core/server/services/catalog/ConditionStockService';
 import { parsePagination, toPaginatedPayload } from '../../shared/server/utils/PaginationUtils';
 import { toInteger } from '../../shared/server/utils/ValidationUtils';
 
@@ -19,6 +20,11 @@ const parseId = (value: string): number => {
 @Controller('/admin/products')
 @ControllerModel('ProductModel')
 export default class AdminProductController extends ApiBaseController {
+  @Post('/:id/transfer-condition')
+  async transferCondition(req: Request, res: Response) {
+    try { if (!req.user) throw HttpError.unauthorized(); return this.sendSuccess(res, await new ConditionStockService().transfer(req.user.id, parseId(req.params.id), req.body ?? {})); }
+    catch (error) { return this.handleError(res, error, 'Transfer condition stock'); }
+  }
   @Get('/')
   async getProducts(req: Request, res: Response) {
     try {
@@ -26,6 +32,7 @@ export default class AdminProductController extends ApiBaseController {
       const { page, perPage, limit, offset } = parsePagination(req);
       const { rows, count } = await service.listAdmin({
         q: req.query.q as string | undefined,
+        groupByModel: req.query.groupByModel === 'true',
         categoryId: toInteger(req.query.categoryId),
         status: req.query.status as string | undefined,
         sortKey: req.query.sort as string | undefined,

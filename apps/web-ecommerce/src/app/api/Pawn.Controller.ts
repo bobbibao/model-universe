@@ -8,6 +8,11 @@ import HttpError from '../../shared/server/utils/HttpError';
 
 @Controller('/pawn')
 export default class PawnController extends ApiBaseController {
+  @Post('/:id/condition-evidence')
+  async conditionEvidence(req: Request, res: Response) {
+    try { return this.sendSuccess(res, await new PawnService().addCaseEvidence(Number(req.params.id), this.user(req), req.body || {})); }
+    catch (error) { return this.handleError(res, error, 'Add pawn condition evidence'); }
+  }
   private service = new PawnService();
   private user(req: Request) { if (!req.user) throw HttpError.unauthorized(); return req.user.id; }
   @Get('/')

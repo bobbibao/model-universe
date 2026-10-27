@@ -15,6 +15,8 @@
     "include": [
       "server.ts",                   // Include your custom server file
       "scripts/seed.ts",             // The e2e seed (node dist/.next/scripts/seed.js in the image)
+      "scripts/seed-condition-demo.ts",
+      "scripts/migrate-condition-catalog.ts",
       "scripts/migrate.ts",          // `yarn db:migrate` (node dist/.next/scripts/migrate.js in the image)
       "scripts/import-catalog.ts",   // `yarn catalog:import` (node dist/.next/scripts/import-catalog.js in the image)
       "scripts/seed-partners.ts",    // `yarn partners:seed` (node dist/.next/scripts/seed-partners.js in the image)
