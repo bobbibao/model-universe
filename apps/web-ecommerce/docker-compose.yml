@@ -1,4 +1,4 @@
-name: consortia
+name: bobby
 networks:
   app-network:
     driver: bridge

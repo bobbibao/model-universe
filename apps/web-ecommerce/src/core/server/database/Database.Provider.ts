@@ -96,6 +96,7 @@ import PartnerGuaranteeModel from './client/models/PartnerGuarantee.Model';
 import PartnerGuaranteePaymentModel from './client/models/PartnerGuaranteePayment.Model';
 import CustomerAddressModel from './client/models/CustomerAddress.Model';
 import RestockSubscriptionModel from './client/models/RestockSubscription.Model';
+import RecommendationEventModel from './client/models/RecommendationEvent.Model';
 import { failIfStrict, seedData } from './client/seeders/Seeder';
 import { beginSeeding } from './client/seeders/SeedClock';
 import { applyAnalyticsViews } from './analytics/AnalyticsViews';
@@ -199,6 +200,7 @@ export default class DatabaseProvider {
     LoyaltyClaimModel,
     LoyaltyGiftModel,
     LoyaltyRedemptionModel,
+    RecommendationEventModel,
   ];
 
   private static modelsToSeedInProduction: any = [

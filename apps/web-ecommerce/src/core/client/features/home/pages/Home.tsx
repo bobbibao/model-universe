@@ -12,6 +12,7 @@ import { collectorServices } from '@/components/Services/ServiceExperience';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { readRecentlyViewed } from '@/shared/client/recentlyViewed';
 import ProductApi from '@/core/client/api/Product';
+import SmartRecommendationRail from '@/core/client/features/recommendations/components/SmartRecommendationRail';
 
 // The home page in the order a shopper decides: today's offers (ticker, banners, vouchers), the live sale, what others
 // buy most, a quick way in by brand, what is new, good prices, what this visitor looked at, then the shop's services.
@@ -30,6 +31,9 @@ const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
       <AnnouncementTicker />
       <HomePromotions products={initialProducts} />
       <SaleShelf />
+      <div className="mu-wrap">
+        <SmartRecommendationRail surface="home" defaultStrategy="for_you" limit={4} />
+      </div>
       <ProductRail
         ranked
         tone="hot"

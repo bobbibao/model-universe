@@ -90,6 +90,7 @@ import OrderShipmentEventModel from '../client/models/OrderShipmentEvent.Model';
 import AdminAlertModel from '../client/models/AdminAlert.Model';
 import NotificationDeliveryModel from '../client/models/NotificationDelivery.Model';
 import PromotionAuditModel from '../client/models/PromotionAudit.Model';
+import RecommendationEventModel from '../client/models/RecommendationEvent.Model';
 
 export interface MigrationContext {
   sequelize: Sequelize;
@@ -1384,6 +1385,24 @@ export const MIGRATIONS: Migration[] = [
           );
         }
       });
+    },
+  },
+  {
+    name: '2026-10-27-54-smart-product-recommendations',
+    up: async ({ context }) => {
+      // Behavioral and recommendation telemetry table (`recommendation_event`) for Smart Product Recommendations.
+      // Idempotent: ensureTables creates the table if missing, and CREATE INDEX IF NOT EXISTS ensures fast lookups.
+      await ensureTables(RecommendationEventModel);
+      await context.sequelize.query(`
+        CREATE INDEX IF NOT EXISTS "recommendation_event_user_created_idx"
+          ON "recommendation_event" ("userId", "createdAt");
+        CREATE INDEX IF NOT EXISTS "recommendation_event_session_created_idx"
+          ON "recommendation_event" ("sessionKey", "createdAt");
+        CREATE INDEX IF NOT EXISTS "recommendation_event_product_type_idx"
+          ON "recommendation_event" ("productId", "eventType", "createdAt");
+        CREATE INDEX IF NOT EXISTS "recommendation_event_type_created_idx"
+          ON "recommendation_event" ("eventType", "createdAt");
+      `);
     },
   },
 ];

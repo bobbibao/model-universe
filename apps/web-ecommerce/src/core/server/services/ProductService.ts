@@ -340,6 +340,26 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     return rankRelatedProducts({ ...source, salePrice: active.length ? Math.min(...active.map((unit) => unit.salePrice)) : source.salePrice }, candidates as unknown as ProductSummary[]);
   }
 
+  // Public sellable main listings with active discounts and condition summaries for multi-strategy smart recommendations.
+  async getSellableCandidatePool(limit = 160): Promise<ProductSummary[]> {
+    const availableIds = await this.matchingListingIds({ ...STOREFRONT_VISIBLE, stock: { [Op.gt]: 0 } });
+    if (!availableIds.length) return [];
+    const rows = await ProductModel.findAll({
+      attributes: LIST_ATTRIBUTES,
+      where: { ...STOREFRONT_VISIBLE, parentProductId: null, id: availableIds },
+      include: [categoryInclude],
+      order: [
+        ['isFeatured', 'DESC'],
+        ['sold', 'DESC'],
+        ['rating', 'DESC'],
+        ['id', 'ASC'],
+      ],
+      limit: Math.max(12, Math.min(240, limit)),
+    });
+    const enriched = await this.withConditions(await this.discountService.withPricing(rows));
+    return enriched as unknown as ProductSummary[];
+  }
+
   async getReviews(productId: number, limit: number, offset: number) {
     const exists = await ProductModel.count({ where: { id: productId, ...STOREFRONT_VISIBLE } });
     if (!exists) throw HttpError.notFound('Không tìm thấy sản phẩm.');

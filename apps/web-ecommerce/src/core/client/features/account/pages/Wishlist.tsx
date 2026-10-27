@@ -13,6 +13,7 @@ import EmptyState from '@/components/Store/EmptyState';
 import WishlistApi from '@/core/client/api/Wishlist';
 import { useCart } from '@/shared/client/providers/CartProvider';
 import type { WishlistItem } from '@/shared/types/cart';
+import SmartRecommendationRail from '@/core/client/features/recommendations/components/SmartRecommendationRail';
 
 export default function Wishlist() {
   const t = useTranslations('wishlist');
@@ -150,6 +151,14 @@ export default function Wishlist() {
             );
           })}
         </div>
+      )}
+      {!loading && !failed && (
+        <SmartRecommendationRail
+          surface="wishlist"
+          defaultStrategy="for_you"
+          productId={items?.[0]?.productId}
+          limit={4}
+        />
       )}
     </section>
   );

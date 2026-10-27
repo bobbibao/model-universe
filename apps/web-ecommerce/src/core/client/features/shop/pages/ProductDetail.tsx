@@ -1,6 +1,7 @@
 'use client';
 
 import { rememberViewed } from '@/shared/client/recentlyViewed';
+import { trackRecommendationEvent } from '@/shared/client/behaviorTracker';
 import { memberPrice } from '@/shared/pricing';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { productPath } from '@/shared/slug';
@@ -121,6 +122,13 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
       if (result && resetSelection) {
         trackViewContent({ id: String(result.id), name: result.name, price: result.salePrice, quantity: 1 });
         rememberViewed(result);
+        trackRecommendationEvent({
+          eventType: 'product_view',
+          productId: result.id,
+          categoryId: result.categoryId,
+          priceVnd: result.salePrice ?? result.price,
+          surface: 'product_detail',
+        });
       }
       if (resetSelection) {
         setQuantity(1);
@@ -136,6 +144,27 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   useEffect(() => {
     loadProduct(true);
   }, [loadProduct]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+    const viewedProductId = product.id;
+    const viewedCategoryId = product.categoryId;
+    const viewedPrice = product.salePrice ?? product.price;
+    const enteredAt = Date.now();
+    return () => {
+      const dwellMs = Date.now() - enteredAt;
+      if (dwellMs >= 4000) {
+        trackRecommendationEvent({
+          eventType: 'dwell',
+          productId: viewedProductId,
+          categoryId: viewedCategoryId,
+          dwellMs,
+          priceVnd: viewedPrice,
+          surface: 'product_detail',
+        });
+      }
+    };
+  }, [product?.id, product?.categoryId, product?.salePrice, product?.price]);
 
   useEffect(() => {
     if (user) WishlistApi.getWishlist().then((items) => setWishlist(items || []));
@@ -188,7 +217,16 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
       }
     } else {
       const added = await WishlistApi.addItem(unit.id);
-      if (added) setWishlist([...wishlist, { ...added } as WishlistItem]);
+      if (added) {
+        setWishlist([...wishlist, { ...added } as WishlistItem]);
+        trackRecommendationEvent({
+          eventType: 'wishlist_add',
+          productId: product?.id ?? unit.id,
+          categoryId: product?.categoryId ?? null,
+          priceVnd: unit.salePrice ?? unit.price,
+          surface: 'product_detail',
+        });
+      }
     }
     setWishlistBusy(false);
   };
@@ -220,6 +258,13 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     if (!inStock) return;
     if (addItem({ ...offer, name: product.name, brandName: product.brandName }, quantity)) {
       trackAddToCart({ id: String(unit.id), name: product.name, price: unit.salePrice, quantity });
+      trackRecommendationEvent({
+        eventType: 'add_to_cart',
+        productId: product.id,
+        categoryId: product.categoryId,
+        priceVnd: unit.salePrice ?? unit.price,
+        surface: 'product_detail',
+      });
       setAddedUnit(unit.id);
     }
   };

@@ -14,6 +14,8 @@ import StorePagination from '../components/StorePagination';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { shopPath } from '@/shared/slug';
 import AppliedFilters from '../components/AppliedFilters';
+import { rememberSearchQuery, trackRecommendationEvent } from '@/shared/client/behaviorTracker';
+import SmartRecommendationRail from '@/core/client/features/recommendations/components/SmartRecommendationRail';
 
 const PAGE_SIZE = 12;
 const DEFAULT_SORT: ProductSort = 'newest';
@@ -137,6 +139,21 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
       setProducts(result?.data || []);
       setPagination(result?.pagination);
       setLoading(false);
+      if (applied.q && applied.q.trim().length >= 2) {
+        rememberSearchQuery(applied.q);
+        trackRecommendationEvent({
+          eventType: 'search',
+          searchQuery: applied.q.trim(),
+          categorySlug: applied.category || null,
+          surface: 'catalog',
+        });
+      } else if (applied.category) {
+        trackRecommendationEvent({
+          eventType: 'category_view',
+          categorySlug: applied.category,
+          surface: 'catalog',
+        });
+      }
     };
     void load();
     return () => {
@@ -276,6 +293,16 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
                   behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
                 });
               }}
+            />
+          )}
+          {!failed && !loading && (
+            <SmartRecommendationRail
+              surface="catalog"
+              defaultStrategy="for_you"
+              category={applied.category || undefined}
+              q={applied.q || undefined}
+              maxPrice={applied.maxPrice}
+              limit={4}
             />
           )}
         </section>

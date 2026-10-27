@@ -1007,6 +1007,7 @@
     "contacts": "Contact messages",
     "marketing": "Marketing",
     "adminCampaigns": "Staff campaigns",
+    "recommendations": "Smart recommendations",
     "agent": "AI operations",
     "approvalsWork": "Approvals and work",
     "inbox": "Approval inbox",
@@ -2218,6 +2219,7 @@
       "suppliers": "Keep supplier information and sourcing relationships up to date.",
       "policies": "Review the business rules that govern your commerce workflows.",
       "adminCampaigns": "Create, preview and manage marketing content and campaigns.",
+      "recommendations": "Monitor product recommendation CTR, conversions and tune personalization weights.",
       "inbox": "Review AI proposals. You decide what changes in your store.",
       "copilot": "A conversation that connects your questions to real store workflows.",
       "tasks": "Coordinate operational tasks and review their progress.",
@@ -3807,7 +3809,15 @@
       "brand": "Same brand",
       "scale": "Same scale",
       "price": "Similar price range",
-      "discover": "More to explore"
+      "discover": "More to explore",
+      "personalized_affinity": "Matches your collector profile",
+      "bought_together": "Frequently bought together",
+      "viewed_together": "Frequently viewed together",
+      "budget_friendly": "More budget-friendly",
+      "preowned_deal": "Pre-owned deal in stock",
+      "freeship_completer": "Unlocks free shipping",
+      "trending_now": "Trending right now",
+      "search_match": "Matches your recent search"
     },
     "shoppingServices": "Shopping services",
     "shippingService": "Nationwide delivery",
@@ -4059,5 +4069,139 @@
     "terms": "Read the terms",
     "sending": "Sending…",
     "send": "Send {count} models"
+  },
+  "smartRecs": {
+    "personalizedPill": "Personalized for you",
+    "savesVnd": "Save {amount}",
+    "preownedOption": "Pre-owned unit in stock",
+    "pdpEyebrow": "Smart recommendations",
+    "pdpTitle": "Discover models tailored to your build",
+    "pdpTabsAria": "Model recommendation strategies",
+    "pdpTabs": {
+      "similar": "Similar",
+      "related": "Related",
+      "bought_together": "Bought together",
+      "budget_alternative": "Budget-friendly",
+      "for_you": "For you"
+    },
+    "pdpStrategyNotes": {
+      "similar": "Models in the same category, scale or brand for side-by-side comparison.",
+      "related": "Complementary kits and sibling scales to expand your display shelf.",
+      "bought_together": "Frequently viewed or purchased together with this model by collectors.",
+      "budget_alternative": "More accessible alternatives or verified pre-owned units in stock.",
+      "for_you": "Tailored to your recent views, search keywords and collector profile."
+    },
+    "sections": {
+      "for_you": {
+        "eyebrow": "Picked for you",
+        "title": "Matches your collector profile",
+        "subtitle": "Tailored from your browsing history, favorite grades and habitual price range."
+      },
+      "trending": {
+        "eyebrow": "Trending now",
+        "title": "Most sought-after models",
+        "subtitle": "Gunpla and Metal Build kits getting the most collector attention this week."
+      },
+      "budget_alternative": {
+        "eyebrow": "Smart value",
+        "title": "Budget-friendly & pre-owned deals",
+        "subtitle": "Accessible kits and inspected pre-owned options ready to ship."
+      },
+      "similar": {
+        "eyebrow": "Direct comparison",
+        "title": "Similar models in stock",
+        "subtitle": "Same grade, scale and design lineage as the model you are viewing."
+      },
+      "bought_together": {
+        "eyebrow": "Collector combos",
+        "title": "Frequently bought together",
+        "subtitle": "Popular pairings collectors often add to the same order."
+      },
+      "related": {
+        "eyebrow": "Expand your universe",
+        "title": "Related models to explore",
+        "subtitle": "Complementary kits across sibling scales and series."
+      },
+      "cart_addon": {
+        "eyebrow": "Complete your order",
+        "title": "Smart add-ons for Free Shipping",
+        "subtitle": "Right-sized kits that pair with your bag and help unlock free delivery."
+      }
+    }
+  },
+  "adminRecommendations": {
+    "eyebrow": "AI & Personalization",
+    "title": "Smart Product Recommendations",
+    "subtitle": "Monitor conversion performance across strategies, inspect search intent signals and tune ranking weights in real time.",
+    "windowDays": "Last {days} days",
+    "loadFailed": "Could not load recommendation analytics.",
+    "saved": "Smart recommendation configuration saved.",
+    "saveFailed": "Could not save recommendation configuration.",
+    "kpi": {
+      "impressions": "Recommendation impressions",
+      "impressionsHint": "Total recommended product cards rendered",
+      "clicks": "Recommendation clicks",
+      "ctrHint": "CTR: {ctr}%",
+      "conversions": "Add-to-cart conversions",
+      "conversionRateHint": "Conversion rate: {rate}%",
+      "behavioralEvents": "Behavioral signals",
+      "eventsHint": "Total view, search, dwell & cart events"
+    },
+    "byStrategyTitle": "Performance by strategy",
+    "byStrategySubtitle": "Compare impressions, CTR and add-to-cart conversion rate across algorithms.",
+    "bySurfaceTitle": "Performance by storefront surface",
+    "bySurfaceSubtitle": "Engagement across Home, Product Detail, Cart, Catalog and Wishlist.",
+    "topSearchesTitle": "Top search intent keywords",
+    "noSearches": "No search queries recorded in this period.",
+    "searchesCount": "{count} searches",
+    "topProductsTitle": "Top converting recommended products",
+    "topProductsSubtitle": "Models generating the highest clicks and cart additions from recommendation rails.",
+    "noEventsYet": "No recommendation interaction events recorded in this window yet.",
+    "configTitle": "Scoring weights & business rules",
+    "configSubtitle": "Tune the hybrid ranking formula without redeploying code.",
+    "columns": {
+      "strategy": "Strategy",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "ctr": "CTR",
+      "conversions": "Add to bag",
+      "convRate": "CVR",
+      "product": "Model",
+      "brandScale": "Brand · Scale",
+      "price": "Price"
+    },
+    "strategies": {
+      "for_you": "Personalized for you",
+      "similar": "Similar products",
+      "related": "Related products",
+      "bought_together": "Frequently bought together",
+      "trending": "Trending now",
+      "budget_alternative": "Budget-friendly / 2hand",
+      "cart_addon": "Cart & Freeship add-on"
+    },
+    "surfaces": {
+      "home": "Home page",
+      "product_detail": "Product detail (PDP)",
+      "cart": "Shopping bag & Checkout",
+      "catalog": "Catalog & Search",
+      "wishlist": "Saved models (Wishlist)"
+    },
+    "fields": {
+      "enabled": "Enable smart recommendations across the storefront",
+      "prioritizeInStockPreowned": "Boost products with in-stock pre-owned (2hand) condition units",
+      "freeshipThresholdVnd": "Target free-shipping threshold for cart add-ons (VND)",
+      "maxPerBrandScale": "Max items per Brand + Scale in a single rail (diversity cap)",
+      "weightsHeading": "Scoring weights (0 – 100)",
+      "personalizationWeight": "Personal affinity & behavioral history weight",
+      "contentSimilarityWeight": "Content similarity weight (Category, Brand, Scale)",
+      "coPurchaseWeight": "Co-purchase & co-view weight",
+      "trendingWeight": "Trending & sales velocity weight",
+      "budgetSensitivityWeight": "Budget fit & pre-owned deal weight",
+      "strategiesHeading": "Enable / disable individual strategies",
+      "reason": "Audit reason for configuration change",
+      "reasonPlaceholder": "e.g. Boost co-purchase weight for weekend campaign",
+      "saving": "Saving configuration…",
+      "saveConfig": "Save recommendation settings"
+    }
   }
 }

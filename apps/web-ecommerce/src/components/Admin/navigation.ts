@@ -81,7 +81,13 @@ export const adminNavigation = [
       },
     ],
   },
-  { name: 'marketing', items: [{ label: 'adminCampaigns', route: '/admin/marketing', icon: 'megaphone' }] },
+  {
+    name: 'marketing',
+    items: [
+      { label: 'adminCampaigns', route: '/admin/marketing', icon: 'megaphone' },
+      { label: 'recommendations', route: '/admin/recommendations', icon: 'spark' },
+    ],
+  },
   {
     name: 'agent',
     items: [

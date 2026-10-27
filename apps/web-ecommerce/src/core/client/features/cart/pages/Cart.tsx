@@ -31,6 +31,7 @@ import FulfillmentPicker, { CarrierQuoteLine, type FeeQuote } from '../component
 import DeliveryAddressSection from '../components/DeliveryAddressSection';
 import CheckoutPaymentModal from '../components/CheckoutPaymentModal';
 import { clock, useCountdown } from '@/components/Payment/PaymentQr';
+import SmartRecommendationRail from '@/core/client/features/recommendations/components/SmartRecommendationRail';
 
 // The browser's last QR checkout: when it was paid elsewhere (another tab, the banking app, a webhook), the bag that
 // still holds its items is emptied on the next visit. The open checkout itself always comes from the server.
@@ -700,6 +701,13 @@ const Cart = () => {
           </section>
         </aside>
       </div>
+      <SmartRecommendationRail
+        surface="cart"
+        defaultStrategy="cart_addon"
+        cartProductIds={entries.map(({ item }) => item.productId)}
+        cartSubtotalVnd={merchandiseTotal}
+        limit={4}
+      />
       {/* Phones: the total and the action stay on screen above the tab bar (TikTok-style). */}
       <div className="cart-mobile-bar">
         <div>

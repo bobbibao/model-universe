@@ -1007,6 +1007,7 @@
     "contacts": "Tin nhắn liên hệ",
     "marketing": "Tiếp thị",
     "adminCampaigns": "Chiến dịch của nhân viên",
+    "recommendations": "Gợi ý thông minh",
     "agent": "Vận hành AI",
     "approvalsWork": "Phê duyệt và công việc",
     "inbox": "Hộp phê duyệt",
@@ -2218,6 +2219,7 @@
       "suppliers": "Cập nhật nhà cung cấp và mối quan hệ nhập hàng.",
       "policies": "Xem và quản lý quy tắc áp dụng cho các nghiệp vụ thương mại.",
       "adminCampaigns": "Soạn, xem trước và quản lý nội dung cùng chiến dịch marketing.",
+      "recommendations": "Theo dõi hiệu quả gợi ý sản phẩm, tỷ lệ chuyển đổi và điều chỉnh trọng số cá nhân hóa.",
       "inbox": "Xem đề xuất từ AI. Bạn quyết định thay đổi tại cửa hàng.",
       "copilot": "Kết nối câu hỏi của bạn với nghiệp vụ thực tế của cửa hàng.",
       "tasks": "Điều phối công việc vận hành và theo dõi tiến độ.",
@@ -3807,7 +3809,15 @@
       "brand": "Cùng thương hiệu",
       "scale": "Cùng tỉ lệ",
       "price": "Tầm giá tương đương",
-      "discover": "Khám phá thêm"
+      "discover": "Khám phá thêm",
+      "personalized_affinity": "Hợp gu sưu tầm của bạn",
+      "bought_together": "Thường mua cùng nhau",
+      "viewed_together": "Được xem cùng nhiều nhất",
+      "budget_friendly": "Lựa chọn tiết kiệm hơn",
+      "preowned_deal": "Có bản 2hand giá tốt",
+      "freeship_completer": "Thêm để mở khóa Freeship",
+      "trending_now": "Đang được săn đón",
+      "search_match": "Khớp từ khóa bạn tìm"
     },
     "shoppingServices": "Thông tin mua hàng",
     "shippingService": "Giao hàng toàn quốc",
@@ -4059,5 +4069,139 @@
     "terms": "Xem điều khoản",
     "sending": "Đang gửi…",
     "send": "Gửi {count} mô hình"
+  },
+  "smartRecs": {
+    "personalizedPill": "Cá nhân hóa cho bạn",
+    "savesVnd": "Tiết kiệm {amount}",
+    "preownedOption": "Có bản 2hand sẵn kho",
+    "pdpEyebrow": "Gợi ý thông minh",
+    "pdpTitle": "Khám phá mô hình phù hợp với bạn",
+    "pdpTabsAria": "Chiến lược gợi ý mô hình",
+    "pdpTabs": {
+      "similar": "Tương tự",
+      "related": "Liên quan",
+      "bought_together": "Thường mua cùng",
+      "budget_alternative": "Hợp ngân sách",
+      "for_you": "Dành cho bạn"
+    },
+    "pdpStrategyNotes": {
+      "similar": "Các mẫu cùng danh mục, tỉ lệ hoặc thương hiệu để bạn dễ so sánh chi tiết.",
+      "related": "Những mô hình bổ trợ hoặc khác tỉ lệ cùng dòng để mở rộng góc trưng bày.",
+      "bought_together": "Được các nhà sưu tập thường xuyên xem hoặc đặt mua cùng mẫu này.",
+      "budget_alternative": "Các lựa chọn tiết kiệm hơn hoặc có phiên bản 2hand kiểm định sẵn hàng.",
+      "for_you": "Chọn lọc riêng theo lịch sử xem, từ khóa tìm kiếm và gu sưu tầm của bạn."
+    },
+    "sections": {
+      "for_you": {
+        "eyebrow": "Dành riêng cho bạn",
+        "title": "Hợp gu sưu tầm của bạn",
+        "subtitle": "Gợi ý từ lịch sử xem, danh mục yêu thích và khoảng giá bạn thường chọn."
+      },
+      "trending": {
+        "eyebrow": "Xu hướng nổi bật",
+        "title": "Đang được săn đón nhiều nhất",
+        "subtitle": "Những mẫu Gunpla và Metal Build được cộng đồng quan tâm nhất tuần này."
+      },
+      "budget_alternative": {
+        "eyebrow": "Tối ưu ngân sách",
+        "title": "Lựa chọn giá tốt & 2hand sẵn kho",
+        "subtitle": "Các bộ kit dễ tiếp cận hoặc có phiên bản đã qua sử dụng được kiểm định kỹ."
+      },
+      "similar": {
+        "eyebrow": "So sánh trực tiếp",
+        "title": "Mô hình tương tự",
+        "subtitle": "Cùng phân khúc, tỉ lệ và phong cách thiết kế với mẫu bạn đang xem."
+      },
+      "bought_together": {
+        "eyebrow": "Combo sưu tầm",
+        "title": "Thường được mua cùng nhau",
+        "subtitle": "Kết hợp được nhiều người chơi lựa chọn trong cùng một đơn hàng."
+      },
+      "related": {
+        "eyebrow": "Mở rộng vũ trụ",
+        "title": "Mô hình liên quan đáng chú ý",
+        "subtitle": "Gợi ý bổ sung từ các thương hiệu và tỉ lệ liên quan."
+      },
+      "cart_addon": {
+        "eyebrow": "Hoàn thiện đơn hàng",
+        "title": "Mua kèm tối ưu Freeship & ưu đãi",
+        "subtitle": "Các mẫu vừa tầm giá giúp mở khóa miễn phí vận chuyển hoặc ghép đơn tiện lợi."
+      }
+    }
+  },
+  "adminRecommendations": {
+    "eyebrow": "AI & Cá nhân hóa",
+    "title": "Hệ thống gợi ý sản phẩm thông minh",
+    "subtitle": "Theo dõi hiệu quả chuyển đổi theo từng chiến lược, tín hiệu tìm kiếm và tinh chỉnh trọng số xếp hạng theo thời gian thực.",
+    "windowDays": "{days} ngày qua",
+    "loadFailed": "Không tải được dữ liệu thống kê gợi ý.",
+    "saved": "Đã cập nhật cấu hình gợi ý thông minh.",
+    "saveFailed": "Không lưu được cấu hình gợi ý.",
+    "kpi": {
+      "impressions": "Lượt hiển thị gợi ý",
+      "impressionsHint": "Tổng số thẻ sản phẩm gợi ý đã xuất hiện",
+      "clicks": "Lượt nhấp (Click)",
+      "ctrHint": "CTR: {ctr}%",
+      "conversions": "Thêm vào giỏ từ gợi ý",
+      "conversionRateHint": "Tỷ lệ chuyển đổi: {rate}%",
+      "behavioralEvents": "Tín hiệu hành vi",
+      "eventsHint": "Tổng sự kiện xem, tìm kiếm, dwell & giỏ hàng"
+    },
+    "byStrategyTitle": "Hiệu quả theo chiến lược gợi ý",
+    "byStrategySubtitle": "So sánh lượt hiển thị, CTR và tỷ lệ thêm vào giỏ của từng thuật toán.",
+    "bySurfaceTitle": "Hiệu quả theo vị trí hiển thị",
+    "bySurfaceSubtitle": "Đo lường tương tác tại Trang chủ, Chi tiết sản phẩm, Giỏ hàng, Danh mục và Yêu thích.",
+    "topSearchesTitle": "Từ khóa tìm kiếm nổi bật",
+    "noSearches": "Chưa ghi nhận truy vấn tìm kiếm nào trong kỳ.",
+    "searchesCount": "{count} lượt",
+    "topProductsTitle": "Sản phẩm được tương tác nhiều nhất qua gợi ý",
+    "topProductsSubtitle": "Các mô hình có lượt nhấp và thêm vào giỏ từ các thanh gợi ý cao nhất.",
+    "noEventsYet": "Chưa có dữ liệu tương tác gợi ý trong khoảng thời gian này.",
+    "configTitle": "Cấu hình trọng số & quy tắc kinh doanh",
+    "configSubtitle": "Điều chỉnh công thức chấm điểm Hybrid mà không cần triển khai lại mã nguồn.",
+    "columns": {
+      "strategy": "Chiến lược",
+      "impressions": "Hiển thị",
+      "clicks": "Lượt nhấp",
+      "ctr": "CTR",
+      "conversions": "Thêm giỏ",
+      "convRate": "CVR",
+      "product": "Mô hình",
+      "brandScale": "Hãng · Tỉ lệ",
+      "price": "Giá bán"
+    },
+    "strategies": {
+      "for_you": "Dành riêng cho bạn (Personalized)",
+      "similar": "Sản phẩm tương tự (Similar)",
+      "related": "Sản phẩm liên quan (Related)",
+      "bought_together": "Thường mua cùng nhau (Co-purchase)",
+      "trending": "Xu hướng nổi bật (Trending)",
+      "budget_alternative": "Thay thế hợp ngân sách (Budget / 2hand)",
+      "cart_addon": "Mua kèm giỏ hàng (Cart Add-on)"
+    },
+    "surfaces": {
+      "home": "Trang chủ",
+      "product_detail": "Chi tiết sản phẩm (PDP)",
+      "cart": "Giỏ hàng & Thanh toán",
+      "catalog": "Trang danh mục / Tìm kiếm",
+      "wishlist": "Danh sách yêu thích"
+    },
+    "fields": {
+      "enabled": "Bật hệ thống gợi ý thông minh trên toàn cửa hàng",
+      "prioritizeInStockPreowned": "Ưu tiên cộng điểm cho sản phẩm có phiên bản 2hand sẵn kho",
+      "freeshipThresholdVnd": "Ngưỡng Freeship mục tiêu khi gợi ý mua kèm (VND)",
+      "maxPerBrandScale": "Giới hạn số mẫu tối đa cùng Hãng + Tỉ lệ trong 1 danh sách (Đa dạng hóa)",
+      "weightsHeading": "Trọng số chấm điểm (0 – 100)",
+      "personalizationWeight": "Trọng số sở thích cá nhân & lịch sử hành vi",
+      "contentSimilarityWeight": "Trọng số độ tương đồng nội dung (Danh mục, Hãng, Tỉ lệ)",
+      "coPurchaseWeight": "Trọng số mua cùng & xem cùng nhau (Co-occurrence)",
+      "trendingWeight": "Trọng số độ phổ biến & tốc độ bán (Trending)",
+      "budgetSensitivityWeight": "Trọng số phù hợp ngân sách & ưu đãi 2hand",
+      "strategiesHeading": "Bật / tắt từng chiến lược",
+      "reason": "Lý do thay đổi cấu hình (lưu vào nhật ký kiểm toán)",
+      "reasonPlaceholder": "VD: Tăng trọng số mua cùng cho chiến dịch cuối tuần",
+      "saving": "Đang lưu cấu hình…",
+      "saveConfig": "Lưu cấu hình gợi ý"
+    }
   }
 }
