@@ -133,3 +133,12 @@ export function adminDestination(pathname: string) {
     .sort((a, b) => b.route.length - a.route.length)
     .find((item) => pathname === item.route || pathname.startsWith(`${item.route}/`));
 }
+
+export function hasInlineAdminAssistant(pathname: string) {
+  return (
+    pathname === '/admin/dashboard' ||
+    pathname === '/admin/finance' ||
+    pathname === '/admin/products' ||
+    pathname.startsWith('/admin/products/')
+  );
+}

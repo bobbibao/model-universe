@@ -345,6 +345,9 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
     gap: 0;
     font-size: 0;
   }
+  .admin-header:has(.admin-assistant-launcher.is-inline) .admin-inbox-badge {
+    display: none;
+  }
 }
 
 .admin-page:has(.compact-admin-catalog-page, .compact-admin-product-page, .compact-admin-create-page) {

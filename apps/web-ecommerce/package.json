@@ -23,6 +23,7 @@
     "partners:seed": "ts-node scripts/seed-partners.ts",
     "payos:test-webhook": "ts-node scripts/payos-test-webhook.ts",
     "catalog:tree:migrate": "ts-node scripts/migrate-condition-catalog.ts",
+    "test:finance:ui": "node scripts/verify-finance-ui.cjs",
     "finance:review": "node scripts/finance-review.cjs",
     "finance:review:stop": "node scripts/finance-review.cjs stop",
     "seed:finance": "ts-node --project tsconfig.server.json scripts/seed-finance.ts",

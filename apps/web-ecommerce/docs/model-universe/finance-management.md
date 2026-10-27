@@ -58,6 +58,7 @@ Database shop đang dùng là `web_ecommerce_ci_verify`: tên lịch sử, dữ 
 cd apps/web-ecommerce
 yarn seed:finance --database=model_universe_finance_acceptance_test
 yarn finance:review --database=model_universe_finance_acceptance_test
+yarn test:finance:ui
 ```
 
 Mở `http://localhost:6050/vi/admin/finance`. Đăng nhập tài khoản **chỉ có trong database phát triển**: `finance.admin@model-universe.test` / `Finance-Check-2026!`.

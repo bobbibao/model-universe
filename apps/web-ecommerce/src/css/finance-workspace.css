@@ -808,3 +808,81 @@
     transition: none;
   }
 }
+
+/* Finance surfaces follow the existing admin theme, including native modal top layers. */
+.finance-workspace,
+.finance-dialog {
+  --finance-surface: #fff;
+  --finance-subtle: #f5f4f9;
+  --finance-emphasis: #f4f0ff;
+  --finance-button: #6745d7;
+  --finance-muted: #666d80;
+}
+.dark .finance-workspace,
+.dark .finance-dialog {
+  --finance-ink: #f0edf8;
+  --finance-muted: #b2aec1;
+  --finance-line: #40364f;
+  --finance-accent: #b59aff;
+  --finance-surface: #211b32;
+  --finance-subtle: #2c2440;
+  --finance-emphasis: #302345;
+}
+.finance-card,
+.finance-kpi,
+.finance-period,
+.finance-dialog,
+.finance-button,
+.finance-segment button[aria-pressed='true'] {
+  background: var(--finance-surface);
+}
+.finance-kpi.is-emphasis,
+.finance-form-total {
+  background: var(--finance-emphasis);
+  border-color: var(--finance-line);
+}
+.finance-kpi.is-emphasis strong {
+  color: var(--finance-accent);
+}
+.finance-workspace h1,
+.finance-workspace h2,
+.finance-dialog h2,
+.finance-workspace table {
+  color: var(--finance-ink);
+}
+.finance-workspace th,
+.finance-segment,
+.finance-presets button,
+.finance-dialog > header > button,
+.finance-reversed,
+.finance-button:hover {
+  background: var(--finance-subtle);
+}
+.finance-button.is-primary {
+  background: var(--finance-button);
+  border-color: var(--finance-button);
+  color: #fff;
+}
+.finance-dialog label,
+.finance-dialog input,
+.finance-dialog textarea,
+.finance-dialog select {
+  color: var(--finance-ink) !important;
+}
+.finance-dialog input,
+.finance-dialog textarea,
+.finance-dialog select {
+  background: var(--finance-surface);
+}
+.finance-dialog .form-field-hint {
+  color: var(--finance-muted);
+}
+.finance-dialog input:disabled {
+  background: var(--finance-subtle);
+  color: var(--finance-muted) !important;
+}
+.dark .finance-notice {
+  background: #302819;
+  border-color: #68532c;
+  color: #f4d599;
+}

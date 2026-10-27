@@ -7,7 +7,7 @@ import { usePathname } from '@/i18n/navigation';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import Modal from '@/components/Modal/Modal';
 import AdminIcon from './AdminIcon';
-import { adminDestination } from './navigation';
+import { adminDestination, hasInlineAdminAssistant } from './navigation';
 
 const Copilot = dynamic(() => import('@/core/client/features/agent-console/pages/Copilot'));
 
@@ -21,8 +21,8 @@ export default function AdminAssistant({ inline = false }: { inline?: boolean } 
   const [open, setOpen] = useState(false),
     [loaded, setLoaded] = useState(false);
   if (user?.role !== 'ADMIN' || pathname === '/admin/agent/copilot') return null;
-  // The product workspaces provide an inline launcher in the global header; their save bar stays unobstructed.
-  if (!inline && (pathname === '/admin/products' || pathname.startsWith('/admin/products/'))) return null;
+  // Data workspaces keep their tables and save controls unobstructed.
+  if (!inline && hasInlineAdminAssistant(pathname)) return null;
   const pageLabel = destination ? navigation(destination.label) : t('workspace');
   const recordId = pathname.match(/^\/admin\/(?:products|orders)\/(\d+)$/)?.[1];
   const context = recordId ? `${pageLabel} #${recordId}` : pageLabel;

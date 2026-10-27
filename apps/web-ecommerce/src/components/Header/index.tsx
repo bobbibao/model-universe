@@ -9,7 +9,7 @@ import AgentInboxBadge from '@/core/client/features/agent-console/components/Age
 import AdminCommandMenu from '@/components/Admin/AdminCommandMenu';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import AdminAssistant from '@/components/Admin/AdminAssistant';
-import { adminDestination } from '@/components/Admin/navigation';
+import { adminDestination, hasInlineAdminAssistant } from '@/components/Admin/navigation';
 
 export default function Header({
   sidebarOpen,
@@ -45,7 +45,7 @@ export default function Header({
       </div>
       <div className="admin-header-actions">
         <AdminCommandMenu />
-        {(pathname === '/admin/products' || pathname.startsWith('/admin/products/')) && <AdminAssistant inline />}
+        {hasInlineAdminAssistant(pathname) && <AdminAssistant inline />}
         <ul className="admin-header-tools">
           <li>
             <a
