@@ -9,6 +9,7 @@ import { ancestors, conditionPath, nodeLabel, type ConditionNode, type ItemTypeK
 import TextField from '@/components/FormElements/TextField';
 import SelectField from '@/components/FormElements/SelectField';
 import Modal from '@/components/Modal/Modal';
+import ConditionTreeChevron from '@/components/Store/ConditionTreeChevron';
 
 type Draft = Pick<
   ConditionNode,
@@ -231,7 +232,7 @@ export default function ProductConditionList() {
                       })
                     }
                   >
-                    {collapsed.has(node.id) ? '›' : '⌄'}
+                    <ConditionTreeChevron />
                   </button>
                 ) : (
                   <span className="condition-tree-expand" />

@@ -195,11 +195,20 @@
   display: inline-flex;
   width: 26px;
   flex: 0 0 26px;
-  min-height: 40px;
+  min-height: 44px;
+  align-self: stretch;
+  padding: 0;
   align-items: center;
   justify-content: center;
-  font-size: 19px;
+  line-height: 1;
   color: var(--ct-muted);
+}
+.condition-tree-expand > svg {
+  display: block;
+  flex: none;
+}
+.condition-tree-expand[aria-expanded='true'] > svg {
+  transform: rotate(90deg);
 }
 .condition-tree-choice {
   display: flex;

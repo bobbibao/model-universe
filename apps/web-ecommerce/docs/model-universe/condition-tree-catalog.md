@@ -133,3 +133,17 @@ Các hồ sơ/ảnh/chứng từ trong E2E đều là dữ liệu minh họa. M�
 Xác minh bản UX: **994 unit tests / 62 suites, 14 integration PostgreSQL và 12 E2E đã đạt**. Production build Next.js (kèm type check) và Express TypeScript build đạt; ESLint phạm vi thay đổi không có lỗi, còn cảnh báo kiểu dữ liệu trong test. Các lượt thất bại do hết dung lượng cache ban đầu đã được chạy lại sau khi xử lý môi trường.
 
 Bản preview cổng 6080 của đợt kiểm thử đã được dừng và database fixture đã được gỡ sau khi sao lưu. Website vận hành hiện tại chỉ dùng source chính, dữ liệu shop và cổng 6050. Không chạy E2E có ghi dữ liệu trên website này.
+
+## Chủ shop đính chính loại hàng — 27/10/2026
+
+Theo xác nhận mới của chủ shop, toàn bộ 101 SKU ban đầu thuộc loại `2hand`: sửa 100 SKU đang gắn New, giữ SKU đã là 2hand. Đối chiếu bằng transaction và khóa danh mục; giữ ID, UUID, SKU, slug, giá, tồn và số đã bán. Chứng từ/snapshot giao dịch cũ không bị viết lại. Có bản sao lưu PostgreSQL trước thay đổi và audit `owner_type_correction` / `owner_2hand_and_options_20261027`.
+
+Đã thêm sáu tổ hợp tham khảo ở ba mẫu ngẫu nhiên, mỗi tổ hợp có SKU/URL riêng, S được chủ shop cho phép tự đặt. Tồn tất cả SKU mới bằng **0**, không tạo chứng từ nhập hoặc tăng tồn giả. Ảnh kế thừa được ghi rõ là ảnh của mẫu gốc, chưa phải ảnh kiểm hàng của tổ hợp này.
+
+| Mẫu | Tổ hợp tham khảo | Giá S |
+|---|---|---:|
+| Ngao Bính | Thiếu hộp / Thiếu hộp + lỏng khớp tay trái | 550.000 / 450.000đ |
+| Blade King | Móp hộp / Thiếu khiên + trầy phần tay | 310.000 / 260.000đ |
+| Triệu Vân & Bạch Long Mã | Thiếu đế / Thiếu hướng dẫn + lỏng khớp chân phải + tróc sơn | 1.160.000 / 910.000đ |
+
+Manifest trên máy: `D:/ModelUniverseRuntime/owner-2hand-options.json`; SKU mới #287–292. Thao tác có mã phiên ổn định; chạy lại không nhân bản SKU. Icon mở cây dùng chung SVG 16px, xoay theo `aria-expanded`, căn giữa ô bấm 26 × tối thiểu 44px, áp dụng cả picker và cây quản trị.

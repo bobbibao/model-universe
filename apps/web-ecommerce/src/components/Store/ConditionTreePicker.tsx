@@ -4,6 +4,7 @@ import { useLocale } from 'next-intl';
 import { ancestors, conditionPath, nodeLabel, type ConditionNode, type ItemTypeKey } from '@/shared/condition-tree';
 import { conditionSelected, shortConditionLabel, toggleCondition } from '@/shared/condition-selection';
 import { useConditionTree } from '@/shared/client/hooks/useConditionTree';
+import ConditionTreeChevron from './ConditionTreeChevron';
 
 interface Props {
   value: number[];
@@ -112,7 +113,7 @@ export default function ConditionTreePicker({ value, onChange, itemType, disable
                     setOpen((current) => new Set([...current, node.id]));
                   }}
                 >
-                  {expanded ? '⌄' : '›'}
+                  <ConditionTreeChevron />
                 </button>
               ) : (
                 <span className="condition-tree-expand" />
