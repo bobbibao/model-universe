@@ -4,6 +4,8 @@ Từ 27/10/2026, source vận hành là `C:/Users/ACER/Desktop/projects/model-un
 
 Website dùng Express + Next.js production build, cổng **6050**, database shop hiện hữu và thư mục ảnh/evidence của source chính. Đây không phải server mô phỏng API. Database shop hiện có tên lịch sử `web_ecommerce_ci_verify`; tên này không phản ánh vai trò hiện tại. Không reset, seed lại hoặc đổi sang database fixture khi khởi động.
 
+Agent nội bộ dùng Aegra production, custom authentication, PostgreSQL/pgvector và Redis; LLM lấy profile thật từ cấu hình agent. Trên máy này supervisor khởi động Agent ở `127.0.0.1:2026` và trỏ gateway web vào đó. Đây là cổng backend nội bộ, không phải website thứ hai; chỉ cổng web 6050 được tunnel đưa ra Internet. PostgreSQL 5432/55432, Redis 6379 và Ollama 11434 là các phụ thuộc nội bộ, không đưa lên tunnel. Không dùng `langgraph dev`, model scripted hay SHOP_ADAPTER=fake.
+
 ## Vận hành trên máy này
 
 Chạy trong `apps/web-ecommerce`:
@@ -15,6 +17,8 @@ yarn production:stop
 ```
 
 `start:production` mở supervisor ẩn, kiểm tra khóa chống chạy trùng và cổng 6050 trước khi mở server. `production:status` hiển thị URL HTTPS hiện tại, source, commit và PID. `production:stop` yêu cầu supervisor dừng đúng server/tunnel do nó tạo; không dừng PostgreSQL, Antigravity hay tiến trình khác.
+
+`START_AGENT_RUNTIME=true`, `AGENT_POSTGRES_CONTAINER` và `AGENT_REDIS_CONTAINER` trong cấu hình riêng máy bật phần Agent. PostgreSQL/Redis được khởi động từ container đã cấu hình, giữ volume hiện có; dừng website không xóa database hoặc queue. Supervisor dừng process Agent mà nó sở hữu cùng web/tunnel. Python và thư viện dùng từ `apps/agent-service/.venv`; Aegra chạy uvicorn không reload, với SelectorEventLoop theo cấu hình Windows của Aegra. Ollama cần đang hoạt động với model `bge-m3`; log Agent ở `D:/ModelUniverseRuntime/agent.log`. Không tự cài lịch monitor/ingest trong đợt triển khai này.
 
 Cấu hình riêng máy nằm trong `.env` và `.env.production.local` (git-ignored). Build/cache ở `D:/ModelUniverseRuntime/dist`, liên kết qua `apps/web-ecommerce/dist`; log, backup và trạng thái ở `D:/ModelUniverseRuntime`. `MODEL_UNIVERSE_RUNTIME_DIR` cho phép đổi nơi lưu trạng thái. Không đưa các file này, ảnh kiểm hàng riêng hoặc bí mật vào Git/image Docker.
 
@@ -34,3 +38,9 @@ Cấu hình riêng máy nằm trong `.env` và `.env.production.local` (git-igno
 Theo lựa chọn của chủ shop, runtime hiện dùng Cloudflare Quick Tunnel. Link HTTPS truy cập được ngoài LAN khi máy, PostgreSQL, supervisor và Internet còn hoạt động. Đây là URL tạm, không phải hosting 24/7 hoặc tên miền cố định; Quick Tunnel không hỗ trợ SSE và không có cam kết uptime. Luồng Agent streaming cần named tunnel trước khi nghiệm thu vận hành lâu dài.
 
 Khi có tên miền/named tunnel, đặt `TUNNEL_TOKEN` và `SHOP_PUBLIC_URL=https://ten-mien` trong cấu hình riêng rồi khởi động lại. Token được truyền qua environment, không đưa vào command line hay Git. Không mở PostgreSQL qua tunnel. Tham khảo [Cloudflare Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
+
+## Xác minh đợt hợp nhất
+
+Đã đạt 1.003 unit test, 14 bài PostgreSQL cây/SKU và 3 bài PostgreSQL gợi ý sản phẩm; type check, Next production build, Express build và lint phạm vi thay đổi. Trình duyệt thật đã truy cập qua URL Cloudflare: 5 trang khách hàng, 2 trang Admin và 2 trang mobile 390px; kiểm tra login/cookie Secure–HttpOnly, API Admin từ chối khách chưa đăng nhập, gợi ý không trả lại chính SKU đang xem và danh sách tổ hợp đúng mẫu. Không có lỗi JavaScript hoặc 5xx trong lượt kiểm tra đạt. Gateway Agent gọi Aegra `/threads/search` trả 200 qua custom auth; không gọi LLM trả phí hay tạo giao dịch thanh toán/vận chuyển thật để kiểm thử.
+
+Ảnh và log kiểm tra nằm ở `D:/ModelUniverseRuntime`, không public từ web. Đã kiểm tra toàn bộ 101 SKU không đổi ID, UUID, SKU, slug, giá, tồn hoặc số đã bán sau đối chiếu. Database shop không chứa SKU fixture `DEMO-COND-*`.

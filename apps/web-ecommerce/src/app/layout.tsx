@@ -21,6 +21,10 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import AppProviders from '@/components/AppProviders';
 import type { ReactNode } from 'react';
+import { siteUrl } from '@/shared/server/utils/SiteUrl';
+export function generateMetadata() {
+  return { metadataBase: new URL(siteUrl()) };
+}
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
