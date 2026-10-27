@@ -16,7 +16,7 @@ if (committedSnapshot) {
   const staging = path.join(home, 'build-sources', `${commit.slice(0, 7)}-${Date.now()}`);
   fs.mkdirSync(staging, { recursive: true });
   const archive = path.join(staging, 'source.tar');
-  execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, commit, 'apps/web-ecommerce'], { cwd: sourceApp, windowsHide: true });
+  execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, commit, 'apps/web-ecommerce'], { cwd: git('rev-parse', '--show-toplevel'), windowsHide: true });
   execFileSync('tar', ['-xf', archive, '-C', staging], { windowsHide: true });
   app = path.join(staging, 'apps/web-ecommerce');
   fs.symlinkSync(path.join(sourceApp, 'node_modules'), path.join(app, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir');

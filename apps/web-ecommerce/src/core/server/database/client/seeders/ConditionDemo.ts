@@ -171,7 +171,7 @@ export async function seedConditionDemo() {
           {
             ...familyIdentity(base.get({ plain: true })),
             modelFamilyId: base.modelFamilyId,
-            itemTypeKey: 'new',
+            itemTypeKey: 'preowned',
             conditionNodeIds: [node('dented-box')],
           },
           null,
