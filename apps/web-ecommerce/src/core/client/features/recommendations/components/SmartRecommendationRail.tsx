@@ -26,7 +26,6 @@ export interface SmartRecommendationRailProps {
   maxPrice?: number;
   limit?: number;
   title?: string;
-  subtitle?: string;
   className?: string;
   eager?: boolean;
 }
@@ -43,7 +42,6 @@ export default function SmartRecommendationRail({
   maxPrice,
   limit = 4,
   title,
-  subtitle,
   className = '',
   eager,
 }: SmartRecommendationRailProps) {
@@ -55,12 +53,6 @@ export default function SmartRecommendationRail({
   const [sections, setSections] = useState<RecommendationSection[]>([]);
   const [fallbackItems, setFallbackItems] = useState<SmartRecommendedProduct[]>([]);
   const [activeStrategy, setActiveStrategy] = useState<RecommendationStrategy>(initialStrategy);
-  const [profileSummary, setProfileSummary] = useState<{
-    topBrands: string[];
-    topScales: string[];
-    preferredPriceBand: { min: number; median: number; max: number } | null;
-    signalCount: number;
-  } | null>(null);
   const [loaded, setLoaded] = useState(false);
   const trackedImpressionsRef = useRef<Set<string>>(new Set());
 
@@ -98,7 +90,6 @@ export default function SmartRecommendationRail({
         if (response && response.enabled) {
           setSections(response.sections || []);
           setFallbackItems(response.items || []);
-          setProfileSummary(response.profileSummary || null);
           if (response.sections?.length) {
             const preferred = response.sections.find((sec) => sec.strategy === (defaultStrategy ?? initialStrategy));
             setActiveStrategy(preferred ? preferred.strategy : response.sections[0].strategy);
@@ -180,11 +171,7 @@ export default function SmartRecommendationRail({
 
   if (loaded && activeItems.length === 0) return null;
 
-  const isDefaultTab = activeStrategy === initialStrategy;
-  const headingTitle =
-    title || (isDefaultTab ? tSmart(`surfaceTitle.${surface}`) : tSmart(`sections.${activeStrategy}.title`));
-  const headingSubtitle =
-    subtitle || (isDefaultTab ? tSmart(`surfaceSubtitle.${surface}`) : tSmart(`sections.${activeStrategy}.subtitle`));
+  const headingTitle = title || tSmart(`surfaceTitle.${surface}`);
 
   return (
     <section
@@ -195,58 +182,7 @@ export default function SmartRecommendationRail({
       data-strategy={activeStrategy}
     >
       <header className="smart-recommendations-header">
-        <div className="smart-recommendations-copy">
-          <div className="smart-recommendations-eyebrow">
-            <span className="smart-rec-spark" aria-hidden="true">✦</span>
-            <span>{tSmart(`sections.${activeStrategy}.eyebrow`)}</span>
-            <span className="smart-rec-surface-tag">{tSmart('eyebrow')}</span>
-            {profileSummary && profileSummary.signalCount > 0 && (
-              <span className="smart-rec-personalized-pill">
-                {tSmart('personalizedBadge', {
-                  brand: profileSummary.topBrands[0] || profileSummary.topScales[0] || 'Gunpla',
-                })}
-              </span>
-            )}
-          </div>
-          <h2>{headingTitle}</h2>
-          <p>{headingSubtitle}</p>
-          {loaded && (
-            <div className="smart-signal-bar" aria-label={tSmart('eyebrow')}>
-              {profileSummary && profileSummary.signalCount > 0 ? (
-                <>
-                  <span className="smart-signal-chip is-primary">
-                    ✦ {tSmart('signalActive', { count: profileSummary.signalCount })}
-                  </span>
-                  {profileSummary.topBrands.length > 0 && (
-                    <span className="smart-signal-chip">
-                      {tSmart('brandSignal', { brands: profileSummary.topBrands.slice(0, 2).join(', ') })}
-                    </span>
-                  )}
-                  {profileSummary.topScales.length > 0 && (
-                    <span className="smart-signal-chip">
-                      {tSmart('scaleSignal', { scales: profileSummary.topScales.slice(0, 2).join(', ') })}
-                    </span>
-                  )}
-                  {profileSummary.preferredPriceBand && (
-                    <span className="smart-signal-chip">
-                      {tSmart('priceSignal', {
-                        range: `${formatPrice(profileSummary.preferredPriceBand.min)} – ${formatPrice(profileSummary.preferredPriceBand.max)}`,
-                      })}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className="smart-signal-chip is-coldstart">{tSmart('coldStartBadge')}</span>
-              )}
-              {q && <span className="smart-signal-chip is-filter">{tSmart('querySignal', { query: q })}</span>}
-              {maxPrice !== undefined && maxPrice > 0 && (
-                <span className="smart-signal-chip is-filter">
-                  {tSmart('budgetSignal', { amount: formatPrice(maxPrice) })}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
+        <h2 className="smart-recommendations-title">{headingTitle}</h2>
         <div className="smart-recommendations-controls">
           {sections.length > 1 && (
             <div className="smart-strategy-tabs" role="tablist" aria-label={tSmart('strategySwitcherLabel')}>
@@ -279,7 +215,7 @@ export default function SmartRecommendationRail({
         {loaded
           ? activeItems.map((item) => (
               <div
-                className="product-recommendation smart-recommendation-item"
+                className="product-recommendation"
                 key={`${item.strategy}-${item.product.id}`}
                 onClickCapture={() => {
                   trackRecommendationEvent({
@@ -292,19 +228,6 @@ export default function SmartRecommendationRail({
                   });
                 }}
               >
-                <div className="product-recommendation-badges">
-                  <p className="product-recommendation-reason">
-                    <span aria-hidden="true">✦</span> {t(`relatedReason.${item.reason}`)}
-                  </p>
-                  {item.savingsVnd && item.savingsVnd >= 20_000 ? (
-                    <span className="smart-rec-saving-badge">
-                      {tSmart('saveBadge', { amount: formatPrice(item.savingsVnd) })}
-                    </span>
-                  ) : null}
-                  {item.hasPreownedOption ? (
-                    <span className="smart-rec-preowned-badge">{tSmart('preownedBadge')}</span>
-                  ) : null}
-                </div>
                 <ProductCard product={item.product} />
               </div>
             ))

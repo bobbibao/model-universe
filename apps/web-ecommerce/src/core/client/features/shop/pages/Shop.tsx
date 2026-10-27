@@ -210,16 +210,6 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
           </p>
         )}
       </header>
-      <SmartRecommendationRail
-        surface="catalog"
-        defaultStrategy="for_you"
-        category={applied.category || undefined}
-        q={applied.q || undefined}
-        maxPrice={applied.maxPrice}
-        limit={4}
-        className="catalog-top-recommendations"
-        eager
-      />
       <div className="catalog-layout">
         <section className="catalog-main" aria-label={t('title')} aria-busy={loading}>
           <div className="catalog-toolbar">
@@ -305,16 +295,6 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
                   behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
                 });
               }}
-            />
-          )}
-          {!failed && !loading && (
-            <SmartRecommendationRail
-              surface="catalog"
-              defaultStrategy="budget_alternative"
-              category={applied.category || undefined}
-              q={applied.q || undefined}
-              maxPrice={applied.maxPrice}
-              limit={4}
             />
           )}
         </section>
