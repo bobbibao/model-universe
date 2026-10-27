@@ -147,3 +147,5 @@ Theo xác nhận mới của chủ shop, toàn bộ 101 SKU ban đầu thuộc l
 | Triệu Vân & Bạch Long Mã | Thiếu đế / Thiếu hướng dẫn + lỏng khớp chân phải + tróc sơn | 1.160.000 / 910.000đ |
 
 Manifest trên máy: `D:/ModelUniverseRuntime/owner-2hand-options.json`; SKU mới #287–292. Thao tác có mã phiên ổn định; chạy lại không nhân bản SKU. Icon mở cây dùng chung SVG 16px, xoay theo `aria-expanded`, căn giữa ô bấm 26 × tối thiểu 44px, áp dụng cả picker và cây quản trị.
+
+Kiểm tra tổ hợp hết hàng phát hiện lỗi giao diện tự chọn SKU còn hàng sau điều hướng. Đã sửa ưu tiên SKU trong URL (hoặc query tình trạng cũ hợp lệ), kể cả tồn 0; giá, lựa chọn và hành động mua/nhận thông báo giữ đúng SKU. Có regression test cho SKU hết hàng, link tình trạng cũ và ID lựa chọn không tồn tại.

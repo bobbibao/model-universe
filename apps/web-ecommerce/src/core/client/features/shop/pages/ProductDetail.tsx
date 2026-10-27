@@ -1,4 +1,5 @@
 'use client';
+import { initialConditionOptionId } from '@/shared/product-condition-option';
 
 import { rememberViewed } from '@/shared/client/recentlyViewed';
 import { trackRecommendationEvent } from '@/shared/client/behaviorTracker';
@@ -72,15 +73,9 @@ const unitsOf = (product: ProductDetailType): ProductConditionOption[] =>
         },
       ];
 
-// The unit shown first: the one asked for (a shared link or an option's own page), else the main listing while it is
-// in stock, else the first unit in stock.
-const initialUnitId = (product: ProductDetailType, requested: number | null) => {
-  const units = unitsOf(product);
-  const wanted = units.find(
-    (unit) => unit.id === requested || (!requested && unit.id === product.selectedOptionId && !unit.isMain),
-  );
-  return (wanted ?? (units[0].stock > 0 ? units[0] : (units.find((unit) => unit.stock > 0) ?? units[0]))).id;
-};
+// Preserve the SKU in the URL, including sold-out combinations.
+const initialUnitId = (product: ProductDetailType, requested: number | null) =>
+  initialConditionOptionId(unitsOf(product), product.selectedOptionId ?? product.id, requested);
 
 const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType } = {}) => {
   const t = useTranslations('catalog');
