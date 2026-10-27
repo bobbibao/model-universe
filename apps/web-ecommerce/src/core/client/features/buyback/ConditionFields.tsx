@@ -121,21 +121,3 @@ export function useConditionPayload() {
     return { asset, issues, seriousDamage: condition.defects === 'serious' };
   };
 }
-
-// The model's name, typed only when it is not one of the shop's models.
-export function NameField({ value, onChange }: { value: ConditionValue; onChange: (value: ConditionValue) => void }) {
-  const t = useTranslations('itemCondition');
-  return (
-    <label className="mu-field">
-      {t('name')}
-      <input
-        name="name"
-        required
-        maxLength={255}
-        value={value.name}
-        placeholder={t('namePlaceholder')}
-        onChange={(event) => onChange({ ...value, name: event.target.value })}
-      />
-    </label>
-  );
-}

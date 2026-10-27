@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Api from '@/core/client/api/Api';
 import ConditionDropdowns from '@/components/Store/ConditionDropdowns';
@@ -10,6 +10,7 @@ import { conditionPath, type ConditionCaseSnapshot, type ItemTypeKey } from '@/s
 import { tierBuyback, buybackMargin } from '@/shared/buyback-pricing';
 import { pawnC50 } from '@/shared/pawn-rules';
 import { formatVND } from '@/shared/server/utils/utils';
+import ServiceIcon from './ServiceIcon';
 
 type Combination = { productId: number; itemTypeKey: ItemTypeKey; conditionNodeIds: number[]; salePriceVnd: number };
 export default function ServiceConditionSelector({
@@ -27,11 +28,13 @@ export default function ServiceConditionSelector({
   other: string;
   kind?: 'sell' | 'trade' | 'pawn';
   onChange: (change: { condition?: ItemTypeKey; conditionNodeIds?: number[]; otherCondition?: string }) => void;
-  onMatch: (snapshot: ConditionCaseSnapshot | null) => void;
+  onMatch: (snapshot: ConditionCaseSnapshot | null | undefined) => void;
 }) {
   const locale = useLocale(),
     en = locale === 'en';
   const tree = useConditionTree();
+  const id = useId();
+  const notePanel = useRef<HTMLDivElement>(null);
   const callback = useRef(onMatch);
   callback.current = onMatch;
   const [combinations, setCombinations] = useState<Combination[]>([]);
@@ -39,6 +42,11 @@ export default function ServiceConditionSelector({
     [failed, setFailed] = useState(false);
   const [match, setMatch] = useState<ConditionCaseSnapshot | null>(null);
   const [more, setMore] = useState(false);
+  const [panel, setPanel] = useState<'conditions' | 'note' | null>(other.trim() ? 'note' : null);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (panel === 'note') notePanel.current?.querySelector('textarea')?.focus({ preventScroll: true });
+  }, [panel]);
   const selected = ids.join(',');
   useEffect(() => {
     let current = true;
@@ -55,10 +63,14 @@ export default function ServiceConditionSelector({
   }, [familyId]);
   useEffect(() => {
     let current = true;
-    callback.current(null);
+    callback.current(familyId ? undefined : null);
     setMatch(null);
     setMatching(true);
     setFailed(false);
+    if (!familyId) {
+      setMatching(false);
+      return;
+    }
     const timer = setTimeout(() => {
       Api.post('/product-condition-tree/match', {
         modelFamilyId: familyId ?? null,
@@ -83,8 +95,12 @@ export default function ServiceConditionSelector({
       current = false;
       clearTimeout(timer);
     };
-  }, [familyId, type, selected, other]);
+  }, [familyId, type, selected, other, retry]);
   const available = combinations.filter((option) => option.itemTypeKey === type);
+  const canChooseConditions =
+    tree.loading ||
+    tree.failed ||
+    tree.nodes.some((node) => node.isActive && node.selectable && node.itemTypes.includes(type));
   const label = (option: Combination) =>
     option.conditionNodeIds
       .map((id) => {
@@ -97,18 +113,34 @@ export default function ServiceConditionSelector({
     kind === 'pawn' ? pawnC50(price) : price > 100000 && buybackMargin(price) < price ? tierBuyback(price) : null;
   return (
     <div className="service-condition-selector">
-      <div className="sb-segment" role="radiogroup" aria-label={en ? 'Item type' : 'Loại hàng'}>
-        {(['new', 'preowned'] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            role="radio"
-            aria-checked={type === value}
-            onClick={() => onChange({ condition: value, conditionNodeIds: [] })}
-          >
-            {value === 'new' ? 'New' : '2hand'}
-          </button>
-        ))}
+      <div className="service-condition-top">
+        <span>{en ? 'Item type' : 'Loại hàng'}</span>
+        <div
+          className="sb-segment"
+          role="radiogroup"
+          aria-label={en ? 'Item type' : 'Loại hàng'}
+          onKeyDown={(event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const next =
+              event.key === 'Home' ? 'new' : event.key === 'End' ? 'preowned' : type === 'new' ? 'preowned' : 'new';
+            if (next !== type) onChange({ condition: next, conditionNodeIds: [] });
+            event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next === 'new' ? 0 : 1]?.focus();
+          }}
+        >
+          {(['new', 'preowned'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={type === value}
+              tabIndex={type === value ? 0 : -1}
+              onClick={() => value !== type && onChange({ condition: value, conditionNodeIds: [] })}
+            >
+              {value === 'new' ? 'New' : '2hand'}
+            </button>
+          ))}
+        </div>
       </div>
       {!!available.length && (
         <section
@@ -116,8 +148,7 @@ export default function ServiceConditionSelector({
           aria-label={en ? 'Combinations with a reference price' : 'Tổ hợp có báo giá'}
         >
           <div className="service-combinations-heading">
-            <span>{en ? 'Quick selection · priced combinations' : 'Chọn nhanh · tổ hợp có báo giá'}</span>
-            <small>{available.length}</small>
+            <span>{en ? 'Choose a condition with an estimate' : 'Chọn tình trạng có giá tham khảo'}</span>
           </div>
           <div className="service-combinations-options">
             {(more ? available : available.slice(0, 4)).map((option) => {
@@ -131,13 +162,18 @@ export default function ServiceConditionSelector({
                   key={option.productId}
                   type="button"
                   aria-pressed={active}
-                  onClick={() => onChange({ conditionNodeIds: option.conditionNodeIds, otherCondition: '' })}
+                  onClick={() => {
+                    onChange({ conditionNodeIds: option.conditionNodeIds, otherCondition: '' });
+                    setPanel(null);
+                  }}
                 >
-                  <span>{label(option)}</span>
+                  <span className="service-combination-check">
+                    <ServiceIcon name="check" size={12} />
+                  </span>
+                  <span className="service-combination-label">{label(option)}</span>
                   <strong>
                     {price !== null ? formatVND(price, locale) : en ? 'Inspection quote' : 'Báo giá riêng'}
                   </strong>
-                  {active && <span aria-hidden="true">✓</span>}
                 </button>
               );
             })}
@@ -149,15 +185,54 @@ export default function ServiceConditionSelector({
           )}
         </section>
       )}
-      <details className="service-condition-custom">
-        <summary>
-          {en ? 'Choose other conditions' : 'Chọn tình trạng khác'}{' '}
-          <span>{ids.length ? `${ids.length} ${en ? 'selected' : 'đã chọn'}` : en ? 'Optional' : 'Tùy chọn'}</span>
-        </summary>
+      <div className="service-condition-tools">
+        {canChooseConditions && (
+          <button
+            type="button"
+            aria-expanded={panel === 'conditions'}
+            aria-controls={`${id}-conditions`}
+            onClick={() => setPanel(panel === 'conditions' ? null : 'conditions')}
+          >
+            <ServiceIcon name="sliders" size={15} />
+            {en ? 'Choose conditions' : 'Tự chọn tình trạng'}
+            {!!ids.length && <span className="service-tool-count">{ids.length}</span>}
+            <ServiceIcon name="chevron" size={13} />
+          </button>
+        )}
+        <button
+          type="button"
+          aria-expanded={panel === 'note'}
+          aria-controls={`${id}-note`}
+          onClick={() => setPanel(panel === 'note' ? null : 'note')}
+        >
+          <ServiceIcon name="edit" size={15} />
+          {en ? 'Add a note' : 'Mô tả thêm'}
+          {!!other.trim() && (
+            <span className="service-tool-count">
+              <ServiceIcon name="check" size={11} />
+            </span>
+          )}
+          <ServiceIcon name="chevron" size={13} />
+        </button>
+      </div>
+      <section
+        className="service-condition-custom"
+        id={`${id}-conditions`}
+        hidden={panel !== 'conditions' || !canChooseConditions}
+        aria-label={en ? 'Choose conditions' : 'Tự chọn tình trạng'}
+      >
+        <div className="service-condition-panel-heading">
+          <strong>{en ? 'Describe the actual item' : 'Chọn đúng tình trạng thực tế'}</strong>
+          {!!ids.length && (
+            <button type="button" onClick={() => onChange({ conditionNodeIds: [] })}>
+              {en ? 'Clear' : 'Bỏ chọn'}
+            </button>
+          )}
+        </div>
         <p className="service-condition-hint">
           {en
-            ? 'Choose several issues. Details appear only when relevant. Conflicting choices replace each other.'
-            : 'Có thể chọn nhiều lỗi. Chi tiết chỉ hiện khi cần; lựa chọn loại trừ sẽ tự thay thế nhau.'}
+            ? 'Select all that apply; add more detail only if needed.'
+            : 'Chọn một hoặc nhiều mục phù hợp. Nhánh chi tiết là tùy chọn.'}
         </p>
         {tree.loading ? (
           <p role="status">{en ? 'Loading…' : 'Đang tải…'}</p>
@@ -173,23 +248,27 @@ export default function ServiceConditionSelector({
             onChange={(conditionNodeIds) => onChange({ conditionNodeIds })}
           />
         )}
-      </details>
-      <details className="service-condition-other" open={other.trim() ? true : undefined}>
-        <summary>{en ? 'Something else to disclose?' : 'Có tình trạng chưa được liệt kê?'}</summary>
+      </section>
+      <div className="service-condition-other" id={`${id}-note`} hidden={panel !== 'note'} ref={notePanel}>
         <TextAreaField
           name="otherCondition"
-          label={en ? 'Other condition' : 'Tình trạng khác'}
+          label={en ? 'Anything else the shop should know?' : 'Điều shop cần biết thêm'}
           placeholder={
             en
-              ? 'Describe it for an individual quote after inspection.'
-              : 'Mô tả để shop báo giá riêng sau khi nhận và kiểm hàng.'
+              ? 'e.g. missing the left shield, repaired knee joint…'
+              : 'VD: thiếu khiên trái, khớp gối đã sửa, trầy ở vai…'
           }
           rows={2}
           maxLength={2000}
           value={other}
           onChange={(event) => onChange({ otherCondition: event.target.value })}
+          hint={
+            en
+              ? 'Optional. This item will receive an individual quote after inspection.'
+              : 'Không bắt buộc. Shop sẽ xem mô tả và báo giá riêng sau kiểm hàng.'
+          }
         />
-      </details>
+      </div>
       <p className={`service-condition-notice ${!matching && !match?.approvedAt ? 'is-manual' : ''}`} role="status">
         {matching
           ? en
@@ -201,11 +280,16 @@ export default function ServiceConditionSelector({
               : 'Chưa tải được giá tham khảo. Shop sẽ xác nhận sau kiểm hàng.'
             : match?.approvedAt
               ? en
-                ? 'Reference estimate only; final price follows inspection.'
-                : 'Giá dự kiến cho đúng tổ hợp; giá cuối xác nhận sau kiểm hàng.'
+                ? 'Estimate only · confirmed after inspection.'
+                : 'Giá tham khảo · xác nhận sau kiểm hàng.'
               : en
-                ? 'This combination has no approved price. The shop will quote separately after receiving and inspecting the item.'
-                : 'Tổ hợp này chưa có giá được duyệt. Shop sẽ báo giá riêng sau khi nhận và kiểm hàng.'}
+                ? 'Individual quote · the shop will confirm after receiving and inspecting the item.'
+                : 'Báo giá riêng · shop xác nhận sau khi nhận và kiểm hàng.'}
+        {failed && (
+          <button type="button" onClick={() => setRetry((value) => value + 1)}>
+            {en ? 'Retry' : 'Thử lại'}
+          </button>
+        )}
       </p>
     </div>
   );

@@ -17,7 +17,9 @@ import type { PawnEstimate } from '@/shared/pawn-rules';
 import type { ReferenceCondition } from '@/shared/sale-pricing';
 import type { ProductSummary } from '@/shared/types/product';
 import CatalogCombobox from './CatalogCombobox';
-import { NameField, NEW_CONDITION_VALUE, useConditionPayload, type ConditionValue } from './ConditionFields';
+import { NEW_CONDITION_VALUE, useConditionPayload, type ConditionValue } from './ConditionFields';
+import TextField from '@/components/FormElements/TextField';
+import ServiceIcon from './ServiceIcon';
 import EvidenceUploader, { type UploadedEvidence } from './EvidenceUploader';
 import ServiceRequestPanel from './ServiceRequestPanel';
 import './quick-valuation.css';
@@ -74,7 +76,9 @@ export default function ServiceBasket({
   onSent: () => Promise<void>;
 }) {
   const t = useTranslations('serviceBasket'),
-    locale = useLocale();
+    locale = useLocale(),
+    conditionLabels = useTranslations('itemCondition');
+  const en = locale === 'en';
   const money = (amount: number) => formatVND(amount, locale);
   const [rows, setRows] = useState<Row[]>([]);
   const [items, setItems] = useState<ProductSummary[]>([]);
@@ -89,9 +93,10 @@ export default function ServiceBasket({
   const update = (key: string, change: Partial<Row>) =>
     setRows((current) => current.map((row) => (row.key === key ? { ...row, ...change } : row)));
   const chosen = useRef(new Set<number>());
-  const add = (product: ProductSummary | null) => {
+  const add = (product: ProductSummary | null, name = '') => {
     if (product) chosen.current.add(product.id);
     const row = newRow(product);
+    row.details = { ...NEW_CONDITION_VALUE, name };
     setRows((current) => [...current, row]);
   };
 
@@ -122,7 +127,8 @@ export default function ServiceBasket({
     trade: { title: t('trade.title'), total: t('trade.total'), action: t('trade.action') },
     pawn: { title: t('pawn.title'), total: t('pawn.total'), action: t('pawn.action') },
   }[kind];
-  const canRequest = rows.length > 0 && (kind !== 'trade' || items.length > 0);
+  const named = rows.every((row) => row.product || row.details.name.trim());
+  const canRequest = rows.length > 0 && named && (kind !== 'trade' || items.length > 0);
 
   const send = async () => {
     setBusy(true);
@@ -191,6 +197,7 @@ export default function ServiceBasket({
 
   const ready =
     rows.length > 0 &&
+    named &&
     agreed &&
     !busy &&
     uploading === 0 &&
@@ -210,27 +217,37 @@ export default function ServiceBasket({
             <div className="sb-list">
               <h3>{kind === 'trade' ? t('yourModels') : t('models')}</h3>
               {rows.map((row, index) => (
-                <article key={row.key} className="sb-row">
+                <article key={row.key} className={`sb-row is-service${!row.product ? ' is-custom-model' : ''}`}>
                   <span className="cc-thumb">
                     {row.product && (
                       <ProductImage src={row.product.imageUrl} alt="" sizes="44px" className="object-contain" />
                     )}
+                    {!row.product && <ServiceIcon name="box" size={22} />}
                   </span>
                   <div className="sb-row-copy">
-                    <strong>{row.product?.name ?? t('otherModel')}</strong>
-                    <ServiceConditionSelector
-                      kind={kind}
-                      familyId={row.product?.modelFamilyId}
-                      type={row.condition}
-                      ids={row.conditionNodeIds}
-                      other={row.otherCondition}
-                      onChange={(change) => update(row.key, { ...change, matchedCase: null })}
-                      onMatch={(matchedCase) => update(row.key, { matchedCase })}
-                    />
+                    {row.product ? (
+                      <strong>{row.product.name}</strong>
+                    ) : (
+                      <TextField
+                        className="sb-custom-name"
+                        id={`${row.key}-name`}
+                        name={`modelName-${row.key}`}
+                        label={conditionLabels('name')}
+                        placeholder={conditionLabels('namePlaceholder')}
+                        required
+                        autoFocus
+                        autoComplete="off"
+                        maxLength={255}
+                        value={row.details.name}
+                        onChange={(event) => update(row.key, { details: { ...row.details, name: event.target.value } })}
+                      />
+                    )}
                   </div>
                   <span className={`sb-row-price${priced[index] === null ? ' is-quote' : ''}`}>
                     {row.matchedCase === undefined
-                      ? '…'
+                      ? en
+                        ? 'Checking…'
+                        : 'Đang tính…'
                       : priced[index] !== null
                         ? money(priced[index]!)
                         : t('shopQuotes')}
@@ -244,19 +261,32 @@ export default function ServiceBasket({
                       setRows((current) => current.filter((item) => item.key !== row.key));
                     }}
                   >
-                    ×
+                    <ServiceIcon name="close" size={16} />
                   </button>
+                  <ServiceConditionSelector
+                    kind={kind}
+                    familyId={row.product?.modelFamilyId}
+                    type={row.condition}
+                    ids={row.conditionNodeIds}
+                    other={row.otherCondition}
+                    onChange={(change) => update(row.key, { ...change, matchedCase: undefined })}
+                    onMatch={(matchedCase) => update(row.key, { matchedCase })}
+                  />
                 </article>
               ))}
-              <CatalogCombobox
-                familyMode
-                label={rows.length ? t('addAnother') : t('addFirst')}
-                value={null}
-                onChange={(product) => product && add(product)}
-              />
-              <button type="button" className="sb-link" onClick={() => add(null)}>
-                {t('addOther')}
-              </button>
+              <div className="sb-add-model">
+                <CatalogCombobox
+                  familyMode
+                  label={rows.length ? t('addAnother') : t('addFirst')}
+                  value={null}
+                  onChange={(product) => product && add(product)}
+                  onCreateManual={(name) => add(null, name)}
+                />
+                <button type="button" className="sb-add-manual" onClick={() => add(null)}>
+                  <ServiceIcon name="edit" size={16} />
+                  {en ? 'Enter a model' : 'Tự nhập tên'}
+                </button>
+              </div>
             </div>
 
             {kind === 'trade' && (
@@ -343,14 +373,20 @@ export default function ServiceBasket({
             {kind === 'trade' && rows.length > 0 && !items.length && (
               <small className="qv-cta-hint">{t('chooseItem')}</small>
             )}
+            {!named && (
+              <small className="qv-cta-hint">
+                {en ? 'Enter the name of each model to continue.' : 'Nhập tên mô hình ngoài danh mục để tiếp tục.'}
+              </small>
+            )}
           </aside>
         </div>
-        <p className="qv-manual-line">
-          {t('help')}{' '}
+        <div className="qv-manual-line">
+          <ServiceIcon name="chat" size={16} />
+          <span>{t('help')}</span>
           <Link href="/contact" className="qv-link">
-            {t('contact')}
+            {t('contact')} <ServiceIcon name="arrow" size={14} />
           </Link>
-        </p>
+        </div>
       </section>
 
       {requesting > 0 && rows.length > 0 && (
@@ -359,7 +395,8 @@ export default function ServiceBasket({
             {rows.map((row, index) => (
               <section key={row.key} className="service-form-section">
                 <h3 className="sb-request-title">
-                  {index + 1}. {row.product?.name ?? t('otherModel')} · {row.condition === 'new' ? 'New' : '2hand'}
+                  {index + 1}. {row.product?.name ?? row.details.name.trim()} ·{' '}
+                  {row.condition === 'new' ? 'New' : '2hand'}
                   {priced[index] !== null && ` · ${money(priced[index]!)}`}
                   {kind === 'trade' && items[index] && ` → ${items[index].name}`}
                 </h3>
@@ -368,7 +405,6 @@ export default function ServiceBasket({
                     {t('failed')}
                   </p>
                 )}
-                {!row.product && <NameField value={row.details} onChange={(details) => update(row.key, { details })} />}
                 <EvidenceUploader
                   purpose={kind === 'pawn' ? 'pawn' : 'buyback'}
                   files={row.files}

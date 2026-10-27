@@ -8,6 +8,7 @@ import ProductImage from '@/components/ProductImage';
 import { formatVND } from '@/shared/server/utils/utils';
 import { memberPrice } from '@/shared/pricing';
 import type { ProductSummary } from '@/shared/types/product';
+import ServiceIcon from './ServiceIcon';
 
 // A choose-or-search list of the shop's own models (an ARIA combobox): the list opens on focus with the best sellers,
 // typing filters it (the catalogue is searched as the customer types), arrows and Enter pick, Escape closes.
@@ -20,6 +21,7 @@ export default function CatalogCombobox({
   showPrice = false,
   inStockOnly = false,
   familyMode = false,
+  onCreateManual,
 }: {
   label: string;
   value: ProductSummary | null;
@@ -28,6 +30,7 @@ export default function CatalogCombobox({
   showPrice?: boolean;
   inStockOnly?: boolean;
   familyMode?: boolean;
+  onCreateManual?: (name: string) => void;
 }) {
   const locale = useLocale(),
     en = locale === 'en';
@@ -36,6 +39,8 @@ export default function CatalogCombobox({
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<ProductSummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [active, setActive] = useState(0);
   const root = useRef<HTMLDivElement>(null);
 
@@ -43,17 +48,47 @@ export default function CatalogCombobox({
     if (!open) return;
     let alive = true;
     setLoading(true);
+    setFailed(false);
+    setItems([]);
     const timer = setTimeout(
       () => {
-        const pending = familyMode ? Api.get('/product-condition-tree/families', { params: { q: query.trim() } }).then(response => ({ data: response.data.map((family: { id: number; name: string; brandName: string; modelCode: string | null; scale: string | null; imageUrl: string }) => ({ ...family, modelFamilyId: family.id, price: 0, salePrice: 0, stock: 0, discountPercent: 0, discountEndsAt: null, rating: 0, reviewCount: 0, isFeatured: false, salesChannel: 'web' as const })) as ProductSummary[] })) : ProductApi.getProducts({
-          ...(query.trim() ? { q: query.trim() } : { sort: 'best_selling' }),
-          per_page: 20,
-        });
+        const pending = familyMode
+          ? Api.get('/product-condition-tree/families', { params: { q: query.trim() } }).then((response) => ({
+              data: response.data.map(
+                (family: {
+                  id: number;
+                  name: string;
+                  brandName: string;
+                  modelCode: string | null;
+                  scale: string | null;
+                  imageUrl: string;
+                }) => ({
+                  ...family,
+                  modelFamilyId: family.id,
+                  price: 0,
+                  salePrice: 0,
+                  stock: 0,
+                  discountPercent: 0,
+                  discountEndsAt: null,
+                  rating: 0,
+                  reviewCount: 0,
+                  isFeatured: false,
+                  salesChannel: 'web' as const,
+                }),
+              ) as ProductSummary[],
+            }))
+          : ProductApi.getProducts({
+              ...(query.trim() ? { q: query.trim() } : { sort: 'best_selling' }),
+              per_page: 20,
+            });
         void pending
           .then((page) => {
             if (!alive) return;
             setItems((page?.data || []).filter((row) => !row.partnerId && (!inStockOnly || row.stock > 0)));
             setActive(0);
+          })
+          .catch(() => {
+            if (alive) setFailed(true);
           })
           .finally(() => alive && setLoading(false));
       },
@@ -63,15 +98,18 @@ export default function CatalogCombobox({
       alive = false;
       clearTimeout(timer);
     };
-  }, [open, query, inStockOnly, familyMode]);
+  }, [open, query, inStockOnly, familyMode, retry]);
 
   useEffect(() => {
-    const close = (event: MouseEvent) => {
+    const close = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
   }, []);
+  useEffect(() => {
+    if (open) document.getElementById(`${id}-option-${items[active]?.id}`)?.scrollIntoView({ block: 'nearest' });
+  }, [open, active, items, id]);
 
   const pick = (product: ProductSummary) => {
     onChange(product);
@@ -103,21 +141,32 @@ export default function CatalogCombobox({
     );
 
   return (
-    <div className="cc-field" ref={root}>
+    <div
+      className="cc-field"
+      ref={root}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+    >
       <label className="cc-label" htmlFor={`${id}-input`}>
         {label}
       </label>
       <div className={`cc-box${open ? ' is-open' : ''}`}>
+        <span className="cc-search-icon">
+          <ServiceIcon name="search" size={18} />
+        </span>
         <input
           id={`${id}-input`}
           role="combobox"
           aria-expanded={open}
           aria-controls={`${id}-list`}
           aria-autocomplete="list"
+          aria-busy={loading}
           aria-activedescendant={open && items[active] ? `${id}-option-${items[active].id}` : undefined}
           autoComplete="off"
+          maxLength={255}
           value={query}
-          placeholder={placeholder ?? (en ? 'Choose a model or type to search…' : 'Chọn mẫu hoặc gõ để tìm…')}
+          placeholder={placeholder ?? (en ? 'Search model name or code…' : 'Tìm tên hoặc mã mô hình…')}
           onFocus={() => setOpen(true)}
           onClick={() => setOpen(true)}
           onChange={(event) => {
@@ -128,61 +177,107 @@ export default function CatalogCombobox({
             if (event.key === 'ArrowDown') {
               event.preventDefault();
               setOpen(true);
-              setActive((index) => Math.min(index + 1, Math.max(0, items.length - 1)));
+              setActive((index) => (open ? Math.min(index + 1, Math.max(0, items.length - 1)) : 0));
             } else if (event.key === 'ArrowUp') {
               event.preventDefault();
-              setActive((index) => Math.max(index - 1, 0));
+              setOpen(true);
+              setActive((index) => (open ? Math.max(index - 1, 0) : Math.max(0, items.length - 1)));
             } else if (event.key === 'Enter' && open && items[active]) {
               event.preventDefault();
               pick(items[active]);
-            } else if (event.key === 'Escape') setOpen(false);
+            } else if (event.key === 'Escape') {
+              event.preventDefault();
+              setOpen(false);
+            }
           }}
         />
-        <span className="cc-caret" aria-hidden="true">
-          ▾
-        </span>
+        <button
+          className="cc-caret"
+          type="button"
+          aria-label={
+            open
+              ? en
+                ? 'Close model list'
+                : 'Đóng danh sách mô hình'
+              : en
+                ? 'Open model list'
+                : 'Mở danh sách mô hình'
+          }
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => setOpen(!open)}
+        >
+          <ServiceIcon name="chevron" size={16} />
+        </button>
       </div>
       {open && (
-        <ul id={`${id}-list`} role="listbox" className="cc-list">
+        <div className="cc-list">
           {!query.trim() && !loading && items.length > 0 && (
-            <li className="cc-hint" role="presentation">
-              {en ? 'Popular models' : 'Mẫu được quan tâm'}
-            </li>
+            <p className="cc-hint">{en ? 'Popular models' : 'Mẫu được quan tâm'}</p>
           )}
           {loading && items.length === 0 && (
-            <li className="cc-hint" role="presentation">
+            <p className="cc-status" role="status">
               {en ? 'Loading…' : 'Đang tải…'}
-            </li>
+            </p>
           )}
-          {!loading && items.length === 0 && (
-            <li className="cc-hint" role="presentation">
-              {en ? 'No model of the shop matches.' : 'Không có mẫu nào của shop khớp.'}
-            </li>
+          {failed && (
+            <div className="cc-status" role="status">
+              <span>{en ? 'Could not load models.' : 'Chưa tải được danh sách.'}</span>
+              <button type="button" onClick={() => setRetry((count) => count + 1)}>
+                {en ? 'Retry' : 'Thử lại'}
+              </button>
+            </div>
           )}
-          {items.map((product, index) => (
-            <li
-              key={product.id}
-              id={`${id}-option-${product.id}`}
-              role="option"
-              aria-selected={index === active}
-              className={index === active ? 'is-active' : undefined}
-              onMouseEnter={() => setActive(index)}
-              onMouseDown={(event) => {
-                event.preventDefault();
-                pick(product);
+          {!loading && !failed && items.length === 0 && (
+            <p className="cc-status">{en ? 'No matching model found.' : 'Chưa tìm thấy mô hình phù hợp.'}</p>
+          )}
+          <ul id={`${id}-list`} role="listbox" aria-label={label}>
+            {items.map((product, index) => (
+              <li
+                key={product.id}
+                id={`${id}-option-${product.id}`}
+                role="option"
+                aria-selected={index === active}
+                className={index === active ? 'is-active' : undefined}
+                onMouseEnter={() => setActive(index)}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => pick(product)}
+              >
+                <span className="cc-thumb">
+                  <ProductImage src={product.imageUrl} alt="" sizes="44px" className="object-contain" />
+                </span>
+                <span className="cc-option-copy">
+                  <strong>{product.name}</strong>
+                  <small>{product.brandName}</small>
+                </span>
+                {showPrice && <span className="cc-option-price">{formatVND(memberPrice(product.price), locale)}</span>}
+              </li>
+            ))}
+          </ul>
+          {onCreateManual && (
+            <button
+              type="button"
+              className="cc-create-manual"
+              onClick={() => {
+                onCreateManual(query.trim());
+                setQuery('');
+                setOpen(false);
               }}
             >
-              <span className="cc-thumb">
-                <ProductImage src={product.imageUrl} alt="" sizes="44px" className="object-contain" />
+              <ServiceIcon name="edit" size={17} />
+              <span>
+                <strong>{en ? 'Model outside the catalog?' : 'Mẫu chưa có trong danh mục?'}</strong>
+                <small>
+                  {query.trim()
+                    ? `${en ? 'Use' : 'Dùng tên'} “${query.trim()}”`
+                    : en
+                      ? 'Enter its name for an individual quote'
+                      : 'Tự nhập tên để shop báo giá riêng'}
+                </small>
               </span>
-              <span className="cc-option-copy">
-                <strong>{product.name}</strong>
-                <small>{product.brandName}</small>
-              </span>
-              {showPrice && <span className="cc-option-price">{formatVND(memberPrice(product.price), locale)}</span>}
-            </li>
-          ))}
-        </ul>
+              <ServiceIcon name="arrow" size={16} />
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
