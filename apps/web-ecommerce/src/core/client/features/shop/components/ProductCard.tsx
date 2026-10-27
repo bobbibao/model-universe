@@ -95,11 +95,6 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
           sizes="(min-width: 1440px) 320px, (min-width: 1024px) 28vw, (min-width: 640px) 33vw, 50vw"
           className="studio-card-stage"
         />
-        {groupStock <= 0 && (
-          <div className="tile-soldout-wash" aria-hidden="true">
-            <span className="tile-soldout-pill">{t('soldOut')}</span>
-          </div>
-        )}
         <div className="product-tile-badges">
           <div className="tile-condition-badges">
             <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>{isNew ? t('new') : '2hand'}</span>
