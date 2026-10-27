@@ -63,14 +63,10 @@ export default function ServiceConditionSelector({
   }, [familyId]);
   useEffect(() => {
     let current = true;
-    callback.current(familyId ? undefined : null);
+    callback.current(undefined);
     setMatch(null);
     setMatching(true);
     setFailed(false);
-    if (!familyId) {
-      setMatching(false);
-      return;
-    }
     const timer = setTimeout(() => {
       Api.post('/product-condition-tree/match', {
         modelFamilyId: familyId ?? null,
@@ -194,7 +190,8 @@ export default function ServiceConditionSelector({
             onClick={() => setPanel(panel === 'conditions' ? null : 'conditions')}
           >
             <ServiceIcon name="sliders" size={15} />
-            {en ? 'Choose conditions' : 'Tự chọn tình trạng'}
+            <span className="service-tool-full">{en ? 'Choose conditions' : 'Tự chọn tình trạng'}</span>
+            <span className="service-tool-short">{en ? 'Conditions' : 'Tình trạng'}</span>
             {!!ids.length && <span className="service-tool-count">{ids.length}</span>}
             <ServiceIcon name="chevron" size={13} />
           </button>

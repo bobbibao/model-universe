@@ -724,6 +724,11 @@
   background: #fff6e5;
   font-size: 11px;
 }
+.sb-row.is-service > .sb-row-price.is-loading {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--qv-muted);
+}
 .sb-custom-name label {
   margin-bottom: 4px;
   color: var(--qv-muted);
@@ -911,6 +916,9 @@
   color: var(--qv-accent);
   font-size: 10px;
 }
+.service-tool-short {
+  display: none;
+}
 .service-condition-custom,
 .service-condition-other {
   min-width: 0;
@@ -958,6 +966,11 @@
   line-height: 1.6;
   resize: vertical;
 }
+.service-condition-other textarea:focus {
+  border-color: var(--qv-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px #6f48cc12;
+}
 .service-condition-other .form-field-hint {
   margin-top: 6px;
   color: var(--qv-muted);
@@ -991,7 +1004,7 @@
   color: var(--qv-accent);
   white-space: nowrap;
 }
-.qv :is(button, a, input, textarea):focus-visible {
+.qv :is(button, a):focus-visible {
   outline: 2px solid var(--qv-accent);
   outline-offset: 3px;
 }
@@ -1046,6 +1059,14 @@
   .service-condition-tools > button {
     min-height: 40px;
     font-size: 11px;
+    padding-inline: 8px;
+  }
+  .service-condition-tools .service-tool-full,
+  .service-condition-tools > button > svg:last-child {
+    display: none;
+  }
+  .service-condition-tools .service-tool-short {
+    display: inline;
   }
   .service-combinations-options {
     grid-template-columns: 1fr;

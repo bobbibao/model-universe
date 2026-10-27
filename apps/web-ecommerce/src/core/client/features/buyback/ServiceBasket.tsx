@@ -243,7 +243,9 @@ export default function ServiceBasket({
                       />
                     )}
                   </div>
-                  <span className={`sb-row-price${priced[index] === null ? ' is-quote' : ''}`}>
+                  <span
+                    className={`sb-row-price${row.matchedCase === undefined ? ' is-loading' : priced[index] === null ? ' is-quote' : ''}`}
+                  >
                     {row.matchedCase === undefined
                       ? en
                         ? 'Checking…'
