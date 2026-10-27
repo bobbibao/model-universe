@@ -121,6 +121,26 @@
   outline: 2px solid var(--control-accent);
   outline-offset: 2px;
 }
+/* Inline disclosure keeps condition choices in their group's normal layout. */
+.filter-multi.is-inline {
+  z-index: auto;
+}
+.filter-multi.is-inline > .filter-multi-menu {
+  position: static;
+  inset: auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin-top: 6px;
+  box-shadow: none;
+  border-radius: 9px;
+}
+.filter-multi.is-inline .filter-multi-options {
+  max-height: 240px;
+}
+.filter-multi.is-inline .filter-multi-options > button {
+  min-height: 40px;
+}
 .mu-shell,
 .admin-workspace,
 .admin-modal-overlay {

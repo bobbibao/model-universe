@@ -37,12 +37,15 @@ export default function ConditionDropdowns({
     return (
       <div key={parent.id} className={`condition-cascade ${depth ? 'is-detail' : ''}`}>
         <FilterMultiSelect
+          inline
           label={
             depth
-              ? `${nodeLabel(parent, en)} · ${en ? 'details (optional)' : 'chi tiết (tùy chọn)'}`
+              ? `${en ? 'More about' : 'Chi tiết'} ${nodeLabel(parent, en).toLocaleLowerCase(en ? 'en' : 'vi')} (${en ? 'optional' : 'tùy chọn'})`
               : nodeLabel(parent, en)
           }
-          placeholder={depth ? (en ? 'Add details' : 'Thêm chi tiết') : en ? 'Not specified' : 'Chưa chọn'}
+          placeholder={
+            depth ? (en ? 'Add details if needed' : 'Bổ sung nếu cần') : en ? 'Choose if applicable' : 'Chọn nếu có'
+          }
           clearLabel={en ? 'Clear selection' : 'Bỏ lựa chọn'}
           options={options.map((node) => ({ value: String(node.id), label: nodeLabel(node, en) }))}
           values={selected.map((node) => String(node.id))}
@@ -65,27 +68,32 @@ export default function ConditionDropdowns({
         {available.filter((node) => node.parentId === null).map((node) => render(node))}
       </div>
       {!!value.length && (
-        <div className="condition-selection-tags" aria-label={en ? 'Selected conditions' : 'Tình trạng đã chọn'}>
-          {value.map((id) => (
-            <button
-              type="button"
-              key={id}
-              title={nodes.find((node) => node.id === id)?.nameVi}
-              aria-label={`${en ? 'Remove' : 'Bỏ'} ${nodeLabel(
-                nodes.find((node) => node.id === id)!,
-                en,
-              )}`}
-              onClick={() => onChange(value.filter((key) => key !== id))}
-            >
-              {shortConditionLabel(
-                nodeLabel(
+        <div className="condition-selection-summary">
+          <span>
+            {en ? 'Selected' : 'Đã chọn'} · {value.length}
+          </span>
+          <div className="condition-selection-tags" aria-label={en ? 'Selected conditions' : 'Tình trạng đã chọn'}>
+            {value.map((id) => (
+              <button
+                type="button"
+                key={id}
+                title={nodes.find((node) => node.id === id)?.nameVi}
+                aria-label={`${en ? 'Remove' : 'Bỏ'} ${nodeLabel(
                   nodes.find((node) => node.id === id)!,
                   en,
-                ),
-              )}{' '}
-              <span aria-hidden="true">×</span>
-            </button>
-          ))}
+                )}`}
+                onClick={() => onChange(value.filter((key) => key !== id))}
+              >
+                {shortConditionLabel(
+                  nodeLabel(
+                    nodes.find((node) => node.id === id)!,
+                    en,
+                  ),
+                )}{' '}
+                <span aria-hidden="true">×</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

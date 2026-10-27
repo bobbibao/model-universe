@@ -713,7 +713,18 @@
   margin-top: 10px;
   border-left: 2px solid #e6ddf6;
 }
-.condition-cascade-layout > .condition-selection-tags {
+.condition-selection-summary {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e9e3f2;
+}
+.condition-selection-summary > span {
+  color: #756e83;
+  font-size: 11px;
+}
+.condition-selection-summary > .condition-selection-tags {
   padding: 10px 0 0;
   border: 0;
 }
@@ -744,22 +755,6 @@
   .service-combinations-options > button {
     flex-wrap: wrap;
     gap: 4px 8px;
-  }
-}
-
-/* Flow independent groups into balanced columns; long optional paths do not leave empty grid cells. */
-.condition-cascade-grid {
-  display: block;
-  columns: 2;
-  column-gap: 16px;
-}
-.condition-cascade-grid > .condition-cascade {
-  break-inside: avoid;
-  margin-bottom: 14px;
-}
-@media (max-width: 640px) {
-  .condition-cascade-grid {
-    columns: 1;
   }
 }
 

@@ -270,8 +270,8 @@ export default function CatalogCombobox({
                   {query.trim()
                     ? `${en ? 'Use' : 'Dùng tên'} “${query.trim()}”`
                     : en
-                      ? 'Enter its name for an individual quote'
-                      : 'Tự nhập tên để shop báo giá riêng'}
+                      ? 'Add this model for an individual quote'
+                      : 'Thêm mô hình để shop báo giá riêng'}
                 </small>
               </span>
               <ServiceIcon name="arrow" size={16} />

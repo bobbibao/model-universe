@@ -20,6 +20,8 @@ import CatalogCombobox from './CatalogCombobox';
 import { NEW_CONDITION_VALUE, useConditionPayload, type ConditionValue } from './ConditionFields';
 import TextField from '@/components/FormElements/TextField';
 import ServiceIcon from './ServiceIcon';
+import ServiceSummary from './ServiceSummary';
+import { shortConditionLabel } from '@/shared/condition-selection';
 import EvidenceUploader, { type UploadedEvidence } from './EvidenceUploader';
 import ServiceRequestPanel from './ServiceRequestPanel';
 import './quick-valuation.css';
@@ -116,11 +118,6 @@ export default function ServiceBasket({
     return price > 100000 && buybackMargin(price) < price ? tierBuyback(price) : null;
   };
   const priced = rows.map(priceOf);
-  const known = priced.filter((price): price is number => price !== null);
-  const quotedByShop = priced.length - known.length;
-  const itemsTotal = items.reduce((sum, item) => sum + memberPrice(item.price), 0);
-  const ownTotal = known.reduce((sum, price) => sum + price, 0);
-  const difference = itemsTotal - ownTotal;
 
   const copy = {
     sell: { title: t('sell.title'), total: t('sell.total'), action: t('sell.action') },
@@ -217,7 +214,11 @@ export default function ServiceBasket({
             <div className="sb-list">
               <h3>{kind === 'trade' ? t('yourModels') : t('models')}</h3>
               {rows.map((row, index) => (
-                <article key={row.key} className={`sb-row is-service${!row.product ? ' is-custom-model' : ''}`}>
+                <article
+                  id={`service-${row.key}`}
+                  key={row.key}
+                  className={`sb-row is-service${!row.product ? ' is-custom-model' : ''}`}
+                >
                   <span className="cc-thumb">
                     {row.product && (
                       <ProductImage src={row.product.imageUrl} alt="" sizes="44px" className="object-contain" />
@@ -286,7 +287,7 @@ export default function ServiceBasket({
                 />
                 <button type="button" className="sb-add-manual" onClick={() => add(null)}>
                   <ServiceIcon name="edit" size={16} />
-                  {en ? 'Enter a model' : 'Tự nhập tên'}
+                  {en ? 'Model outside the catalog' : 'Mẫu không có trong danh mục'}
                 </button>
               </div>
             </div>
@@ -331,56 +332,31 @@ export default function ServiceBasket({
             )}
           </div>
 
-          <aside className={`qv-result${canRequest ? ' is-ready' : ''}`} aria-live="polite">
-            <span className="qv-result-label">{copy.total}</span>
-            {!rows.length ? (
-              <p className="qv-result-empty">{t('empty')}</p>
-            ) : (
-              <>
-                <strong className="qv-amount">
-                  {kind === 'trade'
-                    ? quotedByShop
-                      ? t('afterQuote')
-                      : difference === 0
-                        ? t('even')
-                        : money(Math.abs(difference))
-                    : quotedByShop
-                      ? t('afterQuote')
-                      : money(ownTotal)}
-                </strong>
-                {kind === 'trade' && !quotedByShop && difference !== 0 && items.length > 0 && (
-                  <span className="qv-direction">{t(difference > 0 ? 'youPay' : 'shopPays')}</span>
-                )}
-                <p className="qv-fineprint">
-                  {t('count', { count: rows.length })}
-                  {quotedByShop > 0 && ` · ${t('quotedCount', { count: quotedByShop })}`}
-                </p>
-                {quotedByShop > 0 && known.length > 0 && (
-                  <p className="qv-fineprint">
-                    {locale === 'en' ? 'Priced items subtotal: ' : 'Tạm tính các món đã có giá: '}
-                    {money(ownTotal)}
-                  </p>
-                )}
-                <p className="qv-fineprint">{t(`${kind}.note`)}</p>
-              </>
-            )}
-            <button
-              type="button"
-              className="qv-cta"
-              disabled={!canRequest}
-              onClick={() => setRequesting((count) => count + 1)}
-            >
-              {copy.action}
-            </button>
-            {kind === 'trade' && rows.length > 0 && !items.length && (
-              <small className="qv-cta-hint">{t('chooseItem')}</small>
-            )}
-            {!named && (
-              <small className="qv-cta-hint">
-                {en ? 'Enter the name of each model to continue.' : 'Nhập tên mô hình ngoài danh mục để tiếp tục.'}
-              </small>
-            )}
-          </aside>
+          <ServiceSummary
+            kind={kind}
+            rows={rows.map((row, index) => ({
+              key: row.key,
+              name: row.product?.name ?? row.details.name,
+              type: row.condition,
+              conditions: row.matchedCase?.labels.map(shortConditionLabel) ?? [],
+              conditionCount: row.conditionNodeIds.length,
+              hasNote: !!row.otherCondition.trim(),
+              price: priced[index],
+              pending: row.matchedCase === undefined,
+            }))}
+            shopItems={items.map((item) => ({ id: item.id, name: item.name, price: memberPrice(item.price) }))}
+            canContinue={canRequest}
+            requestOpen={requesting > 0}
+            onContinue={() => setRequesting((count) => count + 1)}
+            onEdit={(key) => {
+              const element = document.getElementById(`service-${key}`);
+              element?.scrollIntoView({
+                behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                block: 'center',
+              });
+              element?.querySelector<HTMLElement>('input, [role="radio"]')?.focus({ preventScroll: true });
+            }}
+          />
         </div>
         <div className="qv-manual-line">
           <ServiceIcon name="chat" size={16} />

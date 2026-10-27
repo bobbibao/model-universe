@@ -190,9 +190,12 @@ export default function ServiceConditionSelector({
             onClick={() => setPanel(panel === 'conditions' ? null : 'conditions')}
           >
             <ServiceIcon name="sliders" size={15} />
-            <span className="service-tool-full">{en ? 'Choose conditions' : 'Tự chọn tình trạng'}</span>
-            <span className="service-tool-short">{en ? 'Conditions' : 'Tình trạng'}</span>
-            {!!ids.length && <span className="service-tool-count">{ids.length}</span>}
+            <span>{en ? 'Conditions' : 'Tình trạng'}</span>
+            {!!ids.length && (
+              <span className="service-tool-count">
+                {ids.length} {en ? 'selected' : 'mục'}
+              </span>
+            )}
             <ServiceIcon name="chevron" size={13} />
           </button>
         )}
@@ -219,17 +222,17 @@ export default function ServiceConditionSelector({
         aria-label={en ? 'Choose conditions' : 'Tự chọn tình trạng'}
       >
         <div className="service-condition-panel-heading">
-          <strong>{en ? 'Describe the actual item' : 'Chọn đúng tình trạng thực tế'}</strong>
+          <strong>{en ? 'What should the shop know about this model?' : 'Mô hình có điểm nào cần lưu ý?'}</strong>
           {!!ids.length && (
             <button type="button" onClick={() => onChange({ conditionNodeIds: [] })}>
-              {en ? 'Clear' : 'Bỏ chọn'}
+              {en ? 'Clear all' : 'Bỏ chọn tất cả'}
             </button>
           )}
         </div>
         <p className="service-condition-hint">
           {en
-            ? 'Select all that apply; add more detail only if needed.'
-            : 'Chọn một hoặc nhiều mục phù hợp. Nhánh chi tiết là tùy chọn.'}
+            ? 'Choose all that apply. Close a group to collapse it; your selections are kept.'
+            : 'Chọn các mục phù hợp. Bấm Đóng để thu gọn nhóm; lựa chọn vẫn được giữ.'}
         </p>
         {tree.loading ? (
           <p role="status">{en ? 'Loading…' : 'Đang tải…'}</p>

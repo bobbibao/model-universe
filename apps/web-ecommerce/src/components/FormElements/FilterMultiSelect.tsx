@@ -11,6 +11,7 @@ export default function FilterMultiSelect({
   onChange,
   placeholder,
   clearLabel,
+  inline = false,
 }: {
   label: string;
   options: { value: string; label: string }[];
@@ -18,6 +19,7 @@ export default function FilterMultiSelect({
   onChange: (values: string[]) => void;
   placeholder?: string;
   clearLabel?: string;
+  inline?: boolean;
 }) {
   const t = useTranslations('catalog');
   const common = useTranslations('common');
@@ -26,17 +28,17 @@ export default function FilterMultiSelect({
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    if (!open) return;
+    if (!open || inline) return;
     const outside = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
-  }, [open]);
+  }, [open, inline]);
   const chosen = values.map((value) => options.find((option) => option.value === value)?.label || value);
   return (
     <div
-      className="filter-multi"
+      className={`filter-multi${inline ? ' is-inline' : ''}`}
       ref={root}
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
@@ -46,7 +48,7 @@ export default function FilterMultiSelect({
         }
       }}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+        if (!inline && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
     >
       <span className="mu-field" id={`${id}-label`}>
