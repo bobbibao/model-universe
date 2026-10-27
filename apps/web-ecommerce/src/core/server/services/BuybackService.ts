@@ -755,11 +755,15 @@ export default class BuybackService {
         BuybackEventModel.count({ where: { buybackRequestId: row.id, action: 'accept' }, transaction }),
       ]);
       const unused = !(await CatalogIntakeModel.count({ where: { sourceType: 'buyback', sourceId: String(row.id) }, transaction }));
+      // An even trade has a verified settlement event, but deliberately no zero-value cash transfer.
+      const settlementVerified = row.tradeQuote?.status === 'settled' && row.tradeQuote.differenceVnd === 0
+        ? (await BuybackEventModel.count({ where: { buybackRequestId: row.id, action: 'payout' }, transaction })) > 0
+        : (await BuybackPayoutModel.count({ where: { buybackRequestId: row.id }, transaction })) > 0;
       const verified: Partial<ListingQcChecks> = {
         QC01: !!row.inspection,
         QC02: inspectionFiles > 0,
         QC06: !!row.finalOffer && accepted > 0,
-        QC07: !!row.ownershipTransferredAt && (await BuybackPayoutModel.count({ where: { buybackRequestId: row.id }, transaction })) > 0,
+        QC07: !!row.ownershipTransferredAt && settlementVerified,
         QC08: unused,
         QC10: !!product.pricingReferenceMemberVnd && !!product.targetPriceApprovedAt,
         QC16: true,

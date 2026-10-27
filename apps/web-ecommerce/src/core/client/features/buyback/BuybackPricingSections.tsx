@@ -6,6 +6,7 @@ import Api from '@/core/client/api/Api';
 import { formatVND } from '@/shared/server/utils/utils';
 import {
   B17_RULE_VERSION,
+  CONDITION_BUYBACK_RULE_VERSION,
   BUYBACK_ISSUE_TYPES,
   BUYBACK_RATE_PERCENT,
   BUYBACK_RULE_VERSION,
@@ -116,7 +117,7 @@ export default function BuybackPricingSections({
           {v2('evidenceRequested')}: {selected.evidenceRequest}
         </p>
       )}
-      {!admin && selected.status === 'need_more_evidence' && (
+      {!admin && !selected.conditionCase && selected.status === 'need_more_evidence' && (
         <form
           className="space-y-3"
           onSubmit={async (event) => {
@@ -353,7 +354,7 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
   const v2 = useTranslations('buybackV2'),
     locale = useLocale();
   const money = (amount: number) => formatVND(amount, locale);
-  const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION && estimate.ruleVersion !== B17_RULE_VERSION;
+  const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION && estimate.ruleVersion !== B17_RULE_VERSION && estimate.ruleVersion !== CONDITION_BUYBACK_RULE_VERSION;
   const reference = estimate.referencePriceVnd;
   const rate =
     estimate.ruleVersion === B17_RULE_VERSION

@@ -1,14 +1,8 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
-import {
-  ancestors,
-  conditionPath,
-  nodeLabel,
-  normalizeSelection,
-  type ConditionNode,
-  type ItemTypeKey,
-} from '@/shared/condition-tree';
+import { ancestors, conditionPath, nodeLabel, type ConditionNode, type ItemTypeKey } from '@/shared/condition-tree';
+import { conditionSelected, shortConditionLabel, toggleCondition } from '@/shared/condition-selection';
 import { useConditionTree } from '@/shared/client/hooks/useConditionTree';
 
 interface Props {
@@ -27,6 +21,11 @@ export default function ConditionTreePicker({ value, onChange, itemType, disable
   const [closed, setClosed] = useState<Set<number>>(new Set());
   const [error, setError] = useState('');
   const selectedAncestors = useMemo(() => new Set(value.flatMap((id) => ancestors(id, nodes))), [value, nodes]);
+  useEffect(() => {
+    setOpen((current) =>
+      [...selectedAncestors].every((id) => current.has(id)) ? current : new Set([...current, ...selectedAncestors]),
+    );
+  }, [selectedAncestors]);
   const available = nodes.filter(
     (node) =>
       (node.isActive &&
@@ -58,10 +57,7 @@ export default function ConditionTreePicker({ value, onChange, itemType, disable
   const toggle = (id: number) => {
     if (disabled) return;
     try {
-      const ids = value.includes(id)
-        ? value.filter((key) => key !== id)
-        : [...value.filter((key) => !ancestors(key, nodes).includes(id)), id];
-      onChange(normalizeSelection(ids, nodes, itemType, value));
+      onChange(toggleCondition(id, value, available, itemType));
       setError('');
     } catch (reason) {
       setError((reason as Error).message);
@@ -97,7 +93,7 @@ export default function ConditionTreePicker({ value, onChange, itemType, disable
           return (
             <div
               key={node.id}
-              className={`condition-tree-row${value.includes(node.id) ? ' is-selected' : ''}`}
+              className={`condition-tree-row${conditionSelected(node.id, value, available) ? ' is-selected' : ''}`}
               style={{ paddingInlineStart: `${12 + Math.min(depth, 8) * 16}px` }}
             >
               {children ? (
@@ -125,19 +121,24 @@ export default function ConditionTreePicker({ value, onChange, itemType, disable
                 <button
                   type="button"
                   className="condition-tree-choice"
-                  aria-pressed={value.includes(node.id)}
+                  aria-pressed={conditionSelected(node.id, value, available)}
                   disabled={disabled}
                   onClick={() => toggle(node.id)}
                 >
                   <span>{query ? conditionPath(node.id, nodes, en) : nodeLabel(node, en)}</span>
-                  <span aria-hidden="true">{value.includes(node.id) ? '✓' : '+'}</span>
+                  <span aria-hidden="true">{conditionSelected(node.id, value, available) ? '✓' : ''}</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   className="condition-tree-group"
+                  aria-pressed={conditionSelected(node.id, value, available)}
                   aria-expanded={expanded}
                   onClick={() => {
+                    if (!disabled && conditionSelected(node.id, value, available)) {
+                      onChange(value.filter((id) => id !== node.id && !ancestors(id, nodes).includes(node.id)));
+                      return;
+                    }
                     setClosed((current) => {
                       const next = new Set(current);
                       next.delete(node.id);
@@ -147,6 +148,11 @@ export default function ConditionTreePicker({ value, onChange, itemType, disable
                   }}
                 >
                   {nodeLabel(node, en)}
+                  {conditionSelected(node.id, value, available) && (
+                    <span className="condition-tree-check" aria-hidden="true">
+                      ✓
+                    </span>
+                  )}
                 </button>
               )}
             </div>
@@ -165,8 +171,9 @@ export default function ConditionTreePicker({ value, onChange, itemType, disable
               disabled={disabled}
               onClick={() => toggle(id)}
               title={conditionPath(id, nodes, en)}
+              aria-label={`${en ? 'Remove' : 'Bỏ'} ${shortConditionLabel(conditionPath(id, nodes, en))}`}
             >
-              {conditionPath(id, nodes, en)} <span aria-hidden="true">×</span>
+              {shortConditionLabel(conditionPath(id, nodes, en))} <span aria-hidden="true">×</span>
             </button>
           ))
         ) : (
