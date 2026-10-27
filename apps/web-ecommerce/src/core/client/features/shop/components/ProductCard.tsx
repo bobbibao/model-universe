@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { shortConditionLabel } from '@/shared/condition-selection';
 
 import '@/core/client/features/sales/sales.css';
@@ -13,6 +14,15 @@ import RestockAlert from './RestockAlert';
 import PromoIcon from '@/components/PromoIcon';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatVND } from '@/shared/server/utils/utils';
+import { useCart } from '@/shared/client/providers/CartProvider';
+
+const useSafeCart = () => {
+  try {
+    return useCart();
+  } catch {
+    return null;
+  }
+};
 
 // A product tile: the photo with at most one offer badge (the sale percentage) and a quiet free-shipping tag, then the
 // name, the scale, the price the customer pays and the member price, and a countdown when a sale
@@ -22,6 +32,9 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
   const ux = useTranslations('commerceUX');
   const locale = useLocale();
   const en = locale === 'en';
+  const cart = useSafeCart();
+  const [added, setAdded] = useState(false);
+
   const conditions = product.conditions ?? [
     { condition: product.condition ?? 'new', units: 1, stock: product.stock, minSalePrice: product.salePrice },
   ];
@@ -46,6 +59,29 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
   const sold = product.sold ?? 0;
   // Collectibles are often one or two units: say so while it is true (real stock, never invented).
   const scarce = groupStock > 0 && groupStock <= 3;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!cart) return;
+    const success = cart.addItem(
+      {
+        id: product.id,
+        name: product.name,
+        imageUrl: product.imageUrl,
+        price: product.price,
+        salePrice: product.salePrice,
+        brandName: product.brandName,
+        stock: product.stock,
+      },
+      1,
+    );
+    if (success) {
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1400);
+    }
+  };
+
   return (
     <div className="mu-product product-tile group flex flex-col">
       <Link href={href} className="mu-product-photo overflow-hidden">
@@ -139,12 +175,84 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         </div>
         <div className="product-tile-footer">
           {groupStock <= 0 ? (
-            <RestockAlert productId={product.id} returnTo={href} className="product-tile-action" />
-          ) : (
-            <Link href={href} className="product-tile-action" aria-label={ux('viewProduct', { name: product.name })}>
-              {ux('chooseProduct')}
-              <span aria-hidden="true">↗</span>
+            <>
+              <RestockAlert productId={product.id} returnTo={href} className="product-tile-alert-btn" />
+              <Link
+                href={href}
+                className="product-tile-action product-tile-detail-btn"
+                aria-label={ux('viewProduct', { name: product.name })}
+                title={ux('viewProduct', { name: product.name })}
+              >
+                <span className="product-tile-detail-icon" aria-hidden="true">
+                  ↗
+                </span>
+              </Link>
+            </>
+          ) : otherConditionOnly ? (
+            <Link
+              href={href}
+              className="product-tile-action product-tile-choose-btn"
+              aria-label={ux('viewProduct', { name: product.name })}
+            >
+              <span className="product-tile-choose-text">{ux('chooseProduct')}</span>
+              <span className="product-tile-detail-icon" aria-hidden="true">
+                ↗
+              </span>
             </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={`product-tile-cart-btn ${added ? 'is-added' : ''}`}
+                onClick={handleAddToCart}
+                aria-label={added ? (en ? 'Added to bag' : 'Đã thêm vào giỏ') : (en ? 'Add to bag' : 'Thêm vào giỏ')}
+              >
+                <span className="product-tile-cart-icon" aria-hidden="true">
+                  {added ? (
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  ) : (
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="9" cy="21" r="1" />
+                      <circle cx="20" cy="21" r="1" />
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                    </svg>
+                  )}
+                </span>
+                <span className="product-tile-cart-text">
+                  {added ? (en ? 'Added!' : 'Đã thêm!') : (en ? 'Add to bag' : 'Thêm vào giỏ')}
+                </span>
+              </button>
+              <Link
+                href={href}
+                className="product-tile-action product-tile-detail-btn"
+                aria-label={ux('viewProduct', { name: product.name })}
+                title={ux('chooseProduct')}
+              >
+                <span className="product-tile-detail-icon" aria-hidden="true">
+                  ↗
+                </span>
+              </Link>
+            </>
           )}
         </div>
       </div>
