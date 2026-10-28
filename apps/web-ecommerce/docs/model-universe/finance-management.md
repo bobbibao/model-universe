@@ -121,3 +121,13 @@ Biểu đồ dashboard gồm doanh thu/lợi nhuận và tiền thu/chi phí the
 - Kỳ mẫu 01–27/10/2026 đối chiếu từ database: doanh thu thuần 37.387.000đ, giá vốn 20.350.000đ, chi phí 2.057.000đ, lợi nhuận theo chi phí ghi nhận 14.980.000đ. Đây là kết quả của dữ liệu phát triển được gắn nhãn, không phải doanh số thực của shop.
 
 Bằng chứng: `finance-ui-verification.json`, `finance-v2-chart-verification.json`, ảnh `finance-report-full.png`, `finance-report-light.png`, `finance-types-light.png`, `finance-mobile-390.png` và log `logs/finance-v2-*` tại `D:/ModelUniverseRuntime`. Ứng dụng chạy local, không mở tunnel public. Không tạo thanh toán, vận đơn hoặc email thật từ seed/kiểm thử này.
+
+### Cầm cố, cọc giữ hàng và duyệt hoàn — 28/10/2026
+
+Trang `/vi/admin/finance` bổ sung tab **Duyệt hoàn tiền**: xem khoản cọc giữ hàng, trả trước đơn mua, credit gia hạn cầm và tiền dư xử lý tài sản. Tạo yêu cầu không ghi đã hoàn. Người Finance duyệt phải khác người lập; chỉ xác nhận ngân hàng có chữ ký, đúng tiền/tài khoản/tham chiếu mới ghi hoàn tất. Khoản đang chờ được trừ khỏi số có thể yêu cầu hoàn tiếp để tránh hoàn chồng.
+
+Chủ shop cấp quyền Finance/Compliance cho ADMIN tại tab này; giữ audit các lần cấp/thu quyền. Giấy tờ, thông báo hợp lệ, tranh chấp và chuyển quyền sở hữu được quản lý trong hồ sơ cầm; không đưa tài sản còn cầm hoặc chưa đủ căn cứ ra bán. Cọc và credit là nghĩa vụ tiền, không cộng vào doanh thu hàng bán. Gốc/lãi cầm được theo dõi ở sổ riêng, không coi tiền gốc là doanh thu bán mô hình.
+
+Cấu hình đang chạy: pawn chỉ mô phỏng; bộ tiếp nhận ngân hàng và SMTP chưa cấu hình, nên không khẳng định đã hoàn tiền hoặc gửi email thật. Inbox/outbox vẫn lưu lịch sử. Migrations 60–61 giữ tương thích writer thông báo cũ bằng SQL DEFAULT cho hai trường lịch, không cần gộp chỉnh sửa đang làm dở của workspace khác.
+
+Quy tắc chi tiết: [Cầm cố và giữ hàng](pawn-hold-ledgers.md). Kết quả kiểm chứng và giới hạn: [bàn giao 28/10](pawn-hold-acceptance-2026-10-28.md). Bản ứng dụng local hiện tại là `7a20915` trên cổng 6050; các thông tin bản chạy ở mục bàn giao 27/10 phía trên là lịch sử.

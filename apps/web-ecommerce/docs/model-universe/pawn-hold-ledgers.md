@@ -90,7 +90,7 @@ Chủ shop được xác định bằng tài khoản ADMIN khớp ADMIN_EMAIL, c
 
 ## Dữ liệu, API và chuyển đổi
 
-Migration 60 thêm governance, credit ledger, mục đích tiền/điều khoản cọc, nghĩa vụ hoàn, quyền nhân viên, xác minh sở hữu và lịch outbox; cập nhật CHECK constraint cũ. Không reset, gộp hoặc tự chứng nhận quyền sở hữu cho hàng cũ. Hồ sơ giữ hàng theo quy tắc cũ cần đối chiếu riêng; tiền nạp mới không tự đổi điều khoản cũ. Hợp đồng cầm cũ giữ snapshot công thức để đọc/đối chiếu, không tự coi là đã được duyệt pháp lý.
+Migration 60 thêm governance, credit ledger, mục đích tiền/điều khoản cọc, nghĩa vụ hoàn, quyền nhân viên, xác minh sở hữu và lịch outbox; cập nhật CHECK constraint cũ. Migration 61 đặt DEFAULT CURRENT_TIMESTAMP ở DB cho lịch thông báo để tiến trình cũ chưa biết các cột mới vẫn ghi được; migration 60 cũng backfill an toàn khi bảng cũ đã có dữ liệu. Không reset, gộp hoặc tự chứng nhận quyền sở hữu cho hàng cũ. Hồ sơ giữ hàng theo quy tắc cũ cần đối chiếu riêng; tiền nạp mới không tự đổi điều khoản cũ. Hợp đồng cầm cũ giữ snapshot công thức để đọc/đối chiếu, không tự coi là đã được duyệt pháp lý.
 
 - Hold: `/reservations/quote`, tạo với termsAccepted + termsVersion, `/:id/payment-link`, `sync-payment`, `delivery`, `cancel`, `dispute`, `refund-request`.
 - Pawn: action xác minh giấy tờ/thông báo/duyệt xử lý/chuyển quyền; `extension-credit`, trả gốc từng phần, `credit-refund-request`.

@@ -1,3 +1,4 @@
+import { MIGRATIONS } from '../../src/core/server/database/migrations';
 import PawnDisposalService from '../../src/core/server/services/PawnDisposalService';
 import OrderItemModel from '../../src/core/server/database/client/models/OrderItem.Model';
 import OrderPrepaymentModel from '../../src/core/server/database/client/models/OrderPrepayment.Model';
@@ -737,5 +738,29 @@ describe('2026 pawn and hold money/stock invariants on disposable Postgres', () 
     );
     expect(row.status).toBe('OVERDUE_REVIEW');
     expect(row.extensionRequest).toBeNull();
+  });
+  it('backfills populated notification tables and accepts old writers that omit scheduling fields', async () => {
+    const notices = await CommerceNotificationModel.count(),
+      deliveries = await NotificationDeliveryModel.count();
+    expect(notices).toBeGreaterThan(0);
+    expect(deliveries).toBeGreaterThan(0);
+    await db.query(
+      'ALTER TABLE commerce_notification DROP COLUMN "availableAt"; ALTER TABLE notification_delivery DROP COLUMN "scheduledAt";',
+    );
+    await MIGRATIONS.find((m) => m.name === '2026-10-28-60-pawn-and-hold-ledgers')!.up({ context: { sequelize: db } });
+    await MIGRATIONS.find((m) => m.name === '2026-10-28-61-notification-scheduling-defaults')!.up({
+      context: { sequelize: db },
+    });
+    expect(await CommerceNotificationModel.count()).toBe(notices);
+    expect(await NotificationDeliveryModel.count()).toBe(deliveries);
+    const [a] = await db.query(
+      `INSERT INTO commerce_notification ("userId","dedupeKey",kind,"entityId",details,"createdAt") VALUES (:customer,:key,'legacy_writer_probe',0,'{}',CURRENT_TIMESTAMP) RETURNING "availableAt"`,
+      { replacements: { customer, key: key() } },
+    );
+    const [b] = await db.query(
+      `INSERT INTO notification_delivery (channel,"sourceType","sourceId",recipient,subject,body,status,"attemptCount","createdAt","updatedAt") VALUES ('email','customer_notification',0,'fixture@example.invalid','Legacy insert','No send','cancelled',0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) RETURNING "scheduledAt"`,
+    );
+    expect((a as { availableAt: Date }[])[0].availableAt).toBeInstanceOf(Date);
+    expect((b as { scheduledAt: Date }[])[0].scheduledAt).toBeInstanceOf(Date);
   });
 });

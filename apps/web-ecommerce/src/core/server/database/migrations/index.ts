@@ -1564,6 +1564,11 @@ export const MIGRATIONS: Migration[] = [
       ]);
       await ensureColumns(qi, ReservationPaymentModel, ['metadata']);
       await ensureColumns(qi, OrderPaymentLinkModel, ['reservationId']);
+      // SQL defaults also backfill existing rows and support older running writers.
+      // Sequelize NOW defaults alone only apply when the new model constructs a row.
+      await context.sequelize
+        .query(`ALTER TABLE commerce_notification ADD COLUMN IF NOT EXISTS "availableAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP;
+        ALTER TABLE notification_delivery ADD COLUMN IF NOT EXISTS "scheduledAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP;`);
       await ensureColumns(qi, CommerceNotificationModel, ['availableAt', 'cancelledAt']);
       await ensureColumns(qi, NotificationDeliveryModel, ['scheduledAt']);
       await context.sequelize.query(`ALTER TABLE pawn_event ALTER COLUMN "actorUserId" DROP NOT NULL;
@@ -1589,6 +1594,18 @@ export const MIGRATIONS: Migration[] = [
           RETURN NEW; END $$;
         DROP TRIGGER IF EXISTS money_operation_protected ON money_operation;
         CREATE TRIGGER money_operation_protected BEFORE UPDATE OR DELETE ON money_operation FOR EACH ROW EXECUTE FUNCTION protect_money_operation();`);
+    },
+  },
+  {
+    name: '2026-10-28-61-notification-scheduling-defaults',
+    up: async ({ context }) => {
+      await context.sequelize.transaction(async (transaction) => {
+        await context.sequelize.query(
+          `ALTER TABLE commerce_notification ALTER COLUMN "availableAt" SET DEFAULT CURRENT_TIMESTAMP;
+          ALTER TABLE notification_delivery ALTER COLUMN "scheduledAt" SET DEFAULT CURRENT_TIMESTAMP;`,
+          { transaction },
+        );
+      });
     },
   },
 ];

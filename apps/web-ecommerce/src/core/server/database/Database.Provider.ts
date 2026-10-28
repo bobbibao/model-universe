@@ -567,6 +567,9 @@ export default class DatabaseProvider {
     await MIGRATIONS.find((migration) => migration.name === '2026-10-28-60-pawn-and-hold-ledgers')!.up({
       context: { sequelize },
     });
+    await MIGRATIONS.find((migration) => migration.name === '2026-10-28-61-notification-scheduling-defaults')!.up({
+      context: { sequelize },
+    });
     const storage = new SequelizeStorage({ sequelize, tableName: MIGRATION_TABLE });
     const executed = new Set(await storage.executed());
     for (const migration of MIGRATIONS)

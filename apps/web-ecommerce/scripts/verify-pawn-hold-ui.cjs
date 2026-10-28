@@ -154,7 +154,7 @@ fs.mkdirSync(out, { recursive: true });
   };
   await page.reload({ waitUntil: 'networkidle' });
   await page.getByRole('button', { name: /Kiểm thử UI · mô hình cầm/ }).click();
-  await expect(page.locator('select[name="accepted"] option[value="yes"]')).toBeDisabled();
+  await expect(page.locator('select[name="accepted"] option[value="yes"]')).toHaveAttribute('disabled', '');
   let hold = {
     id: 99902,
     productId: 1,
