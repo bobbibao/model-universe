@@ -42,7 +42,6 @@ export default function StoreHeader() {
   const links = [
     { key: 'catalogShort', href: '/cua-hang' },
     { key: 'offers', href: '/uu-dai' },
-    { key: 'holds', href: '/reservations' },
     { key: 'servicesShort', href: '/services' },
     { key: 'assistantShort', href: '/assistant' },
   ];
@@ -71,12 +70,9 @@ export default function StoreHeader() {
               <Link
                 key={link.key}
                 href={link.href}
-                className={
-                  link.key === 'holds' ? 'store-holds-link' : link.key === 'offers' ? 'store-offers-link' : undefined
-                }
+                className={link.key === 'offers' ? 'store-offers-link' : undefined}
                 aria-current={active(link.href) ? 'page' : undefined}
               >
-                {link.key === 'holds' && <AdminIcon name="calendar" size={15} />}
                 {t(link.key)}
               </Link>
             ))}
@@ -132,7 +128,6 @@ export default function StoreHeader() {
               <Link
                 key={link.key}
                 href={link.href}
-                className={link.key === 'holds' ? 'store-holds-link' : undefined}
                 aria-current={active(link.href) ? 'page' : undefined}
                 onClick={() => setMenuOpen(false)}
               >

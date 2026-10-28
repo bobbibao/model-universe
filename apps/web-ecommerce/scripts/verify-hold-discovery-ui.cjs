@@ -45,10 +45,16 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
       await page.setViewportSize({ width, height: 1000 });
       await page.goto('/vi', { waitUntil: 'networkidle' });
       const nav = page.locator(width < 1024 ? '.mu-mobile-nav' : '.store-primary-nav');
-      await nav.getByRole('link', { name: 'Giữ hàng', exact: true }).click();
+      if (width < 1024) {
+        await nav.getByRole('link', { name: 'Giữ hàng', exact: true }).click();
+      } else {
+        await expect(nav.getByRole('link', { name: 'Giữ hàng', exact: true })).toHaveCount(0);
+        await page.goto('/vi/reservations', { waitUntil: 'networkidle' });
+      }
       await expect(page).toHaveURL(/\/vi\/reservations/);
       await expect(page.getByText('Muốn giữ một mô hình?', { exact: true })).toBeVisible();
-      await expect(nav.getByRole('link', { name: 'Giữ hàng', exact: true })).toHaveAttribute('aria-current', 'page');
+      if (width < 1024)
+        await expect(nav.getByRole('link', { name: 'Giữ hàng', exact: true })).toHaveAttribute('aria-current', 'page');
       assert(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
         'No horizontal overflow',
