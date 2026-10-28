@@ -1807,3 +1807,127 @@ body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
     min-height: 26px;
   }
 }
+
+/* Keep hold deposits next to the purchase action, with an explicit tracking route. */
+.product-hold-entry {
+  margin-top: 12px;
+}
+.mu-shell .product-hold-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  border: 1px solid #b59bdf;
+  border-radius: 8px;
+  background: #eee7fc;
+  color: #51308a;
+  font-size: 14px;
+  font-weight: 750;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.mu-shell .product-hold-button:hover:enabled {
+  background: #e3d6fa;
+  border-color: #8054c5;
+}
+.product-hold-button > span {
+  flex: 1;
+  text-align: left;
+}
+.mu-shell .product-hold-button:disabled {
+  background: #f4f2f6;
+  color: #77717f;
+  border-color: #ded9e5;
+  cursor: not-allowed;
+}
+.product-hold-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.product-hold-caption p {
+  color: #736b7d;
+}
+.product-hold-caption a {
+  color: #6541b7;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+.product-hold-button:focus-visible,
+.product-hold-caption a:focus-visible {
+  outline: 2px solid #8054c5;
+  outline-offset: 3px;
+}
+.hold-discovery-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  margin-block: 16px;
+  border: 1px solid #d8caed;
+  border-radius: 12px;
+  background: #f5f0fd;
+}
+.hold-discovery-panel strong {
+  color: #51308a;
+  font-size: 16px;
+}
+.hold-discovery-panel p {
+  max-width: 65ch;
+  margin-top: 5px;
+  color: #675f72;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.hold-discovery-panel > a {
+  flex-shrink: 0;
+}
+.dark .mu-shell .product-hold-button {
+  background: #322345;
+  border-color: #8060aa;
+  color: #e9dcff;
+}
+.dark .mu-shell .product-hold-button:hover:enabled {
+  background: #44305d;
+}
+.dark .mu-shell .product-hold-button:disabled {
+  background: #2b2832;
+  border-color: #4b4456;
+  color: #b0a8bc;
+}
+.dark .product-hold-caption p,
+.dark .hold-discovery-panel p {
+  color: #bcb2cb;
+}
+.dark .product-hold-caption a,
+.dark .hold-discovery-panel strong {
+  color: #d5b8ff;
+}
+.dark .hold-discovery-panel {
+  background: #282034;
+  border-color: #56406f;
+}
+@media (max-width: 640px) {
+  .hold-discovery-panel {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+  .hold-discovery-panel > a {
+    justify-content: center;
+  }
+}

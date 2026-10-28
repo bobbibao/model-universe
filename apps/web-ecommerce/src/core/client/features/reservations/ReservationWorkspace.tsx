@@ -106,6 +106,17 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
   return (
     <section className="mu-wrap service-workspace py-10">
       <ServiceHeader service="reserve" admin={admin} title={t(admin ? 'adminTitle' : 'title')} />
+      {!admin && (
+        <div className="hold-discovery-panel">
+          <div>
+            <strong>{t('startTitle')}</strong>
+            <p>{t('startHint')}</p>
+          </div>
+          <Link className="mu-button" href="/cua-hang">
+            {t('startAction')} →
+          </Link>
+        </div>
+      )}
       <ServiceTerms>
         <p>{t('intro')}</p>
         <p>{t('rules')}</p>

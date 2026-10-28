@@ -269,7 +269,7 @@ fs.mkdirSync(out, { recursive: true });
   await database.end();
   assert(product, 'A real in-stock model exists');
   await page.goto('/vi/san-pham/' + product.slug, { waitUntil: 'networkidle' });
-  await page.getByRole('button', { name: 'Giữ mô hình này', exact: true }).click();
+  await page.getByRole('button', { name: 'Đặt cọc giữ hàng', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Giữ mô hình này' });
   await expect(dialog.getByText('Tổng tính cọc', { exact: true })).toBeVisible();
   await expect(dialog.getByText('Cọc tối thiểu 20%', { exact: true })).toBeVisible();

@@ -14,9 +14,8 @@ const services: { key: CollectorService; icon: string; route: string }[] = [
   { key: 'reserve', icon: 'calendar', route: '/services/reserve' },
   { key: 'loyalty', icon: 'spark', route: '/services/loyalty' },
 ];
-// The service tabs (owner request of 2026-10-26: buyback, trade, pawn and partner; reserve is no longer offered and
-// loyalty lives under membership, but both pages keep their header).
-export const collectorServices = services.slice(0, 4);
+// Hold deposits are available alongside collector services; loyalty stays under membership.
+export const collectorServices = services.filter((service) => service.key !== 'loyalty');
 
 export function ServiceHeader({
   service,

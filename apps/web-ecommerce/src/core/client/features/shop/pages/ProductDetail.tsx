@@ -388,6 +388,31 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 {wishlistItem ? t('unsave') : t('save')}
               </button>
             </div>
+            {!product.partnerId && (
+              <div className="product-hold-entry">
+                <button
+                  type="button"
+                  className="product-hold-button"
+                  disabled={!inStock}
+                  aria-describedby="product-hold-hint"
+                  onClick={() => {
+                    if (!user) {
+                      router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
+                      return;
+                    }
+                    setHoldOpen(true);
+                  }}
+                >
+                  <PromoIcon name="calendar" size={19} />
+                  <span>{t('reserve')}</span>
+                  <PromoIcon name="arrow" size={17} />
+                </button>
+                <div className="product-hold-caption">
+                  <p id="product-hold-hint">{t(inStock ? 'reserveHint' : 'reserveUnavailable')}</p>
+                  <Link href="/reservations">{t('manageHolds')} →</Link>
+                </div>
+              </div>
+            )}
             {!inStock && (
               <p className="detail-restock-hint mt-3">
                 <PromoIcon name="info" size={14} />
@@ -440,23 +465,6 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               <PromoIcon name="star" size={16} />
               {t('askAssistant')}
             </button>
-
-            {product.modelCode && !product.partnerId && (
-              <button
-                disabled={!inStock}
-                className="product-secondary-action"
-                onClick={() => {
-                  if (!user) {
-                    router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath)}`);
-                    return;
-                  }
-                  setHoldOpen(true);
-                }}
-              >
-                <PromoIcon name="calendar" size={16} />
-                {t('reserve')}
-              </button>
-            )}
           </div>
         </div>
       </div>

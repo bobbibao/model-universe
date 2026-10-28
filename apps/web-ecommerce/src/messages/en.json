@@ -22,6 +22,7 @@
     "hint": "Choose a date, then confirm."
   },
   "nav": {
+    "holds": "Holds",
     "catalogShort": "Models",
     "offers": "Offers",
     "servicesShort": "Services",
@@ -128,7 +129,10 @@
     "accessories": "Included accessories",
     "defects": "Disclosed defects",
     "compare": "Compare kits",
-    "reserve": "Reserve this model",
+    "reserve": "Place a hold deposit",
+    "reserveHint": "From 20% · Hold period depends on your deposit, up to 45 days.",
+    "reserveUnavailable": "Hold deposits are available when this item is back in stock.",
+    "manageHolds": "My holds",
     "modelCode": "Model code",
     "unassembled": "Unassembled",
     "partially_assembled": "Partially assembled",
@@ -269,6 +273,9 @@
     "contact": "Contact Model Universe"
   },
   "reservation": {
+    "startTitle": "Want to hold a model?",
+    "startHint": "Choose a product → select “Place a hold deposit” → review the terms and pay. Your hold starts after payment and inventory are confirmed.",
+    "startAction": "Find a model to hold",
     "title": "Keep your next build within reach.",
     "adminTitle": "Reservation operations",
     "adminEmpty": "No reservations to manage yet.",

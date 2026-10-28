@@ -22,6 +22,7 @@
     "hint": "Chọn ngày phù hợp rồi xác nhận."
   },
   "nav": {
+    "holds": "Giữ hàng",
     "catalogShort": "Mô hình",
     "offers": "Ưu đãi",
     "servicesShort": "Dịch vụ",
@@ -128,7 +129,10 @@
     "accessories": "Phụ kiện đi kèm",
     "defects": "Lỗi đã công bố",
     "compare": "So sánh kit",
-    "reserve": "Giữ mô hình này",
+    "reserve": "Đặt cọc giữ hàng",
+    "reserveHint": "Cọc từ 20% · Hạn giữ theo mức cọc, tối đa 45 ngày.",
+    "reserveUnavailable": "Có thể đặt cọc giữ hàng khi sản phẩm có hàng trở lại.",
+    "manageHolds": "Đơn giữ của tôi",
     "modelCode": "Mã mô hình",
     "unassembled": "Chưa lắp ráp",
     "partially_assembled": "Lắp ráp một phần",
@@ -269,6 +273,9 @@
     "contact": "Liên hệ Model Universe"
   },
   "reservation": {
+    "startTitle": "Muốn giữ một mô hình?",
+    "startHint": "Chọn sản phẩm → bấm “Đặt cọc giữ hàng” → xem điều khoản và thanh toán. Giữ hàng bắt đầu khi tiền và tồn kho được xác nhận.",
+    "startAction": "Chọn mô hình để giữ",
     "title": "Giữ chỗ cho mô hình bạn yêu thích.",
     "adminTitle": "Quản lý giữ hàng",
     "adminEmpty": "Chưa có yêu cầu giữ hàng cần quản lý.",
