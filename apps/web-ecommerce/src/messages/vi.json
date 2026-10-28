@@ -367,12 +367,13 @@
     "disclosures": {
       "reservation": "20–dưới 40%: 10 ngày; 40–dưới 50%: 15; 50–dưới 60%: 25; 60–dưới 70%: 30; 70–dưới 100%: 45. Hạn tính từ lần kích hoạt ban đầu. Đúng 100%: đã trả đủ.",
       "loyalty": "Xác nhận bảng đổi thưởng chung và một ưu đãi chính mỗi đơn. Điểm của hàng hoàn được đảo theo giá trị mô hình còn lại; điểm đã dùng tạo nợ được bù bằng điểm sau. Phải chọn rõ hạn mã ưu đãi. Điểm chỉ được cộng sau thời gian kiểm soát đổi trả tính từ khi giao hàng (tối đa bằng thời hạn đổi trả 30 ngày).",
-      "pawn": "C50 = ROUND(S × 0,5). Lãi kép 0,3%/ngày chỉ mô phỏng, tổng lãi tối đa bằng gốc ban đầu. Ghi nhận phê duyệt pháp lý riêng trước nghiệp vụ thật; hợp đồng cũ giữ nguyên snapshot.",
+      "pawn": "C50 = ROUND(S × 0,5). Chính sách vận hành mới: 0% lãi, không phí ẩn. Kiểm giấy tờ và ghi nhận tiền thực tế; hợp đồng cũ giữ nguyên snapshot.",
       "marketplace": "Chọn phí bán hàng cố định và thời gian chờ đối soát. Ký quỹ 10% là khoản riêng, vận chuyển báo giá theo từng người bán. Tiền đang tranh chấp bị giữ lại.",
       "buyback": "Kiểm định trước khi khách chấp nhận giá cuối và cửa hàng xác nhận trả tiền. Không nhận COD chiều gửi vào cho đến khi duyệt phương án tương thích kiểm định.",
       "voucher": "Các kiểm tra lợi nhuận mọi voucher phải qua (quy tắc v6.2 của chủ shop). Chỉ được đặt bằng hoặc chặt hơn v6.2: giữ ít nhất 80% lợi nhuận chuẩn khi dùng mã riêng và 75% khi cộng ưu đãi hạng (điểm cơ bản: 8000 = 80%), lãi tối thiểu 50.000đ và 5% tiền hàng thực trả, phí trên tiền thu và dự phòng mỗi điểm. \"Chỉ giá đã duyệt\" chặn mã trên sản phẩm chưa có giá niêm yết được duyệt."
     },
     "fields": {
+      "approvalType": "Nguồn phê duyệt",
       "priceBasis": "Giá làm căn cứ giữ hàng",
       "dayCutoff": "Cách tính ngày giữ",
       "extensionMode": "Gia hạn được duyệt",
@@ -408,6 +409,7 @@
       "legalApprovedBy": "Người ghi nhận duyệt pháp lý"
     },
     "values": {
+      "owner_operational": "Chủ shop duyệt vận hành nội bộ · 0% lãi",
       "net_merchandise": "Giá mô hình thực trả",
       "elapsed_24h": "Chu kỳ đủ 24 giờ",
       "additive": "Cộng ngày vào hạn tính từ ban đầu",
@@ -428,7 +430,7 @@
       "marketplace_v1": "Cộng dồn kiểu sàn (21/10, đã thay)",
       "recorded": "Giá đang đăng, trừ khi khác giá đã duyệt",
       "required": "Chỉ giá đã duyệt",
-      "compound_0_3_v2": "Lãi kép mô phỏng 0,3%/ngày · trần bằng gốc",
+      "compound_0_3_v2": "Tính lãi theo chính sách đã duyệt · trần bằng gốc",
       "elapsed_24h_periods": "Thời gian thực / 24h; chia kỳ khi trả gốc",
       "simulation": "Chỉ mô phỏng",
       "approved": "Đã hoàn tất duyệt pháp lý (cần Compliance và căn cứ)",
@@ -1237,7 +1239,7 @@
   "pawn": {
     "title": "Giữ bộ sưu tập. Mở giá trị mô hình.",
     "adminTitle": "Hợp đồng cầm cố và lưu giữ tài sản",
-    "intro": "Chọn đúng mẫu shop đang bán để xem giá cầm dự kiến (50% giá bán thực). Lãi kép 0,3%/ngày hiện chỉ là mô phỏng, chưa áp dụng cho tới khi hoàn tất thẩm định pháp lý. Hàng khác tình trạng mới hoặc mẫu không có trong cửa hàng: gửi ảnh thật để shop định giá.",
+    "intro": "Chọn mẫu và tình trạng để xem giá cầm dự kiến bằng 50% giá bán thực được duyệt. Shop kiểm tra hiện vật, giấy tờ và xác nhận khoản cầm trước khi giải ngân. Chính sách vận hành hiện tại: 0% lãi, không phí ẩn.",
     "custodyNote": "Mô hình cầm cố được lưu giữ riêng và không thuộc tồn kho có thể bán.",
     "capNote": "Lãi đơn không vượt quá tiền gốc. Chạm trần lãi không tự chuyển quyền sở hữu hoặc cho phép xử lý tài sản; cần đúng hợp đồng đã chấp nhận và quyết định có thẩm quyền được xác minh.",
     "signIn": "Đăng nhập để yêu cầu hoặc theo dõi cầm cố",
@@ -1340,7 +1342,7 @@
     "disposalAccountingNote": "Xử lý tài sản không tự tất toán khoản vay. Nhân viên phải đối soát nợ, tiền bán và số dư của khách theo thỏa thuận đã được duyệt.",
     "webQuote": "Giá cầm dự kiến trên web (C50 = 50% giá bán thực)",
     "webQuoteManual": "Mẫu này cần shop định giá trực tiếp.",
-    "webQuoteNote": "Shop xác nhận khoản cầm sau khi kiểm tra hiện vật. Lãi chỉ mô phỏng, chưa thu cho tới khi thẩm định pháp lý."
+    "webQuoteNote": "Khoản cầm chính thức được xác nhận sau kiểm hàng; chỉ ghi nhận giải ngân khi tiền thực tế đã chuyển."
   },
   "partner": {
     "title": "Gian hàng của bạn, trong vũ trụ mô hình",
@@ -4072,7 +4074,7 @@
       "title": "Cầm mô hình tại shop",
       "total": "Tổng giá cầm dự kiến",
       "action": "Gửi yêu cầu cầm",
-      "note": "Lãi 0,3%/ngày hiện chỉ mô phỏng, chưa áp dụng. Chốt sau khi shop kiểm tra hàng.",
+      "note": "Shop xác nhận khoản cầm sau kiểm hàng. Lãi và kỳ hạn được ghi rõ trước khi bạn đồng ý.",
       "terms": "Giá cầm bằng 50% giá bán thực của shop cho đúng tình trạng, chốt sau khi kiểm hàng. Shop giữ mô hình đến khi bạn chuộc lại theo hợp đồng ký hai bên."
     },
     "intro": "Chọn mẫu và loại hàng New/2hand. Dùng tổ hợp có báo giá hoặc khai báo tình trạng để shop kiểm tra và báo giá riêng.",

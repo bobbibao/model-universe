@@ -1,4 +1,6 @@
-'use client';
+import SelectField from '@/components/FormElements/SelectField';
+import { receivingBanks } from '@/shared/banks';
+('use client');
 import { useRef, useState } from 'react';
 import Api from '@/core/client/api/Api';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -82,10 +84,13 @@ export default function RefundRequest({
             Số tiền (VND)
             <input name="amountVnd" type="number" min="1" max={maximum} step="1" required defaultValue={maximum} />
           </label>
-          <label className="mu-field">
-            Ngân hàng nhận
-            <input name="bankName" required maxLength={100} autoComplete="off" />
-          </label>
+          <SelectField
+            label="Ngân hàng nhận"
+            name="bankName"
+            required
+            options={receivingBanks}
+            placeholder="Chọn ngân hàng nhận tiền"
+          />
           <label className="mu-field">
             Số tài khoản
             <input name="accountNumber" required maxLength={64} inputMode="numeric" autoComplete="off" />

@@ -9,6 +9,7 @@ export interface MoneyOperation {
   providerReference?: string;
   createdAt: string;
   details: {
+    payout?: { providerId?: string; referenceId: string; transactionId?: string; state: string; checkedAt?: string };
     reason: string;
     accountHash: string;
     account: { bank: string; number: string; holder: string };

@@ -71,7 +71,7 @@ export default class CommercePolicyService {
           value.dayCount !== 'completed_days' ||
           value.rounding !== 'nearest' ||
           value.calculation !== 'compound_0_3_v2' ||
-          value.dailyRateBasisPoints !== 30 ||
+          ![0, 30].includes(Number(value.dailyRateBasisPoints)) ||
           value.graceDays !== 2 ||
           value.interestStopEvent !== 'verified_repayment' ||
           !['simulation', 'approved'].includes(String(value.legalMode))
@@ -79,6 +79,11 @@ export default class CommercePolicyService {
           throw new Error(
             'New pawn policies require compound 0.3%, a principal interest cap, 48h grace and explicit legal mode.',
           );
+        if (
+          value.approvalType === 'owner_operational' &&
+          (value.dailyRateBasisPoints !== 0 || value.legalMode !== 'approved')
+        )
+          throw new Error('Phê duyệt vận hành nội bộ chỉ áp dụng chính sách 0% lãi, không phí ẩn.');
         if (value.legalMode === 'approved') {
           await CommerceAccessService.require(actorUserId, 'compliance');
           if (

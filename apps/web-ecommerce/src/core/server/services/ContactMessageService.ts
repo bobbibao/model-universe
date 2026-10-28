@@ -1,3 +1,5 @@
+import DatabaseProvider from '../database/Database.Provider';
+import NotificationDispatchService from './NotificationDispatchService';
 import { Op, WhereOptions } from 'sequelize';
 import ContactMessageModel, { ContactMessageStatus } from '../database/client/models/ContactMessage.Model';
 import { BaseServiceInterface } from './BaseServiceInterface';
@@ -51,7 +53,20 @@ export default class ContactMessageService implements BaseServiceInterface<Conta
       errors.push(`Nội dung phải có ít nhất ${MIN_MESSAGE_LENGTH} ký tự.`);
     if (values.message.length > MAX_MESSAGE_LENGTH) errors.push(`Nội dung tối đa ${MAX_MESSAGE_LENGTH} ký tự.`);
     if (errors.length > 0) throw HttpError.badRequest('Thông tin liên hệ chưa hợp lệ.', errors);
-    return ContactMessageModel.create(values);
+    return DatabaseProvider.getInstance().transaction(async (transaction) => {
+      const row = await ContactMessageModel.create(values, { transaction });
+      await new NotificationDispatchService().alertAdmins(
+        {
+          kind: 'contact_received',
+          orderId: null,
+          dedupeKey: `contact:${row.id}`,
+          title: `Tin nhắn liên hệ mới #${row.id}`,
+          content: `Từ ${values.name}. Đăng nhập quản trị để xem và phản hồi.`,
+        },
+        transaction,
+      );
+      return row;
+    });
   }
 
   async list({ q, status, limit, offset }: { q?: string; status?: string; limit: number; offset: number }) {

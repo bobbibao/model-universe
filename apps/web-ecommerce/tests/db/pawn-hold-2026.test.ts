@@ -1,3 +1,5 @@
+import PayOSPayoutService, { type PayoutClient } from '../../src/core/server/services/PayOSPayoutService';
+import CommerceEmailService from '../../src/core/server/services/CommerceEmailService';
 import { MIGRATIONS } from '../../src/core/server/database/migrations';
 import PawnDisposalService from '../../src/core/server/services/PawnDisposalService';
 import OrderItemModel from '../../src/core/server/database/client/models/OrderItem.Model';
@@ -762,5 +764,174 @@ describe('2026 pawn and hold money/stock invariants on disposable Postgres', () 
     );
     expect((a as { availableAt: Date }[])[0].availableAt).toBeInstanceOf(Date);
     expect((b as { scheduledAt: Date }[])[0].scheduledAt).toBeInstanceOf(Date);
+  });
+  it('records an owner-authorized live zero-interest policy without inventing outside legal approval', async () => {
+    const service = new CommercePolicyService(),
+      current = await service.approved('pawn');
+    const row = await service.approve(
+      'pawn',
+      {
+        ...policy,
+        dailyRateBasisPoints: 0,
+        approvalType: 'owner_operational',
+        legalReference: 'docs/business/pawn-operating-approval-2026-10-28.md',
+      },
+      current.version,
+      owner,
+      'Disposable owner instruction',
+    );
+    expect(row.settings.dailyRateBasisPoints).toBe(0);
+    expect(row.settings.legalApprovedBy).toBe(owner);
+    await expect(
+      service.approve(
+        'pawn',
+        { ...policy, approvalType: 'owner_operational' },
+        row.version,
+        owner,
+        'Invalid rate under internal approval',
+      ),
+    ).rejects.toMatchObject({ statusCode: 400 });
+  });
+  const payoutFixture = async () => {
+    const row = await create(),
+      paid = minimumHoldVnd(total);
+    await pay(row.id, paid);
+    await holds.cancel(row.id, customer, { reason: 'Customer cancellation' }, true);
+    await holds.cancel(row.id, owner, { reason: 'Independent verified cancellation' });
+    const op = await refunds.request('hold_refund', row.id, customer, {
+      amountVnd: paid,
+      requestKey: key(),
+      reason: 'Verified refund',
+      bankName: '970436',
+      accountNumber: '123456789',
+      accountHolder: 'Test recipient',
+    });
+    await refunds.decide(op.id, finance, { expectedVersion: 0, approved: true, reason: 'Ledger checked' });
+    const transfer = {
+      id: key(),
+      referenceId: `MU-RF-${op.id}-${op.requestDigest.slice(0, 16)}`,
+      amount: paid,
+      toBin: '970436',
+      toAccountNumber: '123456789',
+      state: 'PROCESSING',
+      description: '',
+      toAccountName: 'TEST RECIPIENT',
+      reference: null,
+      transactionDatetime: null,
+      errorMessage: null,
+      errorCode: null,
+    };
+    const result = {
+      id: key(),
+      referenceId: transfer.referenceId,
+      transactions: [transfer],
+      category: null,
+      approvalState: 'PROCESSING',
+      createdAt: new Date().toISOString(),
+    };
+    const sdk = {
+      payouts: {
+        create: jest.fn().mockResolvedValue(result),
+        get: jest.fn().mockImplementation(async () => result),
+        list: jest.fn().mockResolvedValue({ data: [] }),
+      },
+    };
+    return { op, row, transfer, result, sdk, service: new PayOSPayoutService(sdk as unknown as PayoutClient) };
+  };
+  it('payOS processing is not a refund; verified success and replay allocate exactly once', async () => {
+    const f = await payoutFixture();
+    const processing = await f.service.execute(f.op.id, finance, 1);
+    expect(processing!.status).toBe('approved');
+    expect(await ReservationPaymentModel.count({ where: { reservationId: f.row.id, kind: 'refund' } })).toBe(0);
+    expect(f.sdk.payouts.create).toHaveBeenCalledTimes(1);
+    expect(f.sdk.payouts.create.mock.calls[0][1]).toBe(f.transfer.referenceId);
+    f.transfer.state = 'SUCCEEDED';
+    const complete = await f.service.execute(f.op.id, finance, processing!.version, false);
+    expect(complete!.status).toBe('completed');
+    await f.service.execute(f.op.id, finance, complete!.version, false);
+    expect(await ReservationPaymentModel.count({ where: { reservationId: f.row.id, kind: 'refund' } })).toBe(1);
+    expect(f.sdk.payouts.create).toHaveBeenCalledTimes(1);
+  });
+  it('payOS timeout remains unknown and sync cannot create another transfer', async () => {
+    const f = await payoutFixture();
+    f.sdk.payouts.create.mockRejectedValueOnce(new Error('transport timeout'));
+    await expect(f.service.execute(f.op.id, finance, 1)).rejects.toMatchObject({ statusCode: 503 });
+    const row = (await MoneyOperationModel.findByPk(f.op.id))!;
+    expect(row.status).toBe('approved');
+    expect(row.details.payout?.state).toBe('SUBMITTING');
+    await expect(f.service.execute(f.op.id, finance, row.version, false)).rejects.toMatchObject({ statusCode: 409 });
+    expect(f.sdk.payouts.create).toHaveBeenCalledTimes(1);
+    f.sdk.payouts.list.mockResolvedValue({ data: [f.result] });
+    f.transfer.state = 'SUCCEEDED';
+    expect((await f.service.execute(f.op.id, finance, row.version, false))!.status).toBe('completed');
+  });
+  it('payOS rejects amount/account mismatches and stale concurrent sends before recording money', async () => {
+    const f = await payoutFixture();
+    f.transfer.amount++;
+    f.transfer.state = 'SUCCEEDED';
+    const outcomes = await Promise.allSettled([
+      f.service.execute(f.op.id, finance, 1),
+      f.service.execute(f.op.id, finance, 1),
+    ]);
+    expect(outcomes.every((r) => r.status === 'rejected')).toBe(true);
+    expect(f.sdk.payouts.create).toHaveBeenCalledTimes(1);
+    expect(await ReservationPaymentModel.count({ where: { reservationId: f.row.id, kind: 'refund' } })).toBe(0);
+  });
+  it('a signed failed payOS transfer releases the pending request without booking a refund', async () => {
+    const f = await payoutFixture();
+    f.transfer.state = 'FAILED';
+    const failed = await f.service.execute(f.op.id, finance, 1);
+    expect(failed!.status).toBe('rejected');
+    expect(await ReservationPaymentModel.count({ where: { reservationId: f.row.id, kind: 'refund' } })).toBe(0);
+    const retry = await refunds.request('hold_refund', f.row.id, customer, {
+      amountVnd: Number(f.op.amountVnd),
+      requestKey: key(),
+      reason: 'Retry after definitive provider failure',
+      bankName: '970436',
+      accountNumber: '123456789',
+      accountHolder: 'Test recipient',
+    });
+    expect(retry.status).toBe('requested');
+  });
+  it('live email bridge queues committed inbox notices once and respects cancellation', async () => {
+    const before = process.env.SMTP_HOST;
+    process.env.SMTP_HOST = 'smtp.test.invalid';
+    process.env.SMTP_ENABLED_AT = new Date(Date.now() - 60000).toISOString();
+    const notice = await CommerceNotificationModel.create({
+      userId: customer,
+      kind: 'reservation_deadline',
+      entityId: product.id,
+      dedupeKey: key(),
+      details: { days: 1 },
+      availableAt: new Date(),
+    });
+    try {
+      const service = new CommerceEmailService();
+      await service.run();
+      await service.run();
+      expect(
+        await NotificationDeliveryModel.count({
+          where: { sourceType: 'customer_notification', sourceId: notice.id, channel: 'email' },
+        }),
+      ).toBe(1);
+      const cancelled = await CommerceNotificationModel.create({
+        userId: customer,
+        kind: 'reservation_deadline',
+        entityId: product.id,
+        dedupeKey: key(),
+        details: {},
+        availableAt: new Date(),
+        cancelledAt: new Date(),
+      });
+      await service.run();
+      expect(
+        await NotificationDeliveryModel.count({
+          where: { sourceType: 'customer_notification', sourceId: cancelled.id, channel: 'email' },
+        }),
+      ).toBe(0);
+    } finally {
+      process.env.SMTP_HOST = before || '';
+      delete process.env.SMTP_ENABLED_AT;
+    }
   });
 });

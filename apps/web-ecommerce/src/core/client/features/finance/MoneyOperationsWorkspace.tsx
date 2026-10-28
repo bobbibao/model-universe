@@ -6,7 +6,11 @@ import type { MoneyOperation } from '@/shared/types/money-operation';
 import { RefundHistory } from './RefundRequest';
 type Staff = { id: number; email: string; commerceScopes: string[]; isActive: boolean };
 export default function MoneyOperationsWorkspace() {
-  const [data, setData] = useState<{ operations: MoneyOperation[]; bankConfirmationConfigured: boolean } | null>(null);
+  const [data, setData] = useState<{
+    operations: MoneyOperation[];
+    bankConfirmationConfigured: boolean;
+    payosPayoutConfigured: boolean;
+  } | null>(null);
   const [staff, setStaff] = useState<{ canAssign: boolean; staff: Staff[] } | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(false);
@@ -45,9 +49,11 @@ export default function MoneyOperationsWorkspace() {
       {data && (
         <>
           <p className="rounded-lg bg-amber-50 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100 p-3 text-sm">
-            {data.bankConfirmationConfigured
-              ? 'Đã cấu hình khóa tiếp nhận xác nhận ngân hàng.'
-              : 'Chưa cấu hình bộ tiếp nhận ngân hàng: yêu cầu chỉ dừng ở chờ chuyển tiền, không tự ghi đã hoàn.'}
+            {data.payosPayoutConfigured
+              ? 'Đã cấu hình payOS Chi hộ. Gửi lệnh chi và kiểm tra kết quả ngay trên từng hồ sơ đã duyệt.'
+              : data.bankConfirmationConfigured
+                ? 'Đã cấu hình khóa tiếp nhận xác nhận ngân hàng.'
+                : 'Chưa có khóa payOS Chi hộ. Cần bộ PAYOS_PAYOUT_CLIENT_ID/API_KEY/CHECKSUM_KEY của kênh Chi hộ để chuyển tiền.'}
           </p>
           {!data.operations.length && <p className="mu-note">Chưa có yêu cầu hoàn tiền.</p>}
           {data.operations.map((row) => (
@@ -75,6 +81,57 @@ export default function MoneyOperationsWorkspace() {
               <p className="mu-note">
                 {row.details.reason} · Người lập #{row.requestedBy}
               </p>
+              {row.status === 'approved' && (
+                <form
+                  className="space-y-3 rounded-lg border border-violet-200 p-3"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const mode = (e.nativeEvent as SubmitEvent).submitter?.getAttribute('value') || 'sync';
+                    setBusy(true);
+                    try {
+                      await Api.post(`/admin/commerce/money-operations/${row.id}/payos/${mode}`, {
+                        expectedVersion: row.version,
+                      });
+                      await load();
+                    } catch {
+                      await load();
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  <p className="text-sm">
+                    payOS: {row.details.payout?.state || 'Chưa gửi lệnh chi'}. Chuyển đúng{' '}
+                    {formatVND(Number(row.amountVnd), 'vi')} vào tài khoản đã duyệt ở trên.
+                  </p>
+                  {!row.details.payout?.providerId && (
+                    <label className="flex items-start gap-2 text-sm">
+                      <input type="checkbox" required />
+                      Tôi đã đối chiếu ngân hàng, số tài khoản, người nhận và số tiền.
+                    </label>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {!row.details.payout?.providerId && (
+                      <button value="send" className="mu-button" disabled={busy || !data.payosPayoutConfigured}>
+                        {row.details.payout ? 'Gửi lại cùng mã payOS' : 'Chuyển tiền thật qua payOS'}
+                      </button>
+                    )}
+                    {row.details.payout && (
+                      <button
+                        value="sync"
+                        formNoValidate
+                        className="finance-button"
+                        disabled={busy || !data.payosPayoutConfigured}
+                      >
+                        Kiểm tra payOS
+                      </button>
+                    )}
+                  </div>
+                  {row.details.payout?.referenceId && (
+                    <p className="mu-note break-all">Mã đối soát: {row.details.payout.referenceId}</p>
+                  )}
+                </form>
+              )}
               {row.status === 'requested' && (
                 <form
                   className="flex flex-wrap items-end gap-3"

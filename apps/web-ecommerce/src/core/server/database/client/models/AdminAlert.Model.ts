@@ -1,6 +1,7 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
 export type AdminAlertKind =
+  | 'contact_received'
   | 'service_condition_proposal'
   | 'meeting_order_deposited' // ZALO-01
   | 'cod_order_deposited' // ZALO-02

@@ -3,9 +3,10 @@ export interface PawnInterestPolicy {
   calculation?: 'compound_0_3_v2';
   cashFlowClock?: 'elapsed_24h_periods';
   legalMode?: 'simulation' | 'approved';
+  approvalType?: 'owner_operational';
   legalReference?: string;
   legalApprovedBy?: number;
-  dailyRateBasisPoints: 3 | 30;
+  dailyRateBasisPoints: 0 | 3 | 30;
   dayCount: 'started_days' | 'completed_days';
   rounding: 'ceil' | 'floor' | 'nearest';
   graceDays: number;
@@ -14,7 +15,7 @@ export interface PawnInterestPolicy {
 export const PAWN_DAY_MS = 24 * 60 * 60 * 1000;
 export function validatePawnPolicy(value: Record<string, unknown>): PawnInterestPolicy {
   if (
-    ![3, 30].includes(Number(value.dailyRateBasisPoints)) ||
+    ![0, 3, 30].includes(Number(value.dailyRateBasisPoints)) ||
     typeof value.dailyRateBasisPoints !== 'number' ||
     !['started_days', 'completed_days'].includes(String(value.dayCount)) ||
     !['ceil', 'floor', 'nearest'].includes(String(value.rounding)) ||
@@ -43,6 +44,7 @@ export function pawnInterest(principalVnd: number, policy: PawnInterestPolicy, d
   const elapsed = Math.max(0, asOf.getTime() - disbursedAt.getTime());
   const days =
     policy.dayCount === 'started_days' ? Math.ceil(elapsed / PAWN_DAY_MS) : Math.floor(elapsed / PAWN_DAY_MS);
+  if (policy.dailyRateBasisPoints === 0) return { days, interestVnd: 0, capped: false };
   if (policy.calculation === 'compound_0_3_v2') {
     const interestVnd = simulatePawnOwed(principalVnd, days) - principalVnd;
     return { days, interestVnd, capped: interestVnd >= principalVnd };
@@ -127,7 +129,12 @@ export function pawnCashFlowEstimate(
   const disposalSources = new Map<string, { principal: number; interest: number; surplus: number }>();
   const accrue = (until: number) => {
     const boundary = Math.max(last, Math.min(until, end));
-    if (boundary > last && new MoneyDecimal(outstanding).plus(interest).gt(0) && gross.lt(principal)) {
+    if (
+      policy.dailyRateBasisPoints !== 0 &&
+      boundary > last &&
+      new MoneyDecimal(outstanding).plus(interest).gt(0) &&
+      gross.lt(principal)
+    ) {
       const days = new MoneyDecimal(boundary - last).div(PAWN_DAY_MS);
       const added = MoneyDecimal.min(
         new MoneyDecimal(principal).minus(gross),

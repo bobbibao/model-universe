@@ -367,12 +367,13 @@
     "disclosures": {
       "reservation": "20–<40%: 10 days; 40–<50%: 15; 50–<60%: 25; 60–<70%: 30; 70–<100%: 45. Deadlines use the original activation time. 100% is paid in full.",
       "loyalty": "Confirm the shared source reward table and one primary benefit per order. Refunded earnings are reversed using cumulative net merchandise, with debt carried when points were already spent. Select voucher expiry explicitly. Points are credited only after the return-control period that follows delivery (at most the 30-day return window).",
-      "pawn": "C50 = ROUND(S × 0.5). Compound 0.3% daily is simulated, with total interest capped at original principal. Actual operations require a recorded legal approval; historical contracts retain their snapshots.",
+      "pawn": "C50 = ROUND(S × 0.5). New operating policy: 0% interest, no hidden fees. Verify documents and actual transfers; historical contracts retain their snapshots.",
       "marketplace": "Select the approved fixed commission and settlement delay. The 10% guarantee is a separate liability, with shipping quoted per seller. Disputed funds remain frozen.",
       "buyback": "Inspection precedes final customer acceptance and verified payout. Inbound COD is unsupported until an inspection-compatible arrangement is approved.",
       "voucher": "The profit checks every voucher passes (owner rules v6.2). Values can only be as strict as v6.2 or stricter: keep at least 80% of the standard profit alone and 75% with a rank benefit (basis points: 8000 = 80%), at least 50,000 VND and 5% of the goods paid, a fee on money received and a reserve per point. \"Approved records only\" blocks codes on products without an approved list price."
     },
     "fields": {
+      "approvalType": "Approval source",
       "priceBasis": "Reservation price basis",
       "dayCutoff": "Hold day calculation",
       "extensionMode": "Authorized extensions",
@@ -408,6 +409,7 @@
       "legalApprovedBy": "Legal approval recorded by"
     },
     "values": {
+      "owner_operational": "Owner operating approval · 0% interest",
       "net_merchandise": "Net merchandise quote",
       "elapsed_24h": "Elapsed 24-hour periods",
       "additive": "Add days to the original earned deadline",
@@ -428,10 +430,10 @@
       "marketplace_v1": "Marketplace stacking (2026-10-21, superseded)",
       "recorded": "Published price unless an approved record differs",
       "required": "Approved records only",
-      "compound_0_3_v2": "Simulated compound 0.3% daily · principal cap",
+      "compound_0_3_v2": "Cash-flow accrual under the approved policy · principal cap",
       "elapsed_24h_periods": "Actual elapsed time / 24h; split on repayment",
       "simulation": "Simulation only",
-      "approved": "Legal review completed (Compliance and evidence required)",
+      "approved": "Recorded approval (see supporting reference)",
       "original_start_tiers": "Original activation and new tiers",
       "hold-deposit-2026-10-28": "20% hold · 28 Oct 2026 tiers"
     },
@@ -1237,7 +1239,7 @@
   "pawn": {
     "title": "Keep your collection. Unlock its value.",
     "adminTitle": "Pawn contracts and asset custody",
-    "intro": "Choose the same model the shop sells to see the expected pawn amount (50% of the real selling price). The 0.3% a day compound interest is only simulated and not charged until legal review. Units in another condition, or models the shop does not sell: send real photos for the shop to value.",
+    "intro": "Choose the model and condition for an estimate of 50% of its approved selling price. The shop inspects the item and documents before confirming and disbursing. Current operating policy: 0% interest, no hidden fees.",
     "custodyNote": "Pledged models stay in private custody and are excluded from sellable stock.",
     "capNote": "Simple interest is capped at principal. Reaching the cap never transfers ownership or authorizes disposal; only the accepted contract and a verified authorized decision can do that.",
     "signIn": "Sign in to request or track a pawn contract",
@@ -1340,7 +1342,7 @@
     "disposalAccountingNote": "Disposal does not settle the loan automatically. Staff must reconcile debt, sale proceeds and any customer balance under an approved agreement.",
     "webQuote": "Web pawn quote (C50 = 50% of the real selling price)",
     "webQuoteManual": "This model needs the shop to value it.",
-    "webQuoteNote": "The shop confirms the amount after inspecting the unit. Interest is simulated only and not charged until legal review."
+    "webQuoteNote": "The final amount is confirmed after inspection; disbursement is recorded only after the actual transfer."
   },
   "partner": {
     "title": "Your shop, in our universe",
@@ -4072,7 +4074,7 @@
       "title": "Pawn your models with the shop",
       "total": "Expected pawn total",
       "action": "Request the pawn",
-      "note": "The 0.3% a day interest is only simulated, not charged yet. Final after inspection.",
+      "note": "The shop confirms the amount after inspection. Interest and term are shown before you agree.",
       "terms": "The pawn amount is 50% of the shop's real selling price for that condition, final after inspection. The shop keeps the model until you redeem it under the contract both sides sign."
     },
     "intro": "Choose a model and New/2hand. Select a priced combination or describe its condition for an individual inspection quote.",

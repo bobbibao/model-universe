@@ -169,11 +169,11 @@ export default class PawnService {
       simulation: row.terms
         ? {
             legalMode: row.terms.policy.legalMode || 'simulation',
-            rateDailyBps: 30,
+            rateDailyBps: row.terms.policy.dailyRateBasisPoints,
             principalVnd: row.terms.principalVnd,
             days: row.terms.termDays,
-            owedVnd: simulatePawnOwed(row.terms.principalVnd, row.terms.termDays),
-            interestVnd: simulatePawnOwed(row.terms.principalVnd, row.terms.termDays) - row.terms.principalVnd,
+            owedVnd: row.terms.policy.dailyRateBasisPoints === 0 ? row.terms.principalVnd : simulatePawnOwed(row.terms.principalVnd, row.terms.termDays),
+            interestVnd: row.terms.policy.dailyRateBasisPoints === 0 ? 0 : simulatePawnOwed(row.terms.principalVnd, row.terms.termDays) - row.terms.principalVnd,
           }
         : null,
       operations: await MoneyOperationModel.findAll({
@@ -784,7 +784,7 @@ export default class PawnService {
       row.governance.disputed
     )
       throw HttpError.conflict(
-        'LEGAL_REVIEW_REQUIRED: chỉ mô phỏng; cần phê duyệt pháp lý, giấy tờ và quyền sở hữu trước giao dịch thật.',
+        'Cần hoàn tất phê duyệt chính sách, kiểm giấy tờ và quyền sở hữu trước khi ghi nhận giao dịch tiền.',
       );
   }
   async payment(

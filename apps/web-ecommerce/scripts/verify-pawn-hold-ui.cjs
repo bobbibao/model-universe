@@ -118,7 +118,7 @@ fs.mkdirSync(out, { recursive: true });
   });
   await page.goto('/vi/admin/pawn', { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: /Kiểm thử UI · mô hình cầm/ }).click();
-  await expect(page.getByText('Chỉ mô phỏng · chưa được giao dịch cầm cố thực tế', { exact: true })).toBeVisible();
+  await expect(page.getByText('Hồ sơ chưa đủ điều kiện giải ngân', { exact: true })).toBeVisible();
   assert.equal(
     await page.locator('form input[name="amountVnd"]').count(),
     0,
@@ -238,7 +238,7 @@ fs.mkdirSync(out, { recursive: true });
   await page.reload({ waitUntil: 'networkidle' });
   await page.getByRole('button', { name: /Kiểm thử UI · giữ hàng/ }).click();
   await page.getByText('Yêu cầu hoàn tiền dư', { exact: true }).click();
-  await page.getByLabel('Ngân hàng nhận', { exact: true }).fill('UI-only bank');
+  await page.getByLabel('Ngân hàng nhận', { exact: true }).selectOption('970436');
   await page.getByLabel('Số tài khoản', { exact: true }).fill('123456');
   await page.getByLabel('Tên chủ tài khoản', { exact: true }).fill('UI-only collector');
   await page

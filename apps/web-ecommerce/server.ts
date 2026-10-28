@@ -1,3 +1,5 @@
+import PayOSPayoutService from './src/core/server/services/PayOSPayoutService';
+import CommerceEmailService from './src/core/server/services/CommerceEmailService';
 import SaleCampaignService from './src/core/server/services/SaleCampaignService';
 import e, { NextFunction, Request, Response } from 'express';
 import next from 'next';
@@ -121,7 +123,10 @@ app
         pawnReminders.run(),
         customerNotifications.runRestocks(),
         vouchers.runExpiryReminders(),
-        dispatcher.dispatch(),
+        new CommerceEmailService()
+          .run()
+          .then(() => dispatcher.dispatch())
+          .then(() => new PayOSPayoutService().reconcilePending()),
         orderSync.run(),
         promotions.ensureStandingOffers(),
         loyalty.creditMatured(),

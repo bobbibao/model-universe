@@ -1,6 +1,5 @@
 import nodemailer, { Transporter } from 'nodemailer';
 import { Op, Transaction } from 'sequelize';
-import Logger from '../../../shared/server/utils/logger';
 import AdminNotificationModel, { NotificationSeverity } from '../database/client/models/AdminNotification.Model';
 import UserModel from '../database/internal/models/User.Model';
 
@@ -33,6 +32,10 @@ export default class MailService {
             host,
             port: Number(process.env.SMTP_PORT) || 587,
             secure: Number(process.env.SMTP_PORT) === 465,
+            requireTLS: Number(process.env.SMTP_PORT) !== 465,
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 20000,
             auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined,
           })
         : null;
@@ -66,10 +69,7 @@ export default class MailService {
     const subject = `[${SHOP_NAME}] ${notice.subject}`;
     const transporter = MailService.getTransporter();
     for (const admin of admins) {
-      if (!transporter) {
-        Logger.INFO(`[MailService] SMTP is not configured - notification for ${admin.email}: ${subject}`);
-        continue;
-      }
+      if (!transporter) throw new Error('SMTP is not configured (SMTP_HOST is empty)');
       await transporter.sendMail({
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: admin.email,
@@ -90,15 +90,10 @@ export default class MailService {
     return `sent to ${admins.length} admin(s)`;
   }
 
-  // A transactional email to one customer (order, delivery, buyback and voucher notices). Returns the provider message
-  // id, or null when SMTP is not configured outside production (the message is logged instead).
+  // Real SMTP delivery for customers; missing configuration always fails explicitly.
   async sendTransactional(to: string, subject: string, text: string): Promise<string | null> {
     const transporter = MailService.getTransporter();
-    if (!transporter) {
-      if (process.env.NODE_ENV === 'production') throw new Error('SMTP is not configured (SMTP_HOST is empty)');
-      Logger.INFO(`[MailService] SMTP is not configured - email for ${to}: [${SHOP_NAME}] ${subject}`);
-      return null;
-    }
+    if (!transporter) throw new Error('SMTP is not configured (SMTP_HOST is empty)');
     const info = await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
@@ -110,14 +105,7 @@ export default class MailService {
 
   private async send(to: string, subject: string, text: string, otp: string): Promise<void> {
     const transporter = MailService.getTransporter();
-    if (!transporter) {
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('SMTP is not configured (SMTP_HOST is empty)');
-      }
-      // Development fallback: without SMTP the code is written to the server log so the flow can be completed locally.
-      Logger.INFO(`[MailService] SMTP is not configured - OTP for ${to}: ${otp}`);
-      return;
-    }
+    if (!transporter) throw new Error('SMTP is not configured (SMTP_HOST is empty)');
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,

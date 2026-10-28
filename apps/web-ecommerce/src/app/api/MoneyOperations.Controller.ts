@@ -1,3 +1,4 @@
+import PayOSPayoutService from '../../core/server/services/PayOSPayoutService';
 import type { Request, Response } from 'express';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
 import { Get, Post } from '../../shared/server/decorators/router.decorator';
@@ -13,6 +14,26 @@ export class MoneyOperationsController extends ApiBaseController {
       return res.json(await new MoneyOperationsService().list(req.user.id));
     } catch (error) {
       return this.handleError(res, error, 'Refund queue');
+    }
+  }
+  @Post('/:id/payos/send') async sendPayos(req: Request, res: Response) {
+    try {
+      if (!req.user) throw HttpError.unauthorized();
+      return res.json(
+        await new PayOSPayoutService().execute(Number(req.params.id), req.user.id, req.body?.expectedVersion, true),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'payOS payout');
+    }
+  }
+  @Post('/:id/payos/sync') async syncPayos(req: Request, res: Response) {
+    try {
+      if (!req.user) throw HttpError.unauthorized();
+      return res.json(
+        await new PayOSPayoutService().execute(Number(req.params.id), req.user.id, req.body?.expectedVersion, false),
+      );
+    } catch (error) {
+      return this.handleError(res, error, 'payOS reconciliation');
     }
   }
   @Post('/:id/decision') async decide(req: Request, res: Response) {

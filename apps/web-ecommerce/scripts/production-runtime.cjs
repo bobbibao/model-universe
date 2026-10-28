@@ -154,8 +154,12 @@ if (command === 'status') {
     state = { ...state, tunnelPid: connection.pid, agentPid: agent?.pid, phase: 'starting', localOnly,
       source: app, database: env.DB_NAME, port: 6050, localUrl: 'http://localhost:6050', publicUrl: url, temporaryUrl: connection.temporaryUrl };
     const startWeb = (version) => {
+      // SMTP and payout credentials can be rotated in .env without restarting the agent or tunnel.
+      const currentEnv = parseEnv(fs.readFileSync(path.join(app, '.env'), 'utf8'));
+      const liveConfig = Object.fromEntries(Object.entries(currentEnv).filter(([key]) =>
+        key.startsWith('SMTP_') || key.startsWith('PAYOS_PAYOUT_')));
       const child = spawn(process.execPath, [path.join(app, version.nextDist, 'server.js')],
-        { cwd: app, env: { ...env, NEXT_DIST_DIR: version.nextDist }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+        { cwd: app, env: { ...env, ...liveConfig, NEXT_DIST_DIR: version.nextDist }, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
       server = child;
       state = { ...state, serverPid: child.pid, commit: version.commit, nextDist: version.nextDist };
       save();

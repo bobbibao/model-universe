@@ -68,12 +68,17 @@ export default function PawnGovernancePanel({
       >
         <strong>
           {legal
-            ? 'Hồ sơ áp dụng chính sách đã ghi nhận duyệt pháp lý'
-            : 'Chỉ mô phỏng · chưa được giao dịch cầm cố thực tế'}
+            ? row.terms?.policy.approvalType === 'owner_operational'
+              ? 'Cầm cố thực tế · chính sách vận hành chủ shop đã duyệt'
+              : 'Hồ sơ áp dụng chính sách đã ghi nhận phê duyệt'
+            : 'Hồ sơ chưa đủ điều kiện giải ngân'}
         </strong>
         <p className="mt-1">
-          C50 = 50% giá S đúng SKU đã duyệt. Lãi kép mô phỏng 0,3%/ngày, tổng lãi không vượt gốc ban đầu. Kiểm giấy tờ
-          và quyền sở hữu trước khi quyết định.
+          C50 = 50% giá S đúng SKU đã duyệt.{' '}
+          {row.terms?.policy.dailyRateBasisPoints === 0
+            ? 'Lãi suất 0%, không phí ẩn theo chính sách hiện tại.'
+            : 'Lãi và kỳ hạn áp dụng đúng điều khoản đã chấp thuận trong hồ sơ.'}{' '}
+          Kiểm giấy tờ và quyền sở hữu trước khi quyết định.
         </p>
         {row.governance?.disputed && (
           <p className="mt-2 font-bold text-red-700">Đang tranh chấp · khóa xử lý tài sản, nhập kho và đăng bán.</p>
@@ -83,7 +88,7 @@ export default function PawnGovernancePanel({
         <dl className="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-4 text-sm">
           {[
             ['Gốc còn lại', row.estimate.principalOutstandingVnd ?? row.terms?.principalVnd],
-            ['Lãi còn lại (mô phỏng)', row.estimate.interestOutstandingVnd ?? row.estimate.interestVnd],
+            ['Lãi còn lại', row.estimate.interestOutstandingVnd ?? row.estimate.interestVnd],
             ['Credit trả trước còn lại', row.estimate.availableCreditVnd],
             ['Credit dư cần đối soát', row.estimate.surplusCreditVnd],
           ].map(([label, value]) => (

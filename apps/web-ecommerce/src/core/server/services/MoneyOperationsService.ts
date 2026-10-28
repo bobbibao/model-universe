@@ -1,3 +1,4 @@
+import NotificationDispatchService from './NotificationDispatchService';
 /* eslint-disable @typescript-eslint/no-var-requires -- Resolve mutually dependent workflow services only when an operation runs. */
 import OrderModel from '../database/client/models/Order.Model';
 import OrderPrepaymentModel from '../database/client/models/OrderPrepayment.Model';
@@ -30,6 +31,38 @@ const integer = (value: unknown) => {
 type Purpose = 'hold_refund' | 'pawn_credit_refund' | 'purchase_refund' | 'pawn_disposal_surplus';
 
 export default class MoneyOperationsService {
+  async notify(row: MoneyOperationModel, transaction: Transaction) {
+    const entity =
+      row.purpose === 'purchase_refund'
+        ? await OrderModel.findByPk(row.entityId, { transaction })
+        : row.purpose === 'hold_refund'
+          ? await ReservationModel.findByPk(row.entityId, { transaction })
+          : await PawnContractModel.findByPk(row.entityId, { transaction });
+    if (!entity?.userId) return;
+    const status = (
+      {
+        requested: 'Đã nhận yêu cầu hoàn tiền',
+        approved: 'Đã duyệt, chờ chuyển tiền',
+        completed: 'Đã chuyển tiền hoàn thành công',
+        rejected: 'Yêu cầu hoàn tiền đã bị từ chối',
+        reconciliation: 'Khoản hoàn đang được đối soát',
+      } as Record<string, string>
+    )[row.status];
+    await new NotificationDispatchService().notifyCustomer(
+      {
+        userId: entity.userId,
+        kind: 'refund_update',
+        entityId: row.id,
+        dedupeKey: `money:${row.id}:${row.status}`,
+        details: { status: row.status, amountVnd: Number(row.amountVnd) },
+        email: {
+          subject: `${status} · #${row.id}`,
+          body: `${status}. Mã yêu cầu #${row.id}, số tiền ${Number(row.amountVnd).toLocaleString('vi-VN')} VND. Xem hồ sơ trong tài khoản Model Universe để đối chiếu. Chỉ trạng thái đã chuyển thành công mới xác nhận tiền đã được hoàn.`,
+        },
+      },
+      transaction,
+    );
+  }
   private async liability(purpose: Purpose, entityId: number, transaction: Transaction) {
     if (purpose === 'purchase_refund') {
       const order = await OrderModel.findByPk(entityId, { transaction, lock: transaction.LOCK.UPDATE });
@@ -144,7 +177,7 @@ export default class MoneyOperationsService {
       );
       if ((purpose === 'purchase_refund' && amountVnd !== balance - reserved) || amountVnd > balance - reserved)
         throw HttpError.conflict('Refund exceeds the unallocated liability after pending requests.');
-      return MoneyOperationModel.create(
+      const created = await MoneyOperationModel.create(
         {
           purpose,
           entityId,
@@ -161,11 +194,26 @@ export default class MoneyOperationsService {
         },
         { transaction },
       );
+      await this.notify(created, transaction);
+      return created;
     });
+  }
+  async validatePayout(row: MoneyOperationModel, transaction: Transaction) {
+    const { balance } = await this.liability(row.purpose, row.entityId, transaction);
+    const pending = Number(
+      (await MoneyOperationModel.sum('amountVnd', {
+        where: { purpose: row.purpose, entityId: row.entityId, status: ['approved', 'requested'] },
+        transaction,
+      })) || 0,
+    );
+    if (pending > balance) throw HttpError.conflict('Khoản phải hoàn đã thay đổi. Đối soát trước khi gửi tiền.');
   }
   async list(actorId: number) {
     await CommerceAccessService.require(actorId, 'finance');
     return {
+      payosPayoutConfigured: ['CLIENT_ID', 'API_KEY', 'CHECKSUM_KEY'].every(
+        (k) => !!process.env[`PAYOS_PAYOUT_${k}`]?.trim(),
+      ),
       bankConfirmationConfigured: Number(process.env.BANK_EVENT_SIGNING_SECRET?.length || 0) >= 32,
       operations: await MoneyOperationModel.findAll({ order: [['id', 'DESC']], limit: 100 }),
     };
@@ -195,6 +243,7 @@ export default class MoneyOperationsService {
         },
         { transaction },
       );
+      await this.notify(row, transaction);
       return row;
     });
   }
@@ -222,6 +271,10 @@ export default class MoneyOperationsService {
       Math.abs(Date.now() - Number(body.timestamp) * 1000) > 300000
     )
       throw HttpError.unauthorized('Invalid bank signature or timestamp.');
+    return this.recordProviderConfirmation(body, 'bank_signature');
+  }
+  // Internal trusted adapters only. HTTP routes must first verify their provider signature.
+  async recordProviderConfirmation(body: Record<string, unknown>, verifiedBy: 'bank_signature' | 'payos_signed_api') {
     const reference = text(body.reference).toUpperCase(),
       nonce = text(body.nonce),
       amountVnd = integer(body.amountVnd);
@@ -287,7 +340,7 @@ export default class MoneyOperationsService {
             externalReference: reference,
             kind: 'refund',
             reason: row.details.reason,
-            metadata: { operationId: row.id, verifiedBy: 'bank_signature' },
+            metadata: { operationId: row.id, verifiedBy },
           },
           { transaction },
         );
@@ -347,7 +400,7 @@ export default class MoneyOperationsService {
             interestVnd: 0,
             externalReference: reference,
             reason: row.details.reason,
-            metadata: { operationId: row.id, verifiedBy: 'bank_signature' },
+            metadata: { operationId: row.id, verifiedBy },
           },
           { transaction },
         );
@@ -378,6 +431,7 @@ export default class MoneyOperationsService {
         },
         { transaction },
       );
+      await this.notify(row, transaction);
       return { recorded: true };
     });
   }
