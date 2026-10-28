@@ -1,6 +1,7 @@
+'use client';
+
 import SelectField from '@/components/FormElements/SelectField';
 import { receivingBanks } from '@/shared/banks';
-('use client');
 import { useRef, useState } from 'react';
 import Api from '@/core/client/api/Api';
 import { formatVND } from '@/shared/server/utils/utils';
