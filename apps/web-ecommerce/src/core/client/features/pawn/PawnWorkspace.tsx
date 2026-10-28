@@ -4,7 +4,7 @@ import DateTimeInput from '@/components/DateTimeInput';
 import PawnGovernancePanel from './PawnGovernancePanel';
 import { ServiceHeader, ServiceTerms, ServiceEmpty } from '@/components/Services/ServiceExperience';
 
-import { useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Api from '@/core/client/api/Api';
 import Link from '@/i18n/navigation';
@@ -58,6 +58,24 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
     setProduct(null);
     void load();
   }, [load]);
+
+  const PAGE_SIZE = 6;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(rows.length / PAGE_SIZE) || 1;
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
+
+  useEffect(() => {
+    if (selected?.id && rows.length > 0) {
+      const idx = rows.findIndex((r) => r.id === selected.id);
+      if (idx !== -1) {
+        const page = Math.floor(idx / PAGE_SIZE) + 1;
+        setCurrentPage((prev) => (prev !== page ? page : prev));
+      }
+    }
+  }, [selected?.id, rows]);
   useEffect(() => {
     if (admin || busy || !selected || !['active', 'DUE_GRACE', 'OVERDUE_REVIEW', 'repaid'].includes(selected.status))
       return;
@@ -207,65 +225,125 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
             ))}
           {!failed && !rows.length && <ServiceEmpty>{t('empty')}</ServiceEmpty>}
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(330px,380px)_minmax(0,1fr)]">
-            <div className="space-y-2.5">
-              {rows.map((row) => (
-                <button
-                  className={`group relative w-full text-left rounded-xl p-3.5 transition-all duration-200 border ${
-                    selected?.id === row.id
-                      ? 'border-2 border-purple-600 bg-purple-50/40 shadow-sm ring-2 ring-purple-600/15 dark:bg-purple-950/25 dark:border-purple-500'
-                      : 'border-slate-200/90 bg-white hover:border-purple-300 hover:shadow-xs hover:bg-slate-50/50 dark:border-strokedark dark:bg-boxdark dark:hover:border-slate-500'
-                  }`}
-                  key={row.id}
-                  onClick={() => void open(row.id)}
-                  disabled={busy}
-                  aria-pressed={selected?.id === row.id}
-                >
-                  {/* Left active highlight bar */}
-                  {selected?.id === row.id && (
-                    <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r bg-purple-600 dark:bg-purple-400" />
-                  )}
+            <div className="space-y-3 lg:sticky lg:top-24">
+              {/* Summary & Page Info */}
+              <div className="flex items-center justify-between px-1 text-[11px] font-semibold text-slate-400">
+                <span>
+                  Hiển thị {(currentPage - 1) * PAGE_SIZE + 1} -{' '}
+                  {Math.min(currentPage * PAGE_SIZE, rows.length)} / {rows.length} hồ sơ
+                </span>
+                {totalPages > 1 && (
+                  <span>
+                    Trang {currentPage}/{totalPages}
+                  </span>
+                )}
+              </div>
 
-                  <div className="flex items-center justify-between gap-2 pl-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-xs font-black tracking-wide text-purple-900 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
-                        #{row.id}
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-meta-4 dark:text-slate-300">
-                        Cầm cố
-                      </span>
-                    </div>
-                    <ServiceStatusBadge status={row.status} label={t(`status.${row.status}`)} />
-                  </div>
+              {/* Compact Card List */}
+              <div className="space-y-2">
+                {paginatedRows.map((row) => (
+                  <button
+                    className={`group relative w-full text-left rounded-xl p-2.5 sm:p-3 transition-all duration-150 border ${
+                      selected?.id === row.id
+                        ? 'border-2 border-purple-600 bg-purple-50/50 shadow-xs ring-2 ring-purple-600/15 dark:bg-purple-950/30 dark:border-purple-500'
+                        : 'border-slate-200/80 bg-white hover:border-purple-300 hover:shadow-2xs hover:bg-slate-50/50 dark:border-strokedark dark:bg-boxdark dark:hover:border-slate-500'
+                    }`}
+                    key={row.id}
+                    onClick={() => void open(row.id)}
+                    disabled={busy}
+                    aria-pressed={selected?.id === row.id}
+                  >
+                    {/* Left active highlight bar */}
+                    {selected?.id === row.id && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-purple-600 dark:bg-purple-400" />
+                    )}
 
-                  <h3 className="mt-2.5 pl-1 text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors line-clamp-2 leading-snug dark:text-white">
-                    {row.asset.name}
-                  </h3>
-                  <p className="mt-1 pl-1 text-xs text-slate-500 line-clamp-1 dark:text-slate-400">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.asset.modelCode}</span> · {row.asset.version}
-                  </p>
-
-                  {/* Bottom Row */}
-                  <div className="mt-3 pl-1 flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs dark:border-strokedark/50">
-                    <span className="text-[11px] font-medium text-slate-400">
-                      {new Date(row.createdAt).toLocaleDateString(locale)}
-                    </span>
-                    {row.terms?.principalVnd ? (
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-[10px] text-slate-400 font-medium">Hạn mức:</span>
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono text-xs">
-                          {formatVND(row.terms.principalVnd, locale)}
+                    {/* Top row: ID badge + Type + Status badge */}
+                    <div className="flex items-center justify-between gap-1.5 pl-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="font-mono text-[11px] font-black tracking-wide text-purple-900 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 px-1.5 py-0.5 rounded border border-purple-200/80 dark:border-purple-800">
+                          #{row.id}
+                        </span>
+                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-meta-4 dark:text-slate-300">
+                          Cầm cố
                         </span>
                       </div>
-                    ) : row.overdue ? (
-                      <span className="rounded bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-                        {t('overdue')}
+                      <ServiceStatusBadge status={row.status} label={t(`status.${row.status}`)} size="sm" />
+                    </div>
+
+                    {/* Middle row: Model Name (single line, truncate) */}
+                    <h4 className="mt-1.5 pl-1 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors truncate dark:text-white">
+                      {row.asset.name}
+                    </h4>
+
+                    {/* Bottom Row: Date / Model Code + Principal/Status */}
+                    <div className="mt-1.5 pl-1 flex items-center justify-between text-[11px] text-slate-400">
+                      <span className="truncate max-w-[170px]">
+                        {row.asset.modelCode ? `${row.asset.modelCode} · ` : ''}{new Date(row.createdAt).toLocaleDateString(locale)}
                       </span>
-                    ) : (
-                      <span className="text-[11px] text-slate-400 italic">Chờ định giá</span>
-                    )}
+                      {row.terms?.principalVnd ? (
+                        <div className="flex items-baseline gap-1 shrink-0 ml-2">
+                          <span className="text-[9px] font-medium text-slate-400">Hạn mức:</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono text-xs">
+                            {formatVND(row.terms.principalVnd, locale)}
+                          </span>
+                        </div>
+                      ) : row.overdue ? (
+                        <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 shrink-0">
+                          {t('overdue')}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 italic shrink-0">Chờ định giá</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Compact Pagination Bar */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs dark:border-strokedark/50">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4"
+                  >
+                    ← Trước
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                      .map((page, idx, arr) => {
+                        const prev = arr[idx - 1];
+                        return (
+                          <React.Fragment key={page}>
+                            {prev && page - prev > 1 && <span className="px-0.5 text-slate-400">…</span>}
+                            <button
+                              type="button"
+                              onClick={() => setCurrentPage(page)}
+                              className={`min-w-[28px] rounded-lg px-2 py-1 text-xs font-bold transition-all ${
+                                currentPage === page
+                                  ? 'bg-purple-600 text-white shadow-2xs'
+                                  : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
                   </div>
-                </button>
-              ))}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4"
+                  >
+                    Sau →
+                  </button>
+                </div>
+              )}
             </div>
             {selected && (
               <div

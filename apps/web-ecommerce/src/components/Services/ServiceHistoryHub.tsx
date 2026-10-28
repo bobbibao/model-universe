@@ -40,6 +40,7 @@ export default function ServiceHistoryHub() {
   const [serviceFilter, setServiceFilter] = useState<'all' | 'sell' | 'trade' | 'pawn'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'action_needed' | 'completed' | 'closed'>('all');
   const [previewItem, setPreviewItem] = useState<UnifiedServiceItem | null>(null);
+  const [hubPage, setHubPage] = useState(1);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -160,6 +161,17 @@ export default function ServiceHistoryHub() {
 
     return list;
   }, [items, serviceFilter, statusFilter, searchQuery]);
+
+  const HUB_PAGE_SIZE = 9;
+  useEffect(() => {
+    setHubPage(1);
+  }, [searchQuery, serviceFilter, statusFilter]);
+
+  const totalHubPages = Math.ceil(filteredItems.length / HUB_PAGE_SIZE) || 1;
+  const paginatedItems = useMemo(() => {
+    const start = (hubPage - 1) * HUB_PAGE_SIZE;
+    return filteredItems.slice(start, start + HUB_PAGE_SIZE);
+  }, [filteredItems, hubPage]);
 
   return (
     <section className="service-history-hub mt-12 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-strokedark dark:bg-boxdark sm:p-8">
@@ -354,98 +366,150 @@ export default function ServiceHistoryHub() {
                 )}
               </div>
             ) : (
-              <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredItems.map((item) => {
-                  const serviceLabel =
-                    item.serviceType === 'sell'
-                      ? 'Thu mua'
-                      : item.serviceType === 'trade'
-                      ? 'Trade đổi hàng'
-                      : 'Cầm cố';
+              <>
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-3">
+                  <span>
+                    Hiển thị {(hubPage - 1) * HUB_PAGE_SIZE + 1} -{' '}
+                    {Math.min(hubPage * HUB_PAGE_SIZE, filteredItems.length)} / {filteredItems.length} yêu cầu
+                  </span>
+                  {totalHubPages > 1 && (
+                    <span>
+                      Trang {hubPage}/{totalHubPages}
+                    </span>
+                  )}
+                </div>
 
-                  const detailRoute =
-                    item.serviceType === 'sell'
-                      ? '/services/sell'
-                      : item.serviceType === 'trade'
-                      ? '/services/trade'
-                      : '/services/pawn';
+                <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+                  {paginatedItems.map((item) => {
+                    const serviceLabel =
+                      item.serviceType === 'sell'
+                        ? 'Thu mua'
+                        : item.serviceType === 'trade'
+                        ? 'Trade đổi hàng'
+                        : 'Cầm cố';
 
-                  return (
-                    <div
-                      key={`${item.serviceType}-${item.id}`}
-                      className="group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all duration-200 hover:border-purple-500/50 hover:shadow-md dark:border-strokedark dark:bg-boxdark"
-                    >
-                      <div>
-                        {/* Top Row: Service Badge + TM Code + Status Badge */}
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-700 dark:bg-meta-4 dark:text-slate-200">
-                              {item.serviceType === 'pawn' ? `#${item.id}` : `TM${item.id}`}
-                            </span>
-                            <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-meta-4 dark:text-slate-300">
-                              {serviceLabel}
-                            </span>
+                    const detailRoute =
+                      item.serviceType === 'sell'
+                        ? '/services/sell'
+                        : item.serviceType === 'trade'
+                        ? '/services/trade'
+                        : '/services/pawn';
+
+                    return (
+                      <div
+                        key={`${item.serviceType}-${item.id}`}
+                        className="group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all duration-200 hover:border-purple-500/50 hover:shadow-md dark:border-strokedark dark:bg-boxdark"
+                      >
+                        <div>
+                          {/* Top Row: Service Badge + TM Code + Status Badge */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-700 dark:bg-meta-4 dark:text-slate-200">
+                                {item.serviceType === 'pawn' ? `#${item.id}` : `TM${item.id}`}
+                              </span>
+                              <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-meta-4 dark:text-slate-300">
+                                {serviceLabel}
+                              </span>
+                            </div>
+                            <ServiceStatusBadge
+                              status={item.status}
+                              label={
+                                item.serviceType === 'pawn'
+                                  ? tPawn(`status.${item.status}`)
+                                  : tBuyback(`status.${item.status}`)
+                              }
+                            />
                           </div>
-                          <ServiceStatusBadge
-                            status={item.status}
-                            label={
-                              item.serviceType === 'pawn'
-                                ? tPawn(`status.${item.status}`)
-                                : tBuyback(`status.${item.status}`)
-                            }
-                          />
-                        </div>
 
-                        {/* Model Title */}
-                        <h3 className="mt-3 text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors line-clamp-2 leading-snug dark:text-white">
-                          {item.assetName}
-                        </h3>
+                          {/* Model Title */}
+                          <h3 className="mt-3 text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors line-clamp-2 leading-snug dark:text-white">
+                            {item.assetName}
+                          </h3>
 
-                        {/* Subtitle / Model Code & Version */}
-                        <p className="mt-1 text-xs text-slate-500 line-clamp-1 dark:text-slate-400">
-                          {item.modelCode} · {item.version}
-                        </p>
+                          {/* Subtitle / Model Code & Version */}
+                          <p className="mt-1 text-xs text-slate-500 line-clamp-1 dark:text-slate-400">
+                            {item.modelCode} · {item.version}
+                          </p>
 
-                        {/* Price Tag if available */}
-                        {item.offerAmountVnd !== null && (
-                          <div className="mt-3 flex items-baseline justify-between rounded-lg bg-slate-50 p-2 text-xs dark:bg-meta-4/20">
-                            <span className="text-slate-500">{item.offerLabel || 'Giá thỏa thuận'}:</span>
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                              {formatVND(item.offerAmountVnd, locale)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Footer Actions */}
-                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs dark:border-strokedark">
-                        <span className="text-[11px] text-slate-400">
-                          {new Date(item.createdAt).toLocaleDateString(locale)}
-                        </span>
-
-                        <div className="flex items-center gap-2">
-                          {item.rawBuyback && (
-                            <button
-                              type="button"
-                              onClick={() => setPreviewItem(item)}
-                              className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 dark:bg-meta-4 dark:text-slate-200"
-                            >
-                              Xem nhanh
-                            </button>
+                          {/* Price Tag if available */}
+                          {item.offerAmountVnd !== null && (
+                            <div className="mt-3 flex items-baseline justify-between rounded-lg bg-slate-50 p-2 text-xs dark:bg-meta-4/20">
+                              <span className="text-slate-500">{item.offerLabel || 'Giá thỏa thuận'}:</span>
+                              <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                {formatVND(item.offerAmountVnd, locale)}
+                              </span>
+                            </div>
                           )}
-                          <Link
-                            href={detailRoute}
-                            className="inline-flex items-center gap-1 font-bold text-purple-600 hover:underline dark:text-purple-400"
-                          >
-                            <span>Vào trang</span>
-                            <span>→</span>
-                          </Link>
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs dark:border-strokedark">
+                          <span className="text-[11px] text-slate-400">
+                            {new Date(item.createdAt).toLocaleDateString(locale)}
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            {item.rawBuyback && (
+                              <button
+                                type="button"
+                                onClick={() => setPreviewItem(item)}
+                                className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 dark:bg-meta-4 dark:text-slate-200"
+                              >
+                                Xem nhanh
+                              </button>
+                            )}
+                            <Link
+                              href={detailRoute}
+                              className="inline-flex items-center gap-1 font-bold text-purple-600 hover:underline dark:text-purple-400"
+                            >
+                              <span>Vào trang</span>
+                              <span>→</span>
+                            </Link>
+                          </div>
                         </div>
                       </div>
+                    );
+                  })}
+                </div>
+
+                {/* Hub Pagination */}
+                {totalHubPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4 text-xs dark:border-strokedark">
+                    <button
+                      type="button"
+                      onClick={() => setHubPage((p) => Math.max(1, p - 1))}
+                      disabled={hubPage === 1}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4"
+                    >
+                      ← Trang trước
+                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {Array.from({ length: totalHubPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => setHubPage(page)}
+                          className={`min-w-[32px] rounded-lg px-2.5 py-1 font-bold transition-all ${
+                            hubPage === page
+                              ? 'bg-purple-600 text-white shadow-2xs'
+                              : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
                     </div>
-                  );
-                })}
-              </div>
+                    <button
+                      type="button"
+                      onClick={() => setHubPage((p) => Math.min(totalHubPages, p + 1))}
+                      disabled={hubPage === totalHubPages}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4"
+                    >
+                      Trang sau →
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </>

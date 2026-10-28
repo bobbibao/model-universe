@@ -42,6 +42,21 @@ async function run() {
   await page.screenshot({ path: path.join(screenshotsDir, '03-services-sell-compact-top.png') });
   console.log('Saved 03-services-sell-compact-top.png');
 
+  // Test pagination click on Page 2
+  const page2Btn = page.locator('button').filter({ hasText: /^2$/ }).first();
+  if (await page2Btn.isVisible()) {
+    await page2Btn.click();
+    await page.waitForTimeout(600);
+    await page.screenshot({ path: path.join(screenshotsDir, '14-pagination-page-2.png') });
+    console.log('Saved 14-pagination-page-2.png');
+    // Return to Page 1
+    const page1Btn = page.locator('button').filter({ hasText: /^1$/ }).first();
+    if (await page1Btn.isVisible()) {
+      await page1Btn.click();
+      await page.waitForTimeout(500);
+    }
+  }
+
   console.log('5. Capturing close-up of fixed ServiceHistoryToolbar & redesigned cards...');
   const toolbarArea = page.locator('.service-history-toolbar').first();
   if (await toolbarArea.isVisible()) {
