@@ -3,6 +3,8 @@
 **/.yarn
 **/dist
 **/node_modules
+.runtime
+.runtime/**
 Dockerfile*
 docker-compose.yml
 uploads
