@@ -105,47 +105,50 @@ export default function PawnGovernancePanel({
             <b>{money(row.extensionRequest.ceilingVnd)}</b>
           </p>
           <p className="mu-note">Credit không nhập vào gốc; chỉ dùng để khấu trừ khi xác nhận thanh toán chuộc.</p>
-          {admin && legal && (row.extensionRequest.creditDueVnd || 0) > 0 && (
-            <form
-              className="grid gap-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const f = new FormData(e.currentTarget);
-                void post('extension-credit', {
-                  ...Object.fromEntries(f),
-                  amountVnd: Number(f.get('amountVnd')),
-                  moneyVerified: f.has('moneyVerified'),
-                });
-              }}
-            >
-              <label className="mu-field">
-                Credit đã thực nhận (VND)
-                <input
-                  name="amountVnd"
-                  type="number"
-                  step="1"
-                  min="1"
-                  max={row.extensionRequest.creditDueVnd}
-                  required
-                />
-              </label>
-              <label className="mu-field">
-                Mã giao dịch ngân hàng
-                <input name="externalReference" minLength={8} maxLength={128} required />
-              </label>
-              <label className="mu-field">
-                Căn cứ đối chiếu
-                <input name="details" required maxLength={1000} />
-              </label>
-              <label className="flex gap-2">
-                <input name="moneyVerified" type="checkbox" required />
-                Đã kiểm tra giao dịch hoàn tất
-              </label>
-              <button className="mu-button" disabled={busy}>
-                Ghi credit đã nhận
-              </button>
-            </form>
-          )}
+          {admin &&
+            legal &&
+            ['active', 'DUE_GRACE'].includes(row.status) &&
+            (row.extensionRequest.creditDueVnd || 0) > 0 && (
+              <form
+                className="grid gap-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const f = new FormData(e.currentTarget);
+                  void post('extension-credit', {
+                    ...Object.fromEntries(f),
+                    amountVnd: Number(f.get('amountVnd')),
+                    moneyVerified: f.has('moneyVerified'),
+                  });
+                }}
+              >
+                <label className="mu-field">
+                  Credit đã thực nhận (VND)
+                  <input
+                    name="amountVnd"
+                    type="number"
+                    step="1"
+                    min="1"
+                    max={row.extensionRequest.creditDueVnd}
+                    required
+                  />
+                </label>
+                <label className="mu-field">
+                  Mã giao dịch ngân hàng
+                  <input name="externalReference" minLength={8} maxLength={128} required />
+                </label>
+                <label className="mu-field">
+                  Căn cứ đối chiếu
+                  <input name="details" required maxLength={1000} />
+                </label>
+                <label className="flex gap-2">
+                  <input name="moneyVerified" type="checkbox" required />
+                  Đã kiểm tra giao dịch hoàn tất
+                </label>
+                <button className="mu-button" disabled={busy}>
+                  Ghi credit đã nhận
+                </button>
+              </form>
+            )}
         </div>
       )}
       <RefundHistory operations={row.operations} />

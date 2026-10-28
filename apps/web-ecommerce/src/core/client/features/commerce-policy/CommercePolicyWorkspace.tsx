@@ -113,13 +113,15 @@ export default function CommercePolicyWorkspace() {
   const current = latest(name);
   const history = rows.filter((row) => row.name === name);
   const display = (key: string, value: string | number) =>
-    key.endsWith('BasisPoints') || key.endsWith('Bps')
-      ? `${Number(value) / 100}%`
-      : key.endsWith('Vnd')
-        ? formatVND(Number(value), locale)
-        : typeof value === 'number'
-          ? value
-          : t(`values.${valueKey(value)}`);
+    key === 'legalReference'
+      ? String(value)
+      : key.endsWith('BasisPoints') || key.endsWith('Bps')
+        ? `${Number(value) / 100}%`
+        : key.endsWith('Vnd')
+          ? formatVND(Number(value), locale)
+          : typeof value === 'number'
+            ? value
+            : t(`values.${valueKey(value)}`);
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget,

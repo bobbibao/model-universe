@@ -397,7 +397,8 @@
       "cashFlowClock": "Kỳ dòng tiền",
       "legalMode": "Chế độ pháp lý",
       "legalReference": "Căn cứ duyệt pháp lý (chỉ khi đã duyệt)",
-      "ruleVersion": "Phiên bản quy tắc"
+      "ruleVersion": "Phiên bản quy tắc",
+      "legalApprovedBy": "Người ghi nhận duyệt pháp lý"
     },
     "values": {
       "net_merchandise": "Giá mô hình thực trả",

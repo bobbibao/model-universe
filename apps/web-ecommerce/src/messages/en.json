@@ -397,7 +397,8 @@
       "cashFlowClock": "Cash-flow clock",
       "legalMode": "Legal mode",
       "legalReference": "Completed legal review reference",
-      "ruleVersion": "Rule version"
+      "ruleVersion": "Rule version",
+      "legalApprovedBy": "Legal approval recorded by"
     },
     "values": {
       "net_merchandise": "Net merchandise quote",

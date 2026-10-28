@@ -45,11 +45,11 @@ Hồ sơ mới dùng `compound_0_3_v2`: mô phỏng lãi kép 0,3% mỗi 24h; t�
 
 ### Kỳ dòng tiền, trả gốc và gia hạn
 
-Thời gian tính theo số ms thực tế / 24h; dùng decimal.js precision 48, half-up đến số nguyên VND tại điểm thanh toán. Không làm tròn mỗi ngày. Credit nhận/hoàn không làm khởi động lại kỳ lãi. Mỗi khoản trả gốc đã xác nhận chia thành một kỳ: kỳ sau tính trên gốc còn lại và lãi chưa thanh toán; không tính cả kỳ trên gốc ban đầu hoặc gốc giảm hồi tố. Gốc ban đầu vẫn là trần tổng lãi cả hợp đồng. Trả sớm tính tới thời điểm trả thực tế; trả hết dừng lãi, bàn giao vật được theo dõi riêng.
+Thời gian tính theo số ms thực tế / 24h; dùng decimal.js precision 48, half-up đến số nguyên VND tại điểm thanh toán. Không làm tròn mỗi ngày. Credit nhận/hoàn không làm khởi động lại kỳ lãi. Mỗi khoản trả gốc đã xác nhận chia thành một kỳ: kỳ sau tính trên gốc còn lại và lãi chưa thanh toán; không tính cả kỳ trên gốc ban đầu hoặc gốc giảm hồi tố. Gốc ban đầu vẫn là trần tổng lãi cả hợp đồng, tính cả phần làm tròn đã ghi ở những lần trả trước. Trả sớm tính tới thời điểm trả thực tế; trả hết dừng lãi, bàn giao vật được theo dõi riêng.
 
 Gia hạn cần ngày mới muộn hơn hạn cũ. Tính lãi dự kiến ở cả hai hạn theo cùng lịch sử dòng tiền; credit cần trả trước = MAX(0, lãi dự kiến hạn mới − lãi dự kiến hạn cũ). Khoản nhận phải được xác nhận và gắn đúng lần yêu cầu gia hạn. Có thể nhận nhiều giao dịch cho một lần gia hạn và nhiều lần gia hạn nối tiếp. Credit không tăng gốc, không được trừ hai lần; khi chuộc được dùng trả lãi, phần dư đi qua yêu cầu hoàn/đối soát.
 
-Trước khi trừ credit, chặn nếu `P_outstanding + I_projected > FLOOR(0,8 × V)`. Việc có nhiều credit không giúp vượt trần. Finance tính lại trần và khoản nhận trước khi duyệt hạn mới; sửa hạn hủy lịch nhắc cũ và tạo T−10/T−5 mới. Lịch có dedupe theo hợp đồng + hạn + mốc; outbox chưa đến giờ không được gửi hoặc hiện sớm trong inbox. Thư đã gửi không thể thu hồi.
+Trước khi trừ credit, chặn nếu `P_outstanding + I_projected > FLOOR(0,8 × V)`. Việc có nhiều credit không giúp vượt trần. Finance tính lại trần và khoản nhận trước khi duyệt hạn mới; sửa hạn hủy lịch nhắc cũ và tạo T−10/T−5 mới. Khi đã chuyển OVERDUE_REVIEW, Finance vẫn có thể từ chối đề nghị gia hạn đang treo để tiếp tục xử lý hồ sơ và credit, không tự gia hạn hoặc tịch thu khoản đã nhận. Lịch có dedupe theo hợp đồng + hạn + mốc; outbox chưa đến giờ không được gửi hoặc hiện sớm trong inbox. Thư đã gửi không thể thu hồi.
 
 ### Quá hạn và tài sản
 
@@ -60,7 +60,9 @@ Trước khi trừ credit, chặn nếu `P_outstanding + I_projected > FLOOR(0,8
 3. Admin ghi quyết định xử lý có căn cứ và điều kiện hợp đồng. Compliance xác nhận chuyển quyền sở hữu bằng bằng chứng riêng.
 4. Chỉ sau đó mới kiểm hàng, nhập kho một lần và duyệt đăng bán. Tài sản còn cầm, tranh chấp hoặc chưa đủ quyền sở hữu không được xuất bản qua form sản phẩm thông thường.
 
-Phân bổ tiền bán tài sản theo biên bản khách chấp thuận: chi phí có chứng từ → gốc → lãi → tiền dư trả khách. Bán phải có xác nhận thu đủ tiền, không lấy vận đơn/giao hàng làm bằng chứng đã thu. Tiền bán và khoản trả thêm chia kỳ dòng tiền; hoàn tiền của đơn bán cần đối soát và biên bản điều chỉnh, không viết lại ledger cũ. Hệ thống hiện chỉ tự gắn một dòng bán số lượng 1 với tài sản cụ thể; lô hàng trộn nhiều tài sản cần đối chiếu riêng.
+Phân bổ tiền bán tài sản theo biên bản khách chấp thuận: chi phí có chứng từ → gốc → lãi → tiền dư trả khách. Bán phải có xác nhận thu đủ tiền, không lấy vận đơn/giao hàng làm bằng chứng đã thu. Tiền bán và khoản trả thêm chia kỳ dòng tiền; mỗi nguồn bán được theo dõi riêng, nên hoàn đơn bán chỉ đảo phần phân bổ của nguồn đó, không mở lại lãi đã được trả bằng credit hoặc khoản trả khác; hoàn tiền của đơn bán cần đối soát và biên bản điều chỉnh, không viết lại ledger cũ. Với hợp đồng lãi kép, khách xác nhận rõ số liệu biên bản là dự kiến tại thời điểm báo giá và lãi tiếp tục theo hợp đồng tới khi thực trả đủ. Khi thực hiện, kiểm lại biên bản theo thời điểm đã báo giá để không bắt ký lại mỗi khi lãi làm tròn thay đổi; sổ lưu cả ước tính đã ký và phân bổ thực tế lúc thực hiện, phần thiếu vẫn cần thanh toán. Hồ sơ xử lý chưa có phê duyệt pháp lý bị chặn nghiệp vụ tiền thật.
+
+Hệ thống hiện chỉ tự gắn một dòng bán số lượng 1 với tài sản cụ thể; lô hàng trộn nhiều tài sản cần đối chiếu riêng.
 
 ## Hoàn tiền và phân quyền
 

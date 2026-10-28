@@ -70,6 +70,12 @@ export default class PawnDisposalService {
         'Only an explicitly disposed funded contract can be reconciled.',
         'PAWN_DISPOSAL_REQUIRED',
       );
+    if (
+      row.terms.policy.legalMode !== 'approved' ||
+      !row.terms.policy.legalApprovedBy ||
+      !row.terms.policy.legalReference
+    )
+      throw HttpError.conflict('LEGAL_REVIEW_REQUIRED: actual disposal money requires completed legal approval.');
     if (!Number.isSafeInteger(expected) || row.version !== expected)
       throw HttpError.conflict('Review the current pawn statement before acting.', 'PAWN_STATEMENT_STALE');
     return row;
@@ -94,11 +100,12 @@ export default class PawnDisposalService {
     row: PawnContractModel,
     entries: PawnDisposalEntryModel[],
     now = new Date(),
-    extra?: { amountVnd: number; costsVnd: number },
+    extra?: { amountVnd: number; costsVnd: number; sourceKey?: string },
   ) {
     if (row.terms!.policy.calculation === 'compound_0_3_v2' && row.disbursedAt) {
       const payments = await PawnPaymentModel.findAll({ where: { pawnContractId: row.id }, order: [['id', 'ASC']] });
       const disposal = entries.map((entry) => ({
+        sourceKey: entry.orderItemId ? `sale:${entry.orderItemId}` : `repayment:${entry.id}`,
         kind:
           entry.kind === 'surplus'
             ? 'disposal_surplus'
@@ -112,6 +119,7 @@ export default class PawnDisposalService {
       }));
       if (extra)
         disposal.push({
+          sourceKey: extra.sourceKey || 'preview',
           kind: extra.amountVnd - extra.costsVnd < 0 ? 'disposal_reversal' : 'disposal_receipt',
           amountVnd: Math.abs(extra.amountVnd - extra.costsVnd),
           principalVnd: 0,
@@ -359,6 +367,7 @@ export default class PawnDisposalService {
       const previousProceedsVnd = prior?.statement?.netProceedsVnd || 0;
       const now = new Date();
       const amounts = await this.amounts(row, entries, now, {
+        sourceKey: `sale:${sale.orderItemId}`,
         amountVnd: sale.netProceedsVnd - previousProceedsVnd,
         costsVnd,
       });
@@ -405,6 +414,10 @@ export default class PawnDisposalService {
       }
       if (statement.status !== 'offered' || data.termsAccepted !== true || data.costsAccepted !== true)
         throw HttpError.badRequest('Accept the exact allocation, documented costs, debt and surplus terms.');
+      if (row.terms?.policy.calculation === 'compound_0_3_v2' && data.accrualAcknowledged !== true)
+        throw HttpError.badRequest(
+          'Acknowledge interest continuing under the signed contract until actual full settlement.',
+        );
       const files = await new EvidenceService().bind(data.evidenceIds, userId, 'pawn_settlement', id, transaction);
       const previous = await PawnEventModel.findAll({
         where: { pawnContractId: id, action: 'disposal_accepted' },
@@ -427,6 +440,7 @@ export default class PawnDisposalService {
         };
       const accepted: PawnDisposalStatement = {
         ...statement,
+        accrualAcknowledged: data.accrualAcknowledged === true,
         status: 'accepted',
         signatureEvidenceIds: files.map((file) => file.id),
         payoutAccount,
@@ -464,8 +478,20 @@ export default class PawnDisposalService {
       const amountVnd = sale.netProceedsVnd - statement.previousProceedsVnd;
       const costsVnd = statement.costs.reduce((sum, cost) => sum + cost.amountVnd, 0);
       const now = new Date();
-      const amounts = await this.amounts(row, entries, now, { amountVnd, costsVnd });
-      if (amounts.interestVnd !== statement.interestVnd)
+      const amounts = await this.amounts(row, entries, now, {
+        amountVnd,
+        costsVnd,
+        sourceKey: `sale:${sale.orderItemId}`,
+      });
+      const quoted =
+        row.terms?.policy.calculation === 'compound_0_3_v2' && statement.accrualAcknowledged
+          ? await this.amounts(row, entries, new Date(statement.asOf), {
+              amountVnd,
+              costsVnd,
+              sourceKey: `sale:${sale.orderItemId}`,
+            })
+          : amounts;
+      if (quoted.interestVnd !== statement.interestVnd)
         throw HttpError.conflict(
           'Accrued interest crossed a day boundary. Withdraw and review the updated statement.',
           'PAWN_STATEMENT_STALE',

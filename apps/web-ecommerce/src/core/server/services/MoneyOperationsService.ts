@@ -63,6 +63,13 @@ export default class MoneyOperationsService {
     const row = await PawnContractModel.findByPk(entityId, { transaction, lock: transaction.LOCK.UPDATE });
     if (!row) throw HttpError.notFound();
     if (purpose === 'pawn_disposal_surplus') {
+      if (
+        row.terms?.policy.legalMode !== 'approved' ||
+        !row.terms.policy.legalApprovedBy ||
+        !row.terms.policy.legalReference ||
+        !row.governance.titleTransfer
+      )
+        throw HttpError.conflict('LEGAL_REVIEW_REQUIRED: complete legal review and title transfer.');
       if (row.status !== 'disposed' || row.governance.disputed || row.disposalStatement)
         throw HttpError.conflict('Reconcile the signed disposal first.');
       const { default: PawnDisposalService } =

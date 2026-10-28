@@ -138,6 +138,23 @@ fs.mkdirSync(out, { recursive: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: path.join(out, 'pawn-mobile.png'), fullPage: true });
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Pawn fits mobile width');
+  pawn = {
+    ...pawn,
+    status: 'OVERDUE_REVIEW',
+    disbursedAt: now.toISOString(),
+    dueAt: new Date(now.getTime() - 3 * 86400000).toISOString(),
+    extensionRequest: {
+      id: 'UI-REQUEST',
+      proposedDueAt: due,
+      reason: 'Pending overdue review',
+      creditDueVnd: 10000,
+      projectedDebtVnd: 550000,
+      ceilingVnd: 800000,
+    },
+  };
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: /Kiểm thử UI · mô hình cầm/ }).click();
+  await expect(page.locator('select[name="accepted"] option[value="yes"]')).toBeDisabled();
   let hold = {
     id: 99902,
     productId: 1,

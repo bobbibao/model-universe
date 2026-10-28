@@ -113,6 +113,50 @@ describe('compound simulation and confirmed cash-flow periods', () => {
     expect(r.availableCreditVnd).toBe(0);
     expect(r.disposalSurplusVnd).toBe(0);
   });
+  it('caps cumulative posted integer interest even across many rounded partial settlements', () => {
+    const flows: PawnCashFlow[] = [];
+    let paid = 0;
+    for (let period = 1; period <= 30; period++) {
+      const at = date(period * 20),
+        estimate = pawnCashFlowEstimate(10, policy, start, at, flows);
+      const interest = estimate.interestOutstandingVnd;
+      if (interest) {
+        paid += interest;
+        flows.push({ kind: 'redemption', amountVnd: interest, principalVnd: 0, interestVnd: interest, createdAt: at });
+      }
+    }
+    expect(paid).toBe(10);
+    expect(pawnCashFlowEstimate(10, policy, start, date(601), flows).interestOutstandingVnd).toBe(0);
+  });
+  it('reverses only the refunded sale allocation, without reopening interest paid by credit or another receipt', () => {
+    const sale: PawnCashFlow = {
+      kind: 'disposal_receipt',
+      sourceKey: 'sale:1',
+      amountVnd: 1000000,
+      principalVnd: 0,
+      interestVnd: 0,
+      createdAt: date(1),
+    };
+    const reversal: PawnCashFlow = {
+      kind: 'disposal_reversal',
+      sourceKey: 'sale:1',
+      amountVnd: 500000,
+      principalVnd: 0,
+      interestVnd: 0,
+      createdAt: date(2),
+    };
+    const a = pawnCashFlowEstimate(1000000, policy, start, date(2), [credit(10000, 0), sale, reversal]);
+    expect(a.principalOutstandingVnd).toBe(500000);
+    expect(a.interestOutstandingVnd).toBe(0);
+    expect(a.availableCreditVnd).toBe(7000);
+    const b = pawnCashFlowEstimate(1000000, policy, start, date(2), [
+      { ...sale, amountVnd: 500000 },
+      { ...sale, sourceKey: 'repayment:2', amountVnd: 503000 },
+      { ...reversal, amountVnd: 100000 },
+    ]);
+    expect(b.principalOutstandingVnd).toBe(100000);
+    expect(b.interestOutstandingVnd).toBe(0);
+  });
   it('rejects invalid dates and unsafe amounts', () => {
     expect(() => pawnCashFlowEstimate(1, policy, new Date('invalid'), date(1), [])).toThrow();
     expect(() => pawnCashFlowEstimate(1, policy, start, date(1), [credit(-1, 0)])).toThrow();

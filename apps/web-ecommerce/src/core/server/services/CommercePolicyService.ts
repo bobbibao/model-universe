@@ -68,6 +68,7 @@ export default class CommercePolicyService {
         validatePawnPolicy(value);
         if (
           value.cashFlowClock !== 'elapsed_24h_periods' ||
+          value.dayCount !== 'completed_days' ||
           value.rounding !== 'nearest' ||
           value.calculation !== 'compound_0_3_v2' ||
           value.dailyRateBasisPoints !== 30 ||
@@ -80,7 +81,11 @@ export default class CommercePolicyService {
           );
         if (value.legalMode === 'approved') {
           await CommerceAccessService.require(actorUserId, 'compliance');
-          if (typeof value.legalReference !== 'string' || value.legalReference.trim().length < 8)
+          if (
+            typeof value.legalReference !== 'string' ||
+            value.legalReference.trim().length < 8 ||
+            value.legalReference.length > 1000
+          )
             throw new Error('Record the completed legal approval and supporting reference.');
           value.legalApprovedBy = actorUserId;
         } else {
@@ -88,6 +93,7 @@ export default class CommercePolicyService {
           delete value.legalReference;
         }
       } catch (error) {
+        if (error instanceof HttpError) throw error;
         throw HttpError.badRequest((error as Error).message);
       }
     }

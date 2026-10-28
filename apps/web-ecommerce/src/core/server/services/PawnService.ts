@@ -453,6 +453,7 @@ export default class PawnService {
             if (
               !Number.isFinite(due.getTime()) ||
               due <= row.dueAt ||
+              due <= new Date() ||
               due.getTime() > row.dueAt.getTime() + 365 * PAWN_DAY_MS
             )
               throw HttpError.badRequest('Request a later due date, at most one additional year.');
@@ -486,7 +487,7 @@ export default class PawnService {
           case 'extension_decision': {
             await CommerceAccessService.require(userId, 'finance', transaction);
             if (
-              !['active', 'DUE_GRACE'].includes(row.status) ||
+              !['active', 'DUE_GRACE', 'OVERDUE_REVIEW'].includes(row.status) ||
               !row.extensionRequest ||
               !row.terms ||
               !row.disbursedAt ||
@@ -496,6 +497,11 @@ export default class PawnService {
               throw HttpError.conflict('Review the current extension request.');
             const oldDueAt = row.dueAt;
             if (data.accepted) {
+              if (row.status === 'OVERDUE_REVIEW' || new Date(row.extensionRequest.proposedDueAt) <= new Date())
+                throw HttpError.conflict(
+                  'Overdue review cannot auto-renew; resolve the pending extension and its credit explicitly.',
+                );
+
               const flows = await PawnPaymentModel.findAll({
                 where: { pawnContractId: id },
                 transaction,
@@ -929,6 +935,7 @@ export default class PawnService {
         throw HttpError.conflict('Verified eligible contractual disposal must precede sellable inventory.');
       if (row.conditionCase && (row.conditionCase.productId !== productId || row.conditionCaseStatus !== 'resolved'))
         throw HttpError.conflict('SKU không khớp tổ hợp đã duyệt.');
+      this.legal(row);
       const product = await activateOwnedCollectibleDraft(
         productId,
         row.asset.modelCode,
@@ -962,6 +969,7 @@ export default class PawnService {
     await DatabaseProvider.getInstance().transaction(async (transaction) => {
       const row = await this.locked(id, userId, true, transaction);
       this.current(row, data.expectedVersion);
+      this.legal(row);
       if (
         row.governance.disputed ||
         !row.governance.titleTransfer ||

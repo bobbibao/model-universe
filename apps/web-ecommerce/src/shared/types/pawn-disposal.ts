@@ -7,6 +7,7 @@ export interface PawnDisposalCost {
 }
 export interface PawnDisposalStatement {
   status: 'offered' | 'accepted';
+  accrualAcknowledged?: boolean;
   rule: typeof PAWN_DISPOSAL_RULE;
   orderItemId: number;
   orderId: number;

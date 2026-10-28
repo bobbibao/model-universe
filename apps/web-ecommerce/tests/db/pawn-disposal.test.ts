@@ -107,6 +107,9 @@ describe('signed post-disposal accounting against actual source collection', () 
         contractText: 'Explicit synthetic previously signed contract fixture; separate amendment required.',
         policyVersion: 1,
         policy: {
+          legalMode: 'approved',
+          legalApprovedBy: adminId,
+          legalReference: 'PRIOR-DISPOSABLE-LEGAL-APPROVAL',
           dailyRateBasisPoints: 3,
           dayCount: 'completed_days',
           rounding: 'ceil',

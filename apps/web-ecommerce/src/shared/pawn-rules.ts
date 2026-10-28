@@ -91,6 +91,7 @@ export interface PawnCashFlow {
   amountVnd: number;
   principalVnd: number;
   interestVnd: number;
+  sourceKey?: string;
   creditAppliedVnd?: number;
   createdAt: Date | string;
 }
@@ -123,6 +124,7 @@ export function pawnCashFlowEstimate(
     disposalInterest = 0,
     disposalSurplus = 0;
   const rounded = (n: Decimal) => n.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toNumber();
+  const disposalSources = new Map<string, { principal: number; interest: number; surplus: number }>();
   const accrue = (until: number) => {
     const boundary = Math.max(last, Math.min(until, end));
     if (boundary > last && new MoneyDecimal(outstanding).plus(interest).gt(0) && gross.lt(principal)) {
@@ -135,6 +137,13 @@ export function pawnCashFlowEstimate(
       interest = interest.plus(added);
     }
     last = boundary;
+  };
+  const settleRounding = () => {
+    const settled = new MoneyDecimal(rounded(interest));
+    // Rounding is itself part of posted interest. Keep the lifetime cap on the
+    // sum of posted integer VND, including earlier partial settlements.
+    gross = MoneyDecimal.min(principal, MoneyDecimal.max(0, gross.plus(settled.minus(interest))));
+    interest = settled;
   };
   const eligible = [...flows]
     .filter((f) => {
@@ -154,25 +163,38 @@ export function pawnCashFlowEstimate(
     if (flow.kind === 'credit_refund') credit -= Number(flow.amountVnd);
     if (['disposal_receipt', 'disposal_reversal', 'disposal_surplus'].includes(flow.kind)) {
       accrue(new Date(flow.createdAt).getTime());
-      interest = new MoneyDecimal(rounded(interest));
+      settleRounding();
       let amount = Number(flow.amountVnd);
+      const sourceKey = flow.sourceKey || 'disposal',
+        source = disposalSources.get(sourceKey) || { principal: 0, interest: 0, surplus: 0 };
+      disposalSources.set(sourceKey, source);
       if (flow.kind === 'disposal_surplus') {
         const cash = Math.min(Math.max(0, disposalSurplus), amount);
         disposalSurplus -= cash;
+        let paidCash = cash;
+        for (const contribution of disposalSources.values()) {
+          const used = Math.min(contribution.surplus, paidCash);
+          contribution.surplus -= used;
+          paidCash -= used;
+          if (!paidCash) break;
+        }
         amount -= cash;
         const prepaid = Math.min(Math.max(0, credit), amount);
         credit -= prepaid;
         amount -= prepaid;
         disposalSurplus -= amount;
       } else if (flow.kind === 'disposal_reversal') {
-        const fromSurplus = Math.min(Math.max(0, disposalSurplus), amount);
+        const fromSurplus = Math.min(Math.max(0, source.surplus), amount);
+        source.surplus -= fromSurplus;
         disposalSurplus -= fromSurplus;
         amount -= fromSurplus;
-        const restoredInterest = Math.min(disposalInterest, amount);
+        const restoredInterest = Math.min(source.interest, amount);
+        source.interest -= restoredInterest;
         interest = interest.plus(restoredInterest);
         disposalInterest -= restoredInterest;
         amount -= restoredInterest;
-        const restoredPrincipal = Math.min(disposalPrincipal, amount);
+        const restoredPrincipal = Math.min(source.principal, amount);
+        source.principal -= restoredPrincipal;
         outstanding += restoredPrincipal;
         disposalPrincipal -= restoredPrincipal;
         amount -= restoredPrincipal;
@@ -182,6 +204,7 @@ export function pawnCashFlowEstimate(
         const principalApplied = Math.min(outstanding, amount);
         outstanding -= principalApplied;
         disposalPrincipal += principalApplied;
+        source.principal += principalApplied;
         amount -= principalApplied;
         const useCredit = Math.min(Math.max(0, credit), interest.toNumber());
         credit -= useCredit;
@@ -189,12 +212,15 @@ export function pawnCashFlowEstimate(
         const interestApplied = Math.min(interest.toNumber(), amount);
         interest = interest.minus(interestApplied);
         disposalInterest += interestApplied + useCredit;
+        source.interest += interestApplied;
         amount -= interestApplied;
         disposalSurplus += amount;
+        source.surplus += amount;
       }
     }
     if (flow.kind === 'redemption') {
       accrue(new Date(flow.createdAt).getTime());
+      settleRounding();
       outstanding = Math.max(0, outstanding - Number(flow.principalVnd));
       // A settlement rounds its accrued interest to integer VND; carry no fractional debt
       // after the customer has paid that entire rounded interest balance.

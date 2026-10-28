@@ -1,3 +1,6 @@
+import PawnDisposalService from '../../src/core/server/services/PawnDisposalService';
+import OrderItemModel from '../../src/core/server/database/client/models/OrderItem.Model';
+import OrderPrepaymentModel from '../../src/core/server/database/client/models/OrderPrepayment.Model';
 import EvidenceModel from '../../src/core/server/database/client/models/Evidence.Model';
 import PaymentGatewayService, {
   setPayOSClient,
@@ -580,5 +583,159 @@ describe('2026 pawn and hold money/stock invariants on disposable Postgres', () 
     expect(visible).not.toHaveProperty('ownershipReference');
     await product.update({ stock: 100 });
     expect((await holds.quote(customer, { productId: product.id, quantity: 1 })).eligible).toBe(true);
+  });
+  it('requires a consistent cash-flow policy and Compliance; simulation never retains forged legal approval', async () => {
+    const policies = new CommercePolicyService();
+    await expect(
+      policies.approve('pawn', { ...policy, dayCount: 'started_days' }, 0, owner, 'Inconsistent clock'),
+    ).rejects.toMatchObject({ statusCode: 400 });
+    await expect(policies.approve('pawn', policy, 0, customer, 'Customer cannot approve law')).rejects.toMatchObject({
+      statusCode: 403,
+    });
+    const row = await policies.approve(
+      'pawn',
+      { ...policy, legalMode: 'simulation', legalApprovedBy: customer },
+      0,
+      owner,
+      'Disposable simulation fixture',
+    );
+    expect(row.settings.legalMode).toBe('simulation');
+    expect(row.settings).not.toHaveProperty('legalApprovedBy');
+    expect(row.settings).not.toHaveProperty('legalReference');
+  });
+  it('allocates a confirmed sale under the compound contract without reopening paid principal; customer accepts continuing accrual', async () => {
+    const funded = await fund(),
+      row = (await PawnContractModel.findByPk(funded.id))!;
+    const raw = product.get({ plain: true });
+    const sku = await ProductModel.create({
+      ...raw,
+      id: undefined,
+      uuid: undefined,
+      slug: undefined,
+      combinationKey: null,
+      modelFamilyId: null,
+      sku: key(),
+      stock: 0,
+      sold: 1,
+    });
+    await row.update({
+      status: 'disposed',
+      productId: sku.id,
+      disbursedAt: new Date(Date.now() - PAWN_DAY_MS),
+      disposedAt: new Date(Date.now() - 3600000),
+      governance: {
+        ...row.governance,
+        titleTransfer: { by: owner, at: new Date().toISOString(), reference: 'TEST-COMPLETED-TITLE' },
+      },
+    });
+    const order = await OrderModel.create({
+      userId: customer,
+      recipientName: 'Fixture',
+      phone: '0901234567',
+      address: '12 Test Street',
+      city: 'Test City',
+      subtotal: 1000000,
+      discount: 0,
+      shippingFee: 0,
+      total: 1000000,
+      status: 'DELIVERED',
+      paymentStatus: 'PAID',
+      paymentMethod: 'COD',
+      paymentPlan: 'full',
+      upfrontDueVnd: 1000000,
+      prepaidVnd: 1000000,
+    });
+    const line = await OrderItemModel.create({
+      orderId: order.id,
+      productId: sku.id,
+      productName: sku.name,
+      imageUrl: sku.imageUrl,
+      quantity: 1,
+      unitPrice: 1000000,
+      modelSnapshot: {},
+    });
+    await OrderPrepaymentModel.create({
+      orderId: order.id,
+      actorUserId: owner,
+      kind: 'receipt',
+      amountVnd: 1000000,
+      externalReference: key(),
+      reason: 'Actual sale receipt fixture',
+    });
+    const service = new PawnDisposalService();
+    await service.offer(row.id, owner, {
+      expectedVersion: row.version,
+      orderItemId: line.id,
+      costs: [],
+      agreementText:
+        'Quoted allocation as of stated time. Interest continues under signed compound contract until actual full settlement. Documented costs, principal, interest, customer surplus.',
+    });
+    await row.reload();
+    const proof = await EvidenceModel.create({
+      ownerUserId: customer,
+      purpose: 'pawn_settlement',
+      diskKey: key() + '.webp',
+      originalName: 'Signed fixture.webp',
+      mimeType: 'image/webp',
+      sizeBytes: 100,
+      sha256: crypto.randomBytes(32).toString('hex'),
+    });
+    const accept = {
+      expectedVersion: row.version,
+      decision: 'accept',
+      termsAccepted: true,
+      costsAccepted: true,
+      evidenceIds: [proof.id],
+    };
+    await expect(service.decide(row.id, customer, accept)).rejects.toMatchObject({ statusCode: 400 });
+    await service.decide(row.id, customer, { ...accept, accrualAcknowledged: true });
+    await row.reload();
+    await service.execute(row.id, owner, {
+      expectedVersion: row.version,
+      bilateralSignatureVerified: true,
+      amendmentReference: key(),
+    });
+    await row.reload();
+    const summary = (await service.summary(row))!;
+    expect(summary.principalAppliedVnd).toBe(1000000);
+    expect(summary.remainingVnd).toBeGreaterThanOrEqual(3000);
+    expect(summary.remainingVnd).toBeLessThan(3100);
+    expect(summary.entries[0].statement?.accrualAcknowledged).toBe(true);
+  });
+  it('lets Finance reject a pending extension in overdue review without leaving disposal permanently blocked', async () => {
+    let row = await fund();
+    row = await pawns.act(row.id, customer, {
+      action: 'request_extension',
+      expectedVersion: row.version,
+      proposedDueAt: new Date(new Date(row.dueAt!).getTime() + PAWN_DAY_MS).toISOString(),
+      details: 'Pending request fixture',
+    });
+    await PawnContractModel.update({ status: 'OVERDUE_REVIEW' }, { where: { id: row.id } });
+    await expect(
+      pawns.act(
+        row.id,
+        owner,
+        {
+          action: 'extension_decision',
+          expectedVersion: row.version,
+          accepted: true,
+          details: 'Review cannot automatically renew',
+        },
+        true,
+      ),
+    ).rejects.toMatchObject({ statusCode: 409 });
+    row = await pawns.act(
+      row.id,
+      owner,
+      {
+        action: 'extension_decision',
+        expectedVersion: row.version,
+        accepted: false,
+        details: 'Rejected pending request; reconcile any existing credit',
+      },
+      true,
+    );
+    expect(row.status).toBe('OVERDUE_REVIEW');
+    expect(row.extensionRequest).toBeNull();
   });
 });

@@ -588,26 +588,30 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
                       {button(selected.status === 'in_custody' ? 'disbursement' : 'redemption')}
                     </form>
                   )}
-                {admin && ['active', 'DUE_GRACE'].includes(selected.status) && selected.extensionRequest && (
-                  <form
-                    aria-label={t('extensionDecision')}
-                    className="space-y-4"
-                    onSubmit={(event) => submit(event, 'extension_decision')}
-                  >
-                    <label className="mu-field">
-                      {t('extensionDecision')}
-                      <select name="accepted" required defaultValue="">
-                        <option value="" disabled>
-                          {common('select')}
-                        </option>
-                        <option value="yes">{t('approveExtension')}</option>
-                        <option value="no">{t('rejectExtension')}</option>
-                      </select>
-                    </label>
-                    {detailsField}
-                    {button('extensionDecision')}
-                  </form>
-                )}
+                {admin &&
+                  ['active', 'DUE_GRACE', 'OVERDUE_REVIEW'].includes(selected.status) &&
+                  selected.extensionRequest && (
+                    <form
+                      aria-label={t('extensionDecision')}
+                      className="space-y-4"
+                      onSubmit={(event) => submit(event, 'extension_decision')}
+                    >
+                      <label className="mu-field">
+                        {t('extensionDecision')}
+                        <select name="accepted" required defaultValue="">
+                          <option value="" disabled>
+                            {common('select')}
+                          </option>
+                          <option value="yes" disabled={selected.status === 'OVERDUE_REVIEW'}>
+                            {t('approveExtension')}
+                          </option>
+                          <option value="no">{t('rejectExtension')}</option>
+                        </select>
+                      </label>
+                      {detailsField}
+                      {button('extensionDecision')}
+                    </form>
+                  )}
                 {admin &&
                   (selected.status === 'repaid' ||
                     (!!selected.custodyAt &&

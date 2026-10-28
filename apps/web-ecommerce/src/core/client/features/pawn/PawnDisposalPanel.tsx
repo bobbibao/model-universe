@@ -81,6 +81,7 @@ export default function PawnDisposalPanel({
       data: Record<string, unknown> = { ...Object.fromEntries(form), ...extra };
     for (const key of ['amountVnd', 'orderItemId']) if (form.has(key)) data[key] = Number(form.get(key));
     for (const key of [
+      'accrualAcknowledged',
       'termsAccepted',
       'costsAccepted',
       'moneyVerified',
@@ -317,6 +318,13 @@ export default function PawnDisposalPanel({
                     </label>
                   ))}
                 </>
+              )}
+              {row.terms?.policy.calculation === 'compound_0_3_v2' && (
+                <label className="flex items-start gap-3 text-sm">
+                  <input name="accrualAcknowledged" type="checkbox" required />
+                  Tôi hiểu số liệu là dự kiến tại thời điểm báo giá; lãi theo hợp đồng tiếp tục đến khi thực trả đủ. Khi
+                  phân bổ, sổ ghi số thực tế và phần còn thiếu/tiền dư để đối soát.
+                </label>
               )}
               <label className="flex items-start gap-3 text-sm">
                 <input name="termsAccepted" type="checkbox" required />
