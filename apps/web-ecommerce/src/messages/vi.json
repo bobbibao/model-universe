@@ -367,7 +367,7 @@
     "disclosures": {
       "reservation": "20–dưới 40%: 10 ngày; 40–dưới 50%: 15; 50–dưới 60%: 25; 60–dưới 70%: 30; 70–dưới 100%: 45. Hạn tính từ lần kích hoạt ban đầu. Đúng 100%: đã trả đủ.",
       "loyalty": "Xác nhận bảng đổi thưởng chung và một ưu đãi chính mỗi đơn. Điểm của hàng hoàn được đảo theo giá trị mô hình còn lại; điểm đã dùng tạo nợ được bù bằng điểm sau. Phải chọn rõ hạn mã ưu đãi. Điểm chỉ được cộng sau thời gian kiểm soát đổi trả tính từ khi giao hàng (tối đa bằng thời hạn đổi trả 30 ngày).",
-      "pawn": "C50 = ROUND(S × 0,5). Chính sách vận hành mới: 0% lãi, không phí ẩn. Kiểm giấy tờ và ghi nhận tiền thực tế; hợp đồng cũ giữ nguyên snapshot.",
+      "pawn": "C50 = ROUND(S × 0,5). Chính sách hiện hành: lãi kép 0,3%/ngày, tổng lãi tối đa bằng gốc ban đầu. Kiểm giấy tờ và ghi nhận tiền thực tế; hợp đồng cũ giữ nguyên snapshot.",
       "marketplace": "Chọn phí bán hàng cố định và thời gian chờ đối soát. Ký quỹ 10% là khoản riêng, vận chuyển báo giá theo từng người bán. Tiền đang tranh chấp bị giữ lại.",
       "buyback": "Kiểm định trước khi khách chấp nhận giá cuối và cửa hàng xác nhận trả tiền. Không nhận COD chiều gửi vào cho đến khi duyệt phương án tương thích kiểm định.",
       "voucher": "Các kiểm tra lợi nhuận mọi voucher phải qua (quy tắc v6.2 của chủ shop). Chỉ được đặt bằng hoặc chặt hơn v6.2: giữ ít nhất 80% lợi nhuận chuẩn khi dùng mã riêng và 75% khi cộng ưu đãi hạng (điểm cơ bản: 8000 = 80%), lãi tối thiểu 50.000đ và 5% tiền hàng thực trả, phí trên tiền thu và dự phòng mỗi điểm. \"Chỉ giá đã duyệt\" chặn mã trên sản phẩm chưa có giá niêm yết được duyệt."
@@ -409,6 +409,7 @@
       "legalApprovedBy": "Người ghi nhận duyệt pháp lý"
     },
     "values": {
+      "owner_rate_0_3": "Chủ shop chỉ định 0,3%/ngày · trần lãi bằng gốc",
       "owner_operational": "Chủ shop duyệt vận hành nội bộ · 0% lãi",
       "net_merchandise": "Giá mô hình thực trả",
       "elapsed_24h": "Chu kỳ đủ 24 giờ",
@@ -1239,7 +1240,7 @@
   "pawn": {
     "title": "Giữ bộ sưu tập. Mở giá trị mô hình.",
     "adminTitle": "Hợp đồng cầm cố và lưu giữ tài sản",
-    "intro": "Chọn mẫu và tình trạng để xem giá cầm dự kiến bằng 50% giá bán thực được duyệt. Shop kiểm tra hiện vật, giấy tờ và xác nhận khoản cầm trước khi giải ngân. Chính sách vận hành hiện tại: 0% lãi, không phí ẩn.",
+    "intro": "Chọn mẫu và tình trạng để xem giá cầm dự kiến bằng 50% giá bán thực được duyệt. Shop kiểm tra hiện vật, giấy tờ và xác nhận khoản cầm trước khi giải ngân. Lãi kép 0,3%/ngày; tổng lãi không vượt gốc ban đầu.",
     "custodyNote": "Mô hình cầm cố được lưu giữ riêng và không thuộc tồn kho có thể bán.",
     "capNote": "Lãi đơn không vượt quá tiền gốc. Chạm trần lãi không tự chuyển quyền sở hữu hoặc cho phép xử lý tài sản; cần đúng hợp đồng đã chấp nhận và quyết định có thẩm quyền được xác minh.",
     "signIn": "Đăng nhập để yêu cầu hoặc theo dõi cầm cố",

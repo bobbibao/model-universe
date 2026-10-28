@@ -141,3 +141,8 @@ Quy tắc chi tiết: [Cầm cố và giữ hàng](pawn-hold-ledgers.md). Kết 
 - Đã xác thực bộ khóa Chi hộ riêng sau khi chủ shop cho phép IPv4 của máy chạy web. Truy vấn số dư và danh sách lệnh chi thật đều qua kiểm tra chữ ký. Node ưu tiên IPv4 để tránh lỗi 403 từ IPv6 chưa được cho phép. Không phát lệnh chuyển tiền thử.
 
 Chi tiết: [live email/payOS](live-email-payos.md), [phê duyệt cầm nội bộ](../business/pawn-operating-approval-2026-10-28.md).
+
+
+### Điều chỉnh theo chỉ định tiếp theo của chủ shop — 28/10/2026
+
+Chính sách cầm cho báo giá mới được khôi phục 0,3%/ngày (30 bps), lãi kép và trần tổng lãi bằng gốc. Chính sách 0% ở mục trên là bản v2 lịch sử; không đổi snapshot hay sổ tiền của hợp đồng cũ. Xem [bản sửa đổi](../business/pawn-rate-0-3-amendment-2026-10-28.md).

@@ -1,3 +1,5 @@
+> **Bản lịch sử v2 — đã được thay thế đối với hồ sơ mới:** chủ shop yêu cầu khôi phục 0,3%/ngày. Xem [bản sửa đổi](pawn-rate-0-3-amendment-2026-10-28.md). Giữ nội dung dưới đây để đối chiếu các snapshot 0%.
+
 # MU-PAWN-OPS-20261028 — Phê duyệt vận hành nội bộ
 
 Nguồn ủy quyền: chủ shop yêu cầu trong phiên làm việc ngày 28/10/2026 tự đề xuất và tạo hồ sơ, hướng tới nghiệp vụ thật, thuận tiện và an toàn. Đây là quyết định cấu hình vận hành nội bộ; không phải giấy phép kinh doanh, chứng nhận cơ quan nhà nước hoặc ý kiến của luật sư.

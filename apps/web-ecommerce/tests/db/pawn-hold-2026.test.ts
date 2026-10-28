@@ -792,6 +792,34 @@ describe('2026 pawn and hold money/stock invariants on disposable Postgres', () 
       ),
     ).rejects.toMatchObject({ statusCode: 400 });
   });
+  it('records the explicit restored 0.3% owner policy as a new version and rejects inconsistent rate metadata', async () => {
+    const service = new CommercePolicyService(),
+      current = await service.approved('pawn');
+    const historical = current.settings.dailyRateBasisPoints;
+    const restored = await service.approve(
+      'pawn',
+      {
+        ...policy,
+        approvalType: 'owner_rate_0_3',
+        legalReference: 'docs/business/pawn-rate-0-3-amendment-2026-10-28.md',
+      },
+      current.version,
+      owner,
+      'Owner explicitly restores 0.3% daily',
+    );
+    expect(restored.settings.dailyRateBasisPoints).toBe(30);
+    expect(restored.version).toBe(current.version + 1);
+    expect((await service.list()).find((p) => p.id === current.id)!.settings.dailyRateBasisPoints).toBe(historical);
+    await expect(
+      service.approve(
+        'pawn',
+        { ...policy, approvalType: 'owner_rate_0_3', dailyRateBasisPoints: 0 },
+        restored.version,
+        owner,
+        'Inconsistent rate',
+      ),
+    ).rejects.toMatchObject({ statusCode: 400 });
+  });
   const payoutFixture = async () => {
     const row = await create(),
       paid = minimumHoldVnd(total);

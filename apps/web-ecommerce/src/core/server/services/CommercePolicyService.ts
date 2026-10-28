@@ -84,6 +84,13 @@ export default class CommercePolicyService {
           (value.dailyRateBasisPoints !== 0 || value.legalMode !== 'approved')
         )
           throw new Error('Phê duyệt vận hành nội bộ chỉ áp dụng chính sách 0% lãi, không phí ẩn.');
+        if (
+          value.approvalType === 'owner_rate_0_3' &&
+          (value.dailyRateBasisPoints !== 30 || value.legalMode !== 'approved')
+        )
+          throw new Error(
+            'Chính sách chủ shop chỉ định 0,3%/ngày phải dùng 30 basis points và có phê duyệt được ghi nhận.',
+          );
         if (value.legalMode === 'approved') {
           await CommerceAccessService.require(actorUserId, 'compliance');
           if (

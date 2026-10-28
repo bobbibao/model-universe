@@ -68,7 +68,7 @@ export default function PawnGovernancePanel({
       >
         <strong>
           {legal
-            ? row.terms?.policy.approvalType === 'owner_operational'
+            ? row.terms?.policy.approvalType?.startsWith('owner_')
               ? 'Cầm cố thực tế · chính sách vận hành chủ shop đã duyệt'
               : 'Hồ sơ áp dụng chính sách đã ghi nhận phê duyệt'
             : 'Hồ sơ chưa đủ điều kiện giải ngân'}
@@ -77,7 +77,9 @@ export default function PawnGovernancePanel({
           C50 = 50% giá S đúng SKU đã duyệt.{' '}
           {row.terms?.policy.dailyRateBasisPoints === 0
             ? 'Lãi suất 0%, không phí ẩn theo chính sách hiện tại.'
-            : 'Lãi và kỳ hạn áp dụng đúng điều khoản đã chấp thuận trong hồ sơ.'}{' '}
+            : row.terms?.policy.calculation === 'compound_0_3_v2'
+              ? 'Lãi kép 0,3%/ngày; tổng lãi tối đa bằng gốc ban đầu.'
+              : 'Lãi và kỳ hạn áp dụng đúng điều khoản đã chấp thuận trong hồ sơ.'}{' '}
           Kiểm giấy tờ và quyền sở hữu trước khi quyết định.
         </p>
         {row.governance?.disputed && (

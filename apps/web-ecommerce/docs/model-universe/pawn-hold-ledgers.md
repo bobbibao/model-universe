@@ -41,7 +41,7 @@ Voucher được kiểm tra theo chính sách lợi nhuận hiện có; quota/bu
 
 Giá ước tính mỗi chiếc `C50 = ROUND(S × 0,5, 0)`; làm tròn half-up đến VND. S là giá bán thực đã được duyệt đúng mẫu/SKU/hãng/phiên bản và tổ hợp tình trạng. Không dùng R niêm yết hoặc B thu mua; không trừ lỗi lần hai. Chưa có S được duyệt thì báo giá riêng, không hiện 0đ thành báo giá. C50 không phải cam kết khoản cầm. Khoản cuối cần kiểm hàng, giấy tờ, quyền sở hữu và các phê duyệt có thẩm quyền; hạn mức thẩm định 50–80% V hiện có vẫn là kiểm tra bổ sung, không thay thế C50 trên cửa hàng.
 
-Chính sách mới v2 đã được chủ shop ủy quyền: **0% lãi, không phí ẩn**, `approvalType=owner_operational`, theo [MU-PAWN-OPS-20261028](../business/pawn-operating-approval-2026-10-28.md). Giữ mã engine `compound_0_3_v2` để tương thích, nhưng rate=0 luôn cho lãi 0 ở cả bảng kê và dòng tiền. Không tự giải ngân hoặc thu mức 0,3%/ngày từng dùng tham khảo. `legalMode=approved` là cổng tương thích cho phê duyệt nội bộ có căn cứ; không chứng nhận pháp lý bên ngoài. Kiểm danh tính, quyền sở hữu, hợp đồng và bàn giao vật vẫn bắt buộc trước khi Finance ghi khoản chuyển tiền thật. Các diễn giải lãi/credit dưới đây áp dụng lịch sử có lãi; ở rate=0, lãi và credit gia hạn mới đều bằng 0.
+Chỉ định hiện hành của chủ shop khôi phục **lãi kép 0,3%/ngày (30 bps), trần tổng lãi bằng gốc ban đầu**, theo [bản sửa đổi chính sách](../business/pawn-rate-0-3-amendment-2026-10-28.md). Chính sách 0% v2 trở thành lịch sử; không sửa snapshot hợp đồng đã tồn tại. Mã phê duyệt `owner_rate_0_3` ghi chỉ định nội bộ, không chứng nhận pháp lý bên ngoài. Kiểm danh tính, quyền sở hữu, hợp đồng và bàn giao vật vẫn bắt buộc trước khi Finance ghi khoản chuyển tiền thật.
 
 ### Kỳ dòng tiền, trả gốc và gia hạn
 

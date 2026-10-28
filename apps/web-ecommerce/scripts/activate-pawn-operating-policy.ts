@@ -11,9 +11,9 @@ Object.assign(process.env, {
   DROP_TABLES: 'false',
   DISABLE_BACKGROUND_JOBS: 'true',
 });
-const reference = 'docs/business/pawn-operating-approval-2026-10-28.md';
+const reference = 'docs/business/pawn-rate-0-3-amendment-2026-10-28.md';
 (async () => {
-  if (!process.argv.includes('--apply-owner-operating-policy'))
+  if (!process.argv.includes('--apply-owner-rate-0-3'))
     throw new Error('Explicit owner-policy activation flag required.');
   await DatabaseProvider.initialize();
   try {
@@ -22,11 +22,11 @@ const reference = 'docs/business/pawn-operating-approval-2026-10-28.md';
     const service = new CommercePolicyService(),
       current = await service.approved('pawn');
     if (
-      current.settings.approvalType === 'owner_operational' &&
-      current.settings.dailyRateBasisPoints === 0 &&
+      current.settings.approvalType === 'owner_rate_0_3' &&
+      current.settings.dailyRateBasisPoints === 30 &&
       current.settings.legalReference === reference
     ) {
-      console.log(`Owner operating policy already active: v${current.version}, interest 0%.`);
+      console.log(`Owner operating policy already active: v${current.version}, interest 0.3%/day.`);
       return;
     }
     const row = await service.approve(
@@ -35,9 +35,9 @@ const reference = 'docs/business/pawn-operating-approval-2026-10-28.md';
         calculation: 'compound_0_3_v2',
         cashFlowClock: 'elapsed_24h_periods',
         legalMode: 'approved',
-        approvalType: 'owner_operational',
+        approvalType: 'owner_rate_0_3',
         legalReference: reference,
-        dailyRateBasisPoints: 0,
+        dailyRateBasisPoints: 30,
         dayCount: 'completed_days',
         rounding: 'nearest',
         graceDays: 2,
@@ -45,9 +45,11 @@ const reference = 'docs/business/pawn-operating-approval-2026-10-28.md';
       },
       current.version,
       owner.id,
-      'Chủ shop ủy quyền qua phiên làm việc 28/10/2026: tạo phê duyệt vận hành nội bộ, chính sách mới 0% lãi/không phí ẩn; không tạo chứng nhận pháp lý bên ngoài.',
+      'Chủ shop yêu cầu rõ ngày 28/10/2026: khôi phục 0,3%/ngày (30 bps), lãi kép, tổng lãi không vượt gốc theo kế hoạch đã chốt. Ghi chỉ định của chủ shop, không tạo chứng nhận pháp lý bên ngoài.',
     );
-    console.log(`Activated owner operating policy v${row.version}: 0% interest. Historical contracts unchanged.`);
+    console.log(
+      `Activated owner operating policy v${row.version}: 0.3% daily compound interest; total interest capped at principal. Historical contracts unchanged.`,
+    );
   } finally {
     await DatabaseProvider.getInstance().close();
   }

@@ -3,7 +3,7 @@ export interface PawnInterestPolicy {
   calculation?: 'compound_0_3_v2';
   cashFlowClock?: 'elapsed_24h_periods';
   legalMode?: 'simulation' | 'approved';
-  approvalType?: 'owner_operational';
+  approvalType?: 'owner_operational' | 'owner_rate_0_3';
   legalReference?: string;
   legalApprovedBy?: number;
   dailyRateBasisPoints: 0 | 3 | 30;
