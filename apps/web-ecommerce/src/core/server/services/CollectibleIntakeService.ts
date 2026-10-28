@@ -10,7 +10,7 @@ import FileStorageService from './FileStorageService';
 export async function activateOwnedCollectibleDraft(productId: number, modelCode: string, acquisitionCostVnd: number, transaction: Transaction,
   { publish = false, sourceType, sourceId, actorUserId }: { publish?: boolean; sourceType: 'buyback' | 'pawn'; sourceId: number; actorUserId: number }) {
   const product = await ProductModel.findByPk(productId, { transaction, lock: transaction.LOCK.UPDATE });
-  if (!product || product.partnerId || product.modelCode !== modelCode || !product.combinationKey || product.catalogReviewRequired || product.inventoryStatus !== 'available')
+  if (!product || product.partnerId || product.modelCode !== modelCode || product.catalogReviewRequired || product.inventoryStatus !== 'available')
     throw HttpError.conflict('Chọn SKU của đúng mẫu/tổ hợp đã duyệt để nhập hàng.');
   const previous = await CatalogIntakeModel.findOne({ where: { sourceType, sourceId: String(sourceId) }, transaction });
   if (previous) {

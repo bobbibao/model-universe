@@ -102,6 +102,7 @@ export default class NotificationDispatchService {
       await NotificationDeliveryModel.create(
         {
           channel: 'zalo',
+          scheduledAt: new Date(),
           sourceType: 'admin_alert',
           sourceId: alert.id,
           recipient,

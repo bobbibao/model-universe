@@ -3,6 +3,7 @@ import CommerceAccessService from './CommerceAccessService';
 import PawnReminderService from './PawnReminderService';
 import MoneyOperationModel from '../database/client/models/MoneyOperation.Model';
 import CatalogTreeService from './catalog/CatalogTreeService';
+import type { ConditionCaseSnapshot } from '../../../shared/condition-tree';
 import NotificationDispatchService from './NotificationDispatchService';
 import crypto from 'crypto';
 import { isReferenceCondition } from '../../../shared/sale-pricing';
@@ -262,9 +263,23 @@ export default class PawnService {
         ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction })
         : null;
       if (referenceProductId && !product) throw HttpError.notFound('Catalogue model not found.');
-      const conditionCase = await new CatalogTreeService().snapshot(data, transaction);
-      const webQuote = estimatePawn(conditionCase.salePriceVnd, {
-        approved: !!conditionCase.approvedAt,
+      const hasTreeInput = Boolean(
+        data.modelFamilyId ||
+        (Array.isArray(data.conditionNodeIds) && data.conditionNodeIds.length > 0) ||
+        (typeof data.otherCondition === 'string' && data.otherCondition.trim().length > 0) ||
+        data.itemTypeKey
+      );
+      let conditionCase: ConditionCaseSnapshot | null = null;
+      let conditionCaseStatus: 'pending' | 'resolved' = 'resolved';
+      if (hasTreeInput || referenceProductId) {
+        conditionCase = await new CatalogTreeService().snapshot(data, transaction);
+        conditionCaseStatus =
+          conditionCase.approvedAt !== null || (!hasTreeInput && conditionCase.productId !== null)
+            ? 'resolved'
+            : 'pending';
+      }
+      const webQuote = estimatePawn(conditionCase?.salePriceVnd ?? null, {
+        approved: Boolean(conditionCase?.approvedAt),
         issuesDeclared: false,
       });
       const row = await PawnContractModel.create(
@@ -273,15 +288,15 @@ export default class PawnService {
           requestKey,
           requestDigest,
           asset,
-          referenceProductId: conditionCase.productId,
-          referenceCondition: conditionCase.itemTypeKey,
+          referenceProductId: conditionCase?.productId ?? referenceProductId ?? null,
+          referenceCondition: conditionCase?.itemTypeKey ?? referenceCondition,
           conditionCase,
-          conditionCaseStatus: conditionCase.salePriceVnd !== null ? 'resolved' : 'pending',
+          conditionCaseStatus,
           webQuote,
         },
         { transaction },
       );
-      if (conditionCase.salePriceVnd === null)
+      if (conditionCase && conditionCaseStatus === 'pending')
         await new NotificationDispatchService().alertAdmins(
           {
             kind: 'service_condition_proposal',
@@ -292,7 +307,8 @@ export default class PawnService {
           },
           transaction,
         );
-      await new CatalogTreeService().remember(conditionCase.conditionNodeIds, 'pawn', row.id, transaction);
+      if (conditionCase)
+        await new CatalogTreeService().remember(conditionCase.conditionNodeIds, 'pawn', row.id, transaction);
       const evidence = await this.evidence.bind(data.evidenceIds, userId, 'pawn', row.id, transaction);
       if (new Set(evidence.map((file) => file.sha256)).size < 3)
         throw HttpError.badRequest('Provide three distinct model views.');

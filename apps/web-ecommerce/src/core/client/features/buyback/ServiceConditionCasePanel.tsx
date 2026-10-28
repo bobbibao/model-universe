@@ -77,32 +77,106 @@ export default function ServiceConditionCasePanel({
   }, [admin, familyId, type, ids]);
   if (!snapshot) return null;
   return (
-    <section className="service-condition-case">
-      <div className="catalog-section-toolbar">
-        <h3>{en ? 'Condition combination' : 'Tổ hợp tình trạng'}</h3>
-        <span className={`catalog-status ${status !== 'resolved' ? 'is-draft' : ''}`}>
+    <div className="rounded-2xl border border-slate-200/90 bg-white p-4.5 shadow-2xs dark:border-strokedark dark:bg-boxdark">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-strokedark">
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-100 text-xs font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+            🏷
+          </span>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
+            {en ? 'Condition combination' : 'Tổ hợp tình trạng định giá'}
+          </h3>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+            status === 'resolved'
+              ? 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+              : status === 'rejected'
+              ? 'border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/40 dark:text-rose-300'
+              : status === 'needs_evidence'
+              ? 'border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300'
+              : 'border border-slate-200 bg-slate-100 text-slate-600 dark:border-strokedark dark:bg-meta-4 dark:text-slate-300'
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              status === 'resolved'
+                ? 'bg-emerald-500'
+                : status === 'rejected'
+                ? 'bg-rose-500'
+                : status === 'needs_evidence'
+                ? 'bg-amber-500'
+                : 'bg-slate-400'
+            }`}
+          />
           {status === 'resolved'
             ? en
               ? 'Approved'
               : 'Đã duyệt'
             : status === 'rejected'
-              ? en
-                ? 'Rejected'
-                : 'Từ chối'
-              : status === 'needs_evidence'
-                ? en
-                  ? 'More evidence needed'
-                  : 'Cần bổ sung'
-                : en
-                  ? 'Awaiting appraisal'
-                  : 'Chờ thẩm định'}
+            ? en
+              ? 'Rejected'
+              : 'Từ chối'
+            : status === 'needs_evidence'
+            ? en
+              ? 'More evidence needed'
+              : 'Cần bổ sung'
+            : en
+            ? 'Awaiting appraisal'
+            : 'Chờ thẩm định'}
         </span>
       </div>
-      <p>
-        <b>{snapshot.itemTypeKey === 'new' ? 'New' : '2hand'}</b> ·{' '}
-        {snapshot.labels.join(' · ') || (en ? 'No issues recorded' : 'Không ghi nhận lỗi')}
-      </p>
-      {reviewNote && <p className="catalog-inline-notice">{reviewNote}</p>}
+
+      {/* Condition chips */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="rounded-lg bg-purple-600 px-2.5 py-1 text-xs font-bold text-white shadow-2xs">
+          {snapshot.itemTypeKey === 'new' ? 'New (Mới)' : '2hand (Đã qua sử dụng)'}
+        </span>
+        {snapshot.labels.length > 0 ? (
+          snapshot.labels.map((lbl, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center rounded-lg border border-slate-200/90 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:border-strokedark dark:bg-meta-4/40 dark:text-slate-200"
+            >
+              {lbl}
+            </span>
+          ))
+        ) : (
+          <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+            {en ? 'No issues recorded' : 'Không ghi nhận lỗi'}
+          </span>
+        )}
+      </div>
+
+      {/* Reference SKU & Real sale price S */}
+      {snapshot.productId && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/50 p-2.5 text-xs dark:border-indigo-950 dark:bg-indigo-950/20">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-indigo-900 dark:text-indigo-200">Mẫu định giá:</span>
+            <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300">SKU #{snapshot.productId}</span>
+          </div>
+          {snapshot.salePriceVnd && (
+            <span className="font-mono font-extrabold text-indigo-900 dark:text-indigo-200">
+              Giá bán niêm yết (S): {formatVND(snapshot.salePriceVnd, locale)}
+            </span>
+          )}
+          <Link
+            href={admin ? `/admin/products/${snapshot.productId}` : `/shop/product/${snapshot.productId}`}
+            className="font-bold text-purple-600 hover:underline dark:text-purple-400"
+            target="_blank"
+          >
+            Xem mô hình ↗
+          </Link>
+        </div>
+      )}
+
+      {reviewNote && (
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <span className="font-bold">Ghi chú đối chiếu: </span>
+          <span>{reviewNote}</span>
+        </div>
+      )}
       {!admin && status === 'needs_evidence' && (
         <div>
           <EvidenceUploader
@@ -127,12 +201,6 @@ export default function ServiceConditionCasePanel({
         </div>
       )}
       {snapshot.otherCondition && <blockquote>{snapshot.otherCondition}</blockquote>}
-      {snapshot.productId && (
-        <Link href={admin ? `/admin/products/${snapshot.productId}` : `/shop/product/${snapshot.productId}`}>
-          SKU #{snapshot.productId}
-          {snapshot.salePriceVnd ? ` · S ${formatVND(snapshot.salePriceVnd, locale)}` : ''} ↗
-        </Link>
-      )}
       {admin && editable && (
         <details open={status !== 'resolved'}>
           <summary>{en ? 'Review / map conditions and approve S' : 'Đối chiếu tình trạng và duyệt S'}</summary>
@@ -226,6 +294,6 @@ export default function ServiceConditionCasePanel({
           </div>
         </details>
       )}
-    </section>
+    </div>
   );
 }

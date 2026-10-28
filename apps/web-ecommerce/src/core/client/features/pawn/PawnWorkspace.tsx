@@ -18,6 +18,8 @@ import PawnDisposalPanel from './PawnDisposalPanel';
 import ServiceConditionCasePanel from '@/core/client/features/buyback/ServiceConditionCasePanel';
 import ServiceBasket from '@/core/client/features/buyback/ServiceBasket';
 import { useSearchParams } from 'next/navigation';
+import ServiceStatusBadge from '@/components/Services/ServiceStatusBadge';
+import ServiceMediaGallery from '@/components/Services/ServiceMediaGallery';
 
 export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
   const t = useTranslations('pawn'),
@@ -204,38 +206,92 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
               </button>
             ))}
           {!failed && !rows.length && <ServiceEmpty>{t('empty')}</ServiceEmpty>}
-          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
-            <div className="space-y-3">
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(330px,380px)_minmax(0,1fr)]">
+            <div className="space-y-2.5">
               {rows.map((row) => (
                 <button
-                  className={`mu-panel w-full p-5 text-left ${selected?.id === row.id ? 'ring-2 ring-cyan-600' : ''}`}
+                  className={`group relative w-full text-left rounded-xl p-3.5 transition-all duration-200 border ${
+                    selected?.id === row.id
+                      ? 'border-2 border-purple-600 bg-purple-50/40 shadow-sm ring-2 ring-purple-600/15 dark:bg-purple-950/25 dark:border-purple-500'
+                      : 'border-slate-200/90 bg-white hover:border-purple-300 hover:shadow-xs hover:bg-slate-50/50 dark:border-strokedark dark:bg-boxdark dark:hover:border-slate-500'
+                  }`}
                   key={row.id}
                   onClick={() => void open(row.id)}
                   disabled={busy}
                   aria-pressed={selected?.id === row.id}
                 >
-                  <p className="mu-eyebrow">
-                    #{row.id} · {t(`status.${row.status}`)}
+                  {/* Left active highlight bar */}
+                  {selected?.id === row.id && (
+                    <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r bg-purple-600 dark:bg-purple-400" />
+                  )}
+
+                  <div className="flex items-center justify-between gap-2 pl-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-xs font-black tracking-wide text-purple-900 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                        #{row.id}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-meta-4 dark:text-slate-300">
+                        Cầm cố
+                      </span>
+                    </div>
+                    <ServiceStatusBadge status={row.status} label={t(`status.${row.status}`)} />
+                  </div>
+
+                  <h3 className="mt-2.5 pl-1 text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors line-clamp-2 leading-snug dark:text-white">
+                    {row.asset.name}
+                  </h3>
+                  <p className="mt-1 pl-1 text-xs text-slate-500 line-clamp-1 dark:text-slate-400">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{row.asset.modelCode}</span> · {row.asset.version}
                   </p>
-                  <h2 className="mt-2 font-bold">{row.asset.name}</h2>
-                  <p className="mu-note">
-                    {row.asset.modelCode} · {row.asset.version}
-                  </p>
-                  {row.overdue && <p className="mt-2 font-semibold text-red-700">{t('overdue')}</p>}
+
+                  {/* Bottom Row */}
+                  <div className="mt-3 pl-1 flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs dark:border-strokedark/50">
+                    <span className="text-[11px] font-medium text-slate-400">
+                      {new Date(row.createdAt).toLocaleDateString(locale)}
+                    </span>
+                    {row.terms?.principalVnd ? (
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-[10px] text-slate-400 font-medium">Hạn mức:</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono text-xs">
+                          {formatVND(row.terms.principalVnd, locale)}
+                        </span>
+                      </div>
+                    ) : row.overdue ? (
+                      <span className="rounded bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+                        {t('overdue')}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400 italic">Chờ định giá</span>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
             {selected && (
               <div
                 id="pawn-detail"
-                className="mu-panel order-first min-w-0 scroll-mt-24 space-y-6 p-5 sm:p-7 lg:order-none"
+                className="order-first min-w-0 scroll-mt-24 space-y-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs sm:p-7 lg:order-none dark:border-strokedark dark:bg-boxdark"
               >
-                <div>
-                  <p className="mu-eyebrow">
-                    #{selected.id} · {t(`status.${selected.status}`)}
+                <div className="border-b border-slate-100 pb-5 dark:border-strokedark">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 dark:bg-meta-4 dark:text-slate-200 px-2.5 py-1 rounded-md">
+                        #{selected.id}
+                      </span>
+                      <ServiceStatusBadge status={selected.status} label={t(`status.${selected.status}`)} size="md" />
+                    </div>
+                    {selected.terms?.principalVnd && (
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        Hạn mức: {formatVND(selected.terms.principalVnd, locale)}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                    {selected.asset.name}
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {assetLabels('version', { version: selected.version })}
                   </p>
-                  <h2 className="mt-3 text-2xl font-bold">{selected.asset.name}</h2>
-                  <p className="mu-note">{assetLabels('version', { version: selected.version })}</p>
                 </div>
                 <PawnGovernancePanel
                   key={selected.id}
@@ -267,23 +323,13 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
                     </div>
                   ))}
                 </dl>
-                <div>
-                  <h3 className="font-bold">{assetLabels('photos')}</h3>
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    {selected.evidence.map((file) => (
-                      <a
-                        className="text-sm underline"
-                        key={file.id}
-                        href={`/api/evidence/${file.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {selected.contractEvidenceIds.includes(file.id) ? `${t('signedContract')}: ` : ''}
-                        {file.originalName}
-                      </a>
-                    ))}
-                  </div>
-                </div>
+                <ServiceMediaGallery
+                  files={selected.evidence || []}
+                  title={assetLabels('photos')}
+                  subtitle="Ảnh chụp thực tế tài sản cầm cố từ khách hàng"
+                  badge="Tài sản cầm cố"
+                  emptyMessage="Chưa có ảnh bằng chứng nào được tải lên."
+                />
                 {terms && (
                   <div className="space-y-4 rounded-lg border border-slate-200 p-4">
                     <h3 className="text-xl font-bold">{t('terms')}</h3>

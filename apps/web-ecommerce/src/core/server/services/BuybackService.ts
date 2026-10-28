@@ -1,4 +1,5 @@
 import CatalogTreeService from './catalog/CatalogTreeService';
+import type { ConditionCaseSnapshot } from '../../../shared/condition-tree';
 import CatalogIntakeModel from '../database/client/models/CatalogIntake.Model';
 import crypto from 'crypto';
 import { memberPrice } from '../../../shared/pricing';
@@ -279,9 +280,28 @@ export default class BuybackService {
         ? await ProductModel.findOne({ where: { id: referenceProductId, partnerId: null }, transaction })
         : null;
       if (referenceProductId && !product) throw HttpError.notFound('Catalog model not found.');
-      const conditionCase = await new CatalogTreeService().snapshot(data, transaction);
-      const resolved = conditionCase.salePriceVnd !== null;
-      const estimate = estimateBuyback(conditionCase.salePriceVnd, declaredIssues, { seriousDamage, approved: resolved, conditionMatched: resolved });
+      const hasTreeInput = Boolean(
+        data.modelFamilyId ||
+        (Array.isArray(data.conditionNodeIds) && data.conditionNodeIds.length > 0) ||
+        (typeof data.otherCondition === 'string' && data.otherCondition.trim().length > 0) ||
+        data.itemTypeKey
+      );
+      let conditionCase: ConditionCaseSnapshot | null = null;
+      let conditionCaseStatus: 'pending' | 'resolved' = 'resolved';
+      if (hasTreeInput || referenceProductId) {
+        conditionCase = await new CatalogTreeService().snapshot(data, transaction);
+        conditionCaseStatus =
+          conditionCase.approvedAt !== null || (!hasTreeInput && conditionCase.productId !== null)
+            ? 'resolved'
+            : 'pending';
+      }
+      const isApproved = Boolean(conditionCase?.approvedAt);
+      const isConditionMatched = hasTreeInput && Boolean(conditionCase?.salePriceVnd !== null);
+      const estimate = estimateBuyback(conditionCase?.salePriceVnd ?? null, declaredIssues, {
+        seriousDamage,
+        approved: isApproved,
+        conditionMatched: isConditionMatched,
+      });
       // A trade starts INCOMPLETE: D is known only once the buy-back price is final.
       const item = tradeProductId === null ? null : await tradeItem(tradeProductId, transaction);
       const tradeQuote: TradeQuote | null = item
@@ -300,9 +320,10 @@ export default class BuybackService {
           requestKey,
           requestDigest,
           asset,
-          referenceProductId: conditionCase.productId,
-          referenceCondition: conditionCase.itemTypeKey,
-          conditionCase, conditionCaseStatus: resolved ? 'resolved' : 'pending',
+          referenceProductId: conditionCase?.productId ?? referenceProductId ?? null,
+          referenceCondition: conditionCase?.itemTypeKey ?? referenceCondition,
+          conditionCase,
+          conditionCaseStatus,
           declaredIssues,
           estimate,
           tradeProductId: item?.id ?? null,
@@ -310,8 +331,19 @@ export default class BuybackService {
         },
         { transaction },
       );
-      if (!resolved) await this.notices.alertAdmins({ kind: 'service_condition_proposal', orderId: null, dedupeKey: `buyback:${row.id}:condition:submitted`, title: 'Đề xuất tình trạng thu/trade mới', content: `Yêu cầu #${row.id}: ${asset.name}. ${conditionCase.labels.join('; ')}. ${conditionCase.otherCondition}. Xem /admin/buyback` }, transaction);
-      await new CatalogTreeService().remember(conditionCase.conditionNodeIds, 'buyback', row.id, transaction);
+      if (conditionCase && conditionCaseStatus === 'pending')
+        await this.notices.alertAdmins(
+          {
+            kind: 'service_condition_proposal',
+            orderId: null,
+            dedupeKey: `buyback:${row.id}:condition:submitted`,
+            title: 'Đề xuất tình trạng thu/trade mới',
+            content: `Yêu cầu #${row.id}: ${asset.name}. ${conditionCase.labels.join('; ')}. ${conditionCase.otherCondition}. Xem /admin/buyback`,
+          },
+          transaction,
+        );
+      if (conditionCase)
+        await new CatalogTreeService().remember(conditionCase.conditionNodeIds, 'buyback', row.id, transaction);
       const bound = await this.evidence.bind(data.evidenceIds, userId, 'buyback', row.id, transaction);
       const files = await EvidenceModel.findAll({ where: { id: bound.map((file) => file.id) }, transaction });
       const photos = files.filter((file) => !isVideo(file.mimeType));
@@ -460,7 +492,6 @@ export default class BuybackService {
           break;
         }
         case 'final_offer': {
-          if (row.conditionCase && data.conditionMatchesApproved !== true) throw HttpError.badRequest('Xác nhận hàng kiểm thực tế khớp tổ hợp đã duyệt; nếu khác, đối chiếu và duyệt lại tổ hợp trước.');
           if (!['inspecting', 'awaiting_acceptance', 'reinspection_requested'].includes(row.status) || !row.inspection)
             throw HttpError.conflict('Inspect the actual model before offering final terms.');
           // Every inspection is recorded on video/photos kept as evidence (§25-§27).
@@ -471,6 +502,12 @@ export default class BuybackService {
               'Attach the unboxing and inspection recording before the final quote.',
               'INSPECTION_EVIDENCE_REQUIRED',
             );
+          if (
+            row.conditionCase &&
+            (row.conditionCase.conditionNodeIds.length > 0 || row.conditionCase.otherCondition) &&
+            data.conditionMatchesApproved !== true
+          )
+            throw HttpError.badRequest('Xác nhận hàng kiểm thực tế khớp tổ hợp đã duyệt; nếu khác, đối chiếu và duyệt lại tổ hợp trước.');
           const inspectedIssues = parseIssues(data.inspectedIssues, 'inspected issues');
           const comparison = compareInspection(
             row.declaredIssues || [],
@@ -486,10 +523,16 @@ export default class BuybackService {
           const approved =
             (!!row.estimate && row.estimate.manualReview !== 'reference_not_approved') ||
             (!!product?.targetPriceApprovedAt && referenceFor(product, row.referenceCondition).reference === reference);
+          const conditionMatched = Boolean(
+            row.conditionCase &&
+            (row.conditionCase.conditionNodeIds.length > 0 || row.conditionCase.otherCondition) &&
+            row.conditionCaseStatus === 'resolved'
+          );
           const formulaEstimate = estimateBuyback(reference, inspectedIssues, {
             seriousDamage: data.seriousDamage === true,
             approved,
-            quoted: row.estimate, conditionMatched: !!row.conditionCase && row.conditionCaseStatus === 'resolved',
+            quoted: row.estimate,
+            conditionMatched,
           });
           const formula = formulaEstimate.manualReview ? null : formulaEstimate.estimateVnd;
           const amountVnd = data.amountVnd === undefined || data.amountVnd === null ? formula : amount(data.amountVnd);
@@ -743,7 +786,7 @@ export default class BuybackService {
       if (
         !product ||
         product.partnerId ||
-        !product.combinationKey ||
+        (row.conditionCase ? !product.combinationKey : false) ||
         product.modelCode !== row.asset.modelCode
       )
         throw HttpError.conflict('Chọn SKU thuộc đúng mẫu và tổ hợp đã kiểm hàng.');

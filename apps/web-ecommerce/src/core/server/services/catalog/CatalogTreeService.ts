@@ -349,12 +349,15 @@ export default class CatalogTreeService {
             },
             transaction,
           })
-        : null;
+        : (reference && !otherCondition ? reference : null);
     const approved =
       product?.targetPriceApprovedAt &&
-      product.serviceReferenceEnabled &&
+      (product.serviceReferenceEnabled ?? true) &&
       product.inventoryStatus === 'available' &&
       !!product.pricingReferenceMemberVnd;
+    const salePriceVnd = approved
+      ? product!.pricingReferenceMemberVnd
+      : (product?.pricingReferenceMemberVnd ?? null);
     return {
       modelFamilyId: familyId,
       itemTypeKey: type,
@@ -362,7 +365,7 @@ export default class CatalogTreeService {
       labels: ids.map((id) => conditionPath(id, nodes)),
       otherCondition,
       productId: product?.id ?? null,
-      salePriceVnd: approved ? product!.pricingReferenceMemberVnd : null,
+      salePriceVnd,
       approvedAt: approved ? product!.targetPriceApprovedAt!.toISOString() : null,
       capturedAt: new Date().toISOString(),
     };

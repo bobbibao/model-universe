@@ -27,6 +27,8 @@ const paths: Record<string, string> = {
   pin: 'M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z M14.5 9a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0',
   plus: 'M12 5v14 M5 12h14',
   edit: 'm16 3 5 5-12 12-6 1 1-6L16 3z M13 6l5 5',
+  camera:
+    'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
 };
 
 export default function AdminIcon({ name, size = 20 }: { name: string; size?: number }) {
