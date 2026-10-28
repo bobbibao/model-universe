@@ -1,4 +1,6 @@
 'use client';
+
+import { receivingBanks } from '@/shared/banks';
 import { useEffect, useState } from 'react';
 import Api from '@/core/client/api/Api';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -76,7 +78,9 @@ export default function MoneyOperationsWorkspace() {
               </div>
               <RefundHistory operations={[row]} />
               <p className="text-sm">
-                {row.details.account.bank} · {row.details.account.number} · {row.details.account.holder}
+                {receivingBanks.find((bank) => bank.value === row.details.account.bank)?.label ||
+                  row.details.account.bank}{' '}
+                · {row.details.account.number} · {row.details.account.holder}
               </p>
               <p className="mu-note">
                 {row.details.reason} · Người lập #{row.requestedBy}

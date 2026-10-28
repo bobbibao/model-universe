@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { PayOS } from '@payos/node';
 import type { Payout, PayoutRequest } from '@payos/node/lib/resources/v1/payouts/payouts';
 import crypto from 'node:crypto';
@@ -19,7 +20,13 @@ export const payoutConfigured = () =>
 export const requirePayoutSignature = async (response: Response) => {
   if (response.ok) {
     const body = await response.clone().json();
-    if (body.code === '00' && !response.headers.get('x-signature'))
+    if (
+      typeof body === 'object' &&
+      body !== null &&
+      'code' in body &&
+      body.code === '00' &&
+      !response.headers.get('x-signature')
+    )
       throw new Error('payOS payout response is missing its signature.');
   }
   return response;
@@ -78,7 +85,7 @@ export default class PayOSPayoutService {
   async reconcilePending() {
     if (!this.injected && !payoutConfigured()) return 0;
     const rows = await MoneyOperationModel.findAll({
-      where: { status: 'approved' },
+      where: { status: 'approved', 'details.payout.referenceId': { [Op.ne]: null } },
       order: [['updatedAt', 'ASC']],
       limit: 100,
     });

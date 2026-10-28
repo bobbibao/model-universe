@@ -846,6 +846,7 @@ describe('2026 pawn and hold money/stock invariants on disposable Postgres', () 
     expect(f.sdk.payouts.create).toHaveBeenCalledTimes(1);
     expect(f.sdk.payouts.create.mock.calls[0][1]).toBe(f.transfer.referenceId);
     f.transfer.state = 'SUCCEEDED';
+    expect(await f.service.reconcilePending()).toBeGreaterThan(0);
     const complete = await f.service.execute(f.op.id, finance, processing!.version, false);
     expect(complete!.status).toBe('completed');
     await f.service.execute(f.op.id, finance, complete!.version, false);

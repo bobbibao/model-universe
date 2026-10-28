@@ -41,7 +41,7 @@ Voucher được kiểm tra theo chính sách lợi nhuận hiện có; quota/bu
 
 Giá ước tính mỗi chiếc `C50 = ROUND(S × 0,5, 0)`; làm tròn half-up đến VND. S là giá bán thực đã được duyệt đúng mẫu/SKU/hãng/phiên bản và tổ hợp tình trạng. Không dùng R niêm yết hoặc B thu mua; không trừ lỗi lần hai. Chưa có S được duyệt thì báo giá riêng, không hiện 0đ thành báo giá. C50 không phải cam kết khoản cầm. Khoản cuối cần kiểm hàng, giấy tờ, quyền sở hữu và các phê duyệt có thẩm quyền; hạn mức thẩm định 50–80% V hiện có vẫn là kiểm tra bổ sung, không thay thế C50 trên cửa hàng.
 
-Hồ sơ mới dùng `compound_0_3_v2`: mô phỏng lãi kép 0,3% mỗi 24h; tổng lãi phát sinh không vượt gốc ban đầu. Chế độ ban đầu là `simulation`. Không có tác vụ tự giải ngân hoặc tự thu lãi. Ghi nhận nghiệp vụ thật yêu cầu chính sách `legalMode=approved`, người có quyền Compliance ghi căn cứ duyệt pháp lý hoàn tất; Admin đã kiểm danh tính, quyền sở hữu, hợp đồng ký hai bên và bàn giao vật. Việc lưu căn cứ không thay thế thẩm định pháp lý ngoài hệ thống.
+Chính sách mới v2 đã được chủ shop ủy quyền: **0% lãi, không phí ẩn**, `approvalType=owner_operational`, theo [MU-PAWN-OPS-20261028](../business/pawn-operating-approval-2026-10-28.md). Giữ mã engine `compound_0_3_v2` để tương thích, nhưng rate=0 luôn cho lãi 0 ở cả bảng kê và dòng tiền. Không tự giải ngân hoặc thu mức 0,3%/ngày từng dùng tham khảo. `legalMode=approved` là cổng tương thích cho phê duyệt nội bộ có căn cứ; không chứng nhận pháp lý bên ngoài. Kiểm danh tính, quyền sở hữu, hợp đồng và bàn giao vật vẫn bắt buộc trước khi Finance ghi khoản chuyển tiền thật. Các diễn giải lãi/credit dưới đây áp dụng lịch sử có lãi; ở rate=0, lãi và credit gia hạn mới đều bằng 0.
 
 ### Kỳ dòng tiền, trả gốc và gia hạn
 
@@ -84,7 +84,7 @@ Hệ thống hiện chỉ tự gắn một dòng bán số lượng 1 với tài
 
 Chữ ký trên JSON.stringify(envelope), timestamp giây trong ±5 phút. Adapter tin cậy phải kiểm chữ ký/sự kiện của chính nhà cung cấp trước khi ký envelope. Khóa này chỉ ở server; không gửi browser. So khớp số tiền và hash tài khoản đã duyệt, chống replay theo nonce và tham chiếu tiền dùng chung các ledger. Gửi lại cùng giao dịch không hoàn hai lần. Đã chuyển thật vẫn phải được ghi nhận nếu sau lúc duyệt xuất hiện tranh chấp; các cờ kiểm soát vẫn giữ để đối soát.
 
-Không có tích hợp chi tiền tự động mặc định. Nếu chưa cấu hình adapter, UI chỉ báo chờ ngân hàng; checkbox, ảnh chụp, duyệt hồ sơ và redirect không hoàn tất hoàn tiền. Không dùng adapter giả trên dữ liệu shop.
+Đã có adapter payOS Chi hộ dùng bộ khóa riêng `PAYOS_PAYOUT_*`: Finance bấm gửi lệnh chi, server đối chiếu phản hồi có chữ ký, chỉ ghi hoàn khi giao dịch SUCCEEDED khớp đủ dữ liệu. Timeout/PROCESSING không hoàn tất hoàn tiền; job và nút kiểm tra chỉ tra cứu. Có chữ ký xác nhận FAILED/CANCELLED thì đóng yêu cầu không thành công, không ghi bút toán hoàn. Xem [hướng dẫn live email/payOS](live-email-payos.md). Bộ tiếp nhận HMAC nói trên vẫn là adapter tùy chọn; không dùng phản hồi giả trên dữ liệu shop.
 
 Chủ shop được xác định bằng tài khoản ADMIN khớp ADMIN_EMAIL, có thể cấp `finance`/`compliance` cho ADMIN khác trong hàng đợi tài chính. Các nhân viên chỉ có quyền được cấp; đổi role xóa quyền nhạy cảm. Duyệt xử lý tài sản vẫn cần hai người độc lập. Tất cả thay đổi quyền có audit.
 

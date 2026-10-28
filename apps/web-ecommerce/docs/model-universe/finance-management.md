@@ -131,3 +131,13 @@ Chủ shop cấp quyền Finance/Compliance cho ADMIN tại tab này; giữ audi
 Cấu hình đang chạy: pawn chỉ mô phỏng; bộ tiếp nhận ngân hàng và SMTP chưa cấu hình, nên không khẳng định đã hoàn tiền hoặc gửi email thật. Inbox/outbox vẫn lưu lịch sử. Migrations 60–61 giữ tương thích writer thông báo cũ bằng SQL DEFAULT cho hai trường lịch, không cần gộp chỉnh sửa đang làm dở của workspace khác.
 
 Quy tắc chi tiết: [Cầm cố và giữ hàng](pawn-hold-ledgers.md). Kết quả kiểm chứng và giới hạn: [bàn giao 28/10](pawn-hold-acceptance-2026-10-28.md). Bản ứng dụng local hiện tại là `7a20915` trên cổng 6050; các thông tin bản chạy ở mục bàn giao 27/10 phía trên là lịch sử.
+
+
+### Cập nhật vận hành thật — 28/10/2026 (thay trạng thái cấu hình ở mục trên)
+
+- Gmail SMTP đã xác thực và Gmail chấp nhận email kiểm tra gửi về chủ shop; không đưa thông tin xác thực vào Git. Các thông báo nghiệp vụ mới dùng outbox thật; thư dev cũ lỗi vì thiếu SMTP không phát lại.
+- Chính sách cầm mới v2: 0% lãi, không phí ẩn, theo phê duyệt vận hành nội bộ được chủ shop ủy quyền. Không giả giấy phép/chứng nhận bên ngoài; không tự giải ngân. Hồ sơ cũ giữ snapshot.
+- Tab Duyệt hoàn tiền có gửi Chi hộ và kiểm tra payOS; chống chuyển trùng, chỉ SUCCEEDED khớp tài khoản/số tiền mới ghi hoàn, timeout giữ chờ đối soát.
+- Chưa xác minh được quyền Chi hộ thực: bộ khóa thu tiền cũ bị endpoint Chi hộ trả mã 601; công cụ truy cập Chrome đang đăng nhập lỗi khởi tạo. Cần bộ khóa kênh Chi hộ hợp lệ, không ghi cấu hình thành công thay cho kiểm tra thực tế.
+
+Chi tiết: [live email/payOS](live-email-payos.md), [phê duyệt cầm nội bộ](../business/pawn-operating-approval-2026-10-28.md).
