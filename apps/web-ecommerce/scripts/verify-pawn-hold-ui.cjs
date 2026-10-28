@@ -238,7 +238,7 @@ fs.mkdirSync(out, { recursive: true });
   await page.reload({ waitUntil: 'networkidle' });
   await page.getByRole('button', { name: /Kiểm thử UI · giữ hàng/ }).click();
   await page.getByText('Yêu cầu hoàn tiền dư', { exact: true }).click();
-  await page.getByLabel('Ngân hàng nhận', { exact: true }).selectOption('970436');
+  await page.getByRole('combobox', { name: /Ngân hàng nhận/ }).selectOption('970436');
   await page.getByLabel('Số tài khoản', { exact: true }).fill('123456');
   await page.getByLabel('Tên chủ tài khoản', { exact: true }).fill('UI-only collector');
   await page

@@ -138,6 +138,6 @@ Quy tắc chi tiết: [Cầm cố và giữ hàng](pawn-hold-ledgers.md). Kết 
 - Gmail SMTP đã xác thực và Gmail chấp nhận email kiểm tra gửi về chủ shop; không đưa thông tin xác thực vào Git. Các thông báo nghiệp vụ mới dùng outbox thật; thư dev cũ lỗi vì thiếu SMTP không phát lại.
 - Chính sách cầm mới v2: 0% lãi, không phí ẩn, theo phê duyệt vận hành nội bộ được chủ shop ủy quyền. Không giả giấy phép/chứng nhận bên ngoài; không tự giải ngân. Hồ sơ cũ giữ snapshot.
 - Tab Duyệt hoàn tiền có gửi Chi hộ và kiểm tra payOS; chống chuyển trùng, chỉ SUCCEEDED khớp tài khoản/số tiền mới ghi hoàn, timeout giữ chờ đối soát.
-- Chưa xác minh được quyền Chi hộ thực: bộ khóa thu tiền cũ bị endpoint Chi hộ trả mã 601; công cụ truy cập Chrome đang đăng nhập lỗi khởi tạo. Cần bộ khóa kênh Chi hộ hợp lệ, không ghi cấu hình thành công thay cho kiểm tra thực tế.
+- Đã xác thực bộ khóa Chi hộ riêng sau khi chủ shop cho phép IPv4 của máy chạy web. Truy vấn số dư và danh sách lệnh chi thật đều qua kiểm tra chữ ký. Node ưu tiên IPv4 để tránh lỗi 403 từ IPv6 chưa được cho phép. Không phát lệnh chuyển tiền thử.
 
 Chi tiết: [live email/payOS](live-email-payos.md), [phê duyệt cầm nội bộ](../business/pawn-operating-approval-2026-10-28.md).

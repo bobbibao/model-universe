@@ -26,6 +26,15 @@ Tài liệu nhà cung cấp: [payOS API](https://payos.vn/docs/api/). Danh mục
 
 ## Kiểm tra thực tế và giới hạn hiện tại
 
-- Bộ khóa nhận thanh toán đang có bị endpoint số dư Chi hộ trả mã `601` (API key không tồn tại). Chưa xác minh được Chi hộ tới khi có bộ khóa kênh Chi hộ hợp lệ.
-- Công cụ đọc phiên Chrome đang đăng nhập lỗi khởi tạo đường dẫn (mã 3), kể cả sau reset. Không đọc cookie hoặc né cơ chế xác thực để lấy khóa.
+- Đã bổ sung bộ khóa Chi hộ riêng. Sau khi chủ shop thêm IP public IPv4 vào danh sách được phép, đã đọc thành công số dư và danh sách lệnh chi; cả hai phản hồi có chữ ký được SDK xác minh. Không lưu số dư, số tài khoản hoặc bí mật trong tài liệu/log bàn giao.
+- Công cụ đọc Chrome lỗi khởi tạo (mã 3); chủ shop tự điền khóa vào `.env`. Lỗi 403 ban đầu được xác định do máy ưu tiên IPv6 trong khi chỉ IPv4 được cho phép. Bản chạy dùng `NODE_OPTIONS="--dns-result-order=ipv4first --no-network-family-autoselection"` để đi qua IPv4 đã được chủ shop cho phép; không mở quyền cho mọi IP. Nếu IP public thay đổi, cập nhật danh sách IP trong payOS.
 - Không phát lệnh chuyển tiền thử, không ghi hoàn thành giả. Kiểm thử tiền dùng provider double trong database riêng.
+
+
+## Kiểm chứng bàn giao
+
+- 1.066 unit tests đạt; 27 database cases đạt trên cả mã làm việc và bản source commit độc lập, database riêng. Các ca auth recovery (13 ca) đạt trong lượt riêng.
+- Production build, typecheck frontend/backend và lint các file thay đổi đạt.
+- Click thật desktop/mobile: kiểm giấy tờ, QR giữ hàng khóa số tiền, yêu cầu hủy/hoàn, dropdown ngân hàng, xác nhận người nhận, chuyển trạng thái payOS PROCESSING → SUCCEEDED. Các thao tác tiền trong browser test được chặn bằng fixture; không tạo giao dịch giả vào DB shop.
+- Gmail chấp nhận hai email tự kiểm tra gửi về chính tài khoản chủ shop: một thử SMTP và một đi qua MailService đã build. Các thư dev cũ thất bại do thiếu SMTP đã được hủy lịch, không gửi lại.
+- Kết nối payOS thật đã được kiểm bằng truy vấn đọc có chữ ký. Không phát lệnh chuyển tiền thử; chỉ hồ sơ được Finance duyệt và thao tác gửi tiền rõ ràng mới phát lệnh thật.
