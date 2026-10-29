@@ -112,6 +112,8 @@ services:
     image: shop-agent/web:local
     environment:
       <<: *web-db-env
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@clothingshop.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in infra/.env}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}  # plain HTTP on localhost; set true behind HTTPS
       SMTP_HOST: ${SMTP_HOST:-}

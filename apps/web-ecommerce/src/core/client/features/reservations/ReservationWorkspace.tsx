@@ -380,6 +380,19 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
                     }}
                   />
                 )}
+                {!admin && ['awaiting_payment', 'holding', 'PAID_IN_FULL', 'expired'].includes(selected.status) && (
+                  <form onSubmit={(event) => void submit(event, 'cancel')} className="space-y-3 rounded-xl border border-slate-200 p-4">
+                    <h4 className="font-semibold text-sm text-slate-800 dark:text-slate-200">{t('cancel')}</h4>
+                    <p className="mu-note text-xs">{t('cancelNotice')}</p>
+                    <label className="mu-field">
+                      {t('reason')}
+                      <input name="reason" placeholder="Lý do hủy giữ hàng..." required maxLength={1000} />
+                    </label>
+                    <button className="mu-button-secondary text-sm" disabled={busy}>
+                      {t('cancel')}
+                    </button>
+                  </form>
+                )}
                 {(selected.disputed || selected.reconciliationRequired) && (
                   <p
                     role="status"
