@@ -245,63 +245,203 @@ function AccountWorkspace({ user }: { user: User }) {
           )}
           {(visited.includes('account') || section === 'account') && (
             <section hidden={section !== 'account'} aria-labelledby="account-nav-account" className="account-panel">
-              <div className="account-section-heading">
-                <div>
-                  <h2>{t('accountTitle')}</h2>
-                  <p>{t('accountIntro')}</p>
+              {/* Account Overview Hero Card */}
+              <div className="account-identity-banner mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark sm:p-7">
+                <div className="flex items-center gap-4">
+                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-xl font-extrabold text-white shadow-md sm:h-20 sm:w-20 sm:text-2xl">
+                    {initials}
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
+                        {fullName || user.email}
+                      </h2>
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                        {user.role === 'ADMIN' ? 'Quản trị viên' : 'Thành viên chính thức'}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Mã thành viên: <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">#CLT-{String(user.id).padStart(5, '0')}</span> · {user.email}
+                    </p>
+                  </div>
                 </div>
-                <span className="account-completion">
-                  {t('completion', { count: completed, total: fields.length })}
-                </span>
+
+                <div className="flex flex-col items-start gap-1.5 sm:items-end">
+                  <span className="account-completion rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
+                    {t('completion', { count: completed, total: fields.length })}
+                  </span>
+                  <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-meta-4">
+                    <div
+                      className="h-full rounded-full bg-purple-600 transition-all duration-500"
+                      style={{ width: `${(completed / fields.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-              <article className="account-card account-fields">
-                {fields.map((key) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setEditing(key)}
-                    aria-label={profile('updateField', { field: profile(key) })}
-                  >
-                    <span>{profile(key)}</span>
-                    <strong>{user[key] || profile('unknown')}</strong>
-                    <span>{t('edit')} ↗</span>
-                  </button>
-                ))}
-                <div>
-                  <span>Email</span>
-                  <strong>{user.email}</strong>
-                  <span>{t('emailNote')}</span>
-                </div>
-                <div>
-                  <span>{profile('gender')}</span>
-                  <strong>
-                    {user.gender === 'M'
-                      ? profile('male')
-                      : user.gender === 'F'
-                        ? profile('female')
-                        : profile('unknown')}
-                  </strong>
-                </div>
-              </article>
-              <article className="account-card account-security">
-                <span className="account-icon">
-                  <AdminIcon name="shield" size={25} />
-                </span>
-                <div>
-                  <h2>{t('securityTitle')}</h2>
-                  <p>{t('securityIntro')}</p>
-                </div>
-                <button className="mu-button" onClick={() => setChangingPassword(true)}>
-                  {profile('changePassword')}
-                </button>
-              </article>
-              <article className="account-card account-signout-card">
-                <div>
-                  <h2>{t('sessionTitle')}</h2>
-                  <p>{t('signoutNote')}</p>
-                </div>
-                <SignOutButton />
-              </article>
+
+              {/* Account Details & Contact Grid */}
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* 1. Personal Information */}
+                <article className="account-card flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark">
+                  <div>
+                    <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-strokedark">
+                      <div className="flex items-center gap-2">
+                        <AdminIcon name="users" size={18} />
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">Thông tin cá nhân</h3>
+                      </div>
+                      <span className="text-[11px] font-medium text-slate-400">Hồ sơ người dùng</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* Last Name */}
+                      <button
+                        type="button"
+                        onClick={() => setEditing('lastName')}
+                        aria-label={profile('updateField', { field: profile('lastName') })}
+                        className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
+                      >
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('lastName')}</span>
+                          <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.lastName || profile('unknown')}</strong>
+                        </div>
+                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                      </button>
+
+                      {/* First Name */}
+                      <button
+                        type="button"
+                        onClick={() => setEditing('firstName')}
+                        aria-label={profile('updateField', { field: profile('firstName') })}
+                        className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
+                      >
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('firstName')}</span>
+                          <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.firstName || profile('unknown')}</strong>
+                        </div>
+                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                      </button>
+
+                      {/* Gender */}
+                      <div className="flex items-center justify-between rounded-xl p-2.5">
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('gender')}</span>
+                          <strong className="block text-sm font-bold text-slate-800 dark:text-white">
+                            {user.gender === 'M' ? profile('male') : user.gender === 'F' ? profile('female') : profile('unknown')}
+                          </strong>
+                        </div>
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-meta-4 dark:text-slate-400">
+                          Mặc định
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                {/* 2. Contact & Delivery Info */}
+                <article className="account-card flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark">
+                  <div>
+                    <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-strokedark">
+                      <div className="flex items-center gap-2">
+                        <AdminIcon name="truck" size={18} />
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">Liên hệ & Giao nhận</h3>
+                      </div>
+                      <span className="text-[11px] font-medium text-slate-400">Thông tin xác thực</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* Email */}
+                      <div className="flex items-center justify-between rounded-xl p-2.5">
+                        <div className="min-w-0 pr-2">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Email tài khoản</span>
+                          <strong className="block truncate text-sm font-bold text-slate-800 dark:text-white">{user.email}</strong>
+                          <span className="text-[11px] text-slate-400">{t('emailNote')}</span>
+                        </div>
+                        <span className="flex-shrink-0 rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                          ✓ Đã xác thực
+                        </span>
+                      </div>
+
+                      {/* Phone */}
+                      <button
+                        type="button"
+                        onClick={() => setEditing('phone')}
+                        aria-label={profile('updateField', { field: profile('phone') })}
+                        className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
+                      >
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('phone')}</span>
+                          <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.phone || profile('unknown')}</strong>
+                        </div>
+                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                      </button>
+
+                      {/* Address */}
+                      <button
+                        type="button"
+                        onClick={() => setEditing('address')}
+                        aria-label={profile('updateField', { field: profile('address') })}
+                        className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('address')}</span>
+                          <strong className="block truncate text-sm font-bold text-slate-800 dark:text-white">{user.address || profile('unknown')}</strong>
+                        </div>
+                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              {/* Security & Sessions Bottom Cards */}
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
+                {/* Security Card */}
+                <article className="account-card flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark">
+                  <div className="flex items-start gap-4">
+                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-300">
+                      <AdminIcon name="shield" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t('securityTitle')}</h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t('securityIntro')}</p>
+                      <p className="mt-2 text-xs font-mono font-medium text-slate-600 dark:text-slate-300">
+                        Mật khẩu: ••••••••••••
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 border-t border-slate-100 pt-4 dark:border-strokedark">
+                    <button
+                      type="button"
+                      className="mu-button w-full sm:w-auto"
+                      onClick={() => setChangingPassword(true)}
+                    >
+                      {profile('changePassword')}
+                    </button>
+                  </div>
+                </article>
+
+                {/* Session & Signout Card */}
+                <article className="account-card flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark">
+                  <div className="flex items-start gap-4">
+                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                        <line x1="12" y1="2" x2="12" y2="12" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t('sessionTitle')}</h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t('signoutNote')}</p>
+                      <p className="mt-2 text-[11px] text-slate-400">
+                        Đang đăng nhập an toàn với JWT và cookie bảo mật HttpOnly.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 border-t border-slate-100 pt-4 dark:border-strokedark">
+                    <SignOutButton />
+                  </div>
+                </article>
+              </div>
             </section>
           )}
           {(['membership', 'orders', 'addresses', 'inbox'] as const).map(
