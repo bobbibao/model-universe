@@ -46,7 +46,7 @@ export default function BuybackWorkspace({
   const [activeViewTab, setActiveViewTab] = useState<'requests' | 'new_request'>(
     chosenModel ? 'new_request' : 'requests',
   );
-  const [detailTab, setDetailTab] = useState<'inspection' | 'media' | 'actions'>('inspection');
+  const [detailTab, setDetailTab] = useState<'inspection' | 'specs' | 'media' | 'actions'>('inspection');
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -511,82 +511,64 @@ export default function BuybackWorkspace({
                   id="buyback-detail"
                   className="order-first min-w-0 scroll-mt-24 space-y-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs sm:p-7 lg:order-none dark:border-strokedark dark:bg-boxdark"
                 >
-                  {/* Detail Header */}
-                  <div className="border-b border-slate-100 pb-5 dark:border-strokedark">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                  {/* Detail Header & Executive Summary Card */}
+                  <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-4 dark:border-strokedark dark:bg-meta-4/20">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-3 dark:border-strokedark">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 dark:bg-meta-4 dark:text-slate-200 px-2.5 py-1 rounded-md">
+                        <span className="font-mono text-xs font-bold text-slate-800 bg-white border border-slate-200 dark:bg-boxdark dark:border-strokedark dark:text-white px-2 py-0.5 rounded-md">
                           TM{selected.id}
                         </span>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-meta-4 dark:text-slate-300">
+                        <span className="rounded-md bg-white border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-boxdark dark:border-strokedark dark:text-slate-300">
                           {selected.tradeProductId !== null ? 'Dịch vụ Trade' : 'Dịch vụ Thu mua'}
                         </span>
-                        <ServiceStatusBadge status={selected.status} label={t(`status.${selected.status}`)} size="md" />
+                        <ServiceStatusBadge status={selected.status} label={t(`status.${selected.status}`)} size="sm" />
                       </div>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-[11px] text-slate-400">
                         Khởi tạo: {new Date(selected.createdAt).toLocaleString(locale)}
                       </span>
                     </div>
 
-                    <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
-                      {selected.asset.name}
-                    </h2>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Mã sản phẩm:{' '}
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
-                        {selected.asset.modelCode}
-                      </span>{' '}
-                      · Phiên bản:{' '}
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
-                        {selected.asset.version}
-                      </span>{' '}
-                      (v{selected.version})
-                    </p>
-                  </div>
-
-                  {/* Glanceable Value & Status Banner */}
-                  {(() => {
-                    const offer = selected.finalOffer || selected.preliminaryOffer;
-                    return (
-                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-4 text-white shadow-xs">
-                        <div>
-                          <span className="text-[10px] font-semibold tracking-wider text-purple-200 uppercase">
-                            {selected.finalOffer
-                              ? 'Giá chốt giao dịch'
-                              : selected.preliminaryOffer
-                              ? 'Báo giá sơ bộ'
-                              : 'Trạng thái xử lý'}
+                    <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
+                      <div>
+                        <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl dark:text-white">
+                          {selected.asset.name}
+                        </h2>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <span>
+                            Mã: <strong className="text-slate-700 dark:text-slate-300">{selected.asset.modelCode}</strong>
                           </span>
-                          <div className="mt-0.5 flex items-baseline gap-2">
-                            {offer ? (
-                              <span className="font-mono text-2xl font-black text-emerald-400">
-                                {formatVND(offer.amountVnd, locale)}
+                          <span>•</span>
+                          <span>
+                            Phiên bản: <strong className="text-slate-700 dark:text-slate-300">{selected.asset.version}</strong>
+                          </span>
+                          <span>(v{selected.version})</span>
+                          {selected.inboundReference && (
+                            <>
+                              <span>•</span>
+                              <span className="inline-flex items-center gap-1 font-mono font-semibold text-purple-700 dark:text-purple-300">
+                                🚚 {selected.inboundReference}
                               </span>
-                            ) : (
-                              <span className="text-base font-bold text-slate-200">
-                                {t(`status.${selected.status}`)}
-                              </span>
-                            )}
-                            {selected.tradeProductId !== null && (
-                              <span className="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                                Trade đổi hàng
-                              </span>
-                            )}
-                          </div>
+                            </>
+                          )}
                         </div>
-
-                        {selected.inboundReference && (
-                          <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-1.5 text-xs backdrop-blur-xs">
-                            <AdminIcon name="truck" size={16} />
-                            <div>
-                              <span className="text-[9px] text-purple-200 block leading-tight">Vận đơn gửi shop</span>
-                              <span className="font-mono font-bold">{selected.inboundReference}</span>
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    );
-                  })()}
+
+                      {(() => {
+                        const offer = selected.finalOffer || selected.preliminaryOffer;
+                        if (!offer) return null;
+                        return (
+                          <div className="text-right">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                              {selected.finalOffer ? 'Giá chốt giao dịch' : 'Báo giá sơ bộ'}
+                            </span>
+                            <span className="font-mono text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                              {formatVND(offer.amountVnd, locale)}
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
 
                   {/* Visual Process Stepper & Activity Timeline */}
                   <ServiceTimeline
@@ -604,23 +586,35 @@ export default function BuybackWorkspace({
                     );
 
                     return (
-                      <div className="flex border-b border-slate-200 dark:border-strokedark text-xs">
+                      <div className="flex border-b border-slate-200 dark:border-strokedark text-xs overflow-x-auto">
                         <button
                           type="button"
                           onClick={() => setDetailTab('inspection')}
-                          className={`flex items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
+                          className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
                             detailTab === 'inspection'
                               ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
                               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
                           }`}
                         >
-                          <span>🔍 Thẩm định & Tình trạng</span>
+                          <span>🔍 Thẩm định & Đối chiếu</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setDetailTab('specs')}
+                          className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
+                            detailTab === 'specs'
+                              ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
+                              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
+                          }`}
+                        >
+                          <span>📋 Thông số mô hình</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setDetailTab('media')}
-                          className={`flex items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
+                          className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
                             detailTab === 'media'
                               ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
                               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
@@ -635,7 +629,7 @@ export default function BuybackWorkspace({
                         <button
                           type="button"
                           onClick={() => setDetailTab('actions')}
-                          className={`relative flex items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
+                          className={`relative flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
                             detailTab === 'actions'
                               ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
                               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
@@ -650,7 +644,7 @@ export default function BuybackWorkspace({
                     );
                   })()}
 
-                  {/* Detail Tab 1: Inspection & Condition */}
+                  {/* Detail Tab 1: Inspection & Comparison */}
                   {detailTab === 'inspection' && (
                     <div className="space-y-4 pt-1">
                       {/* Pricing Comparison Matrix & Estimate Card */}
@@ -681,44 +675,34 @@ export default function BuybackWorkspace({
                         busy={busy}
                         post={post}
                       />
-
-                      {/* Asset Condition Specifications */}
-                      <div className="rounded-2xl border border-slate-200/90 bg-slate-50/50 p-4 dark:border-strokedark dark:bg-meta-4/20">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 dark:text-slate-400">
-                          Thông số khai báo ban đầu
-                        </h3>
-                        <dl className="grid gap-2.5 sm:grid-cols-2">
-                          {ASSET_FIELDS.filter((key) => key !== 'name').map((key) => (
-                            <div
-                              key={key}
-                              className="rounded-xl bg-white p-2.5 border border-slate-100 dark:bg-boxdark dark:border-strokedark"
-                            >
-                              <dt className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                                {t(`asset.${key}`)}
-                              </dt>
-                              <dd className="mt-0.5 text-xs font-medium text-slate-800 break-words whitespace-pre-line dark:text-slate-200">
-                                {key === 'assemblyState' ? catalog(selected.asset[key]) : selected.asset[key]}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </div>
-
-                      {/* Inspection Summary from Shop */}
-                      {selected.inspection && (
-                        <div className="rounded-2xl border border-slate-200/90 bg-slate-50/50 p-4 dark:border-strokedark dark:bg-meta-4/20">
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 dark:text-slate-400">
-                            {t('inspection')}
-                          </h3>
-                          <p className="text-xs text-slate-700 whitespace-pre-line leading-relaxed dark:text-slate-300">
-                            {selected.inspection}
-                          </p>
-                        </div>
-                      )}
                     </div>
                   )}
 
-                  {/* Detail Tab 2: Photos & Videos Media Galleries */}
+                  {/* Detail Tab 2: Initial Asset Condition Specifications */}
+                  {detailTab === 'specs' && (
+                    <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs dark:border-strokedark dark:bg-boxdark">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 dark:text-slate-400">
+                        Thông số khai báo ban đầu
+                      </h3>
+                      <div className="grid gap-2 sm:grid-cols-2 text-xs">
+                        {ASSET_FIELDS.filter((key) => key !== 'name').map((key) => (
+                          <div
+                            key={key}
+                            className="flex items-start justify-between gap-3 rounded-lg bg-slate-50/80 p-2.5 border border-slate-100 dark:bg-meta-4/20 dark:border-strokedark"
+                          >
+                            <span className="text-[11px] font-semibold text-slate-400 shrink-0">
+                              {t(`asset.${key}`)}
+                            </span>
+                            <span className="font-medium text-slate-800 text-right break-words dark:text-slate-200">
+                              {key === 'assemblyState' ? catalog(selected.asset[key]) : selected.asset[key] || '—'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Detail Tab 3: Photos & Videos Media Galleries */}
                   {detailTab === 'media' && (
                     <div className="space-y-4 pt-1">
                       {/* Customer Photos & Video Gallery */}

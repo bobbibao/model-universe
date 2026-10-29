@@ -66,44 +66,44 @@ export default function ServiceTimeline({
   const isReturning = status === 'returning';
 
   return (
-    <div className={`service-timeline rounded-xl border border-slate-200/80 bg-white p-5 shadow-2xs dark:border-strokedark dark:bg-boxdark ${className}`}>
+    <div className={`service-timeline rounded-xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-2xs dark:border-strokedark dark:bg-boxdark ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-strokedark">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-strokedark">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
-            <AdminIcon name="refresh" size={16} />
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+            <AdminIcon name="refresh" size={14} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white">
               Tiến trình xử lý dịch vụ
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Quy trình chuẩn hóa 6 bước từ định giá đến tất toán
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              Quy trình 6 bước từ định giá đến tất toán
             </p>
           </div>
         </div>
 
         {isCancelled && (
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-meta-4 dark:text-slate-300">
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-meta-4 dark:text-slate-300">
             Đã kết thúc
           </span>
         )}
         {isReturning && (
-          <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+          <span className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
             Đang hoàn trả
           </span>
         )}
       </div>
 
       {/* Visual Stepper Bar */}
-      <div className="py-5 overflow-x-auto">
-        <div className="min-w-[620px] flex items-center justify-between relative px-2">
+      <div className="py-2.5 overflow-x-auto">
+        <div className="min-w-[560px] flex items-center justify-between relative px-2">
           {/* Connector Line Background */}
-          <div className="absolute left-6 right-6 top-4 h-0.5 bg-slate-200 dark:bg-slate-700 -z-0" />
+          <div className="absolute left-5 right-5 top-3.5 h-0.5 bg-slate-200 dark:bg-slate-700 -z-0" />
 
           {/* Active Connector Line Fill */}
           <div
-            className="absolute left-6 top-4 h-0.5 bg-emerald-500 transition-all duration-500 -z-0"
+            className="absolute left-5 top-3.5 h-0.5 bg-emerald-500 transition-all duration-500 -z-0"
             style={{
               width: `${Math.min(100, Math.max(0, (currentStep / (BUYBACK_STEPS.length - 1)) * 96))}%`,
             }}
@@ -116,15 +116,15 @@ export default function ServiceTimeline({
             return (
               <div
                 key={step.key}
-                className="flex flex-col items-center text-center relative z-10 max-w-[96px]"
+                className="flex flex-col items-center text-center relative z-10 max-w-[88px]"
               >
                 {/* Node Circle */}
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 ${
                     isCompleted
                       ? 'bg-emerald-500 text-white shadow-xs'
                       : isCurrent
-                      ? 'bg-purple-600 text-white ring-4 ring-purple-600/20 shadow-md'
+                      ? 'bg-slate-900 text-white ring-2 ring-slate-900/20 shadow-xs dark:bg-white dark:text-slate-900'
                       : 'bg-white border-2 border-slate-300 text-slate-400 dark:bg-boxdark dark:border-slate-600'
                   }`}
                 >
@@ -133,17 +133,17 @@ export default function ServiceTimeline({
 
                 {/* Step Labels */}
                 <span
-                  className={`mt-2 text-xs font-semibold ${
+                  className={`mt-1.5 text-[11px] font-semibold leading-tight ${
                     isCurrent
-                      ? 'text-purple-600 dark:text-purple-400 font-bold'
+                      ? 'text-slate-900 dark:text-white font-bold'
                       : isCompleted
-                      ? 'text-slate-800 dark:text-slate-200'
+                      ? 'text-slate-700 dark:text-slate-200'
                       : 'text-slate-400 dark:text-slate-500'
                   }`}
                 >
                   {step.titleVi}
                 </span>
-                <span className="text-[10px] text-slate-400 line-clamp-1 dark:text-slate-500">
+                <span className="hidden sm:block text-[9px] text-slate-400 line-clamp-1 dark:text-slate-500 mt-0.5">
                   {step.descVi}
                 </span>
               </div>

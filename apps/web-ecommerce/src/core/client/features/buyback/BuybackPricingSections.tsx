@@ -101,37 +101,28 @@ export default function BuybackPricingSections({
     return Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>;
   };
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Staff see how the estimate was worked out; the customer sees only the expected price (owner request). */}
       {admin && selected.referenceProduct && (
-        <p className="mu-note">
+        <div className="rounded-lg bg-slate-50 p-2.5 text-xs text-slate-600 dark:bg-meta-4/20 dark:text-slate-300 border border-slate-200/60 dark:border-strokedark">
           {v2('referenceProduct', {
             name: selected.referenceProduct.name,
             sku: selected.referenceProduct.sku,
             price: money(selected.referenceProduct.priceVnd),
           })}
+        </div>
+      )}
+      {selected.estimate && <EstimateCard estimate={selected.estimate} />}
+      {!admin && !selected.estimate && (
+        <p className="text-xs text-slate-500">
+          {condition('shopQuotes')}
         </p>
       )}
-      {admin && selected.estimate && <EstimateCard estimate={selected.estimate} />}
-      {!admin && selected.estimate && (
-        <p className="text-sm">
-          {selected.estimate.estimateVnd !== null && !selected.estimate.manualReview ? (
-            <>
-              {condition('expected')}: <b>{money(selected.estimate.estimateVnd)}</b>
-            </>
-          ) : (
-            condition('shopQuotes')
-          )}
-        </p>
-      )}
-      {!selected.conditionCase && <div>
-        <h3 className="font-bold">{v2('declaredIssues')}</h3>
-        <IssueList issues={selected.declaredIssues || []} />
-      </div>}
+
       {selected.evidenceRequest && ['need_more_evidence', 'submitted'].includes(selected.status) && (
-        <p className="rounded-md border border-dashed border-brand-hover p-3 text-sm whitespace-pre-line">
-          {v2('evidenceRequested')}: {selected.evidenceRequest}
-        </p>
+        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+          <span className="font-bold">{v2('evidenceRequested')}:</span> {selected.evidenceRequest}
+        </div>
       )}
       {!admin && !selected.conditionCase && selected.status === 'need_more_evidence' && (
         <form
@@ -176,86 +167,140 @@ export default function BuybackPricingSections({
           </button>
         </form>
       )}
-      {comparison && (
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4.5 shadow-2xs dark:border-strokedark dark:bg-boxdark">
+
+      {/* Unified Side-by-Side Comparison Matrix */}
+      {comparison ? (
+        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs dark:border-strokedark dark:bg-boxdark space-y-3.5">
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-strokedark">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-100 text-xs font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-xs font-bold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
                 ⚖
               </span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
-                {v2('comparison.title')}
-              </h3>
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  Biên bản đối chiếu & Thẩm định
+                </h3>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Đối chiếu giữa thông tin khách tự khai và kết quả kiểm tra hiện vật
+                </p>
+              </div>
             </div>
+
             <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                comparison.inspectedIssueCount === 0
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+                comparison.inspectedIssueCount === 0 && comparison.newIssueCount === 0
                   ? 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
                   : 'border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300'
               }`}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  comparison.inspectedIssueCount === 0 ? 'bg-emerald-500' : 'bg-amber-500'
+                className={`h-2 w-2 rounded-full ${
+                  comparison.inspectedIssueCount === 0 && comparison.newIssueCount === 0
+                    ? 'bg-emerald-500'
+                    : 'bg-amber-500'
                 }`}
               />
-              {comparison.inspectedIssueCount === 0 ? 'Trùng khớp / Đạt chuẩn' : 'Có chênh lệch lỗi'}
+              {comparison.inspectedIssueCount === 0 && comparison.newIssueCount === 0
+                ? '✓ Hoàn toàn trùng khớp (Đạt chuẩn)'
+                : `⚠ Có chênh lệch (${comparison.newIssueCount} lỗi phát sinh)`}
             </span>
           </div>
 
-          {/* 4 Stats Chips Matrix */}
-          <div className="mt-3.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-2.5 text-center dark:border-strokedark dark:bg-meta-4/20">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Lỗi khách báo
-              </span>
-              <p className="mt-0.5 font-mono text-base font-black text-slate-800 dark:text-slate-200">
-                {comparison.declaredIssueCount}
-              </p>
+          {/* Side-by-Side 2-Column Comparison Matrix */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {/* Left: Customer Declaration */}
+            <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-strokedark dark:bg-meta-4/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  1. Khách khai báo ban đầu
+                </span>
+                <span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-meta-4 dark:text-slate-300">
+                  {comparison.declaredIssueCount} lỗi
+                </span>
+              </div>
+              <IssueList issues={selected.declaredIssues || []} />
             </div>
+
+            {/* Right: Shop Actual Inspection */}
             <div
-              className={`rounded-xl border p-2.5 text-center ${
+              className={`rounded-xl border p-3 ${
                 comparison.inspectedIssueCount === 0
-                  ? 'border-emerald-100 bg-emerald-50/50 text-emerald-900 dark:border-emerald-950/50 dark:bg-emerald-950/20 dark:text-emerald-300'
-                  : 'border-amber-100 bg-amber-50/50 text-amber-900 dark:border-amber-950/50 dark:bg-amber-950/20 dark:text-amber-300'
+                  ? 'border-emerald-100 bg-emerald-50/40 dark:border-emerald-950/50 dark:bg-emerald-950/20'
+                  : 'border-amber-100 bg-amber-50/40 dark:border-amber-950/50 dark:bg-amber-950/20'
               }`}
             >
-              <span className="text-[10px] font-semibold uppercase tracking-wider">
-                Lỗi thực tế
-              </span>
-              <p className="mt-0.5 font-mono text-base font-black">
-                {comparison.inspectedIssueCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-2.5 text-center dark:border-strokedark dark:bg-meta-4/20">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Phát sinh thêm
-              </span>
-              <p className="mt-0.5 font-mono text-base font-black text-slate-800 dark:text-slate-200">
-                {comparison.newIssueCount}
-              </p>
-            </div>
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-2.5 text-center dark:border-emerald-950/40 dark:bg-emerald-950/20">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                Khấu trừ
-              </span>
-              <p className="mt-0.5 font-mono text-xs font-black text-emerald-800 dark:text-emerald-300 truncate">
-                {money(comparison.deductionDifferenceVnd)}
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  2. Shop kiểm tra hiện vật
+                </span>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    comparison.inspectedIssueCount === 0
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300'
+                  }`}
+                >
+                  {comparison.inspectedIssueCount} lỗi
+                </span>
+              </div>
+              <IssueList issues={selected.inspectedIssues || []} />
             </div>
           </div>
 
-          {/* Inspected Issues List */}
-          <div className="mt-3">
-            <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 dark:text-slate-400">
-              {v2('inspectedIssues')}
-            </h4>
-            <IssueList issues={selected.inspectedIssues || []} />
+          {/* Bottom Reconciliation Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-100/80 px-3.5 py-2 text-xs dark:bg-meta-4/40">
+            <div className="flex flex-wrap items-center gap-3 text-slate-600 dark:text-slate-400">
+              <span>
+                Phát sinh thêm: <strong className="text-slate-800 dark:text-slate-200">{comparison.newIssueCount}</strong>
+              </span>
+              <span>•</span>
+              <span>
+                Khai thừa bỏ qua: <strong className="text-slate-800 dark:text-slate-200">{comparison.resolvedIssueCount}</strong>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
+              <span>Chênh lệch khấu trừ:</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">
+                {money(comparison.deductionDifferenceVnd)}
+              </span>
+            </div>
           </div>
+
+          {/* Customer Review Request Note if any */}
+          {selected.reviewRequest && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+              <span className="font-bold">⚠ Khách yêu cầu kiểm tra lại:</span>{' '}
+              <span>{selected.reviewRequest}</span>
+            </div>
+          )}
+
+          {/* Technician Inspection Notes if any */}
+          {selected.inspection && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 dark:border-strokedark dark:bg-meta-4/30 dark:text-slate-300">
+              <span className="font-bold text-slate-800 dark:text-white">📝 Ghi chú kiểm hàng KTV:</span>{' '}
+              <span className="whitespace-pre-line">{selected.inspection}</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* If no comparison yet (pre-inspection status) */
+        <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs dark:border-strokedark dark:bg-boxdark space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              Tình trạng khách tự khai báo ({selected.declaredIssues?.length || 0})
+            </h4>
+          </div>
+          <IssueList issues={selected.declaredIssues || []} />
         </div>
       )}
-      {selected.reviewRequest && <p className="mu-note">{v2('reviewRequested', { reason: selected.reviewRequest })}</p>}
+
+      {/* Customer review request (when comparison doesn't exist yet) */}
+      {!comparison && selected.reviewRequest && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+          <span className="font-bold">⚠ Khách yêu cầu kiểm tra lại:</span> {selected.reviewRequest}
+        </div>
+      )}
       {!admin && selected.status === 'awaiting_acceptance' && (
         <form
           className="space-y-3"
@@ -428,39 +473,75 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
   const v2 = useTranslations('buybackV2'),
     locale = useLocale();
   const money = (amount: number) => formatVND(amount, locale);
-  const legacy = estimate.ruleVersion !== BUYBACK_RULE_VERSION && estimate.ruleVersion !== B17_RULE_VERSION && estimate.ruleVersion !== CONDITION_BUYBACK_RULE_VERSION;
+  const [showFormula, setShowFormula] = useState(false);
+  const legacy =
+    estimate.ruleVersion !== BUYBACK_RULE_VERSION &&
+    estimate.ruleVersion !== B17_RULE_VERSION &&
+    estimate.ruleVersion !== CONDITION_BUYBACK_RULE_VERSION;
   const reference = estimate.referencePriceVnd;
   const rate =
     estimate.ruleVersion === B17_RULE_VERSION
       ? `${BUYBACK_RATE_PERCENT}% × S`
       : reference
-        ? `${buybackRateBps(reference) / 100}% × S: −${money(buybackMargin(reference))}`
-        : '—';
+      ? `${buybackRateBps(reference) / 100}% × S (−${money(buybackMargin(reference))})`
+      : '—';
+
   return (
-    <dl className="grid gap-1 rounded-md bg-gray-2 p-4 text-sm dark:bg-store-panel sm:grid-cols-2">
-      <dt>{v2(legacy ? 'estimate.legacyReference' : 'estimate.reference')}</dt>
-      <dd>{estimate.referencePriceVnd !== null ? money(estimate.referencePriceVnd) : '—'}</dd>
-      {legacy ? (
-        <>
-          <dt>{v2('estimate.base')}</dt>
-          <dd>{estimate.baseDeductionVnd !== null ? `−${money(estimate.baseDeductionVnd)}` : '—'}</dd>
-          <dt>{v2('estimate.issues', { count: estimate.issueCount, each: money(estimate.deductionPerIssueVnd) })}</dt>
-          <dd>−{money(estimate.issueDeductionVnd)}</dd>
-        </>
-      ) : (
-        <>
-          <dt>{v2(estimate.ruleVersion === B17_RULE_VERSION ? 'estimate.b17Rate' : 'estimate.rate')}</dt>
-          <dd>{rate}</dd>
-        </>
-      )}
-      <dt className="font-bold">{v2('estimate.total')}</dt>
-      <dd className="text-lg font-bold">
-        {estimate.estimateVnd !== null && !estimate.manualReview ? money(estimate.estimateVnd) : v2('estimate.manual')}
-      </dd>
+    <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-strokedark dark:bg-boxdark">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            {v2('estimate.total')}
+          </span>
+          <div className="flex items-baseline gap-2 mt-0.5">
+            <span className="font-mono text-xl font-black text-emerald-600 dark:text-emerald-400">
+              {estimate.estimateVnd !== null && !estimate.manualReview
+                ? money(estimate.estimateVnd)
+                : v2('estimate.manual')}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <div>
+            <span className="text-[10px] font-semibold text-slate-400 block uppercase">
+              {v2(legacy ? 'estimate.legacyReference' : 'estimate.reference')}
+            </span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">
+              {estimate.referencePriceVnd !== null ? money(estimate.referencePriceVnd) : '—'}
+            </span>
+          </div>
+          <span className="text-slate-300 dark:text-slate-600">•</span>
+          <div>
+            <span className="text-[10px] font-semibold text-slate-400 block uppercase">
+              {v2(estimate.ruleVersion === B17_RULE_VERSION ? 'estimate.b17Rate' : 'estimate.rate')}
+            </span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">{rate}</span>
+          </div>
+        </div>
+      </div>
+
       {estimate.manualReview && (
-        <dd className="mu-note sm:col-span-2">{v2(`estimate.reasons.${estimate.manualReview}`)}</dd>
+        <div className="mt-2.5 rounded-lg bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+          {v2(`estimate.reasons.${estimate.manualReview}`)}
+        </div>
       )}
-      <dd className="mu-note sm:col-span-2">{v2('estimate.note')}</dd>
-    </dl>
+
+      {/* Collapsible rule note */}
+      <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] dark:border-strokedark">
+        <button
+          type="button"
+          onClick={() => setShowFormula(!showFormula)}
+          className="font-semibold text-purple-600 hover:underline dark:text-purple-400"
+        >
+          {showFormula ? '▲ Ẩn chi tiết công thức định giá' : '▼ Xem chi tiết công thức & quy tắc định giá'}
+        </button>
+        {showFormula && (
+          <p className="mt-1 leading-relaxed text-slate-500 dark:text-slate-400">
+            {v2('estimate.note')}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

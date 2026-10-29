@@ -585,15 +585,16 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05);
-  animation: financeDialogFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  animation: financeDialogFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   overscroll-behavior: contain;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .finance-dialog::backdrop {
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  animation: financeBackdropFadeIn 0.2s ease-out forwards;
+  background: rgba(15, 23, 42, 0.65);
+  animation: financeBackdropFadeIn 0.15s ease-out forwards;
 }
 .finance-dialog > header,
 .finance-dialog-header {
@@ -655,6 +656,10 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto !important;
+  transform: translateZ(0);
+  will-change: scroll-position;
+  contain: paint layout;
   padding: 20px 24px;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
@@ -919,8 +924,6 @@
 .hold-terms-body {
   padding: 12px 14px;
   border-top: 1px solid #e2e8f0;
-  max-height: 120px;
-  overflow-y: auto;
   background: #ffffff;
 }
 .dark .hold-terms-body {
