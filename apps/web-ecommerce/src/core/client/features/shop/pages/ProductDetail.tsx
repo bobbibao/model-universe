@@ -469,7 +469,16 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
         </div>
       </div>
 
-      {holdOpen && <HoldRequestDialog productId={unit.id} quantity={quantity} onClose={() => setHoldOpen(false)} />}
+      {holdOpen && (
+        <HoldRequestDialog
+          productId={unit.id}
+          quantity={quantity}
+          productName={product.name}
+          productImage={unit.imageUrl || unit.images?.[0]}
+          unitPrice={unit.price}
+          onClose={() => setHoldOpen(false)}
+        />
+      )}
       <WorkspaceTabs
         className="product-information"
         label={t('details')}

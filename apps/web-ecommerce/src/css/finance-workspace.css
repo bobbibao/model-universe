@@ -555,40 +555,429 @@
   padding: 7px 10px;
   font-size: 12px;
 }
+@keyframes financeDialogFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes financeBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .finance-dialog {
-  border: 1px solid var(--finance-line);
-  border-radius: 15px;
-  background: #fff;
-  padding: 22px;
-  width: min(720px, calc(100vw - 32px));
-  max-height: calc(100dvh - 40px);
-  overflow: auto;
-  box-shadow: 0 28px 100px #16142f38;
+  border: 1px solid var(--finance-line, #e2e8f0);
+  border-radius: 20px;
+  background: var(--finance-surface, #ffffff);
+  padding: 0;
+  width: min(640px, calc(100vw - 24px));
+  max-height: min(90dvh, 780px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  animation: financeDialogFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overscroll-behavior: contain;
 }
 .finance-dialog::backdrop {
-  background: #16142f60;
-  backdrop-filter: blur(3px);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: financeBackdropFadeIn 0.2s ease-out forwards;
 }
-.finance-dialog > header {
+.finance-dialog > header,
+.finance-dialog-header {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--finance-line, #e2e8f0);
+  background: var(--finance-surface, #ffffff);
+  flex-shrink: 0;
+  margin-bottom: 0;
 }
-.finance-dialog h2 {
+.finance-dialog h2,
+.finance-dialog-title {
   font-size: 18px;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  color: var(--finance-ink, #0f172a);
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.3;
 }
-.finance-dialog > header > button {
-  font-size: 24px;
-  line-height: 1;
+.finance-dialog-subtitle {
+  font-size: 13px;
+  color: var(--finance-muted, #64748b);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.finance-dialog > header > button,
+.finance-dialog-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
-  background: #f5f4f8;
-  color: var(--finance-muted);
+  border-radius: 50%;
+  border: none;
+  background: var(--finance-subtle, #f1f5f9);
+  color: var(--finance-muted, #64748b);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.finance-dialog > header > button:hover,
+.finance-dialog-close-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: scale(1.05);
+}
+.dark .finance-dialog > header > button:hover,
+.dark .finance-dialog-close-btn:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+.finance-dialog-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+.finance-dialog-body::-webkit-scrollbar {
+  width: 6px;
+}
+.finance-dialog-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.finance-dialog-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+.finance-dialog-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+.finance-dialog-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--finance-line, #e2e8f0);
+  background: var(--finance-subtle, #f8fafc);
+}
+
+/* Hold Request Dialog Luxury UI */
+.hold-dialog-content {
+  display: flex;
+  flex-direction: column;
+}
+.hold-product-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(245, 243, 255, 0.7) 0%, rgba(241, 245, 249, 0.8) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+.dark .hold-product-banner {
+  background: linear-gradient(135deg, rgba(44, 36, 64, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
+  border-color: rgba(64, 54, 79, 0.7);
+}
+.hold-product-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  flex-shrink: 0;
+}
+.hold-notice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+.dark .hold-notice-card {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: #334155;
+  color: #94a3b8;
+}
+.hold-coupon-box {
+  margin-top: 16px;
+}
+.hold-coupon-row {
+  display: flex;
+  gap: 8px;
+}
+.hold-input {
+  flex: 1;
+  min-height: 42px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 13px;
+  color: #0f172a;
+  transition: all 0.15s ease;
+}
+.hold-input:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+.dark .hold-input {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f8fafc;
+}
+.hold-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.hold-apply-btn:hover:not(:disabled) {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+.hold-apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.hold-quote-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-top: 16px;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+.dark .hold-quote-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+.hold-quote-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13.5px;
+}
+.hold-quote-label {
+  color: #64748b;
+}
+.dark .hold-quote-label {
+  color: #94a3b8;
+}
+.hold-quote-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+.dark .hold-quote-value {
+  color: #f8fafc;
+}
+.hold-quote-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 10px 0;
+}
+.dark .hold-quote-divider {
+  background: #334155;
+}
+.hold-deposit-highlight {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(238, 242, 255, 0.8) 0%, rgba(245, 243, 255, 0.9) 100%);
+  border: 1px solid rgba(199, 210, 254, 0.7);
+}
+.dark .hold-deposit-highlight {
+  background: linear-gradient(135deg, rgba(49, 46, 129, 0.3) 0%, rgba(88, 28, 135, 0.3) 100%);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+.hold-tiers-container {
+  margin-top: 16px;
+}
+.hold-tier-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s ease;
+}
+.dark .hold-tier-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+.hold-tier-item.is-active {
+  background: rgba(245, 243, 255, 0.9);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 1px #8b5cf6;
+}
+.dark .hold-tier-item.is-active {
+  background: rgba(109, 40, 217, 0.25);
+  border-color: #a78bfa;
+}
+.hold-tier-percent {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+}
+.dark .hold-tier-percent {
+  color: #cbd5e1;
+}
+.hold-tier-item.is-active .hold-tier-percent {
+  color: #6d28d9;
+}
+.dark .hold-tier-item.is-active .hold-tier-percent {
+  color: #c4b5fd;
+}
+.hold-tier-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #7c3aed;
+  color: #ffffff;
+}
+.hold-tier-days {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 3px;
+}
+.dark .hold-tier-days {
+  color: #ffffff;
+}
+.hold-terms-accordion {
+  margin-top: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+.dark .hold-terms-accordion {
+  border-color: #334155;
+  background: #1e293b;
+}
+.hold-terms-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+}
+.dark .hold-terms-summary {
+  color: #cbd5e1;
+}
+.hold-terms-summary:hover {
+  color: #0f172a;
+}
+.dark .hold-terms-summary:hover {
+  color: #ffffff;
+}
+.hold-terms-body {
+  padding: 12px 14px;
+  border-top: 1px solid #e2e8f0;
+  max-height: 120px;
+  overflow-y: auto;
+  background: #ffffff;
+}
+.dark .hold-terms-body {
+  border-color: #334155;
+  background: #0f172a;
+}
+.hold-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.hold-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+  line-height: 1.45;
+}
+.dark .hold-checkbox-label {
+  color: #cbd5e1;
+}
+.hold-checkbox {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  border: 1.5px solid #94a3b8;
+  accent-color: #7c3aed;
+  cursor: pointer;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.hold-submit-btn {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px -2px rgba(124, 58, 237, 0.4);
+  transition: all 0.15s ease;
+}
+.hold-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -2px rgba(124, 58, 237, 0.5);
+}
+.hold-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 .finance-dialog form {
   display: grid;
