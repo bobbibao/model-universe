@@ -9,6 +9,7 @@ import SupplierModel from '../database/client/models/Supplier.Model';
 import UserModel from '../database/internal/models/User.Model';
 import DatabaseProvider from '../database/Database.Provider';
 import { BaseServiceInterface } from './BaseServiceInterface';
+import CustomerNotificationService from './CustomerNotificationService';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { asTrimmedString, toInteger } from '../../../shared/server/utils/ValidationUtils';
 
@@ -137,6 +138,7 @@ export default class StockImportService implements BaseServiceInterface<StockImp
       if (requestKey) await PromotionAuditModel.create({ actorUserId: createdBy, entityType: 'stock_import_request', entityId: createdBy, action: requestKey, newValue: { digest, stockImportId: stockImport.id } }, { transaction });
       return stockImport.id;
     });
+    void new CustomerNotificationService().runRestocks().catch(() => {});
     return this.get(stockImportId);
   }
 }
