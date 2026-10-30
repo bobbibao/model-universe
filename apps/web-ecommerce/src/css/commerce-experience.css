@@ -457,10 +457,6 @@
   color: var(--admin-ink);
   font-variant-numeric: tabular-nums;
 }
-/* Toasts leave navigation reachable even when a server error stays on screen. */
-body:has(.admin-workspace, .mu-shell) .Toastify__toast-container--top-center {
-  top: 88px;
-}
 .admin-editor-nav {
   position: sticky;
   top: 80px;

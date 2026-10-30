@@ -815,12 +815,10 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
                   >
                     <label className="flex items-start gap-3">
                       <input type="checkbox" required />
-                      {locale === 'en'
-                        ? 'I verified the received combination and its actual photos.'
-                        : 'Đã kiểm tra tổ hợp nhập kho và ảnh thật.'}
+                      Đã kiểm tra tổ hợp nhập kho và ảnh thật.
                     </label>
                     <button className="mu-button" disabled={busy}>
-                      {locale === 'en' ? 'Publish received product' : 'Xuất bản sản phẩm đã nhập'}
+                      Xuất bản sản phẩm đã nhập
                     </button>
                   </form>
                 )}

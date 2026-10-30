@@ -181,6 +181,16 @@ async function runAllAdminE2ETests() {
       recordTest('Suite 1: RBAC & Security', 'S1.3 Admin login establishes session and accesses dashboard', false, err.message);
     }
 
+    try {
+      // S1.4 Visiting /en/admin/dashboard redirects strictly to /vi/admin/dashboard
+      await page.goto(`${BASE_URL}/en/admin/dashboard`, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(1000);
+      assert.ok(page.url().includes('/vi/admin/dashboard'), `Expected redirection to /vi/admin/dashboard, got: ${page.url()}`);
+      recordTest('Suite 1: RBAC & Security', 'S1.4 /en/admin/dashboard strictly redirects to /vi/admin/dashboard', true);
+    } catch (err) {
+      recordTest('Suite 1: RBAC & Security', 'S1.4 /en/admin/dashboard strictly redirects to /vi/admin/dashboard', false, err.message);
+    }
+
     // ========================================================================
     // SUITE 2: Admin Sidebar Shell & Navigation
     // ========================================================================
@@ -205,6 +215,13 @@ async function runAllAdminE2ETests() {
       await searchInput.fill('');
       await page.waitForTimeout(300);
       recordTest('Suite 2: Shell Navigation', 'S2.2 Sidebar search filters destinations dynamically', true);
+
+      // S2.3 Admin header does not contain language switcher (enforced 100% Vietnamese)
+      const languageToggle = page.locator('.admin-language');
+      const count = await languageToggle.count();
+      assert.strictEqual(count, 0, 'Language switcher (.admin-language) must be completely removed from admin header');
+      recordTest('Suite 2: Shell Navigation', 'S2.3 Language switcher removed from Admin header (100% Vietnamese)', true);
+
       await takeScreenshot(page, '04_s2_sidebar_navigation');
     } catch (err) {
       recordTest('Suite 2: Shell Navigation', 'S2.1 & S2.2 Sidebar navigation and search', false, err.message);

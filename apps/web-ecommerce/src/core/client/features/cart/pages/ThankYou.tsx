@@ -11,7 +11,7 @@ import type { Order } from '@/shared/types/order';
 import { trackPurchase } from '@/shared/client/utils/tracking';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import ProductImage from '@/components/ProductImage';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import Api from '@/core/client/api/Api';
 import { formatVND } from '@/shared/server/utils/utils';
 import { transferMemo } from '@/shared/payment';
@@ -125,7 +125,12 @@ const ThankYou = () => {
   // Greet by the first name of the account (or the recipient's given name).
   const firstName = user?.firstName || order?.recipientName?.split(' ').filter(Boolean).pop() || '';
   const copyCode = () =>
-    order && void navigator.clipboard?.writeText(transferMemo(order.id)).then(() => toast.success(done('copied')));
+    order &&
+    void navigator.clipboard?.writeText(transferMemo(order.id)).then(() =>
+      showToast.success(done('copied'), {
+        action: { label: 'Lịch sử đơn hàng', href: '/order-history' },
+      }),
+    );
 
   return (
     <div className="thanks-page">

@@ -4,7 +4,7 @@ import ConditionTreePicker from '@/components/Store/ConditionTreePicker';
 import { catalogPricing } from '@/shared/sale-pricing';
 import { buybackRateBps } from '@/shared/buyback-pricing';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { ASSEMBLY_STATES } from '@/shared/gunpla';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import TextField from '@/components/FormElements/TextField';
@@ -131,11 +131,10 @@ export const ConditionFields = ({
   onChange,
   lockedCondition = false,
 }: SectionProps & { lockedCondition?: boolean }) => {
-  const en = useLocale() === 'en';
   return (
     <>
       <SelectField
-        label={en ? 'Item type' : 'Loại hàng'}
+        label="Loại hàng"
         name="itemTypeKey"
         disabled={lockedCondition}
         options={[
@@ -150,7 +149,7 @@ export const ConditionFields = ({
       />
       {values.condition !== 'new' && (
         <TextField
-          label={en ? 'Condition percentage (%)' : 'Mức độ phần trăm 2hand (%)'}
+          label="Mức độ phần trăm 2hand (%)"
           name="conditionPercent"
           type="number"
           min={1}
@@ -158,14 +157,14 @@ export const ConditionFields = ({
           step={1}
           placeholder="95"
           value={values.conditionPercent}
-          error={errors.conditionPercent ? (en ? 'Percentage must be between 1 and 100%' : 'Mức độ phần trăm phải từ 1 đến 100%') : undefined}
+          error={errors.conditionPercent ? 'Mức độ phần trăm phải từ 1 đến 100%' : undefined}
           onChange={(event) => onChange('conditionPercent', event.target.value)}
         />
       )}
       <div className={values.condition !== 'new' ? 'md:col-span-2' : ''}>
         <TextAreaField
           rows={2}
-          label={en ? 'Additional notes (not part of SKU identity)' : 'Ghi chú bổ sung (không tạo tổ hợp mới)'}
+          label="Ghi chú bổ sung (không tạo tổ hợp mới)"
           name="conditionNote"
           value={values.conditionNote}
           onChange={(event) => onChange('conditionNote', event.target.value)}
@@ -184,16 +183,14 @@ export const ConditionFields = ({
 };
 
 export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
-  const t = useTranslations('adminProducts'),
-    locale = useLocale(),
-    en = locale === 'en';
+  const t = useTranslations('adminProducts');
   let result: ReturnType<typeof catalogPricing> | undefined;
   let formulaError = '';
   if (values.pricingReferenceMemberVnd) {
     try {
       result = catalogPricing(Number(values.pricingReferenceMemberVnd));
     } catch (error) {
-      formulaError = en ? 'The real selling price must be a whole VND amount above 0.' : (error as Error).message;
+      formulaError = (error as Error).message;
     }
   }
   const target = result?.referenceMemberVnd;
@@ -201,43 +198,37 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
   // Owner rule of 2026-10-26: staff enter only S; R, B and C50 follow it and cannot be typed.
   const outputs: { label: string; value: number | undefined; note: string }[] = [
     {
-      label: en ? 'Web price R = S ÷ 0.9' : 'Giá web R = S ÷ 0,9',
+      label: 'Giá web R = S ÷ 0,9',
       value: result?.listPriceVnd,
-      note: en ? 'Shown struck through; members pay S with MEMBER10' : 'Hiện gạch ngang; thành viên trả S với MEMBER10',
+      note: 'Hiện gạch ngang; thành viên trả S với MEMBER10',
     },
     {
-      label: en ? `Shop margin B${rate ? ` = ${rate}% × S` : ''}` : `Giá lời B${rate ? ` = ${rate}% × S` : ''}`,
+      label: `Giá lời B${rate ? ` = ${rate}% × S` : ''}`,
       value: result?.buybackMarginVnd,
-      note: en
-        ? '30% to 500k, 20% to 1.15M, 17% above; at least 100k'
-        : '30% đến 500k, 20% đến 1,15tr, 17% trên đó; tối thiểu 100k',
+      note: '30% đến 500k, 20% đến 1,15tr, 17% trên đó; tối thiểu 100k',
     },
     {
-      label: en ? 'Buyback price = S − B' : 'Giá thu = S − B',
+      label: 'Giá thu = S − B',
       value: result?.buybackPriceVnd,
-      note: en ? 'For this exact approved combination' : 'Cho đúng tổ hợp đã duyệt này',
+      note: 'Cho đúng tổ hợp đã duyệt này',
     },
     {
-      label: en ? 'Pawn amount C50 = 50% × S' : 'Giá cầm C50 = 50% × S',
+      label: 'Giá cầm C50 = 50% × S',
       value: result?.pawnPriceVnd,
-      note: en ? 'Interest simulated until legal review' : 'Lãi chỉ mô phỏng, chờ thẩm định pháp lý',
+      note: 'Lãi chỉ mô phỏng, chờ thẩm định pháp lý',
     },
   ];
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       <TextField
-        label={en ? 'Real selling price S (VND)' : 'Giá bán thực S (đ)'}
+        label="Giá bán thực S (đ)"
         name="pricingReferenceMemberVnd"
         required
         type="number"
         min={1}
         step={1}
         inputMode="numeric"
-        hint={
-          en
-            ? 'The only price you enter: the member price customers pay.'
-            : 'Giá duy nhất cần nhập: giá thành viên khách trả.'
-        }
+        hint="Giá duy nhất cần nhập: giá thành viên khách trả."
         error={errors.price ? t(`validation.${errors.price}`) : undefined}
         value={values.pricingReferenceMemberVnd}
         placeholder="1100000"
@@ -245,31 +236,25 @@ export const PricingFields = ({ values, errors, onChange }: SectionProps) => {
       />
 
       <TextField
-        label={en ? 'Actual cost H · from the purchase / intake record' : 'Giá vốn thực tế H · theo chứng từ nhập/thu'}
+        label="Giá vốn thực tế H · theo chứng từ nhập/thu"
         name="importPrice"
         readOnly
         type="number"
         min={0}
         step={1}
         inputMode="numeric"
-        hint={
-          en
-            ? 'Kept apart from the buyback price; it decides whether sales and vouchers keep their profit.'
-            : 'Giữ riêng với giá thu; dùng để kiểm tra sale và voucher còn giữ lợi nhuận.'
-        }
+        hint="Giữ riêng với giá thu; dùng để kiểm tra sale và voucher còn giữ lợi nhuận."
         value={values.importPrice}
         onChange={(e) => onChange('importPrice', e.target.value)}
         error={errors.importPrice ? t(`validation.${errors.importPrice}`) : undefined}
       />
       <div className="rounded-xl border border-stroke bg-gray p-4 dark:border-store-card dark:bg-store-panel md:col-span-2">
-        <p className="text-sm font-semibold">
-          {en ? 'Calculated from S · cannot be edited' : 'Tự tính từ S · không nhập đè'}
-        </p>
+        <p className="text-sm font-semibold">Tự tính từ S · không nhập đè</p>
         <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {outputs.map((output) => (
             <div key={output.label}>
               <dt className="text-xs text-body">{output.label}</dt>
-              <dd className="mt-1 font-bold">{output.value !== undefined ? formatVND(output.value, locale) : '—'}</dd>
+              <dd className="mt-1 font-bold">{output.value !== undefined ? formatVND(output.value, 'vi') : '—'}</dd>
               <dd className="text-xs text-body">{output.note}</dd>
             </div>
           ))}
@@ -440,7 +425,6 @@ export const SupplierField = ({
 
 export const StatusFields = ({ values, onChange }: Omit<SectionProps, 'errors'>) => {
   const t = useTranslations('adminProducts');
-  const en = useLocale() === 'en';
   return (
     <div className="flex flex-col gap-4">
       <label className="flex items-start gap-3">
@@ -451,7 +435,7 @@ export const StatusFields = ({ values, onChange }: Omit<SectionProps, 'errors'>)
           onChange={(event) => onChange('serviceReferenceEnabled', event.target.checked)}
         />
         <span>
-          {en ? 'Use approved S for buyback / trade / pawn estimates' : 'Dùng S đã duyệt để báo giá thu / trade / cầm'}
+          Dùng S đã duyệt để báo giá thu / trade / cầm
         </span>
       </label>
       <SelectField

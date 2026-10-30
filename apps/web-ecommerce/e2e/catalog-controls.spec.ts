@@ -159,7 +159,7 @@ for (const locale of ['vi', 'en'])
 test('admin native picker retains keyboard and real list filtering', async ({ page }) => {
   test.skip(!hasAdmin, 'Requires retained synthetic administrator');
   expect((await page.request.post('/api/auth/login', { data: admin })).ok()).toBe(true);
-  await page.goto('/en/admin/products');
+  await page.goto('/vi/admin/products');
   const select = page.locator('main select:visible').first();
   await select.click();
   await capture(page, 'admin-picker');

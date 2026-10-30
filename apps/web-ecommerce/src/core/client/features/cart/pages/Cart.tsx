@@ -7,7 +7,7 @@ import Link from '@/i18n/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import ConfirmModal from '@/components/Modal/ConfirmModal';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import WorkspaceHeader from '@/components/Store/WorkspaceHeader';
@@ -267,7 +267,9 @@ const Cart = () => {
   useEffect(() => {
     if (coupon && !quoting && entries.every((entry) => !!entry.line) && benefitSubtotalVnd < coupon.minOrderVnd) {
       setCoupon(null);
-      toast.info(t('couponMinimum', { code: coupon.code, amount: formatVND(coupon.minOrderVnd, locale) }));
+      showToast.info(t('couponMinimum', { code: coupon.code, amount: formatVND(coupon.minOrderVnd, locale) }), {
+        action: { label: 'Xem ưu đãi', href: '/uu-dai' },
+      });
     }
   }, [coupon, benefitSubtotalVnd, quoting, entries, setCoupon, t, locale]);
 
@@ -329,7 +331,7 @@ const Cart = () => {
       CheckoutApi.forget();
       clearCart();
       setPaymentOpen(false);
-      toast.success(t('paidToast'));
+      showToast.success(t('paidToast'));
       router.push(`/thank-you?orderId=${orderId}`);
     },
     [clearCart, router, t],
@@ -375,13 +377,13 @@ const Cart = () => {
   };
   const startCheckout = () => {
     if (courier && (!addressComplete || !currentFee)) {
-      toast.error(fulfillment(addressComplete ? 'feeQuoting' : 'addressRequired'));
+      showToast.error(fulfillment(addressComplete ? 'feeQuoting' : 'addressRequired'));
       return;
     }
     const errors = validateShipping(orderShipping);
     setShippingErrors(errors);
     if (fulfillmentMethod === 'DIRECT_MEETING' && !meeting.date) {
-      toast.error(fulfillment('meetingDateRequired'));
+      showToast.error(fulfillment('meetingDateRequired'));
       return;
     }
     if (Object.keys(errors).length === 0) setConfirming(true);

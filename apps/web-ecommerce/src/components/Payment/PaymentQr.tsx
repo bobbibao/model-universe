@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { QRCodeSVG } from 'qrcode.react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import { formatVND } from '@/shared/server/utils/utils';
 
 export interface QrPayment {
@@ -40,7 +40,7 @@ export default function PaymentQr({ payment, seconds }: { payment: QrPayment; se
     locale = useLocale();
   const copy = (value: string | null | undefined, label: string) => {
     if (!value) return;
-    void navigator.clipboard?.writeText(value).then(() => toast.success(t('copied', { label })));
+    void navigator.clipboard?.writeText(value).then(() => showToast.success(t('copied', { label })));
   };
   const row = (label: string, value: string | null | undefined, copyable = false) =>
     value ? (

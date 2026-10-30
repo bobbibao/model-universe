@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import Link from '@/i18n/navigation';
 import Carousel from '@/components/Carousel';
 import ProductImage from '@/components/ProductImage';
@@ -98,13 +98,17 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
 
   const claim = async (drop: VoucherDrop) => {
     if (!user) {
-      toast.info(p('signInFirst'));
+      showToast.info(p('signInFirst'), {
+        action: { label: 'Đăng nhập ngay', href: '/auth/signin' },
+      });
       return;
     }
     setBusy(true);
     try {
       const value = await PromotionApi.claim(drop.id);
-      toast.success(p('savedCode', { code: value.code }));
+      showToast.success(p('savedCode', { code: value.code }), {
+        action: { label: 'Dùng ngay', href: '/cart' },
+      });
       load();
     } catch {
       /* The toast explains it. */

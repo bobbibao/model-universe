@@ -50,7 +50,7 @@ test.describe('service condition journeys', () => {
     await page.keyboard.press('Escape');
   };
   const open = async (page: Page, id: number, admin: boolean, trade = false) => {
-    await page.goto(admin ? '/en/admin/buyback' : `/en/services/${trade ? 'trade' : 'sell'}`);
+    await page.goto(admin ? '/vi/admin/buyback' : `/en/services/${trade ? 'trade' : 'sell'}`);
     await page.getByRole('button', { name: new RegExp(`TM${id} ·`) }).click();
     await expect(page.locator('#buyback-detail')).toBeVisible();
     return page.locator('#buyback-detail');
@@ -180,7 +180,7 @@ test.describe('service condition journeys', () => {
     admin.setDefaultTimeout(15000);
     customer.setDefaultTimeout(15000);
     // Approve the simulated inbound policy through its actual Admin UI, in the disposable demo only.
-    await admin.goto('/en/admin/commerce/policies');
+    await admin.goto('/vi/admin/commerce/policies');
     await admin.getByRole('tab', { name: /buy.?back/i }).click();
     const policies = await body(await admin.request.get('/api/admin/commerce/policies'));
     if (!policies.some((policy: { name: string }) => policy.name === 'buyback')) {

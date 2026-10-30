@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { Events, eventEmitter } from '@/shared/client/utils/eventEmitter';
+import { showToast, CustomCloseButton, CustomToastIcon } from '@/shared/client/utils/toast';
 
 interface ToastProviderProps {
   children: React.ReactNode;
@@ -18,7 +19,10 @@ export default function ToastProvider({ children }: ToastProviderProps) {
   useEffect(() => {
     eventEmitter.subscribe(Events.OPEN_MODAL_MESSAGES_ERRORS, ({ title, validationMessages }: ValidationMessagesEvent) => {
       const lines = [title, ...(validationMessages || []).map((message) => `• ${message}`)].filter(Boolean);
-      toast.error(lines.join('\n'), { style: { whiteSpace: 'pre-line' } });
+      showToast.error(lines.join('\n'), {
+        style: { whiteSpace: 'pre-line' },
+        autoClose: 5000,
+      });
     });
     return () => eventEmitter.unsubscribe(Events.OPEN_MODAL_MESSAGES_ERRORS);
   }, []);
@@ -26,7 +30,19 @@ export default function ToastProvider({ children }: ToastProviderProps) {
   return (
     <>
       {children}
-      <ToastContainer position="top-center" />
+      <ToastContainer
+        position="top-right"
+        limit={3}
+        newestOnTop={true}
+        autoClose={3500}
+        hideProgressBar={false}
+        closeOnClick={false}
+        pauseOnHover={true}
+        draggable={true}
+        draggablePercent={40}
+        closeButton={(props) => <CustomCloseButton {...props} />}
+        icon={({ type }) => <CustomToastIcon type={type} />}
+      />
     </>
   );
 }

@@ -39,16 +39,25 @@ export async function middleware(request: NextRequest) {
   const isAdminPath = matchesPath(pathname, '/admin');
   const requiresLogin = isAdminPath || ACCOUNT_PATHS.some((path) => matchesPath(pathname, path));
 
+  if (isAdminPath && request.nextUrl.pathname.startsWith('/en/admin')) {
+    const viPath = request.nextUrl.pathname.replace(/^\/en\/admin/, '/vi/admin');
+    return NextResponse.redirect(new URL(`${viPath}${search}`, request.url));
+  }
+
   if (requiresLogin && !session) {
-    const signInUrl = new URL(`/${locale}/auth/signin`, request.url);
-    signInUrl.searchParams.set('redirect', `${request.nextUrl.pathname}${search}`);
+    const targetLocale = isAdminPath ? 'vi' : locale;
+    const signInUrl = new URL(`/${targetLocale}/auth/signin`, request.url);
+    const redirectPath = isAdminPath && request.nextUrl.pathname.startsWith('/en/admin')
+      ? request.nextUrl.pathname.replace(/^\/en\/admin/, '/vi/admin')
+      : request.nextUrl.pathname;
+    signInUrl.searchParams.set('redirect', `${redirectPath}${search}`);
     return NextResponse.redirect(signInUrl);
   }
   if (isAdminPath && session?.role !== 'ADMIN') {
     return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
   if (session && GUEST_ONLY_PATHS.includes(pathname)) {
-    return NextResponse.redirect(new URL(`/${locale}${session.role === 'ADMIN' ? '/admin/dashboard' : ''}`, request.url));
+    return NextResponse.redirect(new URL(`/${session.role === 'ADMIN' ? 'vi/admin/dashboard' : locale}`, request.url));
   }
   return localize(request);
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { toast } from 'react-toastify';
 import { MAX_PRODUCT_BULK } from '@/shared/product-bulk';
 import ProductBulkActions, { BulkCheckbox, type SelectedBulkProduct } from '../components/ProductBulkActions';
@@ -30,8 +30,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 const ProductList = () => {
   const router = useRouter();
   const [catalogTab, setCatalogTab] = useState('catalog');
-  const t = useTranslations('adminProducts'),
-    locale = useLocale();
+  const t = useTranslations('adminProducts');
   const conditionTypes = useProductConditions();
   const bulk = useTranslations('productBulk');
   const [selected, setSelected] = useState<Record<number, SelectedBulkProduct>>({});
@@ -182,15 +181,15 @@ const ProductList = () => {
     },
     {
       key: 'price',
-      header: locale === 'en' ? 'Real price S' : 'Giá bán thực S',
+      header: 'Giá bán thực S',
       className: 'catalog-price-cell',
       sortable: true,
       render: (product) => (
         <div className="catalog-price-summary">
-          <p>{formatVND(product.pricingReferenceMemberVnd ?? product.salePrice, locale)}</p>
+          <p>{formatVND(product.pricingReferenceMemberVnd ?? product.salePrice, 'vi')}</p>
           {product.discountPercent > 0 && (
             <p className="text-xs text-body">
-              <span className="line-through">{formatVND(product.price, locale)}</span> -
+              <span className="line-through">{formatVND(product.price, 'vi')}</span> -
               {Math.round(product.discountPercent)}%
             </p>
           )}
@@ -221,7 +220,7 @@ const ProductList = () => {
       sortable: true,
       render: (product) =>
         product.productionDate
-          ? new Date(product.productionDate).toLocaleDateString(locale === 'en' ? 'en-GB' : 'vi-VN')
+          ? new Date(product.productionDate).toLocaleDateString('vi-VN')
           : '—',
     },
     {
@@ -353,7 +352,7 @@ const ProductList = () => {
               </div>
             ),
           },
-          { id: 'families', label: locale === 'en' ? 'Group by model' : 'Nhóm theo mẫu', content: <ProductFamilyList /> },
+          { id: 'families', label: 'Nhóm theo mẫu', content: <ProductFamilyList /> },
           { id: 'inventory', label: t('stats.title'), content: <InventoryStats expanded /> },
         ]}
       />

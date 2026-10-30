@@ -1,0 +1,319 @@
+/* ==========================================================================
+   Model Universe - Custom Compact & Accessible Toast System
+   ========================================================================== */
+
+/* Toast Container Base - Elevated above everything, non-blocking click-through */
+.Toastify__toast-container {
+  z-index: 10000000 !important;
+  pointer-events: none !important;
+  box-sizing: border-box;
+}
+
+/* Toast Cards - Clickable, compact, glassmorphic */
+.Toastify__toast {
+  pointer-events: auto !important;
+  position: relative !important;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
+  margin-bottom: 8px !important;
+  padding: 8px 12px !important;
+  border-radius: 14px !important;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  cursor: default;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+  overflow: hidden !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+/* Light Theme Styling */
+.Toastify__toast--light,
+.Toastify__toast {
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.12), 0 3px 8px -2px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Dark Theme Styling */
+.dark .Toastify__toast,
+.Toastify__toast--dark {
+  background: rgba(20, 26, 38, 0.95) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.5), 0 4px 10px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Left Status Accent Indicator */
+.Toastify__toast--success {
+  border-left: 4px solid #10b981 !important;
+}
+.Toastify__toast--error {
+  border-left: 4px solid #f43f5e !important;
+}
+.Toastify__toast--warning {
+  border-left: 4px solid #f59e0b !important;
+}
+.Toastify__toast--info {
+  border-left: 4px solid #0284c7 !important;
+}
+
+/* Toast Body */
+.Toastify__toast-body {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* Icon Container */
+.Toastify__toast-icon {
+  width: 28px !important;
+  height: 28px !important;
+  margin-inline-end: 0 !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mu-toast-icon-wrap {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mu-toast-icon-wrap.is-success {
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
+}
+.mu-toast-icon-wrap.is-error {
+  background: rgba(244, 63, 94, 0.14);
+  color: #f43f5e;
+}
+.mu-toast-icon-wrap.is-warning {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+.mu-toast-icon-wrap.is-info {
+  background: rgba(2, 132, 199, 0.14);
+  color: #0284c7;
+}
+
+/* Custom Interactive Toast Wrapper */
+.mu-toast-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  user-select: none;
+}
+.mu-toast-wrapper.is-navigable {
+  cursor: pointer;
+}
+.mu-toast-wrapper.is-navigable:hover .mu-toast-title,
+.mu-toast-wrapper.is-navigable:hover .mu-toast-message {
+  color: #0284c7;
+}
+.dark .mu-toast-wrapper.is-navigable:hover .mu-toast-title,
+.dark .mu-toast-wrapper.is-navigable:hover .mu-toast-message {
+  color: #38bdf8;
+}
+
+.mu-toast-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mu-toast-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mu-toast-title {
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.3;
+  margin-bottom: 1px;
+}
+
+.mu-toast-message {
+  font-size: 12.5px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Action Button Pill */
+.mu-toast-action-container {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.mu-toast-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.mu-toast-action-pill:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+.mu-toast-action-pill:hover .mu-toast-arrow {
+  transform: translateX(2px);
+}
+.mu-toast-arrow {
+  transition: transform 0.15s ease;
+}
+
+/* Hint for general clickable cards */
+.mu-toast-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: #0284c7;
+  font-weight: 600;
+}
+.dark .mu-toast-hint {
+  color: #38bdf8;
+}
+
+/* Sleek Minimal Close Button */
+.Toastify__close-button,
+.mu-toast-close {
+  width: 22px !important;
+  height: 22px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-left: 6px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  opacity: 0.65 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: opacity 0.15s, background 0.15s, color 0.15s !important;
+}
+.Toastify__close-button:hover,
+.mu-toast-close:hover {
+  opacity: 1 !important;
+  color: #334155 !important;
+  background: rgba(148, 163, 184, 0.15) !important;
+}
+.dark .Toastify__close-button:hover,
+.dark .mu-toast-close:hover {
+  color: #f8fafc !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Ultra Slim Progress Bar */
+.Toastify__progress-bar {
+  height: 2.5px !important;
+  opacity: 0.8 !important;
+  border-bottom-left-radius: 14px !important;
+  border-bottom-right-radius: 14px !important;
+}
+.Toastify__progress-bar--success {
+  background: #10b981 !important;
+}
+.Toastify__progress-bar--error {
+  background: #f43f5e !important;
+}
+.Toastify__progress-bar--warning {
+  background: #f59e0b !important;
+}
+.Toastify__progress-bar--info {
+  background: #0284c7 !important;
+}
+
+/* ==========================================================================
+   DESKTOP VIEWPORT (>= 641px)
+   Position at top-right for comfortable, non-blocking overview
+   ========================================================================== */
+@media (min-width: 641px) {
+  .Toastify__toast-container {
+    width: 360px !important;
+    max-width: calc(100vw - 48px) !important;
+    padding: 0 !important;
+  }
+  .Toastify__toast-container--top-right {
+    top: 24px !important;
+    right: 24px !important;
+    left: auto !important;
+    transform: none !important;
+  }
+  .Toastify__toast-container--top-center {
+    top: 24px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+  .Toastify__toast:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.16), 0 5px 12px -2px rgba(15, 23, 42, 0.08) !important;
+  }
+}
+
+/* ==========================================================================
+   MOBILE VIEWPORT (<= 640px)
+   FIX: Never 100vw, never stick to top:0, float gracefully below sticky bar
+   ========================================================================== */
+@media (max-width: 640px) {
+  .Toastify__toast-container,
+  .Toastify__toast-container--top-left,
+  .Toastify__toast-container--top-center,
+  .Toastify__toast-container--top-right {
+    position: fixed !important;
+    /* Float gracefully below top mobile header with safe area padding */
+    top: calc(env(safe-area-inset-top, 0px) + 68px) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 24px) !important;
+    max-width: 380px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .Toastify__toast {
+    width: 100% !important;
+    border-radius: 14px !important;
+    margin-bottom: 8px !important;
+    padding: 8px 12px !important;
+    box-shadow: 0 8px 24px -2px rgba(15, 23, 42, 0.16), 0 3px 8px -2px rgba(15, 23, 42, 0.08) !important;
+  }
+}

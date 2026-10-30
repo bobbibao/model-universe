@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useEffect, useState } from 'react';
 import ProductApi from '@/core/client/api/Product';
@@ -19,15 +19,14 @@ const Kpi = ({ label, value, hint, tone }: { label: string; value: string; hint?
 // price, and the same per brand and per condition.
 const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
   const t = useTranslations('adminProducts.stats'),
-    catalog = useTranslations('catalog'),
-    locale = useLocale();
+    catalog = useTranslations('catalog');
   const conditionTypes = useProductConditions();
   const [stats, setStats] = useState<Stats>();
   useEffect(() => {
     ProductApi.getInventoryStats().then(setStats);
   }, []);
   if (!stats) return null;
-  const count = (value: number) => value.toLocaleString(locale === 'en' ? 'en-US' : 'vi-VN');
+  const count = (value: number) => value.toLocaleString('vi-VN');
   const { totals } = stats;
   return (
     <details className="inventory-stats" open={expanded}>
@@ -42,7 +41,7 @@ const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
             {t('listings')} <strong>{count(totals.listings)}</strong>
           </span>
           <span>
-            {t('costValue')} <strong>{formatVND(totals.costValue, locale)}</strong>
+            {t('costValue')} <strong>{formatVND(totals.costValue, 'vi')}</strong>
           </span>
         </span>
       </summary>
@@ -59,13 +58,13 @@ const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
           hint={t('unitsInStockHint', { out: totals.unitsOutOfStock })}
         />
         <Kpi label={t('brands')} value={count(totals.brands)} />
-        <Kpi label={t('costValue')} value={formatVND(totals.costValue, locale)} hint={t('costValueHint')} />
+        <Kpi label={t('costValue')} value={formatVND(totals.costValue, 'vi')} hint={t('costValueHint')} />
         <Kpi
           label={t('memberValue')}
-          value={formatVND(totals.memberValue, locale)}
-          hint={`${t('memberValueHint')} · ${t('listValue', { value: formatVND(totals.listValue, locale) })}`}
+          value={formatVND(totals.memberValue, 'vi')}
+          hint={`${t('memberValueHint')} · ${t('listValue', { value: formatVND(totals.listValue, 'vi') })}`}
         />
-        <Kpi label={t('marginValue')} value={formatVND(totals.marginValue, locale)} hint={t('marginValueHint')} />
+        <Kpi label={t('marginValue')} value={formatVND(totals.marginValue, 'vi')} hint={t('marginValueHint')} />
         <Kpi label={t('averageDays')} value={count(totals.averageDaysInStock)} hint={t('averageDaysHint')} />
         {totals.missingCost > 0 && <Kpi label={t('missingCost')} value={count(totals.missingCost)} tone="warn" />}
       </div>
@@ -88,7 +87,7 @@ const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
                 <td>{count(row.listings)}</td>
                 <td>{count(row.unitsInStock)}</td>
                 <td>{count(row.stock)}</td>
-                <td>{formatVND(row.costValue, locale)}</td>
+                <td>{formatVND(row.costValue, 'vi')}</td>
               </tr>
             ))}
           </tbody>

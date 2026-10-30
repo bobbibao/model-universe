@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import useCustomerActionRefresh from '@/hooks/useCustomerActionRefresh';
 import Link, { useRouter } from '@/i18n/navigation';
 import CancelOrderModal from '@/components/Modal/CancelOrderModal';
@@ -116,7 +116,10 @@ const OrderHistory = ({ embedded = false }: { embedded?: boolean } = {}) => {
         added += 1;
     }
     if (added) router.push('/cart');
-    else toast.info(t('buyAgainUnavailable'));
+    else
+      showToast.info(t('buyAgainUnavailable'), {
+        action: { label: 'Xem sản phẩm', href: '/shop' },
+      });
   };
 
   // The API layer camel-cases response keys (to_ship → toShip).

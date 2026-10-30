@@ -8,7 +8,7 @@ import type { ContactMessageInput } from '@/shared/types/contact';
 import { useTranslations } from 'next-intl';
 import BrandLogo from '@/components/BrandLogo';
 import SuccessSignal from '@/components/SuccessSignal';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_MESSAGE_LENGTH = 10;
@@ -40,9 +40,12 @@ const Contact = () => {
   const handleCopy = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(`Đã sao chép ${label}: ${text}`, { toastId: `copy-${label}` });
+      showToast.success(`Đã sao chép ${label}: ${text}`, {
+        toastId: `copy-${label}`,
+        action: label === 'Email' ? { label: 'Mở Mail', href: `mailto:${text}` } : undefined,
+      });
     } catch {
-      toast.info(text, { toastId: `copy-${label}` });
+      showToast.info(text, { toastId: `copy-${label}` });
     }
   };
 

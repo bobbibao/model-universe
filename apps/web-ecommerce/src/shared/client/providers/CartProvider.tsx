@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import CartApi from '@/core/client/api/Cart';
 import type { CartItem, CartLine, CartQuote } from '@/shared/types/cart';
@@ -103,7 +103,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const items = latestItems.current;
     const inCart = items.find((item) => item.productId === product.id)?.quantity ?? 0;
     if (inCart + quantity > product.stock) {
-      toast.error(
+      showToast.error(
         product.stock > inCart
           ? t('addMaximum',{count:product.stock-inCart})
           : t('stockLimit'),
@@ -122,7 +122,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ? items.map((item) => (item === existing ? { ...item, ...snapshot, quantity: item.quantity + quantity } : item))
         : [...items, { productId: product.id, quantity, ...snapshot }],
     );
-    toast.success(t('addedToBag'));
+    showToast.success(t('addedToBag'), {
+      action: {
+        label: 'Xem giỏ hàng',
+        href: '/cart',
+      },
+    });
     return true;
   };
 

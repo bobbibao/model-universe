@@ -2,7 +2,6 @@
 import ConditionStockTransfer from './ConditionStockTransfer';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
 import Modal from '@/components/Modal/Modal';
 import TextField from '@/components/FormElements/TextField';
@@ -27,8 +26,6 @@ export default function ProductConditions({
   onCreated: () => void;
   onEditCurrent: () => void;
 }) {
-  const locale = useLocale(),
-    en = locale === 'en';
   const createRequested = useSearchParams().get('create') === '1';
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<ItemTypeKey>('preowned');
@@ -56,7 +53,7 @@ export default function ProductConditions({
       .catch(() => {
         if (current) {
           setExistingId(null);
-          setError(en ? 'Could not check this combination. Retry.' : 'Không kiểm tra được tổ hợp. Vui lòng thử lại.');
+          setError('Không kiểm tra được tổ hợp. Vui lòng thử lại.');
         }
       })
       .finally(() => {
@@ -65,7 +62,7 @@ export default function ProductConditions({
     return () => {
       current = false;
     };
-  }, [open, product.modelFamilyId, type, ids, en]);
+  }, [open, product.modelFamilyId, type, ids]);
   let pricing: ReturnType<typeof catalogPricing> | undefined;
   try {
     if (price) pricing = catalogPricing(Number(price));
@@ -88,9 +85,7 @@ export default function ProductConditions({
   }, [createRequested, product.id]);
   const create = async () => {
     if (!pricing || !mainImage) {
-      setError(
-        en ? 'Enter a positive whole VND price and choose an image.' : 'Nhập giá S nguyên dương và chọn ảnh đại diện.',
-      );
+      setError('Nhập giá S nguyên dương và chọn ảnh đại diện.');
       return;
     }
     setBusy(true);
@@ -122,17 +117,13 @@ export default function ProductConditions({
     <section className="catalog-variants">
       <div className="catalog-section-toolbar">
         <div>
-          <h3>{en ? 'Products of this model' : 'Các sản phẩm của mẫu này'}</h3>
-          <p>
-            {en
-              ? 'Each condition combination has its own price and stock.'
-              : 'Mỗi tổ hợp tình trạng có giá và tồn kho riêng.'}
-          </p>
+          <h3>Các sản phẩm của mẫu này</h3>
+          <p>Mỗi tổ hợp tình trạng có giá và tồn kho riêng.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ConditionStockTransfer product={product} onFinished={onCreated} />
           <button type="button" className="mu-button" onClick={start}>
-            {en ? '+ Add combination' : '+ Thêm tổ hợp'}
+            + Thêm tổ hợp
           </button>
         </div>
       </div>
@@ -141,12 +132,12 @@ export default function ProductConditions({
           <thead>
             <tr>
               <th>SKU</th>
-              <th>{en ? 'Type / conditions' : 'Loại hàng / tình trạng'}</th>
-              <th>{en ? 'Real price S' : 'Giá bán thực S'}</th>
-              <th>{en ? 'Stock' : 'Tồn kho'}</th>
-              <th>{en ? 'Visibility' : 'Hiển thị'}</th>
+              <th>Loại hàng / tình trạng</th>
+              <th>Giá bán thực S</th>
+              <th>Tồn kho</th>
+              <th>Hiển thị</th>
               <th>
-                <span className="sr-only">{en ? 'Edit' : 'Chỉnh sửa'}</span>
+                <span className="sr-only">Chỉnh sửa</span>
               </th>
             </tr>
           </thead>
@@ -160,23 +151,23 @@ export default function ProductConditions({
                     {unit.conditionPercent ? ` · ${unit.conditionPercent}%` : ''}
                   </span>
                   <span className="catalog-combination-label">
-                    {unit.conditionLabels?.join(' · ') || (en ? 'No issues recorded' : 'Không ghi nhận lỗi')}
+                    {unit.conditionLabels?.join(' · ') || 'Không ghi nhận lỗi'}
                   </span>
                 </td>
-                <td className="catalog-money">{formatVND(unit.pricingReferenceMemberVnd ?? 0, locale)}</td>
+                <td className="catalog-money">{formatVND(unit.pricingReferenceMemberVnd ?? 0, 'vi')}</td>
                 <td>{unit.stock}</td>
                 <td>
                   <span className={`catalog-status ${unit.isArchived ? 'is-draft' : ''}`}>
-                    {unit.isArchived ? (en ? 'Draft / hidden' : 'Nháp / ẩn') : en ? 'Published' : 'Đang bán'}
+                    {unit.isArchived ? 'Nháp / ẩn' : 'Đang bán'}
                   </span>
                 </td>
                 <td>
                   {unit.id === product.id ? (
                     <button type="button" onClick={onEditCurrent}>
-                      {en ? 'Edit' : 'Sửa'}
+                      Sửa
                     </button>
                   ) : (
-                    <Link href={`/admin/products/${unit.id}`}>{en ? 'Edit' : 'Sửa'}</Link>
+                    <Link href={`/admin/products/${unit.id}`}>Sửa</Link>
                   )}
                 </td>
               </tr>
@@ -186,17 +177,15 @@ export default function ProductConditions({
       </div>
       {!!product.stockReceipts?.length && (
         <details className="catalog-image-disclosure mt-5">
-          <summary>
-            {en ? 'Stock receipt / condition transfer history' : 'Lịch sử nhập hàng / chuyển tình trạng'}
-          </summary>
+          <summary>Lịch sử nhập hàng / chuyển tình trạng</summary>
           <div className="catalog-variant-table-wrap mt-3">
             <table className="catalog-variant-table">
               <thead>
                 <tr>
-                  <th>{en ? 'Source' : 'Nguồn hàng'}</th>
-                  <th>{en ? 'Quantity' : 'Số lượng'}</th>
-                  <th>{en ? 'Unit cost' : 'Giá vốn / món'}</th>
-                  <th>{en ? 'Recorded at' : 'Ngày ghi nhận'}</th>
+                  <th>Nguồn hàng</th>
+                  <th>Số lượng</th>
+                  <th>Giá vốn / món</th>
+                  <th>Ngày ghi nhận</th>
                 </tr>
               </thead>
               <tbody>
@@ -215,8 +204,8 @@ export default function ProductConditions({
                       {receipt.quantity > 0 ? '+' : ''}
                       {receipt.quantity}
                     </td>
-                    <td className="catalog-money">{formatVND(receipt.unitCostVnd, locale)}</td>
-                    <td>{new Date(receipt.createdAt).toLocaleDateString(locale)}</td>
+                    <td className="catalog-money">{formatVND(receipt.unitCostVnd, 'vi')}</td>
+                    <td>{new Date(receipt.createdAt).toLocaleDateString('vi-VN')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -226,7 +215,7 @@ export default function ProductConditions({
       )}
       <Modal
         open={open}
-        title={en ? 'Create a new condition combination' : 'Tạo sản phẩm với tổ hợp mới'}
+        title="Tạo sản phẩm với tổ hợp mới"
         size="lg"
         onClose={() => {
           if (!busy) setOpen(false);
@@ -239,7 +228,7 @@ export default function ProductConditions({
               disabled={busy}
               onClick={() => setOpen(false)}
             >
-              {en ? 'Cancel' : 'Hủy'}
+              Hủy
             </button>
             <button
               type="button"
@@ -247,7 +236,7 @@ export default function ProductConditions({
               disabled={busy || matching || !!existingId || !product.modelFamilyId}
               onClick={create}
             >
-              {busy ? '…' : en ? 'Save draft · stock 0' : 'Lưu nháp · tồn 0'}
+              {busy ? '…' : 'Lưu nháp · tồn 0'}
             </button>
           </>
         }
@@ -265,15 +254,13 @@ export default function ProductConditions({
         </div>
         {!product.modelFamilyId && (
           <p role="alert" className="catalog-inline-notice">
-            {en
-              ? 'Reconcile this legacy product and save its type/conditions first.'
-              : 'Đối chiếu và lưu loại hàng/tình trạng của sản phẩm cũ trước khi tạo tổ hợp.'}
+            Đối chiếu và lưu loại hàng/tình trạng của sản phẩm cũ trước khi tạo tổ hợp.
           </p>
         )}
         <fieldset disabled={busy} className="catalog-variant-form">
           <div className="grid gap-4 sm:grid-cols-2">
             <SelectField
-              label={en ? 'Item type' : 'Loại hàng'}
+              label="Loại hàng"
               name="variantType"
               options={[
                 { value: 'new', label: 'New' },
@@ -286,7 +273,7 @@ export default function ProductConditions({
               }}
             />
             <TextField
-              label={en ? 'Real selling price S (VND)' : 'Giá bán thực S (đ)'}
+              label="Giá bán thực S (đ)"
               name="variantSalePrice"
               type="number"
               min={1}
@@ -298,7 +285,7 @@ export default function ProductConditions({
             {type === 'preowned' && (
               <div className="sm:col-span-2">
                 <TextField
-                  label={en ? 'Condition percentage (%)' : 'Mức độ phần trăm 2hand (%)'}
+                  label="Mức độ phần trăm 2hand (%)"
                   name="variantConditionPercent"
                   type="number"
                   min={1}
@@ -312,38 +299,36 @@ export default function ProductConditions({
             )}
           </div>
           <ConditionTreePicker value={ids} itemType={type} onChange={setIds} />
-          {matching && <p role="status">{en ? 'Checking combination…' : 'Đang kiểm tra tổ hợp…'}</p>}
+          {matching && <p role="status">Đang kiểm tra tổ hợp…</p>}
           {existingId && (
             <div className="catalog-inline-notice">
-              <strong>{en ? 'This combination already exists.' : 'Tổ hợp này đã có sản phẩm.'}</strong>
+              <strong>Tổ hợp này đã có sản phẩm.</strong>
               <Link href={`/admin/products/${existingId}`}>
-                {en ? 'Open product' : 'Mở sản phẩm'} #{existingId}
+                Mở sản phẩm #{existingId}
               </Link>
-              <Link href="/admin/stock">{en ? 'Receive more stock' : 'Nhập thêm hàng'} ↗</Link>
+              <Link href="/admin/stock">Nhập thêm hàng ↗</Link>
             </div>
           )}
           {pricing && (
             <dl className="catalog-derived-prices">
               <div>
-                <dt>{en ? 'Web price' : 'Giá web'}</dt>
-                <dd>{formatVND(pricing.listPriceVnd, locale)}</dd>
+                <dt>Giá web</dt>
+                <dd>{formatVND(pricing.listPriceVnd, 'vi')}</dd>
               </div>
               <div>
-                <dt>{en ? 'Buyback estimate' : 'Giá thu dự kiến'}</dt>
-                <dd>{formatVND(pricing.buybackPriceVnd, locale)}</dd>
+                <dt>Giá thu dự kiến</dt>
+                <dd>{formatVND(pricing.buybackPriceVnd, 'vi')}</dd>
               </div>
               <div>
                 <dt>C50</dt>
-                <dd>{formatVND(pricing.pawnPriceVnd, locale)}</dd>
+                <dd>{formatVND(pricing.pawnPriceVnd, 'vi')}</dd>
               </div>
             </dl>
           )}
           <details className="catalog-image-disclosure">
-            <summary>{en ? 'Inherited images · change if needed' : 'Ảnh kế thừa · thay đổi nếu cần'}</summary>
+            <summary>Ảnh kế thừa · thay đổi nếu cần</summary>
             <p>
-              {en
-                ? 'A 2hand product needs an actual uploaded photo before publication.'
-                : 'Sản phẩm 2hand cần ảnh thật đã tải lên trước khi xuất bản.'}
+              Sản phẩm 2hand cần ảnh thật đã tải lên trước khi xuất bản.
             </p>
             <ProductImagesField
               mainImage={mainImage}

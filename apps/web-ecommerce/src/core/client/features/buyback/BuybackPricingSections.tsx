@@ -385,7 +385,7 @@ export default function BuybackPricingSections({
           <p className="mu-note">
             {v2('inspectionUploaded', { count: inspectionIds.length + (selected.inspectionEvidence?.length || 0) })}
           </p>
-          {selected.conditionCase ? <label className="flex items-start gap-3 text-sm"><input name="conditionMatchesApproved" type="checkbox" required /><span>{locale === 'en' ? 'The actual inspected item matches the approved condition combination above. Resolve any differences before quoting.' : 'Hàng kiểm thực tế khớp tổ hợp tình trạng đã duyệt ở trên. Nếu khác, đối chiếu và duyệt lại tổ hợp trước khi báo giá.'}</span></label> : <>
+          {selected.conditionCase ? <label className="flex items-start gap-3 text-sm"><input name="conditionMatchesApproved" type="checkbox" required /><span>Hàng kiểm thực tế khớp tổ hợp tình trạng đã duyệt ở trên. Nếu khác, đối chiếu và duyệt lại tổ hợp trước khi báo giá.</span></label> : <>
           <h4 className="font-semibold">{v2('inspectedIssues')}</h4>
           {inspected.map((issue, index) => (
             <div key={index} className="grid gap-2 sm:grid-cols-[1.2fr_.5fr_2fr_auto]">

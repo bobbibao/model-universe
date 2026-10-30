@@ -5,7 +5,7 @@ import { withoutLocale } from '@/i18n/config';
 import englishErrors from '@/messages/errors/en.json';
 import vietnameseErrors from '@/messages/errors/vi.json';
 import * as querystring from 'querystring';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import ApiResponse from '@/shared/client/utils/ApiResponseUtils';
 import camelCaseKeys from 'camelcase-keys';
 import { Events, eventEmitter } from '@/shared/client/utils/eventEmitter';
@@ -41,7 +41,7 @@ axiosInstance.interceptors.response.use(
           ? apiResponse.userMessages
           : [apiResponse.userMessages];
         const singleLine = messages.join('\n');
-        toast.error(singleLine, { autoClose: false });
+        showToast.error(singleLine, { autoClose: 5000 });
       }
 
     if (apiResponse.displayValidation && apiResponse.userValidationMessages) {
@@ -58,7 +58,7 @@ axiosInstance.interceptors.response.use(
     }
 
     if (apiResponse.toastType === 'success' && apiResponse.userMessages) {
-      toast.success(apiResponse.userMessages.join('\n'));
+      showToast.success(apiResponse.userMessages.join('\n'));
     }
 
     return {
@@ -72,8 +72,8 @@ axiosInstance.interceptors.response.use(
     if (apiResponse.statusCode === 401) {
       // Session missing or expired: send the user to sign in and come back afterwards.
       // localStorage is kept on purpose (it holds the guest cart).
-      toast.dismiss();
-      toast.error(apiResponse.userMessages?.join('\n') || errorMessage('AUTH_REQUIRED'));
+      showToast.dismiss();
+      showToast.error(apiResponse.userMessages?.join('\n') || errorMessage('AUTH_REQUIRED'));
       const { pathname, search } = window.location;
       if (!withoutLocale(pathname).startsWith('/auth/')) {
         window.location.assign(`/${document.documentElement.lang === 'en' ? 'en' : 'vi'}/auth/signin?redirect=${encodeURIComponent(pathname + search)}`);
@@ -90,10 +90,10 @@ axiosInstance.interceptors.response.use(
       // The message doubles as the toast id, so a page whose parallel requests fail for the same reason (e.g. the
       // AI service is down) shows it once instead of once per request.
       const message = apiResponse.userMessages.join('\n');
-      toast.error(message, { toastId: message });
+      showToast.error(message, { toastId: message });
     } else {
       const message = errorMessage('NETWORK_ERROR');
-      toast.error(message, { toastId: message, autoClose: false });
+      showToast.error(message, { toastId: message, autoClose: 6000 });
     }
     return Promise.reject(error);
   },

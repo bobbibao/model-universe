@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { SignJWT } from 'jose';
-import en from '../src/messages/en.json';
+import vi from '../src/messages/vi.json';
 
 test.use({ timezoneId: 'Asia/Ho_Chi_Minh' });
 test('shared calendar supports historical dates, native form values and voucher modals', async ({ page, context }) => {
@@ -45,25 +45,25 @@ test('shared calendar supports historical dates, native form values and voucher 
       },
     });
   });
-  await page.goto('/en/admin/products/1');
-  const input = page.getByLabel(en.adminProducts.receivedDate, { exact: true });
-  await input.locator('..').getByRole('button', { name: en.calendar.open }).click();
+  await page.goto('/vi/admin/products/1');
+  const input = page.getByLabel(vi.adminProducts.receivedDate, { exact: true });
+  await input.locator('..').getByRole('button', { name: vi.calendar.open }).click();
   const picker = page.locator('.dt-popover:popover-open');
-  await picker.getByRole('spinbutton', { name: en.calendar.year, exact: true }).fill('2024');
-  await picker.getByRole('combobox', { name: en.calendar.month, exact: true }).selectOption('1');
-  await picker.getByRole('button', { name: 'Thursday, 29 February 2024', exact: true }).click();
-  await picker.getByRole('button', { name: en.calendar.confirm, exact: true }).click();
+  await picker.getByRole('spinbutton', { name: vi.calendar.year, exact: true }).fill('2024');
+  await picker.getByRole('combobox', { name: vi.calendar.month, exact: true }).selectOption('1');
+  await picker.getByRole('button', { name: /29.*2024/ }).click();
+  await picker.getByRole('button', { name: vi.calendar.confirm, exact: true }).click();
   await expect(input).toHaveValue('2024-02-29');
   await input.fill('2025-02-29');
   expect(await input.evaluate((element) => (element as HTMLInputElement).validity.valid)).toBe(false);
   await input.fill('2024-02-29');
-  await input.locator('..').getByRole('button', { name: en.calendar.open }).click();
+  await input.locator('..').getByRole('button', { name: vi.calendar.open }).click();
   await page.keyboard.press('Escape');
   await expect(picker).toHaveCount(0);
-  await page.goto('/en/admin/coupons');
-  await page.getByRole('button', { name: new RegExp(en.adminCoupons.create) }).click();
-  const start = page.getByLabel(en.adminCoupons.start, { exact: true });
-  await start.locator('..').getByRole('button', { name: en.calendar.open }).click();
+  await page.goto('/vi/admin/coupons');
+  await page.getByRole('button', { name: new RegExp(vi.adminCoupons.create) }).click();
+  const start = page.getByLabel(vi.adminCoupons.start, { exact: true });
+  await start.locator('..').getByRole('button', { name: vi.calendar.open }).click();
   await expect(page.locator('.dt-popover:popover-open .dt-calendar')).toBeVisible();
   const box = await page.locator('.dt-popover:popover-open').boundingBox();
   expect(box!.y).toBeGreaterThanOrEqual(0);

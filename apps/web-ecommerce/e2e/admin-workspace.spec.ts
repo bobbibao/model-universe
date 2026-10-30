@@ -6,7 +6,7 @@ import { adminDestinations } from '../src/components/Admin/navigation';
 
 const screenshots = process.env.E2E_ADMIN_SCREENSHOTS || '.artifacts/admin-workspace';
 
-for (const locale of ['vi', 'en']) {
+for (const locale of ['vi']) {
   for (const device of ['desktop', 'mobile']) {
     test(`${locale} ${device}: every admin destination renders without overflow or runtime errors`, async ({
       page,
@@ -125,18 +125,15 @@ test('command search, modal focus, persistent Copilot draft and locale switching
   await expect(draft).toHaveValue('Doanh thu tháng này thế nào?');
   await expect(dialog.getByText('Đang làm việc tại: Nhà cung cấp', { exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
-  await page.getByRole('link', { name: 'Switch to English' }).click();
-  await page.waitForURL('**/en/admin/suppliers');
-  await page.getByRole('button', { name: 'Open AI Copilot' }).click();
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(dialog.getByText('Working in: Suppliers', { exact: true })).toBeVisible();
-  await dialog.getByRole('button', { name: 'How is revenue this month?' }).click();
-  await expect(dialog.getByRole('textbox', { name: 'Ask a question or describe a task…' })).toHaveValue(
-    'How is revenue this month?',
-  );
+  await expect(page.locator('.admin-language')).toHaveCount(0);
+  await page.goto('/en/admin/suppliers');
+  await page.waitForURL('**/vi/admin/suppliers');
+  await page.getByRole('button', { name: 'Mở trợ lý AI Copilot' }).click();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'vi');
+  await expect(dialog.getByText('Đang làm việc tại: Nhà cung cấp', { exact: true })).toBeVisible();
 });
 
-for (const locale of ['vi', 'en'])
+for (const locale of ['vi'])
   test(`${locale}: mobile Copilot dialog remains usable and restores focus`, async ({ page }) => {
     test.skip(!hasAdmin, 'Requires an existing synthetic admin account');
     await page.setViewportSize({ width: 390, height: 844 });
@@ -234,7 +231,7 @@ test('alternate themes and reduced motion work on desktop and mobile', async ({ 
       device === 'desktop' ? 'dark' : 'light',
     );
     for (const section of ['dashboard', 'products', 'marketing', 'agent/copilot', 'agent/settings']) {
-      await page.goto(`/en/admin/${section}`);
+      await page.goto(`/vi/admin/${section}`);
       await expect(page.locator('.admin-page h1').first()).toBeVisible();
       await expect(page.locator('.admin-table[aria-busy="true"]')).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

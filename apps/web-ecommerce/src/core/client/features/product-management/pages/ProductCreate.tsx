@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
@@ -26,8 +26,7 @@ import {
 
 const ProductCreate = () => {
   const router = useRouter();
-  const t = useTranslations('adminProducts'),
-    locale = useLocale();
+  const t = useTranslations('adminProducts');
   const ux = useTranslations('commerceUX');
   const conditions = useProductConditions();
   const bodyRef = useRef<HTMLFieldSetElement>(null);
@@ -97,7 +96,7 @@ const ProductCreate = () => {
   return (
     <div className="compact-admin-create-page">
       <Breadcrumb pageName={t('create')} />
-      <details className="catalog-inline-notice mb-4"><summary>{locale === 'en' ? 'Add a combination to an existing model instead?' : 'Thêm tổ hợp từ mẫu đã có?'}</summary><p>{locale === 'en' ? 'Choose the source to inherit its model information and images.' : 'Chọn sản phẩm gốc để kế thừa thông tin mẫu và ảnh.'}</p><ProductPicker value={null} excludeIds={[]} onChange={product => router.push(`/admin/products/${product.id}?section=conditions&create=1`)} /></details>
+      <details className="catalog-inline-notice mb-4"><summary>Thêm tổ hợp từ mẫu đã có?</summary><p>Chọn sản phẩm gốc để kế thừa thông tin mẫu và ảnh.</p><ProductPicker value={null} excludeIds={[]} onChange={product => router.push(`/admin/products/${product.id}?section=conditions&create=1`)} /></details>
       <div className="compact-admin-create-card rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="compact-create-stepper">
           <Stepper steps={steps} currentStep={step} />
@@ -152,7 +151,7 @@ const ProductCreate = () => {
                     <dt className="inline text-body">{t('price')}</dt>
                     <dd className="inline font-medium">
                       {/* A new product sells at S until a real list price R is approved. */}
-                      {values.pricingReferenceMemberVnd && formatVND(Number(values.pricingReferenceMemberVnd), locale)}
+                      {values.pricingReferenceMemberVnd && formatVND(Number(values.pricingReferenceMemberVnd), 'vi')}
                     </dd>
                   </div>
                   <div>

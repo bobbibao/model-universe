@@ -2,7 +2,7 @@
 import '../marketing-studio.css';
 import '../marketing-composer.css';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import AdminMarketingApi from '@/core/client/api/AdminMarketing';
@@ -104,8 +104,7 @@ function Area({
 }
 
 export default function MarketingWorkspace() {
-  const t = useTranslations('marketingStudio'),
-    locale = useLocale();
+  const t = useTranslations('marketingStudio');
   const defaultTone = t('agent.tones.natural');
   const [input, setInput] = useState<MarketingDraftInput>(() => empty(defaultTone));
   const [selected, setSelected] = useState<MarketingDraft>();
@@ -137,7 +136,7 @@ export default function MarketingWorkspace() {
   const total = isPost ? 0 : input.dailyBudgetVnd * input.durationDays;
   const schedule = isPost ? input.scheduledAt : input.startsAt;
   const money = (value: number) =>
-    new Intl.NumberFormat(locale === 'en' ? 'en-US' : 'vi-VN', {
+    new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND',
       maximumFractionDigits: 0,
@@ -405,7 +404,7 @@ export default function MarketingWorkspace() {
                               <strong>{draft.input.name}</strong>
                               <small>
                                 {t(`channels.${draft.input.channel}`)} ·{' '}
-                                {new Date(draft.updatedAt).toLocaleString(locale === 'en' ? 'en-GB' : 'vi-VN')}
+                                {new Date(draft.updatedAt).toLocaleString('vi-VN')}
                               </small>
                             </span>
                             <span className={`mk-status is-${STATUS_TONE[status] || 'muted'}`}>
@@ -687,7 +686,7 @@ export default function MarketingWorkspace() {
                 <AdminIcon name="calendar" size={15} />
                 <span>
                   {schedule
-                    ? new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'vi-VN', {
+                    ? new Intl.DateTimeFormat('vi-VN', {
                         dateStyle: 'full',
                         timeStyle: 'short',
                       }).format(new Date(schedule))

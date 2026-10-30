@@ -1,6 +1,7 @@
 import '@/css/satoshi.css';
 import '@/css/style.css';
 import 'react-toastify/dist/ReactToastify.css';
+import '@/css/toast-custom.css';
 import '@/css/customer-assistant.css';
 import '@/css/model-universe.css';
 import '@/css/admin-workspace.css';

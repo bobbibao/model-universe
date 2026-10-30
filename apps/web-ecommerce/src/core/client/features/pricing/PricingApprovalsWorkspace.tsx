@@ -308,7 +308,7 @@ function ProductRecords({
     fixedFeeVnd: 0,
     expectedReturnVnd: 0,
   }));
-  const date = (value: string) => new Date(value).toLocaleDateString(locale === 'en' ? 'en-GB' : 'vi-VN');
+  const date = (value: string) => new Date(value).toLocaleDateString('vi-VN');
   const status = (value: Status) => (
     <span className={`pa-chip ${value === 'APPROVED' ? 'is-success' : value === 'DRAFT' ? 'is-warning' : ''}`}>
       {t(`status.${value}`)}

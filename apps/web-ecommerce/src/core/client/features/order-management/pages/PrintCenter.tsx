@@ -4,7 +4,7 @@ import DateTimeInput from '@/components/DateTimeInput';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import Link from '@/i18n/navigation';
 import Api from '@/core/client/api/Api';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -121,7 +121,7 @@ export default function PrintCenter() {
       const batch = (await Api.post('/admin/shipping/print-batches', { shipmentIds: [...selected], size }))
         .data as Batch;
       setCurrent(batch);
-      toast.success(t('batchCreated', { id: batch.id, count: batch.labelCount }));
+      showToast.success(t('batchCreated', { id: batch.id, count: batch.labelCount }));
       await load();
       print(batch.id);
     } catch {
@@ -137,7 +137,7 @@ export default function PrintCenter() {
         url: string | null;
       };
       if (result.url) window.open(result.url, '_blank', 'noopener');
-      else toast.info(t('noLiveLabels'));
+      else showToast.info(t('noLiveLabels'));
     } catch {
       /* The toast explains it. */
     }
@@ -153,7 +153,7 @@ export default function PrintCenter() {
         const spec = (await Api.get(`/admin/orders/${orderId}/package`)).data;
         await Api.post(`/admin/orders/${orderId}/shipments`, { requestKey: crypto.randomUUID(), package: spec });
       }
-      toast.success(t('waybillCreated'));
+      showToast.success(t('waybillCreated'));
       await load();
     } catch {
       /* The toast explains it. */

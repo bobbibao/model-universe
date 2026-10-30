@@ -62,7 +62,7 @@ test('admin dark workspace and nested sidebar retain independent scrolling', asy
   test.skip(!hasAdmin, 'Requires synthetic administrator');
   expect((await page.request.post('/api/auth/login', { data: admin })).ok()).toBe(true);
   await page.setViewportSize({ width: 1440, height: 650 });
-  await page.goto('/en/admin/marketing');
+  await page.goto('/vi/admin/marketing');
   await page.evaluate(() => document.documentElement.classList.add('dark'));
   const sidebar = page.locator('.admin-sidebar-scroll');
   await sidebar.hover();

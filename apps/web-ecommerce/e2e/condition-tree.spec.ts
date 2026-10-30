@@ -36,14 +36,14 @@ test.describe('condition catalog demo', () => {
     await expect(page.locator('.catalog-tree-node').filter({ hasText: name })).toHaveCount(0);
   });
 
-  test('English Admin retains English item types and readonly stock', async ({ page }) => {
-    await page.goto('/en/admin/products/5');
-    await page.getByRole('tab', { name: 'Inventory', exact: true }).click();
-    await expect(page.getByRole('spinbutton', { name: 'Available stock', exact: true })).toHaveAttribute(
+  test('Vietnamese Admin retains item types and readonly stock', async ({ page }) => {
+    await page.goto('/vi/admin/products/5');
+    await page.getByRole('tab', { name: 'Tồn kho', exact: true }).click();
+    await expect(page.getByRole('spinbutton', { name: 'Tồn kho khả dụng', exact: true })).toHaveAttribute(
       'readonly',
       '',
     );
-    await page.goto('/en/admin/products/5?section=conditions');
+    await page.goto('/vi/admin/products/5?section=conditions');
     await expect(page.locator('.condition-tree-picker')).toBeVisible();
     await page.goto('/en/shop/product/5');
     await expect(page.locator('.condition-option').first()).toContainText('2hand');
@@ -132,9 +132,9 @@ test.describe('condition catalog demo', () => {
   });
 
   test('Admin selection toggles independently and a fully selected parent has a derived tick', async ({ page }) => {
-    await page.goto('/en/admin/products/conditions');
-    const box = page.locator('.catalog-tree-node').filter({ hasText: /^Box/ });
-    const accessories = page.locator('.catalog-tree-node').filter({ hasText: /^Accessories/ });
+    await page.goto('/vi/admin/products/conditions');
+    const box = page.locator('.catalog-tree-node').filter({ hasText: /^Vỏ hộp/ });
+    const accessories = page.locator('.catalog-tree-node').filter({ hasText: /^Phụ kiện/ });
     await box.click();
     await accessories.click();
     await expect(box).toHaveAttribute('aria-pressed', 'true');
@@ -142,27 +142,27 @@ test.describe('condition catalog demo', () => {
     await accessories.click();
     await expect(accessories).toHaveAttribute('aria-pressed', 'false');
     await expect(box).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByLabel('Guidance')).toHaveCount(0);
+    await expect(page.getByLabel('Hướng dẫn')).toHaveCount(0);
     await expect(page.locator('.catalog-tree-add')).toHaveCount(0);
-    await page.goto('/en/admin/products/5?section=conditions');
-    await page.getByRole('button', { name: '+ Add combination', exact: true }).click();
+    await page.goto('/vi/admin/products/5?section=conditions');
+    await page.getByRole('button', { name: '+ Thêm tổ hợp', exact: true }).click();
     const picker = page.getByRole('dialog').locator('.condition-tree-picker');
-    await picker.getByRole('button', { name: 'Damaged box', exact: true }).click();
-    await picker.getByRole('button', { name: 'Expand Damaged box', exact: true }).click();
-    for (const name of ['Dented box', 'Torn box', 'Water-damaged box'])
+    await picker.getByRole('button', { name: 'Hộp xấu / móp', exact: true }).click();
+    await picker.getByRole('button', { name: 'Mở rộng Hộp xấu / móp', exact: true }).click();
+    for (const name of ['Hộp móp', 'Hộp rách', 'Hộp ẩm / ố nước'])
       await picker.getByRole('button', { name, exact: true }).click();
-    await expect(picker.getByRole('button', { name: 'Damaged box', exact: true })).toHaveAttribute(
+    await expect(picker.getByRole('button', { name: 'Hộp xấu / móp', exact: true })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    await picker.getByRole('button', { name: 'Torn box', exact: true }).click();
-    await expect(picker.getByRole('button', { name: 'Damaged box', exact: true })).toHaveAttribute(
+    await picker.getByRole('button', { name: 'Hộp rách', exact: true }).click();
+    await expect(picker.getByRole('button', { name: 'Hộp xấu / móp', exact: true })).toHaveAttribute(
       'aria-pressed',
       'false',
     );
-    await picker.getByRole('button', { name: 'Torn box', exact: true }).click();
-    await picker.getByRole('button', { name: 'Damaged box', exact: true }).click();
-    await expect(picker.getByRole('button', { name: 'Damaged box', exact: true })).toHaveAttribute(
+    await picker.getByRole('button', { name: 'Hộp rách', exact: true }).click();
+    await picker.getByRole('button', { name: 'Hộp xấu / móp', exact: true }).click();
+    await expect(picker.getByRole('button', { name: 'Hộp xấu / móp', exact: true })).toHaveAttribute(
       'aria-pressed',
       'false',
     );

@@ -292,7 +292,6 @@
   border: 1px solid var(--admin-line);
   border-radius: 4px;
 }
-.admin-language,
 .admin-theme-toggle {
   display: flex;
   align-items: center;
@@ -304,7 +303,6 @@
   font-size: 11px;
   font-weight: 700;
 }
-.admin-language:hover,
 .admin-theme-toggle:hover {
   background: var(--admin-soft);
 }
@@ -994,7 +992,6 @@
   .admin-inbox-badge .admin-agent-offline {
     display: none;
   }
-  .admin-language,
   .admin-theme-toggle {
     width: 30px;
     height: 34px;

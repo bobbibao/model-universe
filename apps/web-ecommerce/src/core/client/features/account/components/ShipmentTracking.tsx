@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import OrderApi from '@/core/client/api/Order';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Order } from '@/shared/types/order';
@@ -67,7 +67,11 @@ export default function ShipmentTracking({ order, onChange }: { order: Order; on
   entries.sort((a, b) => b.at.localeCompare(a.at));
 
   const copy = () =>
-    void navigator.clipboard?.writeText(code).then(() => toast.success(t('tracking.copied', { code })));
+    void navigator.clipboard?.writeText(code).then(() =>
+      showToast.success(t('tracking.copied', { code }), {
+        action: { label: 'Chi tiết bưu tá', href: '/services' },
+      }),
+    );
   const refresh = async () => {
     setBusy(true);
     const updated = await OrderApi.tracking(order.id);

@@ -166,7 +166,7 @@ test('admin operation selector retains drafts in independent financial forms', a
     )
       writes.push(request.url());
   });
-  await page.goto('/en/admin/loyalty');
+  await page.goto('/vi/admin/loyalty');
   const panels = page.locator('.studio-operation-panels');
   await panels.getByLabel(en.loyalty.productId, { exact: true }).fill('123');
   await panels.getByRole('button', { name: en.loyalty.refund, exact: true }).click();

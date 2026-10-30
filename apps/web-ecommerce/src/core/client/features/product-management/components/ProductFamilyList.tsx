@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useLocale } from 'next-intl';
 import ProductApi from '@/core/client/api/Product';
 import type { AdminProductListItem, AdminProductUnit } from '@/shared/types/product';
 import type { Pagination } from '@/shared/types/pagination';
@@ -11,8 +10,6 @@ import { formatVND } from '@/shared/server/utils/utils';
 import { itemTypeLabel } from '@/shared/condition-tree';
 
 export default function ProductFamilyList() {
-  const locale = useLocale(),
-    en = locale === 'en';
   const [rows, setRows] = useState<(AdminProductListItem & { familyUnits?: AdminProductUnit[] })[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
   const [page, setPage] = useState(1),
@@ -44,8 +41,8 @@ export default function ProductFamilyList() {
         <input
           type="search"
           className={`${inputClassName} max-w-md`}
-          aria-label={en ? 'Find a model or SKU' : 'Tìm mẫu mô hình hoặc SKU'}
-          placeholder={en ? 'Find a model or SKU…' : 'Tìm mẫu mô hình hoặc SKU…'}
+          aria-label="Tìm mẫu mô hình hoặc SKU"
+          placeholder="Tìm mẫu mô hình hoặc SKU…"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -53,19 +50,19 @@ export default function ProductFamilyList() {
           }}
         />
         <Link className="mu-button" href="/admin/products/new">
-          {en ? '+ Add product' : '+ Thêm sản phẩm'}
+          + Thêm sản phẩm
         </Link>
       </div>
       {loading ? (
         <p role="status" className="condition-tree-empty">
-          {en ? 'Loading…' : 'Đang tải…'}
+          Đang tải…
         </p>
       ) : failed ? (
         <button type="button" onClick={() => setRetry((value) => value + 1)}>
-          {en ? 'Could not load. Retry' : 'Không tải được. Thử lại'}
+          Không tải được. Thử lại
         </button>
       ) : !rows.length ? (
-        <p className="condition-tree-empty">{en ? 'No models found' : 'Không tìm thấy mẫu mô hình'}</p>
+        <p className="condition-tree-empty">Không tìm thấy mẫu mô hình</p>
       ) : (
         rows.map((row) => (
           <details className="catalog-family-card" key={row.modelFamilyId ?? -row.id} open={rows.length === 1}>
@@ -81,7 +78,7 @@ export default function ProductFamilyList() {
               </div>
               <small>
                 {row.familyUnits?.length ?? 1} SKU ·{' '}
-                {row.familyUnits?.reduce((sum, unit) => sum + unit.stock, 0) ?? row.stock} {en ? 'in stock' : 'tồn kho'}{' '}
+                {row.familyUnits?.reduce((sum, unit) => sum + unit.stock, 0) ?? row.stock} tồn kho{' '}
                 ⌄
               </small>
             </summary>
@@ -90,13 +87,13 @@ export default function ProductFamilyList() {
                 <thead>
                   <tr>
                     <th>SKU</th>
-                    <th>{en ? 'Type / conditions' : 'Loại hàng / tình trạng'}</th>
-                    <th>{en ? 'Real price S' : 'Giá bán thực S'}</th>
-                    <th>{en ? 'Stock' : 'Tồn kho'}</th>
-                    <th>{en ? 'Visibility' : 'Hiển thị'}</th>
+                    <th>Loại hàng / tình trạng</th>
+                    <th>Giá bán thực S</th>
+                    <th>Tồn kho</th>
+                    <th>Hiển thị</th>
                     <th>
                       <Link href={`/admin/products/${row.id}?section=conditions&create=1`}>
-                        {en ? '+ Add combination' : '+ Thêm tổ hợp'}
+                        + Thêm tổ hợp
                       </Link>
                     </th>
                   </tr>
@@ -110,18 +107,18 @@ export default function ProductFamilyList() {
                           {itemTypeLabel(unit.itemTypeKey ?? unit.condition)}
                         </span>
                         <span className="catalog-combination-label">
-                          {unit.conditionLabels?.join(' · ') || (en ? 'No issues recorded' : 'Không ghi nhận lỗi')}
+                          {unit.conditionLabels?.join(' · ') || 'Không ghi nhận lỗi'}
                         </span>
                       </td>
-                      <td className="catalog-money">{formatVND(unit.pricingReferenceMemberVnd ?? 0, locale)}</td>
+                      <td className="catalog-money">{formatVND(unit.pricingReferenceMemberVnd ?? 0, 'vi')}</td>
                       <td>{unit.stock}</td>
                       <td>
                         <span className={`catalog-status ${unit.isArchived ? 'is-draft' : ''}`}>
-                          {unit.isArchived ? (en ? 'Hidden' : 'Ẩn / nháp') : en ? 'Published' : 'Đang bán'}
+                          {unit.isArchived ? 'Ẩn / nháp' : 'Đang bán'}
                         </span>
                       </td>
                       <td>
-                        <Link href={`/admin/products/${unit.id}`}>{en ? 'Edit' : 'Sửa'} ↗</Link>
+                        <Link href={`/admin/products/${unit.id}`}>Sửa ↗</Link>
                       </td>
                     </tr>
                   ))}
@@ -141,14 +138,14 @@ export default function ProductFamilyList() {
             disabled={loading || !pagination.hasPreviousPage}
             onClick={() => setPage((value) => value - 1)}
           >
-            {en ? 'Previous' : 'Trước'}
+            Trước
           </button>
           <button
             type="button"
             disabled={loading || !pagination.hasNextPage}
             onClick={() => setPage((value) => value + 1)}
           >
-            {en ? 'Next' : 'Sau'}
+            Sau
           </button>
         </div>
       )}

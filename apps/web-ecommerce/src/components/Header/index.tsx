@@ -1,7 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { usePathname } from '@/i18n/navigation';
 import DarkModeSwitcher from './DarkModeSwitcher';
 import DropdownUser from './DropdownUser';
@@ -18,13 +17,11 @@ export default function Header({
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 }) {
-  const locale = useLocale(),
-    t = useTranslations('adminNavigation'),
+  const t = useTranslations('adminNavigation'),
     workspace = useTranslations('adminWorkspace');
   const pathname = usePathname(),
-    search = useSearchParams(),
     destination = adminDestination(pathname);
-  const switchHref = search.size ? `${pathname}?${search.toString()}` : pathname;
+
   return (
     <header className="admin-header">
       <div className="admin-header-location">
@@ -47,15 +44,6 @@ export default function Header({
         <AdminCommandMenu />
         {hasInlineAdminAssistant(pathname) && <AdminAssistant inline />}
         <ul className="admin-header-tools">
-          <li>
-            <a
-              href={`/${locale === 'vi' ? 'en' : 'vi'}${switchHref}`}
-              aria-label={locale === 'vi' ? 'Switch to English' : 'Chuyển sang tiếng Việt'}
-              className="admin-language"
-            >
-              {locale === 'vi' ? 'EN' : 'VI'}
-            </a>
-          </li>
           <DarkModeSwitcher />
           <li>
             <AgentInboxBadge />

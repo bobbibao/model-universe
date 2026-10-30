@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { toast } from 'react-toastify';
+import { showToast } from '@/shared/client/utils/toast';
 import Link from '@/i18n/navigation';
 import PromoIcon, { type PromoIconName } from '@/components/PromoIcon';
 import PromotionApi, { type PromotionsHub as Hub, type VoucherDrop } from '@/core/client/api/Promotion';
@@ -40,13 +40,17 @@ export default function PromotionsHub() {
 
   const act = async <T,>(action: () => Promise<T>, success: (value: T) => string) => {
     if (!user) {
-      toast.info(t('signInFirst'));
+      showToast.info(t('signInFirst'), {
+        action: { label: 'Đăng nhập ngay', href: '/auth/signin' },
+      });
       return null;
     }
     setBusy(true);
     try {
       const value = await action();
-      toast.success(success(value));
+      showToast.success(success(value), {
+        action: { label: 'Xem giỏ hàng', href: '/cart' },
+      });
       load();
       return value;
     } catch {
