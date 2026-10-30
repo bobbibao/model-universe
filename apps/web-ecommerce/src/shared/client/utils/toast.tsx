@@ -218,12 +218,49 @@ export const CustomToastIcon = ({ type }: { type?: string }) => {
   }
 };
 
+/**
+ * Strict FIFO Ring Buffer: Holds at most 3 newest toasts.
+ * When adding a 4th toast, the oldest toast (at the top/beginning) is dismissed immediately,
+ * and the newest toast is appended at the end/bottom.
+ */
+const MAX_VISIBLE_TOASTS = 3;
+const activeToastIds: (string | number)[] = [];
+
+if (typeof window !== 'undefined') {
+  baseToast.onChange((toastItem) => {
+    if (toastItem.status === 'added') {
+      if (!activeToastIds.includes(toastItem.id)) {
+        while (activeToastIds.length >= MAX_VISIBLE_TOASTS) {
+          const oldestId = activeToastIds.shift();
+          if (oldestId !== undefined) {
+            baseToast.dismiss(oldestId);
+          }
+        }
+        activeToastIds.push(toastItem.id);
+      }
+    } else if (toastItem.status === 'removed') {
+      const idx = activeToastIds.indexOf(toastItem.id);
+      if (idx !== -1) {
+        activeToastIds.splice(idx, 1);
+      }
+    }
+  });
+}
+
 const renderToast = (
   message: React.ReactNode,
   options?: EnhancedToastOptions,
   type: 'success' | 'error' | 'info' | 'warning' = 'info',
 ) => {
   const { title, action, href, ...restOptions } = options || {};
+
+  // If already at or above limit (3), immediately dismiss the oldest toast from the beginning
+  while (activeToastIds.length >= MAX_VISIBLE_TOASTS) {
+    const oldestId = activeToastIds.shift();
+    if (oldestId !== undefined) {
+      baseToast.dismiss(oldestId);
+    }
+  }
 
   const content = ({ closeToast }: ToastContentProps) => (
     <ToastCard
@@ -236,9 +273,17 @@ const renderToast = (
     />
   );
 
-  return baseToast[type](content, {
+  const toastId = baseToast[type](content, {
     ...restOptions,
   });
+
+  if (toastId !== undefined && toastId !== null) {
+    if (!activeToastIds.includes(toastId)) {
+      activeToastIds.push(toastId);
+    }
+  }
+
+  return toastId;
 };
 
 export const showToast = Object.assign(
@@ -254,7 +299,16 @@ export const showToast = Object.assign(
       renderToast(message, options, 'warning'),
     warning: (message: React.ReactNode, options?: EnhancedToastOptions) =>
       renderToast(message, options, 'warning'),
-    dismiss: baseToast.dismiss,
+    dismiss: (id?: string | number) => {
+      if (id !== undefined) {
+        const idx = activeToastIds.indexOf(id);
+        if (idx !== -1) activeToastIds.splice(idx, 1);
+        baseToast.dismiss(id);
+      } else {
+        activeToastIds.length = 0;
+        baseToast.dismiss();
+      }
+    },
     isActive: baseToast.isActive,
     update: baseToast.update,
   },

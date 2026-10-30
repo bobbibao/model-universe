@@ -3,6 +3,11 @@
    Design: Restrained, Monochromatic, Non-intrusive, Micro-interactions
    ========================================================================== */
 
+:root {
+  --toastify-toast-width: 340px;
+  --toastify-animation-duration: 220ms;
+}
+
 /* Container - Non-blocking overlay */
 .Toastify__toast-container {
   z-index: 10000000 !important;
@@ -226,9 +231,56 @@
   }
 }
 
-/* Eliminate Progress Bar Entirely (Senior UX Standard) */
+/* Minimalist Restrained Progress Timer Bar (Hairline, Non-garish) */
+.Toastify__progress-bar--wrp {
+  height: 2.5px !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  border-bottom-left-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+  overflow: hidden !important;
+}
+
 .Toastify__progress-bar {
-  display: none !important;
+  display: block !important;
+  height: 2.5px !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  opacity: 0.8 !important;
+  border-bottom-left-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+}
+
+/* Subtle, sophisticated non-garish tones */
+.Toastify__progress-bar--light,
+.Toastify__progress-bar-theme--light,
+.Toastify__progress-bar {
+  background: #71717a !important; /* Neutral slate/zinc */
+}
+
+.dark .Toastify__progress-bar,
+.Toastify__progress-bar-theme--dark {
+  background: #a1a1aa !important;
+}
+
+.Toastify__progress-bar--success {
+  background: #10b981 !important; /* Emerald */
+}
+
+.Toastify__progress-bar--error {
+  background: #f43f5e !important; /* Rose */
+}
+
+.Toastify__progress-bar--warning {
+  background: #f59e0b !important; /* Amber */
+}
+
+.Toastify__progress-bar--info {
+  background: #94a3b8 !important; /* Slate */
+}
+
+.Toastify__progress-bar--bg {
+  opacity: 0.15 !important;
 }
 
 /* ==========================================================================

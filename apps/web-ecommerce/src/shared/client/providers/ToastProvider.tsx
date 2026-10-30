@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, Slide } from 'react-toastify';
 import { Events, eventEmitter } from '@/shared/client/utils/eventEmitter';
 import { showToast, CustomCloseButton, CustomToastIcon } from '@/shared/client/utils/toast';
 
@@ -32,10 +32,10 @@ export default function ToastProvider({ children }: ToastProviderProps) {
       {children}
       <ToastContainer
         position="top-right"
-        limit={3}
-        newestOnTop={true}
+        transition={Slide}
+        newestOnTop={false}
         autoClose={3500}
-        hideProgressBar={true}
+        hideProgressBar={false}
         closeOnClick={false}
         pauseOnHover={true}
         draggable={true}
