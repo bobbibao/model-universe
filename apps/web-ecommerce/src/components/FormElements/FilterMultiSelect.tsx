@@ -48,7 +48,9 @@ export default function FilterMultiSelect({
         }
       }}
       onBlur={(event) => {
-        if (!inline && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+        // Clearing disables the focused button and can emit blur with no next target.
+        // Keep the menu open; outside pointer clicks and focus moving outside still close it.
+        if (!inline && event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
     >
       <span className="mu-field" id={`${id}-label`}>
