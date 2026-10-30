@@ -77,7 +77,7 @@ export default function ProductBulkActions({
   };
   return (
     <>
-      <div className="product-bulk-toolbar">
+      <div className="product-bulk-toolbar" role="region" aria-label="Thao tác với sản phẩm đã chọn">
         <span>
           {selected.length} {en ? 'selected' : 'sản phẩm đã chọn'}
         </span>

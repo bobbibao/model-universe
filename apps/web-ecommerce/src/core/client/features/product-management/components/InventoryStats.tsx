@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import ProductApi from '@/core/client/api/Product';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { InventoryStats as Stats } from '@/shared/types/product';
+import Link from '@/i18n/navigation';
 
 const Kpi = ({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: 'warn' }) => (
   <div className={`inventory-kpi${tone === 'warn' ? ' is-warn' : ''}`}>
@@ -17,17 +18,67 @@ const Kpi = ({ label, value, hint, tone }: { label: string; value: string; hint?
 
 // "Thống kê kho" above the product list: units on hand, products declared, stock at cost and at the suggested selling
 // price, and the same per brand and per condition.
-const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
-  const t = useTranslations('adminProducts.stats'),
-    catalog = useTranslations('catalog');
+const InventoryStats = ({
+  expanded = false,
+  compact = false,
+  refreshKey = 0,
+}: {
+  expanded?: boolean;
+  compact?: boolean;
+  refreshKey?: number;
+}) => {
+  const t = useTranslations('adminProducts.stats');
   const conditionTypes = useProductConditions();
   const [stats, setStats] = useState<Stats>();
   useEffect(() => {
-    ProductApi.getInventoryStats().then(setStats);
-  }, []);
-  if (!stats) return null;
+    let cancelled = false;
+    ProductApi.getInventoryStats().then((value) => {
+      if (!cancelled) setStats(value);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+  if (!stats)
+    return (
+      <div className="inventory-kpis inventory-kpis-loading" role="status">
+        Đang tải thống kê tồn kho…
+      </div>
+    );
   const count = (value: number) => value.toLocaleString('vi-VN');
   const { totals } = stats;
+  if (compact)
+    return (
+      <section className="catalog-inventory-overview" aria-label="Tổng quan tồn kho">
+        <div className="inventory-kpis">
+          <Kpi
+            label="Tổng số lượng tồn"
+            value={count(totals.stock)}
+            hint={`${count(totals.listings)} mẫu · ${count(totals.listings + totals.options)} sản phẩm theo tình trạng`}
+          />
+          <Kpi label="Tổng giá bán" value={formatVND(totals.memberValue, 'vi')} hint="Giá bán thực S × số lượng tồn" />
+          <Kpi
+            label="Tổng vốn đang tồn"
+            value={formatVND(totals.costValue, 'vi')}
+            hint={
+              totals.missingCost
+                ? `${count(totals.missingCost)} sản phẩm tồn chưa nhập vốn`
+                : 'Giá vốn đã lưu × số lượng tồn'
+            }
+            tone={totals.missingCost ? 'warn' : undefined}
+          />
+          <Kpi
+            label="Chênh lệch bán − vốn"
+            value={formatVND(totals.marginValue, 'vi')}
+            hint="Ước tính trước chi phí vận hành và ưu đãi"
+          />
+        </div>
+        <div className="catalog-inventory-footnote">
+          <span>Sản phẩm của shop · chưa bao gồm nháp/ẩn</span>
+          <Link href="/admin/products/report">Phân tích theo hãng, tình trạng ↗</Link>
+        </div>
+      </section>
+    );
   return (
     <details className="inventory-stats" open={expanded}>
       <summary>
@@ -74,7 +125,7 @@ const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
           <thead>
             <tr>
               <th scope="col">{t('brand')}</th>
-              <th scope="col">{t('rows')}</th>
+              <th scope="col">Mẫu</th>
               <th scope="col">{t('rowsInStock')}</th>
               <th scope="col">{t('stockUnits')}</th>
               <th scope="col">{t('value')}</th>
@@ -97,7 +148,7 @@ const InventoryStats = ({ expanded = false }: { expanded?: boolean }) => {
           <thead>
             <tr>
               <th scope="col">{t('condition')}</th>
-              <th scope="col">{t('rows')}</th>
+              <th scope="col">Sản phẩm</th>
               <th scope="col">{t('rowsInStock')}</th>
               <th scope="col">{t('stockUnits')}</th>
             </tr>

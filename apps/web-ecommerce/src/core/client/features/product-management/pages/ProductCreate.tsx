@@ -10,9 +10,8 @@ import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import Stepper from '@/components/Stepper/Stepper';
 import ProductApi from '@/core/client/api/Product';
 import { formatVND } from '@/shared/server/utils/utils';
-import useProductFormOptions from '../hooks/useProductFormOptions';
 import ProductImagesField, { ImageItem, imageFromUrl, uploadPendingImages } from '../components/ProductImagesField';
-import { BasicInfoFields, InventoryFields, PricingFields, SupplierField } from '../components/ProductFormSections';
+import { BasicInfoFields, InventoryFields, PricingFields } from '../components/ProductFormSections';
 import {
   ProductFormErrors,
   ProductFormValues,
@@ -30,8 +29,7 @@ const ProductCreate = () => {
   const ux = useTranslations('commerceUX');
   const conditions = useProductConditions();
   const bodyRef = useRef<HTMLFieldSetElement>(null);
-  const steps = ['basics', 'images', 'pricing', 'inventory', 'supplier'].map((key) => t(key));
-  const { categories, suppliers } = useProductFormOptions();
+  const steps = [...['basics', 'images', 'pricing', 'inventory'].map((key) => t(key)), t('review')];
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<ProductFormValues>(emptyProductForm);
   const [errors, setErrors] = useState<ProductFormErrors>({});
@@ -91,12 +89,18 @@ const ProductCreate = () => {
     if (product) router.push('/admin/products');
   };
 
-  const category = categories.find((item) => String(item.id) === values.categoryId);
-
   return (
     <div className="compact-admin-create-page">
       <Breadcrumb pageName={t('create')} />
-      <details className="catalog-inline-notice mb-4"><summary>Thêm tổ hợp từ mẫu đã có?</summary><p>Chọn sản phẩm gốc để kế thừa thông tin mẫu và ảnh.</p><ProductPicker value={null} excludeIds={[]} onChange={product => router.push(`/admin/products/${product.id}?section=conditions&create=1`)} /></details>
+      <details className="catalog-inline-notice mb-4">
+        <summary>Thêm tổ hợp từ mẫu đã có?</summary>
+        <p>Chọn sản phẩm gốc để kế thừa thông tin mẫu và ảnh.</p>
+        <ProductPicker
+          value={null}
+          excludeIds={[]}
+          onChange={(product) => router.push(`/admin/products/${product.id}?section=conditions&create=1`)}
+        />
+      </details>
       <div className="compact-admin-create-card rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="compact-create-stepper">
           <Stepper steps={steps} currentStep={step} />
@@ -115,9 +119,7 @@ const ProductCreate = () => {
           role="group"
           aria-label={steps[step]}
         >
-          {step === 0 && (
-            <BasicInfoFields values={values} errors={errors} onChange={onChange} categories={categories} />
-          )}
+          {step === 0 && <BasicInfoFields values={values} errors={errors} onChange={onChange} />}
           {step === 1 && (
             <ProductImagesField
               mainImage={mainImage}
@@ -131,7 +133,6 @@ const ProductCreate = () => {
           {step === 3 && <InventoryFields values={values} errors={errors} onChange={onChange} />}
           {step === 4 && (
             <div className="flex flex-col gap-6">
-              <SupplierField values={values} onChange={onChange} suppliers={suppliers} />
               <div className="rounded-md bg-gray-2 p-5 dark:bg-meta-4">
                 <h3 className="mb-3 font-semibold text-black dark:text-white">{t('review')}</h3>
                 <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
@@ -142,10 +143,6 @@ const ProductCreate = () => {
                   <div>
                     <dt className="inline text-body">{t('brand')}</dt>
                     <dd className="inline font-medium">{values.brandName}</dd>
-                  </div>
-                  <div>
-                    <dt className="inline text-body">{t('category')}</dt>
-                    <dd className="inline font-medium">{category?.name || t('noCategory')}</dd>
                   </div>
                   <div>
                     <dt className="inline text-body">{t('price')}</dt>

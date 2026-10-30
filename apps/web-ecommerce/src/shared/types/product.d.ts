@@ -236,6 +236,8 @@ export type ProductPayload = GunplaAttributes & ConditionSelection & {
 };
 
 // Admin "Thống kê kho": the shop's own catalogue, archived products and partner merchandise excluded.
+export type AdminCatalogSummary = { models: number; products: number; stock: number };
+
 export type InventoryStats = {
   totals: {
     listings: number;

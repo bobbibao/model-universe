@@ -11,7 +11,6 @@ import TextField from '@/components/FormElements/TextField';
 import TextAreaField from '@/components/FormElements/TextAreaField';
 import SelectField from '@/components/FormElements/SelectField';
 import { formatVND } from '@/shared/server/utils/utils';
-import type { Category } from '@/shared/types/product';
 import type { SupplierOption } from '@/core/client/api/Supplier';
 import { conditionRules, INVENTORY_STATUS_VALUES, ProductFormErrors, ProductFormValues } from './productForm';
 import type { InventoryStatus } from '@/shared/types/product';
@@ -27,12 +26,10 @@ export const BasicInfoFields = ({
   values,
   errors,
   onChange,
-  categories,
   readOnly = false,
   withCondition = true,
   withDescriptions = true,
 }: SectionProps & {
-  categories: Category[];
   readOnly?: boolean;
   withCondition?: boolean;
   withDescriptions?: boolean;
@@ -68,18 +65,6 @@ export const BasicInfoFields = ({
         readOnly={readOnly}
         onChange={(event) => onChange('modelCode', event.target.value)}
       />
-      <div>
-        <SelectField
-          label={t('category')}
-          name="categoryId"
-          disabled={readOnly}
-          placeholder={t('noCategory')}
-          options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
-          value={values.categoryId}
-          onChange={(event) => onChange('categoryId', event.target.value)}
-        />
-        <p className="mt-1 text-xs text-body">{t('categoryHint')}</p>
-      </div>
       <TextField
         label={catalog('scale')}
         name="scale"
@@ -435,9 +420,7 @@ export const StatusFields = ({ values, onChange }: Omit<SectionProps, 'errors'>)
           checked={values.serviceReferenceEnabled}
           onChange={(event) => onChange('serviceReferenceEnabled', event.target.checked)}
         />
-        <span>
-          Dùng S đã duyệt để báo giá thu / trade / cầm
-        </span>
+        <span>Dùng S đã duyệt để báo giá thu / trade / cầm</span>
       </label>
       <SelectField
         label={t('inventoryStatus')}

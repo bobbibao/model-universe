@@ -529,6 +529,19 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     // Held back by a shop agent inventory adjustment (quarantine, donation, recycling).
     if (query.status === 'held') status.push({ inventoryStatus: { [Op.ne]: 'available' } });
     const ids = await this.matchingListingIds(this.buildWhere(query));
+    const matched = await ProductModel.findAll({
+      attributes: ['id', 'modelFamilyId', 'partnerId', 'stock'],
+      where: { [Op.and]: [...status, { id: ids }] },
+    });
+    const summary = {
+      models: new Set(
+        matched.map((row) =>
+          row.modelFamilyId ? `${row.partnerId ?? 'shop'}:${row.modelFamilyId}` : `legacy:${row.id}`,
+        ),
+      ).size,
+      products: matched.length,
+      stock: matched.reduce((sum, row) => sum + row.stock, 0),
+    };
     if (query.groupByModel) {
       const all = await ProductModel.findAll({
         attributes: [
@@ -557,7 +570,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         const units = await this.withConditions(await this.discountService.withPricing(group));
         rows.push({ ...units[0], familyUnits: units });
       }
-      return { rows, count: groups.size };
+      return { rows, count: groups.size, summary };
     }
     const column = query.sortKey && ADMIN_SORTABLE_COLUMNS.includes(query.sortKey) ? query.sortKey : 'id';
     const { rows, count } = await ProductModel.findAndCountAll({
@@ -582,6 +595,7 @@ export default class ProductService implements BaseServiceInterface<ProductModel
     return {
       rows: await this.withConditions(await this.discountService.withPricing(rows), { isArchived: false }),
       count,
+      summary,
     };
   }
 

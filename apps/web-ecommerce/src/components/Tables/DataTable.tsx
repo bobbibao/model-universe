@@ -30,6 +30,10 @@ interface DataTableProps<T> {
   onSortChange?: (sort: SortState) => void;
   pagination?: Pagination;
   onPageChange?: (page: number) => void;
+  compactRows?: boolean;
+  mergeToolbar?: boolean;
+  summary?: React.ReactNode;
+  paginationSummary?: React.ReactNode;
 }
 
 const SortIndicator = ({ direction }: { direction?: 'asc' | 'desc' }) => (
@@ -53,6 +57,10 @@ function DataTable<T>({
   onSortChange,
   pagination,
   onPageChange,
+  compactRows = false,
+  mergeToolbar = false,
+  summary,
+  paginationSummary,
 }: DataTableProps<T>) {
   const t = useTranslations('dataTable');
   const ux = useTranslations('commerceUX');
@@ -83,8 +91,11 @@ function DataTable<T>({
   };
 
   return (
-    <div className={`admin-table${compact === true ? ' is-compact' : ''}`} aria-busy={loading}>
-      {(title || actions) && (
+    <div
+      className={`admin-table${compactRows || compact === true ? ' is-compact' : ''}${mergeToolbar ? ' has-merged-toolbar' : ''}`}
+      aria-busy={loading}
+    >
+      {!mergeToolbar && (title || actions) && (
         <div className="admin-table-toolbar">
           {title && <h2>{title}</h2>}
           {actions && <div className="admin-table-actions">{actions}</div>}
@@ -93,13 +104,16 @@ function DataTable<T>({
 
       <div className="admin-table-viewbar">
         <span role="status" aria-live="polite">
-          {loading ? t('loading') : ux('recordCount', { count: pagination?.total ?? data.length })}
+          {loading ? t('loading') : (summary ?? ux('recordCount', { count: pagination?.total ?? data.length }))}
         </span>
+        {mergeToolbar && actions && <div className="admin-table-actions">{actions}</div>}
         <div className="admin-table-viewtools">
-          <button type="button" aria-pressed={compact === true} onClick={() => setCompact(compact !== true)}>
-            <AdminIcon name="density" size={16} />
-            {ux('compactRows')}
-          </button>
+          {!compactRows && (
+            <button type="button" aria-pressed={compact === true} onClick={() => setCompact(compact !== true)}>
+              <AdminIcon name="density" size={16} />
+              {ux('compactRows')}
+            </button>
+          )}
           <details
             ref={pickerRef}
             className="admin-column-picker"
@@ -253,11 +267,12 @@ function DataTable<T>({
       {pagination && onPageChange && (
         <div className="admin-table-pagination">
           <span className="text-body dark:text-bodydark">
-            {t('pagination', {
-              page: pagination.page,
-              pages: Math.max(1, pagination.totalPages),
-              total: pagination.total,
-            })}
+            {paginationSummary ??
+              t('pagination', {
+                page: pagination.page,
+                pages: Math.max(1, pagination.totalPages),
+                total: pagination.total,
+              })}
           </span>
           <div className="flex items-center gap-2">
             <PageButton disabled={loading || !pagination.hasPreviousPage} onClick={() => onPageChange(1)}>

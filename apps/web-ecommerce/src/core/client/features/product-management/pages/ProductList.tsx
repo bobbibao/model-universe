@@ -9,18 +9,14 @@ import { useEffect, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 
-import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
-import Breadcrumb from '@/components/Breadcrumbs/Breadcrumb';
 import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
 import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
-import ProductFamilyList from '../components/ProductFamilyList';
 import ProductApi, { AdminProductListParams } from '@/core/client/api/Product';
-import CategoryApi from '@/core/client/api/Category';
 import InventoryStats from '../components/InventoryStats';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Pagination, SortState } from '@/shared/types/pagination';
-import type { AdminProductListItem, Category } from '@/shared/types/product';
+import type { AdminProductListItem, AdminCatalogSummary } from '@/shared/types/product';
 
 const PAGE_SIZE = 10;
 
@@ -29,13 +25,12 @@ const SEARCH_DEBOUNCE_MS = 400;
 
 const ProductList = () => {
   const router = useRouter();
-  const [catalogTab, setCatalogTab] = useState('catalog');
   const t = useTranslations('adminProducts');
   const conditionTypes = useProductConditions();
   const bulk = useTranslations('productBulk');
   const [selected, setSelected] = useState<Record<number, SelectedBulkProduct>>({});
   const [products, setProducts] = useState<AdminProductListItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [summary, setSummary] = useState<AdminCatalogSummary>();
   const [pagination, setPagination] = useState<Pagination>();
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -43,14 +38,9 @@ const ProductList = () => {
   const ux = useTranslations('commerceUX');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [categoryId, setCategoryId] = useState<number | ''>('');
   const [status, setStatus] = useState<AdminProductListParams['status']>('');
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortState>({ key: 'id', direction: 'desc' });
-
-  useEffect(() => {
-    CategoryApi.getAdminCategories().then((result) => setCategories(result || []));
-  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -67,7 +57,6 @@ const ProductList = () => {
       setFailed(false);
       const result = await ProductApi.getAdminProducts({
         q: search,
-        categoryId,
         status,
         page,
         per_page: PAGE_SIZE,
@@ -78,17 +67,18 @@ const ProductList = () => {
       setFailed(!result);
       setProducts(result?.data || []);
       setPagination(result?.pagination);
+      setSummary(result?.summary);
       setLoading(false);
     };
     void loadProducts();
     return () => {
       cancelled = true;
     };
-  }, [search, categoryId, status, page, sort, retry]);
+  }, [search, status, page, sort, retry]);
 
   useEffect(() => {
     setSelected({});
-  }, [searchInput, categoryId, status]);
+  }, [searchInput, status]);
   const selectionBusy = loading || searchInput.trim() !== search;
   const eligible = products.filter((product) => !product.partnerId && !!product.updatedAt);
   const checkedOnPage = eligible.filter((product) => !!selected[product.id]).length;
@@ -175,7 +165,11 @@ const ProductList = () => {
               </span>
             </div>
           ))}
-          {!!product.conditionLabels?.length && <span className="catalog-combination-label" title={product.conditionLabels.join(' · ')}>{product.conditionLabels.join(' · ')}</span>}
+          {!!product.conditionLabels?.length && (
+            <span className="catalog-combination-label" title={product.conditionLabels.join(' · ')}>
+              {product.conditionLabels.join(' · ')}
+            </span>
+          )}
         </div>
       ),
     },
@@ -219,9 +213,7 @@ const ProductList = () => {
       header: t('receivedDate'),
       sortable: true,
       render: (product) =>
-        product.productionDate
-          ? new Date(product.productionDate).toLocaleDateString('vi-VN')
-          : '—',
+        product.productionDate ? new Date(product.productionDate).toLocaleDateString('vi-VN') : '—',
     },
     {
       key: 'isArchived',
@@ -254,107 +246,89 @@ const ProductList = () => {
     },
   ];
 
+  const count = (value: number) => value.toLocaleString('vi-VN');
   return (
-    <div className="compact-admin-catalog-page">
-      <Breadcrumb pageName={t('title')} />
-      <WorkspaceTabs
-        className="compact-catalog-tabs"
-        label={ux('catalogWorkspace')}
-        value={catalogTab}
-        onChange={setCatalogTab}
-        tabs={[
-          {
-            id: 'catalog',
-            label: t('list'),
-            content: (
-              <div className="compact-catalog-results">
-                {' '}
-                {failed && (
-                  <div role="alert" className="admin-load-error">
-                    <span>{ux('loadFailed')}</span>
-                    <button type="button" onClick={() => setRetry((value) => value + 1)}>
-                      {ux('retry')}
-                    </button>
-                  </div>
-                )}
-                <ProductBulkActions
-                  selected={Object.values(selected)}
-                  onClear={() => setSelected({})}
-                  onFinished={() => {
-                    setSelected({});
-                    setRetry((value) => value + 1);
-                  }}
-                />
-                <DataTable
-                  title={t('list')}
-                  actions={
-                    <>
-                      <input
-                        className={`${inputClassName} !py-2 sm:w-64`}
-                        placeholder={t('search')}
-                        aria-label={t('search')}
-                        value={searchInput}
-                        onChange={(event) => setSearchInput(event.target.value)}
-                      />
-                      <select
-                        className={`${inputClassName} !py-2 sm:w-44`}
-                        aria-label={t('category')}
-                        value={categoryId}
-                        onChange={(event) => {
-                          setCategoryId(event.target.value ? Number(event.target.value) : '');
-                          setPage(1);
-                        }}
-                      >
-                        <option value="">{t('allCategories')}</option>
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        className={`${inputClassName} !py-2 sm:w-40`}
-                        aria-label={t('status')}
-                        value={status}
-                        onChange={(event) => {
-                          setStatus(event.target.value as AdminProductListParams['status']);
-                          setPage(1);
-                        }}
-                      >
-                        <option value="">{t('allStatuses')}</option>
-                        <option value="active">{t('active')}</option>
-                        <option value="archived">{t('archived')}</option>
-                        <option value="featured">{t('featured')}</option>
-                        <option value="held">{t('held')}</option>
-                      </select>
-                      <Link
-                        href="/admin/products/new"
-                        className="rounded-md bg-brand px-4 py-2 font-semibold text-brand-ink hover:bg-brand-hover"
-                      >
-                        {t('create')}
-                      </Link>
-                    </>
-                  }
-                  columns={columns}
-                  data={products}
-                  rowKey={(product) => product.id}
-                  loading={loading}
-                  emptyText={failed ? ux('loadFailed') : t('empty')}
-                  onRowClick={(product) => router.push(`/admin/products/${product.id}`)}
-                  sort={sort}
-                  onSortChange={(nextSort) => {
-                    setSort(nextSort);
-                    setPage(1);
-                  }}
-                  pagination={pagination}
-                  onPageChange={setPage}
-                />
-              </div>
-            ),
-          },
-          { id: 'families', label: 'Nhóm theo mẫu', content: <ProductFamilyList /> },
-          { id: 'inventory', label: t('stats.title'), content: <InventoryStats expanded /> },
-        ]}
+    <div className="compact-admin-catalog-page catalog-workspace">
+      <h1 className="sr-only">{t('title')}</h1>
+      <InventoryStats compact refreshKey={retry} />
+      <div className="compact-catalog-results">
+        {failed && (
+          <div role="alert" className="admin-load-error">
+            <span>{ux('loadFailed')}</span>
+            <button type="button" onClick={() => setRetry((value) => value + 1)}>
+              {ux('retry')}
+            </button>
+          </div>
+        )}
+        <DataTable
+          title={t('list')}
+          compactRows
+          mergeToolbar
+          summary={
+            summary ? (
+              <span className="catalog-product-count">
+                <strong>{count(summary.models)}</strong> mẫu / <strong>{count(summary.products)}</strong> sản phẩm{' '}
+                <small>theo tình trạng</small>
+              </span>
+            ) : undefined
+          }
+          paginationSummary={
+            pagination
+              ? `Trang ${pagination.page} / ${Math.max(1, pagination.totalPages)} · ${count(pagination.total)} sản phẩm`
+              : undefined
+          }
+          actions={
+            <>
+              <input
+                type="search"
+                className={`${inputClassName} !py-2 sm:w-64`}
+                placeholder={t('search')}
+                aria-label={t('search')}
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+              />
+              <select
+                className={`${inputClassName} !py-2 sm:w-40`}
+                aria-label={t('status')}
+                value={status}
+                onChange={(event) => {
+                  setStatus(event.target.value as AdminProductListParams['status']);
+                  setPage(1);
+                }}
+              >
+                <option value="">{t('allStatuses')}</option>
+                <option value="active">{t('active')}</option>
+                <option value="archived">{t('archived')}</option>
+                <option value="featured">{t('featured')}</option>
+                <option value="held">{t('held')}</option>
+              </select>
+              <Link href="/admin/products/new" className="catalog-create-button">
+                + {t('create')}
+              </Link>
+            </>
+          }
+          columns={columns}
+          data={products}
+          rowKey={(product) => product.id}
+          loading={loading}
+          emptyText={failed ? ux('loadFailed') : t('empty')}
+          onRowClick={(product) => router.push(`/admin/products/${product.id}`)}
+          sort={sort}
+          onSortChange={(nextSort) => {
+            setSort(nextSort);
+            setPage(1);
+          }}
+          pagination={pagination}
+          onPageChange={setPage}
+        />
+      </div>
+      <ProductBulkActions
+        selected={Object.values(selected)}
+        onClear={() => setSelected({})}
+        onFinished={() => {
+          setSelected({});
+          setRetry((value) => value + 1);
+        }}
       />
     </div>
   );

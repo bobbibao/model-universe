@@ -9,6 +9,7 @@ import type { PaginatedResult } from '@/shared/types/pagination';
 import type {
   AdminProduct,
   AdminProductListItem,
+  AdminCatalogSummary,
   ConditionOptionPayload,
   InventoryStats,
   ProductDetail,
@@ -118,7 +119,7 @@ export default class ProductApi {
 
   static async getAdminProducts(
     params: AdminProductListParams,
-  ): Promise<PaginatedResult<AdminProductListItem> | undefined> {
+  ): Promise<(PaginatedResult<AdminProductListItem> & { summary?: AdminCatalogSummary }) | undefined> {
     try {
       const response = await Api.get(ADMIN_PRODUCT_API.GET_PRODUCTS, { params: compactParams(params) });
       return response.data?.payload;

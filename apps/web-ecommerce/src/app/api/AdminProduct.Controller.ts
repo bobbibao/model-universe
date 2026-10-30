@@ -50,7 +50,7 @@ export default class AdminProductController extends ApiBaseController {
     try {
       const service = await this.requireService<ProductService>();
       const { page, perPage, limit, offset } = parsePagination(req);
-      const { rows, count } = await service.listAdmin({
+      const { rows, count, summary } = await service.listAdmin({
         q: req.query.q as string | undefined,
         groupByModel: req.query.groupByModel === 'true',
         categoryId: toInteger(req.query.categoryId),
@@ -60,7 +60,8 @@ export default class AdminProductController extends ApiBaseController {
         limit,
         offset,
       });
-      return res.json(toPaginatedPayload(rows, count, page, perPage));
+      const result = toPaginatedPayload(rows, count, page, perPage);
+      return res.json({ payload: { ...result.payload, summary } });
     } catch (error) {
       return this.handleError(res, error, "AdminProductController's getProducts");
     }

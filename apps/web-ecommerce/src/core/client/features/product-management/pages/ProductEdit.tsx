@@ -3,7 +3,7 @@
 import ProductOwnership from '../components/ProductOwnership';
 import { useTranslations } from 'next-intl';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useParams, useSearchParams } from 'next/navigation';
@@ -12,7 +12,6 @@ import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
 import ConfirmModal from '@/components/Modal/ConfirmModal';
 import ProductApi from '@/core/client/api/Product';
 import type { AdminProduct } from '@/shared/types/product';
-import useProductFormOptions from '../hooks/useProductFormOptions';
 import ProductImagesField, { ImageItem, imageFromUrl, uploadPendingImages } from '../components/ProductImagesField';
 import ProductConditions from '../components/ProductConditions';
 import {
@@ -22,7 +21,6 @@ import {
   InventoryFields,
   PricingFields,
   StatusFields,
-  SupplierField,
 } from '../components/ProductFormSections';
 import {
   ProductFormErrors,
@@ -54,7 +52,6 @@ const ProductEdit = () => {
   const params = useParams<{ id: string }>();
   const productId = Number(params.id);
   const section = useSearchParams().get('section');
-  const { categories, suppliers } = useProductFormOptions();
   const [product, setProduct] = useState<AdminProduct | null>();
   const [values, setValues] = useState<ProductFormValues>(emptyProductForm);
   const [errors, setErrors] = useState<ProductFormErrors>({});
@@ -84,12 +81,6 @@ const ProductEdit = () => {
   useEffect(() => {
     if (section === 'conditions') setActiveTab('conditions');
   }, [productId, section]);
-
-  // An inactive supplier is not offered in the options but must stay selectable for products that use it.
-  const supplierOptions = useMemo(() => {
-    const current = product?.supplier;
-    return current && !suppliers.some((supplier) => supplier.id === current.id) ? [current, ...suppliers] : suppliers;
-  }, [product, suppliers]);
 
   // Historical SKU identity is locked; quantities change through recorded stock operations.
   const uniqueUnit = product?.identityLocked === true;
@@ -203,7 +194,6 @@ const ProductEdit = () => {
                       values={values}
                       errors={errors}
                       onChange={onChange}
-                      categories={categories}
                       readOnly={option}
                       withCondition={false}
                       withDescriptions={false}
@@ -280,15 +270,9 @@ const ProductEdit = () => {
                 },
                 {
                   id: 'supplierStatus',
-                  label: t('supplierStatus'),
+                  label: 'Hiển thị',
                   content: (
                     <div className="grid gap-6">
-                      <SupplierField
-                        values={values}
-                        onChange={onChange}
-                        suppliers={supplierOptions}
-                        readOnly={option}
-                      />
                       <StatusFields values={values} onChange={onChange} />
                     </div>
                   ),

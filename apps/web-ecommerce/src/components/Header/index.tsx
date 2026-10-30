@@ -36,7 +36,6 @@ export default function Header({
           <AdminIcon name="menu" />
         </button>
         <div className="admin-location">
-          <span>{workspace('workspace')}</span>
           <strong>{destination ? t(destination.label) : workspace('workspace')}</strong>
         </div>
       </div>
