@@ -6,11 +6,30 @@ import { useEffect, useState } from 'react';
 import ProductApi from '@/core/client/api/Product';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { InventoryStats as Stats } from '@/shared/types/product';
-import Link from '@/i18n/navigation';
+import AdminIcon from '@/components/Admin/AdminIcon';
 
-const Kpi = ({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: 'warn' }) => (
-  <div className={`inventory-kpi${tone === 'warn' ? ' is-warn' : ''}`}>
-    <p className="inventory-kpi-label">{label}</p>
+const Kpi = ({
+  label,
+  value,
+  hint,
+  tone,
+  icon,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  tone?: 'warn';
+  icon?: string;
+}) => (
+  <div className={`inventory-kpi${tone === 'warn' ? ' is-warn' : ''}${icon ? ` has-icon is-${icon}` : ''}`}>
+    <p className="inventory-kpi-label">
+      {icon && (
+        <span className="inventory-kpi-icon">
+          <AdminIcon name={icon} size={16} />
+        </span>
+      )}
+      {label}
+    </p>
     <p className="inventory-kpi-value">{value}</p>
     {hint && <p className="inventory-kpi-hint">{hint}</p>}
   </div>
@@ -52,30 +71,32 @@ const InventoryStats = ({
       <section className="catalog-inventory-overview" aria-label="Tổng quan tồn kho">
         <div className="inventory-kpis">
           <Kpi
-            label="Tổng số lượng tồn"
+            icon="box"
+            label="Số lượng tồn kho"
             value={count(totals.stock)}
             hint={`${count(totals.listings)} mẫu · ${count(totals.listings + totals.options)} sản phẩm theo tình trạng`}
           />
-          <Kpi label="Tổng giá bán" value={formatVND(totals.memberValue, 'vi')} hint="Giá bán thực S × số lượng tồn" />
           <Kpi
-            label="Tổng vốn đang tồn"
+            icon="bag"
+            label="Giá trị bán dự kiến"
+            value={formatVND(totals.memberValue, 'vi')}
+            hint="Theo giá bán hiện tại"
+          />
+          <Kpi
+            icon="shield"
+            label="Vốn hàng tồn kho"
             value={formatVND(totals.costValue, 'vi')}
             hint={
-              totals.missingCost
-                ? `${count(totals.missingCost)} sản phẩm tồn chưa nhập vốn`
-                : 'Giá vốn đã lưu × số lượng tồn'
+              totals.missingCost ? `${count(totals.missingCost)} sản phẩm tồn chưa nhập vốn` : 'Theo giá vốn đã nhập'
             }
             tone={totals.missingCost ? 'warn' : undefined}
           />
           <Kpi
-            label="Chênh lệch bán − vốn"
+            icon="chart"
+            label="Lãi gộp dự kiến"
             value={formatVND(totals.marginValue, 'vi')}
-            hint="Ước tính trước chi phí vận hành và ưu đãi"
+            hint="Chưa trừ ưu đãi và chi phí"
           />
-        </div>
-        <div className="catalog-inventory-footnote">
-          <span>Sản phẩm của shop · chưa bao gồm nháp/ẩn</span>
-          <Link href="/admin/products/report">Phân tích theo hãng, tình trạng ↗</Link>
         </div>
       </section>
     );

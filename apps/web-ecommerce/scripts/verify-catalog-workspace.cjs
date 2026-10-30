@@ -34,10 +34,44 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
     await expect(page.locator('.catalog-workspace .inventory-kpi')).toHaveCount(4);
     await expect(page.locator('.admin-table')).toHaveClass(/is-compact/);
     await expect(page.locator('.catalog-product-count')).toContainText('sản phẩm');
+    const listing = await (await context.request.get('/api/admin/products?per_page=1')).json();
+    if (!listing.payload?.summary || listing.payload.summary.products !== listing.payload.pagination.total)
+      throw new Error('Product counts missing or inconsistent in API response');
+    await expect(page.locator('.catalog-product-count')).toContainText(
+      listing.payload.summary.products.toLocaleString('vi-VN'),
+    );
     await expect(page.locator('.compact-admin-catalog-page [role="tablist"]')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Hàng gọn', exact: true })).toHaveCount(0);
     await expect(page.locator('select[aria-label="Danh mục"]')).toHaveCount(0);
     await expect(page.locator('.admin-table-toolbar')).toHaveCount(0);
+    await expect(page.locator('.catalog-inventory-footnote')).toHaveCount(0);
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 1366, height: 768 },
+      { width: 1280, height: 720 },
+      { width: 390, height: 844 },
+      { width: 390, height: 667 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await expect
+        .poll(
+          async () =>
+            page.evaluate(() => {
+              const region = document.querySelector('.admin-table-scroll');
+              const rows = [...document.querySelectorAll('.admin-table tbody tr')];
+              const last = rows.at(-1)?.getBoundingClientRect();
+              return (
+                document.documentElement.scrollWidth <= innerWidth + 1 &&
+                document.documentElement.scrollHeight <= innerHeight + 1 &&
+                !!last &&
+                last.bottom <= region.getBoundingClientRect().bottom + 1
+              );
+            }),
+          { timeout: 15000 },
+        )
+        .toBe(true);
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
     const rows = page.locator('input[aria-label^="Chọn sản phẩm:"]');
     await rows.first().check();
     const toolbar = page.getByRole('region', { name: 'Thao tác với sản phẩm đã chọn' });
@@ -61,7 +95,7 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
     await search.fill('Bạch Khởi');
     await expect(page.locator('.admin-table tbody')).toContainText('Bạch Khởi');
     await expect(page.locator('.admin-table')).toHaveAttribute('aria-busy', 'false');
-    await page.getByRole('link', { name: 'Phân tích theo hãng, tình trạng ↗', exact: true }).click();
+    await page.getByRole('link', { name: 'Phân tích tồn kho', exact: true }).click();
     await expect(page.locator('.inventory-tables table')).toHaveCount(2);
     await page.screenshot({ path: path.join(output, 'inventory-report.png'), fullPage: true });
     await page.goto('/vi/admin/products/new', { waitUntil: 'domcontentloaded' });

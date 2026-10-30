@@ -22,3 +22,9 @@ Thống kê hãng và tình trạng chuyển sang `/vi/admin/products/report`, c
 Theo yêu cầu chủ shop, đã xóa 5 nhà cung cấp hiện hữu trên database local, sau khi kiểm tra không có phiếu nhập liên quan và kiểm tra liên kết sản phẩm. Không xóa sản phẩm, tồn kho hoặc giao dịch. Bản sao trước thao tác được lưu riêng ngoài Git trong thư mục runtime.
 
 Kiểm tra: unit form sản phẩm, database integration cho số mẫu/SKU trước phân trang và theo bộ lọc; script `node scripts/verify-catalog-workspace.cjs` kiểm tra UI thực desktop/mobile, selection, modal bulk, báo cáo và form. Script UI không gửi cập nhật sản phẩm.
+
+## Cập nhật bố cục vừa màn hình
+
+Bỏ dòng `catalog-inventory-footnote`; báo cáo vẫn truy cập từ menu **Phân tích tồn kho**. Số dòng mỗi trang tự tính theo chiều cao bảng còn lại, thay vì luôn tải 10 dòng. Phân trang tiếp cận toàn bộ sản phẩm; không cắt hoặc giấu các dòng vượt màn hình. Trên điện thoại, bảng ưu tiên tên, loại hàng, giá và tồn; thông tin đầy đủ ở trang sửa sản phẩm.
+
+Nhãn KPI: **Số lượng tồn kho**, **Giá trị bán dự kiến**, **Vốn hàng tồn kho**, **Lãi gộp dự kiến**. Lãi gộp dự kiến vẫn là giá bán trừ giá vốn, chưa trừ ưu đãi và chi phí. Thuộc tính `aria-live="polite"` dành cho trình đọc màn hình, không phải nội dung hiển thị. Khi tải danh sách thất bại, hiển thị trạng thái lỗi thay vì số 0 giả.

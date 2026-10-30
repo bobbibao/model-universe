@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { MAX_PRODUCT_BULK } from '@/shared/product-bulk';
 import ProductBulkActions, { BulkCheckbox, type SelectedBulkProduct } from '../components/ProductBulkActions';
 import { useProductConditions } from '@/shared/client/hooks/useProductConditions';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 
@@ -18,13 +18,15 @@ import { formatVND } from '@/shared/server/utils/utils';
 import type { Pagination, SortState } from '@/shared/types/pagination';
 import type { AdminProductListItem, AdminCatalogSummary } from '@/shared/types/product';
 
-const PAGE_SIZE = 10;
+const ROW_HEIGHT = 64;
 
 // Set by the shop agent's inventory adjustments; such products are hidden from the storefront.
 const SEARCH_DEBOUNCE_MS = 400;
 
 const ProductList = () => {
   const router = useRouter();
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  const [pageSize, setPageSize] = useState(5);
   const t = useTranslations('adminProducts');
   const conditionTypes = useProductConditions();
   const bulk = useTranslations('productBulk');
@@ -43,6 +45,22 @@ const ProductList = () => {
   const [sort, setSort] = useState<SortState>({ key: 'id', direction: 'desc' });
 
   useEffect(() => {
+    const workspace = workspaceRef.current;
+    const region = workspace?.querySelector<HTMLElement>('.admin-table-scroll');
+    if (!region) return;
+    const resize = () => {
+      const header = region.querySelector('thead')?.getBoundingClientRect().height ?? 44;
+      const next = Math.max(1, Math.min(20, Math.floor((region.clientHeight - header - 2) / ROW_HEIGHT)));
+      setPageSize(next);
+      setPage(1);
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(region);
+    resize();
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput.trim());
       setPage(1);
@@ -59,7 +77,7 @@ const ProductList = () => {
         q: search,
         status,
         page,
-        per_page: PAGE_SIZE,
+        per_page: pageSize,
         sort: sort.key,
         direction: sort.direction,
       });
@@ -74,7 +92,7 @@ const ProductList = () => {
     return () => {
       cancelled = true;
     };
-  }, [search, status, page, sort, retry]);
+  }, [search, status, page, pageSize, sort, retry]);
 
   useEffect(() => {
     setSelected({});
@@ -123,19 +141,20 @@ const ProductList = () => {
       key: 'imageUrl',
       essential: true,
       header: t('image'),
+      className: 'catalog-image-cell',
       render: (product) => (
         <div className="relative h-14 w-14 overflow-hidden rounded bg-gray-2 dark:bg-meta-4">
           <ProductImage src={product.imageUrl} alt={product.name} sizes="56px" />
         </div>
       ),
     },
-    { key: 'id', header: 'ID', sortable: true },
+    { key: 'id', header: 'ID', sortable: true, className: 'catalog-id-cell' },
     {
       key: 'name',
       essential: true,
       header: t('name'),
       sortable: true,
-      className: 'min-w-[240px]',
+      className: 'catalog-name-cell',
       render: (product) => (
         <div>
           <Link
@@ -145,7 +164,13 @@ const ProductList = () => {
           >
             {product.name}
           </Link>
-          <p className="text-sm text-body">SKU: {product.sku}</p>
+          <p className="catalog-sku" title={product.sku}>
+            #{product.id} · {product.sku}
+          </p>
+          <span className="catalog-mobile-condition">
+            {product.itemTypeKey === 'new' ? 'New' : '2hand'}
+            {product.conditionPercent ? ` · ${product.conditionPercent}%` : ''}
+          </span>
         </div>
       ),
     },
@@ -153,6 +178,7 @@ const ProductList = () => {
       // Every condition the model is stocked in (main listing and condition options), with a price only when available.
       key: 'conditions',
       header: t('conditionColumn'),
+      className: 'catalog-condition-cell',
       render: (product) => (
         <div className="catalog-condition-summary">
           {(product.conditions ?? []).map((summary) => (
@@ -175,12 +201,13 @@ const ProductList = () => {
     },
     {
       key: 'price',
-      header: 'Giá bán thực S',
+      header: 'Giá bán',
       className: 'catalog-price-cell',
       sortable: true,
       render: (product) => (
         <div className="catalog-price-summary">
           <p>{formatVND(product.pricingReferenceMemberVnd ?? product.salePrice, 'vi')}</p>
+          <small className="catalog-mobile-stock">Tồn kho: {product.stock}</small>
           {product.discountPercent > 0 && (
             <p className="text-xs text-body">
               <span className="line-through">{formatVND(product.price, 'vi')}</span> -
@@ -192,7 +219,7 @@ const ProductList = () => {
     },
     {
       key: 'stock',
-      header: t('stock'),
+      header: 'Tồn kho',
       className: 'catalog-stock-cell',
       sortable: true,
       render: (product) => (
@@ -248,7 +275,7 @@ const ProductList = () => {
 
   const count = (value: number) => value.toLocaleString('vi-VN');
   return (
-    <div className="compact-admin-catalog-page catalog-workspace">
+    <div ref={workspaceRef} className="compact-admin-catalog-page catalog-workspace">
       <h1 className="sr-only">{t('title')}</h1>
       <InventoryStats compact refreshKey={retry} />
       <div className="compact-catalog-results">
@@ -270,8 +297,10 @@ const ProductList = () => {
                 <strong>{count(summary.models)}</strong> mẫu / <strong>{count(summary.products)}</strong> sản phẩm{' '}
                 <small>theo tình trạng</small>
               </span>
+            ) : failed ? (
+              'Không tải được danh sách'
             ) : (
-              '0 sản phẩm'
+              'Đang tải sản phẩm…'
             )
           }
           paginationSummary={
