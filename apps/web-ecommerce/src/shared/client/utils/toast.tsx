@@ -1,7 +1,19 @@
 'use client';
 
 import React from 'react';
-import { toast as baseToast, ToastOptions, ToastContentProps } from 'react-toastify';
+import { toast as baseToast, ToastOptions, ToastContentProps, cssTransition } from 'react-toastify';
+
+/**
+ * High-performance, spring-like decelerated transition (Apple / Linear style).
+ * Snappy 160ms entrance, 130ms exit, and 140ms space collapse duration.
+ */
+export const SmoothSlide = cssTransition({
+  enter: 'mu-toast-enter',
+  exit: 'mu-toast-exit',
+  appendPosition: true,
+  collapse: true,
+  collapseDuration: 140,
+});
 
 export interface ToastAction {
   label?: string;

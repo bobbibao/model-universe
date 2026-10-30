@@ -5,7 +5,7 @@
 
 :root {
   --toastify-toast-width: 340px;
-  --toastify-animation-duration: 220ms;
+  --toastify-animation-duration: 160ms;
 }
 
 /* Container - Non-blocking overlay */
@@ -33,11 +33,15 @@
   align-items: center !important;
   justify-content: space-between !important;
   border-left: none !important; /* Strict: Never use loud color bars */
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.18s ease,
-              background-color 0.18s ease,
-              box-shadow 0.18s ease,
-              opacity 0.18s ease !important;
+  will-change: transform, opacity !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-font-smoothing: antialiased !important;
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.16s ease,
+              background-color 0.16s ease,
+              box-shadow 0.16s ease,
+              opacity 0.16s ease !important;
 }
 
 /* Light Theme */
@@ -335,5 +339,130 @@
     border-radius: 10px !important;
     margin-bottom: 8px !important;
     padding: 9px 12px !important;
+  }
+}
+
+/* ==========================================================================
+   Ultra-Smooth, Fast Animation Keyframes (Apple / Linear Deceleration Curve)
+   ========================================================================== */
+
+/* Desktop Top-Right */
+.mu-toast-enter--top-right {
+  animation: muToastSlideInRight 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+.mu-toast-exit--top-right {
+  animation: muToastSlideOutRight 130ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+@keyframes muToastSlideInRight {
+  0% {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes muToastSlideOutRight {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(16px, 0, 0) scale(0.95);
+  }
+}
+
+/* Centered & Top-Center Floating Entrance */
+.mu-toast-enter--top-center,
+.mu-toast-enter--top-left {
+  animation: muToastSlideInTop 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+.mu-toast-exit--top-center,
+.mu-toast-exit--top-left {
+  animation: muToastSlideOutTop 130ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+@keyframes muToastSlideInTop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes muToastSlideOutTop {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(0.95);
+  }
+}
+
+/* Fallback & Bottom Entrance */
+.mu-toast-enter,
+.mu-toast-enter--bottom-right,
+.mu-toast-enter--bottom-center,
+.mu-toast-enter--bottom-left {
+  animation: muToastSlideInBottom 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+.mu-toast-exit,
+.mu-toast-exit--bottom-right,
+.mu-toast-exit--bottom-center,
+.mu-toast-exit--bottom-left {
+  animation: muToastSlideOutBottom 130ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+@keyframes muToastSlideInBottom {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes muToastSlideOutBottom {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.95);
+  }
+}
+
+/* Mobile Overrides: Always gracefully descend from top */
+@media (max-width: 640px) {
+  .mu-toast-enter--top-right,
+  .mu-toast-enter--top-left,
+  .mu-toast-enter--top-center {
+    animation: muToastSlideInTop 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+  .mu-toast-exit--top-right,
+  .mu-toast-exit--top-left,
+  .mu-toast-exit--top-center {
+    animation: muToastSlideOutTop 130ms cubic-bezier(0.4, 0, 1, 1) forwards !important;
   }
 }

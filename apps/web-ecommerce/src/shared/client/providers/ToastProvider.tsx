@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ToastContainer, Slide } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { Events, eventEmitter } from '@/shared/client/utils/eventEmitter';
-import { showToast, CustomCloseButton, CustomToastIcon } from '@/shared/client/utils/toast';
+import { showToast, CustomCloseButton, CustomToastIcon, SmoothSlide } from '@/shared/client/utils/toast';
 
 interface ToastProviderProps {
   children: React.ReactNode;
@@ -17,6 +17,10 @@ interface ValidationMessagesEvent {
 export default function ToastProvider({ children }: ToastProviderProps) {
   // Validation messages returned by the API (ApiResponse.userValidationMessages) are shown as an error toast.
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __showToast?: typeof showToast }).__showToast = showToast;
+    }
+
     eventEmitter.subscribe(Events.OPEN_MODAL_MESSAGES_ERRORS, ({ title, validationMessages }: ValidationMessagesEvent) => {
       const lines = [title, ...(validationMessages || []).map((message) => `• ${message}`)].filter(Boolean);
       showToast.error(lines.join('\n'), {
@@ -32,14 +36,14 @@ export default function ToastProvider({ children }: ToastProviderProps) {
       {children}
       <ToastContainer
         position="top-right"
-        transition={Slide}
+        transition={SmoothSlide}
         newestOnTop={false}
-        autoClose={3500}
+        autoClose={3000}
         hideProgressBar={false}
         closeOnClick={false}
         pauseOnHover={true}
         draggable={true}
-        draggablePercent={40}
+        draggablePercent={30}
         closeButton={(props) => <CustomCloseButton {...props} />}
         icon={({ type }) => <CustomToastIcon type={type} />}
       />
