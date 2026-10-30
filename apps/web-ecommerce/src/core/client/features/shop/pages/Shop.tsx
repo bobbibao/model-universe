@@ -17,8 +17,15 @@ import AppliedFilters from '../components/AppliedFilters';
 import { rememberSearchQuery, trackRecommendationEvent } from '@/shared/client/behaviorTracker';
 import SmartRecommendationRail from '@/core/client/features/recommendations/components/SmartRecommendationRail';
 
-const PAGE_SIZE = 12;
+const DEFAULT_PAGE_SIZE = 12;
+const WIDE_SCREEN_PAGE_SIZE = 15;
 const DEFAULT_SORT: ProductSort = 'newest';
+
+const getResponsivePageSize = (): number => {
+  if (typeof window === 'undefined') return DEFAULT_PAGE_SIZE;
+  // Screens >= 1720px render 5 columns; load 15 items to fill 3 complete rows with 0 empty slots
+  return window.matchMedia('(min-width: 1720px)').matches ? WIDE_SCREEN_PAGE_SIZE : DEFAULT_PAGE_SIZE;
+};
 
 // The catalog. On a category landing page (/cua-hang/<category>) the category comes from the path; filters stay in
 // the query string and choosing another category moves to its own path (one canonical URL per category).
@@ -37,8 +44,21 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [pageSize, setPageSize] = useState<number>(() => getResponsivePageSize());
   const common = useTranslations('common');
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    const wideMedia = window.matchMedia('(min-width: 1720px)');
+    const syncPageSize = () => {
+      const nextSize = wideMedia.matches ? WIDE_SCREEN_PAGE_SIZE : DEFAULT_PAGE_SIZE;
+      setPageSize((prev) => (prev !== nextSize ? nextSize : prev));
+    };
+    syncPageSize();
+    wideMedia.addEventListener('change', syncPageSize);
+    return () => wideMedia.removeEventListener('change', syncPageSize);
+  }, []);
+
   useEffect(() => {
     const media = window.matchMedia('(min-width: 1024px)');
     const sync = () => setFiltersOpen(media.matches);
@@ -134,7 +154,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
         channel: applied.outletOnly ? 'outlet' : '',
         sort: applied.sort,
         page: applied.page,
-        per_page: PAGE_SIZE,
+        per_page: pageSize,
       });
       if (cancelled) return;
       setFailed(!result);
@@ -161,7 +181,7 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
     return () => {
       cancelled = true;
     };
-  }, [applied, retry]);
+  }, [applied, retry, pageSize]);
 
   const navigate = (values: Partial<ProductFilterValues> & { page?: number }) => {
     const params = new URLSearchParams();
@@ -283,7 +303,13 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
             </div>
           )}
           {!failed && (
-            <ProductGrid products={products} loading={loading} emptyText={t('empty')} onReset={() => navigate({})} />
+            <ProductGrid
+              products={products}
+              loading={loading}
+              emptyText={t('empty')}
+              onReset={() => navigate({})}
+              skeletonCount={pageSize}
+            />
           )}
           {!failed && (
             <StorePagination

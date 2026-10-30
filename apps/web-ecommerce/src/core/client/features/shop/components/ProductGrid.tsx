@@ -8,9 +8,16 @@ interface ProductGridProps {
   loading?: boolean;
   emptyText?: string;
   onReset?: () => void;
+  skeletonCount?: number;
 }
 
-const ProductGrid = ({ products, loading = false, emptyText = 'No models found.', onReset }: ProductGridProps) => {
+const ProductGrid = ({
+  products,
+  loading = false,
+  emptyText = 'No models found.',
+  onReset,
+  skeletonCount = 12,
+}: ProductGridProps) => {
   const ux = useTranslations('commerceUX');
   if (loading) {
     return (
@@ -18,7 +25,7 @@ const ProductGrid = ({ products, loading = false, emptyText = 'No models found.'
         className="catalog-product-grid grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4"
         aria-hidden="true"
       >
-        {Array.from({ length: 9 }, (_, index) => (
+        {Array.from({ length: skeletonCount }, (_, index) => (
           <div key={index} className="catalog-product-skeleton">
             <div className="catalog-skeleton-photo" />
             <div className="catalog-skeleton-copy">

@@ -423,37 +423,121 @@ export function renderPasswordResetEmail(data: {
  * 6. Auto Formatted Email (Wrap plain text into modern layout automatically)
  */
 export function renderAutoFormattedEmail(subject: string, text: string): string {
-  // Split paragraphs and bullet points
-  const rawParagraphs = text.split('\n\n').filter(Boolean);
-  const formattedHtml = rawParagraphs.map((para) => {
-    const lines = para.split('\n').filter(Boolean);
-    if (lines.length > 1 && lines.every((l) => l.startsWith('-') || l.startsWith('•') || l.includes(':'))) {
-      const items = lines.map((l) => {
-        const clean = l.replace(/^[-•]\s*/, '');
-        if (clean.includes(':')) {
-          const [key, ...vals] = clean.split(':');
-          return `<tr><td style="padding: 6px 0; font-size: 12px; color: #71717a; text-transform: uppercase; font-weight: 600; width: 40%;">${key.trim()}</td><td align="right" style="padding: 6px 0; font-size: 13px; color: #18181b; font-weight: 500;">${vals.join(':').trim()}</td></tr>`;
-        }
-        return `<tr><td colspan="2" style="padding: 4px 0; font-size: 13px; color: #3f3f46;">&bull; ${clean}</td></tr>`;
-      }).join('');
-      return `<div style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 16px; margin: 16px 0;"><table border="0" cellpadding="0" cellspacing="0" width="100%">${items}</table></div>`;
-    }
-    return `<p style="font-size: 14px; line-height: 1.6; color: #374151; margin: 0 0 14px 0;">${para.replace(/\n/g, '<br>')}</p>`;
-  }).join('');
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  
+  const narrativeLines: string[] = [];
+  const detailRows: ServiceDetailRow[] = [];
+  let extractedActionUrl: string | undefined;
+  let extractedActionText: string | undefined;
+  const securityNotes: string[] = [];
 
-  // Detect action URL if present in text
-  const urlMatch = text.match(/https?:\/\/[^\s]+/);
-  const actionButton = urlMatch ? {
-    text: 'Xem chi tiết tại Model Universe',
-    url: urlMatch[0],
-  } : undefined;
+  // Determine badge by topic
+  const lowerSub = (subject + ' ' + text).toLowerCase();
+  let badge = 'Thông báo';
+  if (lowerSub.includes('cầm cố') || lowerSub.includes('hợp đồng cầm') || lowerSub.includes('pawn')) {
+    badge = 'Hồ sơ Cầm cố';
+  } else if (lowerSub.includes('giữ hàng') || lowerSub.includes('reservation')) {
+    badge = 'Đặt giữ hàng';
+  } else if (lowerSub.includes('thu mua') || lowerSub.includes('định giá') || lowerSub.includes('buyback')) {
+    badge = 'Thu mua mô hình';
+  } else if (lowerSub.includes('vận đơn') || lowerSub.includes('vận chuyển') || lowerSub.includes('giao hàng') || lowerSub.includes('shipment')) {
+    badge = 'Vận chuyển';
+  } else if (lowerSub.includes('đơn hàng') || lowerSub.includes('order')) {
+    badge = 'Đơn hàng';
+  } else if (lowerSub.includes('điểm thưởng') || lowerSub.includes('tích luỹ') || lowerSub.includes('loyalty')) {
+    badge = 'Điểm tích luỹ';
+  } else if (lowerSub.includes('ưu đãi') || lowerSub.includes('voucher') || lowerSub.includes('coupon')) {
+    badge = 'Ưu đãi';
+  } else if (lowerSub.includes('cảnh báo') || lowerSub.includes('quản trị') || lowerSub.includes('admin')) {
+    badge = 'Cảnh báo Quản trị';
+  }
+
+  for (const line of lines) {
+    // 1. Check for URL
+    const urlMatch = line.match(/https?:\/\/[^\s]+/);
+    if (urlMatch) {
+      extractedActionUrl = urlMatch[0];
+      const textBeforeUrl = line.replace(urlMatch[0], '').replace(/^[-•\s:–]+|[-•\s:–]+$/g, '').trim();
+      if (textBeforeUrl.length > 3 && textBeforeUrl.length < 80) {
+        extractedActionText = textBeforeUrl;
+      }
+      continue;
+    }
+
+    // 2. Check for security / confidential notes
+    if (
+      line.includes('Không chia sẻ') ||
+      line.includes('mật khẩu') ||
+      line.includes('mã OTP') ||
+      line.includes('chuyển tiền') ||
+      line.includes('bảo mật tài sản') ||
+      line.includes('tuyệt đối không')
+    ) {
+      securityNotes.push(line);
+      continue;
+    }
+
+    // 3. Check for key: value
+    const colonIdx = line.indexOf(':');
+    if (colonIdx > 0 && colonIdx < 40 && !line.startsWith('http')) {
+      const key = line.substring(0, colonIdx).replace(/^[-•\s]+/, '').trim();
+      const val = line.substring(colonIdx + 1).trim();
+      if (key && val) {
+        detailRows.push({
+          label: key,
+          value: val,
+          isHighlight: key.toLowerCase().includes('mã') || key.toLowerCase().includes('tổng') || key.toLowerCase().includes('tiền') || key.toLowerCase().includes('điểm'),
+        });
+        continue;
+      }
+    }
+
+    // 4. Narrative line
+    narrativeLines.push(line);
+  }
+
+  const contentParts: string[] = [];
+  if (narrativeLines.length > 0) {
+    contentParts.push(
+      `<p style="font-size: 14px; line-height: 1.6; color: #374151; margin: 0 0 16px 0;">${narrativeLines.join('<br>')}</p>`
+    );
+  }
+
+  if (detailRows.length > 0) {
+    const rowsHtml = detailRows.map((row, idx) => `
+      <tr>
+        <td style="padding: ${idx === 0 ? '0' : '8px'} 0; font-size: 12px; color: #71717a; text-transform: uppercase; font-weight: 600; width: 42%;">
+          ${row.label}
+        </td>
+        <td align="right" style="padding: ${idx === 0 ? '0' : '8px'} 0; font-size: 13px; color: ${row.isHighlight ? '#2563eb' : '#09090b'}; font-weight: ${row.isHighlight ? '700' : '600'};">
+          ${row.value}
+        </td>
+      </tr>
+    `).join('');
+
+    contentParts.push(`
+      <div style="background-color: #fafafa; border: 1px solid #e4e4e7; border-radius: 6px; padding: 18px; margin: 18px 0;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+          ${rowsHtml}
+        </table>
+      </div>
+    `);
+  }
+
+  const noteHtml = securityNotes.length > 0
+    ? securityNotes.join(' ')
+    : 'Lưu ý: Đăng nhập vào tài khoản Model Universe để xem toàn bộ thông tin chi tiết và tiến trình xử lý. Tuyệt đối không chia sẻ mật khẩu hoặc OTP.';
 
   return wrapMasterEmailTemplate({
     preheader: subject,
-    badge: 'Thông báo',
+    badge,
     title: subject,
-    contentHtml: formattedHtml,
-    actionButton,
+    contentHtml: contentParts.join(''),
+    actionButton: extractedActionUrl ? {
+      text: extractedActionText || 'Xem chi tiết tại Model Universe',
+      url: extractedActionUrl,
+    } : undefined,
+    noteHtml,
   });
 }
 
@@ -685,5 +769,92 @@ export function renderOrderCancelledEmail(opts: {
       url: opts.orderUrl || `${BASE_URL}/vi/user-profile?section=orders`,
     },
     note: 'Mọi thắc mắc về đối soát và thời gian nhận tiền hoàn, vui lòng phản hồi email này hoặc liên hệ hotline 0373498729.',
+  });
+}
+
+/**
+ * 13. Loyalty Reward Email (Điểm thưởng thành viên)
+ */
+export function renderLoyaltyRewardEmail(opts: {
+  customerName?: string;
+  points: number;
+  reason: string;
+  orderId?: number;
+  balance?: number;
+  actionUrl?: string;
+}): string {
+  const details: ServiceDetailRow[] = [
+    { label: 'Điểm thưởng nhận được', value: `+${opts.points.toLocaleString('vi-VN')} điểm`, isHighlight: true },
+    { label: 'Nội dung tích luỹ', value: opts.reason },
+    ...(opts.orderId ? [{ label: 'Mã đơn hàng liên kết', value: `#${opts.orderId}` }] : []),
+    ...(opts.balance !== undefined ? [{ label: 'Tổng điểm khả dụng', value: `${opts.balance.toLocaleString('vi-VN')} điểm`, isHighlight: true }] : []),
+  ];
+
+  return renderServiceNoticeEmail({
+    badge: 'Điểm tích luỹ',
+    title: 'Bạn vừa nhận được điểm thưởng thành viên!',
+    subtitle: opts.customerName ? `Xin chào ${opts.customerName}, tài khoản của bạn vừa được cộng điểm tích luỹ.` : 'Tài khoản của bạn vừa được cộng điểm tích luỹ.',
+    preheader: `+${opts.points} điểm thưởng thành viên đã được cộng vào tài khoản Model Universe!`,
+    message: 'Cảm ơn bạn đã luôn tin tưởng và đồng hành cùng Model Universe. Hệ thống vừa ghi nhận giao dịch và cộng điểm thưởng vào ví thành viên của bạn:',
+    details,
+    actionButton: {
+      text: 'Xem ví điểm thưởng & Quyền lợi',
+      url: opts.actionUrl || `${BASE_URL}/vi/user-profile?section=loyalty`,
+    },
+    note: 'Điểm thưởng thành viên có thể sử dụng để giảm giá trực tiếp khi đặt hàng tiếp theo hoặc đổi lấy voucher ưu đãi đặc quyền theo chương trình khách hàng thân thiết.',
+  });
+}
+
+/**
+ * 14. Admin Alert Email (Thông báo dành riêng cho Ban Quản trị)
+ */
+export function renderAdminAlertEmail(opts: {
+  title: string;
+  content: string;
+  severity?: string;
+  actionUrl?: string;
+}): string {
+  const lines = opts.content.split('\n').map((l) => l.trim()).filter(Boolean);
+  const narrative: string[] = [];
+  const details: ServiceDetailRow[] = [];
+  let buttonUrl = opts.actionUrl || `${BASE_URL}/vi/admin`;
+  let buttonText = 'Mở trang quản trị Model Universe';
+
+  for (const line of lines) {
+    const urlMatch = line.match(/https?:\/\/[^\s]+/);
+    if (urlMatch) {
+      buttonUrl = urlMatch[0];
+      const txt = line.replace(urlMatch[0], '').replace(/^[-•\s:–]+|[-•\s:–]+$/g, '').trim();
+      if (txt && txt.length < 50) buttonText = txt;
+      continue;
+    }
+    const colonIdx = line.indexOf(':');
+    if (colonIdx > 0 && colonIdx < 35) {
+      const key = line.substring(0, colonIdx).replace(/^[-•\s]+/, '').trim();
+      const val = line.substring(colonIdx + 1).trim();
+      if (key && val) {
+        details.push({
+          label: key,
+          value: val,
+          isHighlight: key.toLowerCase().includes('mã') || key.toLowerCase().includes('giá') || key.toLowerCase().includes('lỗi') || key.toLowerCase().includes('còn lại'),
+        });
+        continue;
+      }
+    }
+    narrative.push(line);
+  }
+
+  return renderServiceNoticeEmail({
+    badge: opts.severity || 'Cảnh báo Quản trị',
+    title: opts.title,
+    subtitle: 'Hệ thống ghi nhận sự kiện nghiệp vụ cần ban quản trị theo dõi.',
+    preheader: opts.title,
+    message: narrative.length > 0 ? narrative.join('<br>') : undefined,
+    details,
+    actionButton: {
+      text: buttonText,
+      url: buttonUrl,
+    },
+    note: 'Thông báo nội bộ dành riêng cho ban quản trị Model Universe. Mọi thao tác xử lý cần tuân thủ quy trình kiểm soát rủi ro v6.2.',
   });
 }

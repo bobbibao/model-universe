@@ -1,0 +1,96 @@
+{
+  "dispatchedAt": "2026-10-30T16:52:11.332Z",
+  "total": 18,
+  "results": [
+    {
+      "type": "pawn_update",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<e938675d-fc57-a098-eeee-166b352b7c5d@gmail.com>"
+    },
+    {
+      "type": "pawn_due",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<da1bd812-0639-426d-c842-8ede038f2249@gmail.com>"
+    },
+    {
+      "type": "reservation_update",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<1193de8f-43df-2037-1f5b-a1f15cb41e57@gmail.com>"
+    },
+    {
+      "type": "order_confirmed",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<aa6615b7-862e-b60c-0035-6ef61442712c@gmail.com>"
+    },
+    {
+      "type": "order_cancelled",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<83882470-9902-6fdc-2473-9f2bbf3ce4e2@gmail.com>"
+    },
+    {
+      "type": "shipment_tracking",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<11627771-98d0-65ef-15e8-f890867d9ded@gmail.com>"
+    },
+    {
+      "type": "meeting_confirmed",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<aefeddb3-482d-5175-f2b2-6f6ddbb8f188@gmail.com>"
+    },
+    {
+      "type": "buyback_received",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<dd3b43c5-0ef1-1999-038f-e59c3506f0ef@gmail.com>"
+    },
+    {
+      "type": "buyback_quote",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<048ab1cb-70ae-d369-1871-3908a364f182@gmail.com>"
+    },
+    {
+      "type": "loyalty_order",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<f4fcc5b8-e482-2d22-3f8e-19185aa6449d@gmail.com>"
+    },
+    {
+      "type": "loyalty_review",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<6dd6766d-2513-ef37-6667-7b91953ef849@gmail.com>"
+    },
+    {
+      "type": "loyalty_profile",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<da3f4b39-508f-d97d-cc97-d9a439452324@gmail.com>"
+    },
+    {
+      "type": "restock_alert",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<6ab14598-e5e0-b86e-4168-879ae1166eeb@gmail.com>"
+    },
+    {
+      "type": "voucher_expiring",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<fee95753-a4ed-75cd-eb97-253a4b9a73a8@gmail.com>"
+    },
+    {
+      "type": "otp_registration",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<48721c5b-c294-8201-a06e-c72fd0267ce9@gmail.com>"
+    },
+    {
+      "type": "password_reset",
+      "to": "bobby.le.2k3@gmail.com",
+      "id": "<a21bdc6e-b0d1-7d1d-340a-cc879a39593d@gmail.com>"
+    },
+    {
+      "type": "admin_alert_meeting",
+      "to": "lehoangbao5678@gmail.com",
+      "id": "<eb6eaeee-f2cb-e0e8-f7e8-1774729f7abb@gmail.com>"
+    },
+    {
+      "type": "admin_alert_pawn",
+      "to": "lehoangbao5678@gmail.com",
+      "id": "<893af98b-ffa1-40f1-4903-3760c297e5d0@gmail.com>"
+    }
+  ]
+}
