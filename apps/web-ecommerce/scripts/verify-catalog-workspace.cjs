@@ -119,7 +119,7 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
     await expect(page.locator('.admin-table tbody')).toContainText('Bạch Khởi');
     await expect(page.locator('.admin-table')).toHaveAttribute('aria-busy', 'false');
     await page.getByRole('link', { name: 'Phân tích tồn kho', exact: true }).click();
-    await page.waitForURL('**/admin/products/report');
+    await page.waitForURL('**/admin/products/report', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.inventory-tables table')).toHaveCount(2, { timeout: 15000 });
     await page.screenshot({ path: path.join(output, 'inventory-report.png'), fullPage: true });
     await page.goto('/vi/admin/products/new', { waitUntil: 'domcontentloaded' });
