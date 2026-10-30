@@ -1,5 +1,6 @@
 import { formatVND } from '../../../../shared/server/utils/utils';
 import { shopPublicUrl } from '../marketing/platforms';
+import { renderShipmentEmail, renderServiceNoticeEmail, renderBuybackNoticeEmail, renderVoucherNoticeEmail } from '../mail/EmailTemplate';
 
 // Texts for people are Vietnamese (the specification's templates); placeholders are filled from the committed order,
 // shipment or request, never from client input.
@@ -137,50 +138,52 @@ export const adminMeetingChange = (orderCode: string, address: string, time: str
   ),
 });
 
-export const emailMeetingDeposit = (order: OrderFacts, meetingAddress: string, requestedTime: string) => ({
-  subject: `Đã xác nhận cọc đơn GDTT ${order.orderCode}`,
-  body: lines(
-    `Xin chào ${order.customerName},`,
-    '',
-    `MODEL universe đã xác nhận khoản thanh toán trước cho đơn hàng ${order.orderCode} của bạn.`,
-    '',
-    'Thông tin đơn hàng',
-    `- Sản phẩm: ${order.productSummary}`,
-    `- Tổng giá trị sản phẩm: ${vnd(order.productTotalVnd)}`,
-    `- Đã thanh toán: ${vnd(order.confirmedPaidVnd)}`,
-    `- Số tiền còn lại: ${vnd(order.remainingVnd)}`,
-    `- Địa điểm giao dịch đề xuất: ${meetingAddress}`,
-    `- Thời gian mong muốn: ${requestedTime}`,
-    '',
-    'Shop sẽ kiểm tra và xác nhận lịch giao dịch với bạn.',
-    'Bạn vui lòng chỉ đến địa điểm giao dịch sau khi lịch hẹn đã được xác nhận.',
-    '',
-    `Xem đơn hàng: ${orderUrl()}`,
-    '',
-    'Cảm ơn bạn đã lựa chọn MODEL universe!',
-  ),
-});
+export const emailMeetingDeposit = (order: OrderFacts, meetingAddress: string, requestedTime: string) => {
+  const subject = `Đã xác nhận cọc đơn GDTT ${order.orderCode}`;
+  const body = renderServiceNoticeEmail({
+    badge: 'Đơn hàng GDTT',
+    title: subject,
+    subtitle: `MODEL universe đã xác nhận khoản thanh toán trước cho đơn hàng ${order.orderCode}.`,
+    message: `Xin chào ${order.customerName}, đơn hàng giao dịch trực tiếp tại showroom của bạn đã được ghi nhận. Shop sẽ chuẩn bị mô hình và xác nhận lịch hẹn giao dịch với bạn.`,
+    details: [
+      { label: 'Mã đơn hàng', value: order.orderCode, isHighlight: true },
+      { label: 'Sản phẩm', value: order.productSummary },
+      { label: 'Tổng giá trị', value: vnd(order.productTotalVnd) },
+      { label: 'Đã thanh toán trước', value: vnd(order.confirmedPaidVnd) },
+      { label: 'Số tiền còn lại', value: vnd(order.remainingVnd), isHighlight: true },
+      { label: 'Địa điểm GDTT', value: meetingAddress },
+      { label: 'Thời gian mong muốn', value: requestedTime },
+    ],
+    actionButton: {
+      text: 'Xem chi tiết đơn hàng',
+      url: orderUrl(),
+    },
+    note: 'Bạn vui lòng chỉ đến showroom sau khi lịch hẹn đã được nhân viên Model Universe xác nhận.',
+  });
+  return { subject, body };
+};
 
-export const emailCodDeposit = (order: OrderFacts) => ({
-  subject: `Xác nhận đơn hàng ${order.orderCode}`,
-  body: lines(
-    `Xin chào ${order.customerName},`,
-    '',
-    `MODEL universe đã xác nhận khoản thanh toán trước cho đơn hàng ${order.orderCode}.`,
-    '',
-    'Thông tin thanh toán:',
-    `- Tổng giá trị sản phẩm: ${vnd(order.productTotalVnd)}`,
-    `- Tổng đã thanh toán: ${vnd(order.confirmedPaidVnd)}`,
-    `- Số tiền sản phẩm còn lại: ${vnd(order.remainingVnd)}`,
-    '',
-    'Đơn hàng đang được chuẩn bị để tạo vận đơn.',
-    'Mã vận đơn sẽ được gửi cho bạn ngay khi đơn vị vận chuyển nhận đơn.',
-    '',
-    `Xem đơn: ${orderUrl()}`,
-    '',
-    'Cảm ơn bạn đã mua sắm tại MODEL universe!',
-  ),
-});
+export const emailCodDeposit = (order: OrderFacts) => {
+  const subject = `Xác nhận đơn hàng ${order.orderCode}`;
+  const body = renderServiceNoticeEmail({
+    badge: 'Đơn hàng mới',
+    title: subject,
+    subtitle: `MODEL universe đã xác nhận khoản thanh toán trước cho đơn hàng ${order.orderCode}.`,
+    message: `Xin chào ${order.customerName}, đơn hàng của bạn đang được chuẩn bị để đóng gói và bàn giao đơn vị vận chuyển. Mã vận đơn sẽ được gửi đến bạn ngay khi xuất kho.`,
+    details: [
+      { label: 'Mã đơn hàng', value: order.orderCode, isHighlight: true },
+      { label: 'Sản phẩm', value: order.productSummary },
+      { label: 'Tổng giá trị', value: vnd(order.productTotalVnd) },
+      { label: 'Đã thanh toán trước', value: vnd(order.confirmedPaidVnd) },
+      { label: 'Thu hộ COD còn lại', value: vnd(order.remainingVnd), isHighlight: true },
+    ],
+    actionButton: {
+      text: 'Xem tiến trình đơn hàng',
+      url: orderUrl(),
+    },
+  });
+  return { subject, body };
+};
 
 export const orderTrackingUrl = (orderId?: number) =>
   `${shopPublicUrl()}/vi/order-history${orderId ? `?order=${orderId}` : ''}`;
@@ -213,26 +216,15 @@ export const emailShipmentCreated = (
   },
 ) => ({
   subject: `Đơn ${orderCode} đã có mã vận đơn ${shipment.carrierName} ${shipment.trackingNumber}`,
-  body: lines(
-    `Xin chào ${customerName},`,
-    '',
-    `Đơn hàng ${orderCode} của bạn đã được tạo vận đơn với ${shipment.carrierName}.`,
-    '',
-    'Thông tin vận chuyển',
-    `- Mã đơn hàng: ${orderCode}`,
-    `- Đơn vị vận chuyển: ${shipment.carrierName}`,
-    `- Mã vận đơn: ${shipment.trackingNumber}`,
-    `- Trạng thái: ${shipment.status}`,
-    `- Số tiền thu khi nhận hàng (COD): ${vnd(shipment.codAmountVnd)}`,
-    shipment.estimatedDelivery ? `- Thời gian giao dự kiến: ${shipment.estimatedDelivery}` : null,
-    '',
-    `Theo dõi đơn hàng: ${shipment.trackingUrl}`,
-    `Theo dõi trong tài khoản: ${orderTrackingUrl()}`,
-    '',
-    'Lưu ý: Đơn đã có mã vận đơn nhưng đơn vị vận chuyển có thể chưa đến lấy hàng. Trạng thái sẽ được cập nhật theo hành trình thực tế.',
-    '',
-    'Cảm ơn bạn đã tin tưởng MODEL universe!',
-  ),
+  body: renderShipmentEmail({
+    orderCode,
+    customerName,
+    carrierName: shipment.carrierName,
+    trackingNumber: shipment.trackingNumber,
+    trackingUrl: shipment.trackingUrl,
+    codAmountVnd: shipment.codAmountVnd,
+    orderUrl: orderTrackingUrl(),
+  }),
 });
 
 export const emailShipmentStatus = (
@@ -243,21 +235,30 @@ export const emailShipmentStatus = (
   statusText: string,
   trackingUrl: string,
   reason?: string | null,
-) => ({
-  subject: `Đơn ${orderCode}: ${statusText}`,
-  body: lines(
-    `Xin chào ${customerName},`,
-    '',
-    `Cập nhật đơn hàng ${orderCode} (mã vận đơn ${carrierName} ${trackingNumber}):`,
-    `- Trạng thái: ${statusText}`,
-    reason ? `- Ghi chú từ đơn vị vận chuyển: ${reason}` : null,
-    '',
-    `Theo dõi đơn hàng: ${trackingUrl}`,
-    `Theo dõi trong tài khoản: ${orderTrackingUrl()}`,
-    '',
-    'Cần hỗ trợ? Hãy trả lời email này hoặc liên hệ MODEL universe.',
-  ),
-});
+) => {
+  const subject = `Đơn hàng #${orderCode}: ${statusText}`;
+  const details = [
+    { label: 'Mã đơn hàng', value: `#${orderCode}`, isHighlight: true },
+    { label: 'Đơn vị vận chuyển', value: carrierName },
+    { label: 'Mã vận đơn', value: trackingNumber, isHighlight: true },
+    { label: 'Trạng thái kiện hàng', value: statusText },
+    ...(reason ? [{ label: 'Ghi chú vận chuyển', value: reason }] : []),
+  ];
+  const body = renderServiceNoticeEmail({
+    badge: 'Cập nhật vận chuyển',
+    title: subject,
+    subtitle: `Kiện hàng cho đơn #${orderCode} vừa có trạng thái mới từ đơn vị giao vận.`,
+    preheader: subject,
+    message: `Xin chào <strong>${customerName}</strong>, đơn hàng #${orderCode} của bạn hiện đang ở trạng thái: <strong>${statusText}</strong>.`,
+    details,
+    actionButton: {
+      text: 'Tra cứu hành trình vận đơn',
+      url: trackingUrl || orderTrackingUrl(),
+    },
+    note: 'Cần hỗ trợ giao lại hoặc thay đổi thông tin nhận? Hãy phản hồi email này hoặc liên hệ hotline Model Universe 0373498729.',
+  });
+  return { subject, body };
+};
 
 export const emailMeetingConfirmed = (
   orderCode: string,
@@ -265,43 +266,81 @@ export const emailMeetingConfirmed = (
   address: string,
   time: string,
   remainingVnd: number,
-) => ({
-  subject: `Xác nhận lịch giao dịch đơn ${orderCode}`,
-  body: lines(
-    `Xin chào ${customerName},`,
-    '',
-    'MODEL universe xác nhận lịch giao dịch trực tiếp của bạn như sau:',
-    `- Mã đơn: ${orderCode}`,
-    `- Địa điểm: ${address}`,
-    `- Thời gian: ${time}`,
-    `- Số tiền còn lại: ${vnd(remainingVnd)}`,
-    '',
-    'Bạn vui lòng mang theo mã đơn hàng và mã nhận hàng hiển thị trong tài khoản để nhân viên kiểm tra khi giao dịch.',
-    'Nếu cần thay đổi lịch hẹn, vui lòng gửi yêu cầu qua website trước thời gian giao dịch.',
-    '',
-    'Cảm ơn bạn!',
-  ),
-});
+) => {
+  const subject = `Xác nhận lịch giao dịch đơn #${orderCode}`;
+  const body = renderServiceNoticeEmail({
+    badge: 'Lịch hẹn Showroom',
+    title: subject,
+    subtitle: `Model Universe xác nhận lịch giao dịch trực tiếp cho đơn hàng #${orderCode}.`,
+    preheader: subject,
+    message: `Xin chào <strong>${customerName}</strong>, lịch giao dịch trực tiếp tại showroom của bạn đã được xác nhận. Vui lòng kiểm tra thông tin chi tiết dưới đây:`,
+    details: [
+      { label: 'Mã đơn hàng', value: `#${orderCode}`, isHighlight: true },
+      { label: 'Địa điểm giao dịch', value: address },
+      { label: 'Thời gian hẹn', value: time, isHighlight: true },
+      { label: 'Số tiền thanh toán tại chỗ', value: vnd(remainingVnd) },
+    ],
+    actionButton: {
+      text: 'Xem chi tiết đơn hàng & Mã nhận hàng',
+      url: orderUrl(),
+    },
+    note: 'Bạn vui lòng mang theo mã đơn hàng và mã nhận hàng hiển thị trong tài khoản để nhân viên kiểm tra khi giao dịch. Nếu cần đổi lịch hẹn, vui lòng thông báo trước 2 giờ.',
+  });
+  return { subject, body };
+};
 
 export const emailDeliveryFailed = (
   orderCode: string,
   customerName: string,
   trackingNumber: string,
   reason: string,
-) => ({
-  subject: `Đơn ${orderCode} chưa được giao thành công`,
-  body: lines(
-    `Xin chào ${customerName},`,
-    '',
-    'Đơn hàng chưa được giao thành công',
-    `Mã đơn: ${orderCode}`,
-    `Mã vận đơn: ${trackingNumber}`,
-    `Lý do: ${reason}`,
-    '',
-    'Vui lòng kiểm tra thông tin giao hàng hoặc liên hệ bộ phận hỗ trợ MODEL universe.',
-    `Xem đơn hàng: ${orderUrl()}`,
-  ),
-});
+) => {
+  const subject = `Đơn hàng #${orderCode} chưa được giao thành công`;
+  const body = renderServiceNoticeEmail({
+    badge: 'Giao hàng không thành công',
+    title: subject,
+    subtitle: `Nhân viên giao nhận đã thử phát kiện hàng nhưng chưa thành công.`,
+    preheader: subject,
+    message: `Xin chào <strong>${customerName}</strong>, đơn vị vận chuyển thông báo việc giao kiện hàng cho đơn #${orderCode} gặp sự cố: <em>${reason}</em>.`,
+    details: [
+      { label: 'Mã đơn hàng', value: `#${orderCode}`, isHighlight: true },
+      { label: 'Mã vận đơn', value: trackingNumber },
+      { label: 'Lý do chưa giao được', value: reason },
+    ],
+    actionButton: {
+      text: 'Xem chi tiết đơn hàng',
+      url: orderUrl(),
+    },
+    note: 'Vui lòng kiểm tra số điện thoại và địa chỉ nhận hàng, hoặc phản hồi email này để chúng tôi phối hợp cùng bưu tá giao lại cho bạn.',
+  });
+  return { subject, body };
+};
+
+export const emailHandoverCompleted = (
+  orderCode: string,
+  customerName: string,
+  balanceVnd: number,
+) => {
+  const subject = `Giao nhận thành công đơn hàng #${orderCode}`;
+  const body = renderServiceNoticeEmail({
+    badge: 'Giao dịch hoàn tất',
+    title: subject,
+    subtitle: 'Cảm ơn bạn đã ghé thăm showroom và mua sắm tại Model Universe!',
+    preheader: subject,
+    message: `Xin chào <strong>${customerName}</strong>, đơn hàng #${orderCode} đã được bàn giao thành công tại showroom. Chúc bạn có trải nghiệm tuyệt vời cùng mẫu mô hình mới!`,
+    details: [
+      { label: 'Mã đơn hàng', value: `#${orderCode}`, isHighlight: true },
+      { label: 'Trạng thái', value: 'Đã nhận hàng thành công' },
+      { label: 'Số tiền thanh toán tại chỗ', value: balanceVnd > 0 ? vnd(balanceVnd) : 'Đã thanh toán đủ', isHighlight: true },
+    ],
+    actionButton: {
+      text: 'Xem chi tiết đơn hàng & Viết đánh giá',
+      url: orderUrl(),
+    },
+    note: 'Cần hỗ trợ lắp ráp, bảo hành hoặc phụ kiện thay thế? Đừng ngần ngại liên hệ hotline Model Universe 0373498729.',
+  });
+  return { subject, body };
+};
 
 export const emailBuybackReceived = (
   code: string,
@@ -309,27 +348,63 @@ export const emailBuybackReceived = (
   productName: string,
   receivedAt: string,
   estimateVnd: number | null,
-) => ({
-  subject: `Đã nhận sản phẩm thu mua ${code}`,
-  body: lines(
-    `Xin chào ${customerName},`,
-    '',
-    `MODEL universe đã nhận được kiện hàng liên quan đến yêu cầu thu mua ${code}.`,
-    '',
-    'Thông tin:',
-    `- Sản phẩm: ${productName}`,
-    `- Mã yêu cầu: ${code}`,
-    `- Ngày nhận: ${receivedAt}`,
-    `- Giá thu dự kiến: ${estimateVnd !== null ? vnd(estimateVnd) : 'Shop định giá thủ công'}`,
-    '',
-    'Shop sẽ tiến hành quay video mở kiện, kiểm tra tình trạng sản phẩm và đối chiếu toàn bộ phụ kiện với thông tin bạn đã khai báo.',
-    'Sau khi hoàn tất kiểm tra, chúng tôi sẽ thông báo kết quả cùng giá thu chính thức để bạn xác nhận.',
-    '',
-    `Xem tiến trình: ${buybackUrl()}`,
-    '',
-    'Cảm ơn bạn đã sử dụng dịch vụ thu mô hình của MODEL universe!',
-  ),
-});
+) => {
+  const subject = `Đã nhận sản phẩm thu mua ${code}`;
+  const body = renderBuybackNoticeEmail({
+    code,
+    title: subject,
+    subtitle: `Model Universe đã tiếp nhận kiện hàng thu mua an toàn tại showroom.`,
+    message: `Xin chào <strong>${customerName}</strong>, Model Universe đã nhận được kiện hàng liên quan đến yêu cầu thu mua <strong>${code}</strong>. Shop sẽ tiến hành quay video mở kiện, kiểm định tình trạng thực tế và đối chiếu phụ kiện.`,
+    details: [
+      { label: 'Mã yêu cầu', value: code, isHighlight: true },
+      { label: 'Sản phẩm mô hình', value: productName },
+      { label: 'Thời gian tiếp nhận', value: receivedAt },
+      { label: 'Giá thu dự kiến', value: estimateVnd !== null ? vnd(estimateVnd) : 'Định giá thủ công', isHighlight: true },
+    ],
+    actionUrl: buybackUrl(),
+  });
+  return { subject, body };
+};
+
+export const emailBuybackNeedEvidence = (
+  code: string,
+  customerName: string,
+  request: string,
+) => {
+  const subject = `Yêu cầu bổ sung hình ảnh/video cho đơn thu mua ${code}`;
+  const body = renderBuybackNoticeEmail({
+    code,
+    title: subject,
+    subtitle: `Model Universe cần thêm thông tin hình ảnh để thẩm định chính xác sản phẩm của bạn.`,
+    message: `Xin chào <strong>${customerName}</strong>, để có thể đưa ra mức định giá chính xác và tối ưu nhất cho yêu cầu thu mua <strong>${code}</strong>, chuyên viên kiểm định cần bạn bổ sung thêm thông tin sau:`,
+    details: [
+      { label: 'Mã yêu cầu', value: code, isHighlight: true },
+      { label: 'Nội dung cần bổ sung', value: request },
+    ],
+    actionUrl: buybackUrl(),
+  });
+  return { subject, body };
+};
+
+export const emailBuybackPreliminaryQuote = (
+  code: string,
+  customerName: string,
+  amountVnd: number | null,
+) => {
+  const subject = `Báo giá sơ bộ cho yêu cầu thu mua ${code}`;
+  const body = renderBuybackNoticeEmail({
+    code,
+    title: subject,
+    subtitle: `Model Universe đã có báo giá sơ bộ dựa trên thông tin mô hình bạn cung cấp.`,
+    message: `Xin chào <strong>${customerName}</strong>, chuyên viên Model Universe đã thẩm định sơ bộ yêu cầu thu mua <strong>${code}</strong>. Bạn vui lòng xem báo giá sơ bộ và gửi sản phẩm về showroom nếu đồng ý:`,
+    details: [
+      { label: 'Mã yêu cầu', value: code, isHighlight: true },
+      { label: 'Giá thu dự kiến', value: amountVnd !== null ? vnd(amountVnd) : 'Chờ giám định trực tiếp', isHighlight: true },
+    ],
+    actionUrl: buybackUrl(),
+  });
+  return { subject, body };
+};
 
 export const emailBuybackQuote = (
   code: string,
@@ -341,40 +416,33 @@ export const emailBuybackQuote = (
     deductionDifferenceVnd: number;
     finalVnd: number;
   },
-) => ({
-  subject: `Kết quả kiểm hàng và giá thu chính thức – ${code}`,
-  body: lines(
-    `Xin chào ${customerName},`,
-    '',
-    `MODEL universe đã hoàn thành việc kiểm tra sản phẩm thuộc yêu cầu thu mua ${code}.`,
-    '',
-    'Thông tin đối chiếu:',
-    `- Giá thu dự kiến: ${facts.estimateVnd !== null ? vnd(facts.estimateVnd) : 'Định giá thủ công'}`,
-    `- Số lỗi đã khai báo: ${facts.declaredIssueCount}`,
-    `- Số lỗi thực tế được ghi nhận: ${facts.inspectedIssueCount}`,
-    `- Chênh lệch khấu trừ: ${vnd(facts.deductionDifferenceVnd)}`,
-    `- Giá thu chính thức đề xuất: ${vnd(facts.finalVnd)}`,
-    '',
-    `Bạn có thể xem kết quả kiểm tra và hình ảnh/video tại: ${buybackUrl()}`,
-    '',
-    'Nếu đồng ý, vui lòng xác nhận trên website để shop tiến hành thanh toán.',
-    'Nếu không đồng ý, bạn có thể yêu cầu kiểm tra lại hoặc xử lý trả hàng theo quy định.',
-    '',
-    'MODEL universe cảm ơn bạn đã hợp tác!',
-  ),
-});
+) => {
+  const subject = `Kết quả kiểm định và giá thu chính thức – ${code}`;
+  const body = renderBuybackNoticeEmail({
+    code,
+    title: subject,
+    subtitle: `Model Universe đã hoàn thành việc kiểm tra sản phẩm thuộc yêu cầu thu mua ${code}.`,
+    message: `Xin chào <strong>${customerName}</strong>, chuyên viên của chúng tôi đã hoàn tất quy trình kiểm tra sản phẩm thực tế kèm video mở kiện. Dưới đây là biên bản đối chiếu và giá thu chính thức:`,
+    details: [
+      { label: 'Mã yêu cầu', value: code, isHighlight: true },
+      { label: 'Giá thu dự kiến ban đầu', value: facts.estimateVnd !== null ? vnd(facts.estimateVnd) : 'Định giá thủ công' },
+      { label: 'Số lỗi khai báo', value: `${facts.declaredIssueCount}` },
+      { label: 'Số lỗi thực tế ghi nhận', value: `${facts.inspectedIssueCount}` },
+      { label: 'Chênh lệch khấu trừ', value: vnd(facts.deductionDifferenceVnd) },
+      { label: 'Giá thu chính thức đề xuất', value: vnd(facts.finalVnd), isHighlight: true },
+    ],
+    actionUrl: buybackUrl(),
+  });
+  return { subject, body };
+};
 
-export const emailVoucherExpiring = (customerName: string, code: string, description: string, expireAt: string) => ({
-  subject: 'Voucher của bạn sắp hết hạn!',
-  body: lines(
-    `Xin chào ${customerName},`,
-    '',
-    `Bạn đang có mã ${code}.`,
-    `Ưu đãi: ${description}.`,
-    `Hết hạn: ${expireAt}.`,
-    '',
-    'MODEL universe đã tìm được các sản phẩm phù hợp với mã của bạn.',
-    `Xem hàng giá tốt: ${shopPublicUrl()}/vi/shop`,
-    `Sử dụng voucher: ${shopPublicUrl()}/vi/cart`,
-  ),
-});
+export const emailVoucherExpiring = (customerName: string, code: string, description: string, expireAt: string) => {
+  const subject = `Mã ưu đãi ${code} của bạn sắp hết hạn!`;
+  const body = renderVoucherNoticeEmail({
+    customerName,
+    code,
+    description,
+    expireAt,
+  });
+  return { subject, body };
+};

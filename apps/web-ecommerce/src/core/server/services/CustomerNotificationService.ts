@@ -6,6 +6,7 @@ import CommerceNotificationModel from '../database/client/models/CommerceNotific
 import RestockSubscriptionModel from '../database/client/models/RestockSubscription.Model';
 import HttpError from '../../../shared/server/utils/HttpError';
 import NotificationDispatchService from './NotificationDispatchService';
+import { renderRestockAlertEmail } from './mail/EmailTemplate';
 
 export default class CustomerNotificationService {
   private async actor(userId: number) {
@@ -111,6 +112,13 @@ export default class CustomerNotificationService {
         const dedupeKey = `restock:${row.id}:${row.cycle}`;
         const baseUrl = process.env.APP_URL || process.env.SHOP_PUBLIC_URL || 'http://localhost:6050';
         const productUrl = `${baseUrl}/vi/san-pham/${product.slug || product.id}`;
+        const emailHtml = renderRestockAlertEmail({
+          productName: product.name,
+          stock: product.stock,
+          productUrl,
+          priceVnd: product.price,
+          imageUrl: product.imageUrl,
+        });
         await new NotificationDispatchService().notifyCustomer(
           {
             userId: row.userId,
@@ -120,7 +128,7 @@ export default class CustomerNotificationService {
             details: { productName: product.name, observedStock: product.stock, observedAt: now.toISOString() },
             email: {
               subject: `Sản phẩm "${product.name}" đã có hàng trở lại tại Model Universe!`,
-              body: `Xin chào,\n\nMô hình "${product.name}" mà bạn quan tâm và đăng ký nhận thông báo hiện đã có hàng trở lại trong kho Model Universe (số lượng hiện có: ${product.stock}).\n\nBạn có thể xem chi tiết sản phẩm và đặt hàng ngay tại:\n${productUrl}\n\nTrân trọng,\nĐội ngũ Model Universe`,
+              body: emailHtml,
             },
           },
           transaction,

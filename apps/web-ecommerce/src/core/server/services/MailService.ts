@@ -2,6 +2,7 @@ import nodemailer, { Transporter } from 'nodemailer';
 import { Op, Transaction } from 'sequelize';
 import AdminNotificationModel, { NotificationSeverity } from '../database/client/models/AdminNotification.Model';
 import UserModel from '../database/internal/models/User.Model';
+import { renderOtpEmail, renderAutoFormattedEmail, wrapMasterEmailTemplate } from './mail/EmailTemplate';
 
 const SHOP_NAME = 'Model Universe';
 export const NOTIFICATIONS_PER_DAY = 20;
@@ -46,7 +47,16 @@ export default class MailService {
   async sendRegistrationOtp(email: string, otp: string, ttlMinutes: number): Promise<void> {
     const subject = `Mã xác thực đăng ký tài khoản ${SHOP_NAME}`;
     const text = `Mã xác thực của bạn là ${otp}. Mã có hiệu lực trong ${ttlMinutes} phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.`;
-    await this.send(email, subject, text, otp);
+    const html = renderOtpEmail({ otp, ttlMinutes, email });
+    const transporter = MailService.getTransporter();
+    if (!transporter) throw new Error('SMTP is not configured (SMTP_HOST is empty)');
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: email,
+      subject: `[${SHOP_NAME}] ${subject}`,
+      text,
+      html,
+    });
   }
 
   // Emails every active admin about the agent (protective actions, overspend, the agent's own notices). At most
@@ -67,6 +77,12 @@ export default class MailService {
       transaction,
     });
     const subject = `[${SHOP_NAME}] ${notice.subject}`;
+    const html = wrapMasterEmailTemplate({
+      preheader: notice.subject,
+      badge: notice.severity || 'Admin Alert',
+      title: notice.subject,
+      contentHtml: `<div style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${notice.message}</div>`,
+    });
     const transporter = MailService.getTransporter();
     for (const admin of admins) {
       if (!transporter) throw new Error('SMTP is not configured (SMTP_HOST is empty)');
@@ -75,6 +91,7 @@ export default class MailService {
         to: admin.email,
         subject,
         text: notice.message,
+        html,
       });
     }
     await AdminNotificationModel.create(
@@ -91,27 +108,18 @@ export default class MailService {
   }
 
   // Real SMTP delivery for customers; missing configuration always fails explicitly.
-  async sendTransactional(to: string, subject: string, text: string): Promise<string | null> {
+  async sendTransactional(to: string, subject: string, text: string, html?: string): Promise<string | null> {
     const transporter = MailService.getTransporter();
     if (!transporter) throw new Error('SMTP is not configured (SMTP_HOST is empty)');
+    const isHtml = text.trim().startsWith('<!DOCTYPE html>') || text.trim().startsWith('<html');
+    const formattedHtml = isHtml ? text : (html || renderAutoFormattedEmail(subject, text));
     const info = await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
       subject: `[${SHOP_NAME}] ${subject}`,
-      text,
+      text: isHtml ? subject : text,
+      html: formattedHtml,
     });
     return info.messageId || null;
-  }
-
-  private async send(to: string, subject: string, text: string, otp: string): Promise<void> {
-    const transporter = MailService.getTransporter();
-    if (!transporter) throw new Error('SMTP is not configured (SMTP_HOST is empty)');
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to,
-      subject,
-      text,
-      html: `<p>${text.replace(otp, `<strong style="font-size:20px;letter-spacing:4px">${otp}</strong>`)}</p>`,
-    });
   }
 }
