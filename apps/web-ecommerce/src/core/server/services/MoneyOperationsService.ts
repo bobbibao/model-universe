@@ -1,4 +1,6 @@
 import NotificationDispatchService from './NotificationDispatchService';
+import { renderServiceNoticeEmail } from './mail/EmailTemplate';
+import { shopPublicUrl } from './marketing/platforms';
 /* eslint-disable @typescript-eslint/no-var-requires -- Resolve mutually dependent workflow services only when an operation runs. */
 import OrderModel from '../database/client/models/Order.Model';
 import OrderPrepaymentModel from '../database/client/models/OrderPrepayment.Model';
@@ -57,7 +59,22 @@ export default class MoneyOperationsService {
         details: { status: row.status, amountVnd: Number(row.amountVnd) },
         email: {
           subject: `${status} · #${row.id}`,
-          body: `${status}. Mã yêu cầu #${row.id}, số tiền ${Number(row.amountVnd).toLocaleString('vi-VN')} VND. Xem hồ sơ trong tài khoản Model Universe để đối chiếu. Chỉ trạng thái đã chuyển thành công mới xác nhận tiền đã được hoàn.`,
+          body: renderServiceNoticeEmail({
+            badge: 'Hoàn tiền & Đối soát',
+            title: `${status} · #${row.id}`,
+            subtitle: `Cập nhật trạng thái đối soát và hoàn tiền cho yêu cầu #${row.id}.`,
+            message: `Yêu cầu hoàn tiền hoặc đối soát tài chính #${row.id} của bạn hiện có trạng thái mới: <strong>${status}</strong>.`,
+            details: [
+              { label: 'Mã yêu cầu', value: `#${row.id}`, isHighlight: true },
+              { label: 'Trạng thái', value: status },
+              { label: 'Số tiền xử lý', value: `${Number(row.amountVnd).toLocaleString('vi-VN')} ₫`, isHighlight: true },
+            ],
+            actionButton: {
+              text: 'Xem chi tiết trong tài khoản',
+              url: `${shopPublicUrl()}/vi/user-profile?section=inbox`,
+            },
+            note: 'Chỉ trạng thái "Đã chuyển tiền hoàn thành công" mới xác nhận giao dịch đã được ngân hàng thực hiện. Nếu có thắc mắc, vui lòng liên hệ hotline 0373498729.',
+          }),
         },
       },
       transaction,

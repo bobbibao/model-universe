@@ -21,7 +21,12 @@ import ProductModel from '../database/client/models/Product.Model';
 import EvidenceModel from '../database/client/models/Evidence.Model';
 import { isVideo } from './EvidenceService';
 import NotificationDispatchService from './NotificationDispatchService';
-import { emailBuybackQuote, emailBuybackReceived } from './delivery/Messages';
+import {
+  emailBuybackQuote,
+  emailBuybackReceived,
+  emailBuybackNeedEvidence,
+  emailBuybackPreliminaryQuote,
+} from './delivery/Messages';
 import ListingQcService, { listingDigest, plainReview } from './ListingQcService';
 import {
   compareInspection,
@@ -392,6 +397,8 @@ export default class BuybackService {
           await row.update({ status: 'need_more_evidence', evidenceRequest }, { transaction });
           details.evidenceRequest = evidenceRequest;
           notify = async (tx, current) => {
+            const user = await UserModel.findByPk(current.userId, { transaction: tx });
+            const customerName = user ? `${user.lastName} ${user.firstName}`.trim() : 'Quý khách';
             await this.notices.notifyCustomer(
               {
                 userId: current.userId,
@@ -399,6 +406,7 @@ export default class BuybackService {
                 entityId: current.id,
                 dedupeKey: `buyback:${current.id}:evidence:${current.version}`,
                 details: { code: buybackCode(current.id), request: evidenceRequest },
+                email: emailBuybackNeedEvidence(buybackCode(current.id), customerName, evidenceRequest),
               },
               tx,
             );
@@ -435,6 +443,8 @@ export default class BuybackService {
           await row.update({ preliminaryOffer: offer, status: 'quoted', evidenceRequest: null }, { transaction });
           details.offer = offer;
           notify = async (tx, current) => {
+            const user = await UserModel.findByPk(current.userId, { transaction: tx });
+            const customerName = user ? `${user.lastName} ${user.firstName}`.trim() : 'Quý khách';
             await this.notices.notifyCustomer(
               {
                 userId: current.userId,
@@ -442,6 +452,7 @@ export default class BuybackService {
                 entityId: current.id,
                 dedupeKey: `buyback:${current.id}:preliminary:${current.version}`,
                 details: { code: buybackCode(current.id), amountVnd },
+                email: emailBuybackPreliminaryQuote(buybackCode(current.id), customerName, amountVnd),
               },
               tx,
             );

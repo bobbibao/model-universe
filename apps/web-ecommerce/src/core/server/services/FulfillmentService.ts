@@ -271,6 +271,7 @@ export default class FulfillmentService {
         { balanceVnd: balance, paymentMethod: method },
         transaction,
       );
+      const facts = await this.fulfillment.facts(order, transaction);
       await this.notices.notifyCustomer(
         {
           userId: order.userId,
@@ -278,6 +279,7 @@ export default class FulfillmentService {
           entityId: order.id,
           dedupeKey: `order:${order.id}:handover`,
           details: { orderCode: transferMemo(order.id), balanceVnd: balance },
+          email: Messages.emailHandoverCompleted(facts.orderCode, facts.customerName, balance),
         },
         transaction,
       );

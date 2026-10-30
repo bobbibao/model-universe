@@ -6,6 +6,7 @@ import CommerceNotificationModel from '../database/client/models/CommerceNotific
 import NotificationDeliveryModel from '../database/client/models/NotificationDelivery.Model';
 import NotificationDispatchService from './NotificationDispatchService';
 import { PAWN_DAY_MS } from '../../../shared/pawn-rules';
+import { renderPawnNoticeEmail } from './mail/EmailTemplate';
 
 export default class PawnReminderService {
   static async cancel(id: number, dueAt: Date | null, transaction: Transaction) {
@@ -40,8 +41,19 @@ export default class PawnReminderService {
           availableAt: at,
           details: { days, dueAt: row.dueAt.toISOString() },
           email: {
-            subject: `Nhắc hạn cầm #${row.id}: T−${days}`,
-            body: `Hợp đồng #${row.id} đến hạn ${row.dueAt.toISOString()}. Vui lòng liên hệ shop để đối chiếu hoặc đề nghị gia hạn. Không tự phạt hay xử lý tài sản.`,
+            subject: `Nhắc hạn hợp đồng cầm #${row.id}: T−${days}`,
+            body: renderPawnNoticeEmail({
+              contractId: row.id,
+              title: `Nhắc hạn hợp đồng cầm cố #${row.id} (Còn ${days} ngày)`,
+              subtitle: `Hợp đồng cầm cố #${row.id} sắp đến ngày đáo hạn.`,
+              details: [
+                { label: 'Mã hợp đồng', value: `#${row.id}`, isHighlight: true },
+                { label: 'Ngày đến hạn', value: new Date(row.dueAt).toLocaleDateString('vi-VN') },
+                { label: 'Thời gian còn lại', value: `${days} ngày`, isHighlight: true },
+              ],
+              message: `Xin chào Quý khách, hợp đồng cầm cố #${row.id} của bạn tại Model Universe sắp đến hạn vào ngày ${new Date(row.dueAt).toLocaleDateString('vi-VN')}. Vui lòng liên hệ showroom để thực hiện đối chiếu, chuộc lại tài sản hoặc đề nghị gia hạn hợp đồng.`,
+              note: 'Chính sách Model Universe cam kết bảo lưu và niêm phong tài sản an toàn tuyệt đối, không tự ý thanh lý hoặc xử phạt tài sản khi chưa đối chiếu.',
+            }),
           },
         },
         transaction,
@@ -88,8 +100,20 @@ export default class PawnReminderService {
               dedupeKey: `pawn:${row.id}:${row.dueAt.toISOString()}:${next}`,
               details: { dueAt: row.dueAt.toISOString(), stage: next },
               email: {
-                subject: `Đối chiếu hợp đồng cầm #${row.id}`,
-                body: `Hợp đồng đã đến hạn, hiện ở bước ${next}. Shop sẽ đối chiếu; không tự phạt hoặc thanh lý.`,
+                subject: `Thông báo đối chiếu hợp đồng cầm #${row.id}`,
+                body: renderPawnNoticeEmail({
+                  contractId: row.id,
+                  title: `Đối chiếu hợp đồng cầm cố #${row.id}`,
+                  subtitle: `Hợp đồng đã đến hạn, hiện chuyển sang giai đoạn đối chiếu (${next}).`,
+                  statusText: next === 'DUE_GRACE' ? 'Ân hạn (DUE_GRACE)' : 'Rà soát quá hạn (OVERDUE_REVIEW)',
+                  details: [
+                    { label: 'Mã hợp đồng', value: `#${row.id}`, isHighlight: true },
+                    { label: 'Ngày đến hạn', value: new Date(row.dueAt).toLocaleDateString('vi-VN') },
+                    { label: 'Giai đoạn xử lý', value: next === 'DUE_GRACE' ? 'Thời gian ân hạn' : 'Đối soát quá hạn', isHighlight: true },
+                  ],
+                  message: `Hợp đồng cầm cố #${row.id} đã đến hạn thanh toán và đang ở bước ${next}. Đội ngũ quản lý hợp đồng của Model Universe sẽ tiến hành đối chiếu cùng bạn. Shop cam kết không tự động thanh lý tài sản.`,
+                  note: 'Vui lòng liên hệ hotline Model Universe 0373498729 hoặc đăng nhập vào hệ thống để được hỗ trợ kịp thời.',
+                }),
               },
             },
             transaction,

@@ -40,6 +40,8 @@ import {
   isMeetingSlotOpen,
 } from '../../../shared/fulfillment';
 import NotificationDispatchService from './NotificationDispatchService';
+import { renderOrderConfirmationEmail, renderOrderCancelledEmail, renderServiceNoticeEmail } from './mail/EmailTemplate';
+import { shopPublicUrl } from './marketing/platforms';
 import ShippingService from './ShippingService';
 import PackagePlanService, { planItems } from './PackagePlanService';
 import { checkQuote, quoteContent } from './CheckoutQuote';
@@ -521,6 +523,46 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     const order = await this.getForUser(userId, orderId);
     const user = await UserModel.findByPk(userId, { attributes: ['email'] });
     void new ConversionService().recordPurchase({ order, email: user?.email ?? null, lines: purchaseLines, consent });
+
+    try {
+      const baseUrl = process.env.APP_URL || process.env.SHOP_PUBLIC_URL || 'http://localhost:6050';
+      const orderUrl = `${baseUrl}/vi/user-profile?section=orders`;
+      const shippingAddress = order.address
+        ? `${order.address}, ${order.ward || ''}, ${order.district || ''}, ${order.city || ''}`
+        : 'Nhận trực tiếp tại Showroom';
+      const paymentMethod = order.fulfillmentMethod === 'DIRECT_MEETING' ? 'Giao dịch trực tiếp tại showroom' : 'Giao hàng tận nơi (COD)';
+      const rawItems = (order.getDataValue('items') || []) as OrderItemModel[];
+      const items = rawItems.map((it: OrderItemModel) => ({
+        name: it.productName || `Mô hình #${it.productId}`,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice || 0,
+      }));
+      const emailHtml = renderOrderConfirmationEmail({
+        orderId: order.id,
+        orderCode: transferMemo(order.id),
+        customerName: order.recipientName || user?.email || 'Quý khách',
+        totalVnd: order.total,
+        paymentMethod,
+        shippingAddress,
+        items,
+        orderUrl,
+      });
+      await new NotificationDispatchService().notifyCustomer({
+        userId,
+        kind: 'order_confirmed',
+        entityId: order.id,
+        dedupeKey: `order:${order.id}:placed`,
+        details: { orderCode: transferMemo(order.id), total: order.total },
+        email: {
+          subject: `Xác nhận đơn hàng #${transferMemo(order.id)} thành công`,
+          body: emailHtml,
+        },
+      });
+      new NotificationDispatchService().dispatchSoon();
+    } catch (e) {
+      Logger.ERROR('Failed to dispatch order confirmation email:', e);
+    }
+
     return order;
   }
 
@@ -594,27 +636,17 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
         dedupeKey: `order:${order.id}:cancelled`,
         details: { orderCode: transferMemo(order.id), reason, by: order.cancelledBy, refundVnd, feeVnd },
         email: {
-          subject: `Đơn ${transferMemo(order.id)} đã được huỷ`,
-          body: [
-            `Đơn hàng ${transferMemo(order.id)} đã được huỷ${
+          subject: `Đơn hàng #${transferMemo(order.id)} đã được huỷ`,
+          body: renderOrderCancelledEmail({
+            orderCode: transferMemo(order.id),
+            reasonText:
               reason === 'payment_timeout'
-                ? ' vì đã quá hạn thanh toán'
-                : order.cancelNote
-                  ? `: ${order.cancelNote}`
-                  : '.'
-            }`,
-            feeVnd > 0
-              ? `Theo chính sách huỷ đơn đã đặt cọc, cửa hàng giữ lại ${feeVnd.toLocaleString('vi-VN')} ₫ (theo quyết định đã được duyệt).`
-              : '',
-            refund
-              ? `Khoản ${refundVnd.toLocaleString('vi-VN')} ₫ đang chờ đối soát hoàn tiền; cửa hàng báo lại sau khi ngân hàng xác nhận.`
-              : order.prepaidVnd > 0
-                ? 'Đơn này không còn khoản nào được hoàn lại.'
-                : 'Bạn chưa thanh toán khoản nào cho đơn này.',
-            'Cần hỗ trợ? Hãy trả lời email này.',
-          ]
-            .filter(Boolean)
-            .join('\n'),
+                ? 'Quá thời hạn thanh toán đơn hàng'
+                : order.cancelNote || 'Theo yêu cầu huỷ đơn',
+            feeVnd,
+            refundVnd,
+            prepaidVnd: order.prepaidVnd,
+          }),
         },
       },
       transaction,
@@ -1113,8 +1145,22 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
           dedupeKey: `order:${orderId}:cancel-rejected:${order.cancelRequest.requestedAt}`,
           details: { orderCode: transferMemo(orderId), note },
           email: {
-            subject: `Yêu cầu huỷ đơn ${transferMemo(orderId)} chưa được chấp nhận`,
-            body: `Cửa hàng chưa thể huỷ đơn ${transferMemo(orderId)}: ${note}\nCần hỗ trợ thêm, vui lòng trả lời email này.`,
+            subject: `Yêu cầu huỷ đơn #${transferMemo(orderId)} chưa được chấp thuận`,
+            body: renderServiceNoticeEmail({
+              badge: 'Yêu cầu huỷ đơn',
+              title: `Yêu cầu huỷ đơn #${transferMemo(orderId)} chưa được chấp thuận`,
+              subtitle: 'Thông báo phản hồi từ bộ phận quản trị đơn hàng Model Universe.',
+              message: `Cửa hàng chưa thể chấp thuận yêu cầu huỷ đơn #${transferMemo(orderId)} của bạn với lý do: <strong>${note}</strong>.`,
+              details: [
+                { label: 'Mã đơn hàng', value: `#${transferMemo(orderId)}`, isHighlight: true },
+                { label: 'Lý do từ chối', value: note },
+              ],
+              actionButton: {
+                text: 'Xem chi tiết đơn hàng',
+                url: `${shopPublicUrl()}/vi/user-profile?section=orders`,
+              },
+              note: 'Nếu cần giải đáp thêm, vui lòng phản hồi email này hoặc liên hệ hotline Model Universe 0373498729.',
+            }),
           },
         },
         transaction,

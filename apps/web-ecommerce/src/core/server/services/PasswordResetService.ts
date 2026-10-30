@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import UserModel from '../database/internal/models/User.Model';
 import EmailVerificationModel from '../database/internal/models/EmailVerification.Model';
 import MailService from './MailService';
+import { renderPasswordResetEmail } from './mail/EmailTemplate';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { hashPassword } from '../../../shared/server/utils/PasswordUtils';
 import { isValidEmail, normalizeEmail, MIN_PASSWORD_LENGTH } from '../../../shared/server/utils/ValidationUtils';
@@ -49,10 +50,16 @@ export default class PasswordResetService {
     if (!shouldSend) return;
     const link = `${origin}/${locale === 'en' ? 'en' : 'vi'}/auth/reset-password#token=${token}`;
     try {
+      const html = renderPasswordResetEmail({
+        resetUrl: link,
+        ttlMinutes: TTL_MINUTES,
+        email,
+      });
       await new MailService().sendTransactional(
         email,
         'Đặt lại mật khẩu',
         `Bạn vừa yêu cầu đặt lại mật khẩu Model Universe. Mở liên kết sau trong ${TTL_MINUTES} phút:\n${link}\n\nNếu không phải bạn yêu cầu, hãy bỏ qua email này. Không chia sẻ liên kết cho người khác.`,
+        html,
       );
     } catch {
       // Never disclose whether an account exists, even when the email provider fails.

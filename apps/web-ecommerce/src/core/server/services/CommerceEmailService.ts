@@ -8,6 +8,7 @@ import ReservationModel from '../database/client/models/Reservation.Model';
 import UserModel from '../database/internal/models/User.Model';
 import NotificationDispatchService from './NotificationDispatchService';
 import { shopPublicUrl } from './marketing/platforms';
+import { renderPawnNoticeEmail, renderReservationNoticeEmail, renderServiceNoticeEmail } from './mail/EmailTemplate';
 
 const titles: Record<string, string> = {
   reservation_deadline: 'Sắp đến hạn nhận mô hình đang giữ',
@@ -17,13 +18,37 @@ const titles: Record<string, string> = {
   reservation_update: 'Đơn giữ hàng có cập nhật',
   pawn_update: 'Hồ sơ cầm cố có cập nhật',
 };
-export const commerceEmail = (kind: string, entityId: number) => ({
-  subject: titles[kind] || 'Tài khoản của bạn có cập nhật mới',
-  body:
-    `${titles[kind] || 'Model Universe có thông báo mới dành cho bạn'}.\nMã hồ sơ: #${entityId}.\n` +
-    `Đăng nhập để xem nội dung và các bước tiếp theo: ${shopPublicUrl()}/vi/user-profile?section=inbox\n` +
-    'Không chia sẻ mật khẩu hoặc mã OTP. Email này không yêu cầu chuyển tiền vào tài khoản khác.',
-});
+export const commerceEmail = (kind: string, entityId: number) => {
+  const subject = titles[kind] || 'Tài khoản của bạn có cập nhật mới';
+  let body = '';
+  if (kind.startsWith('pawn')) {
+    body = renderPawnNoticeEmail({
+      contractId: entityId,
+      title: subject,
+      message: 'Hồ sơ cầm cố của bạn vừa có cập nhật mới từ Model Universe. Bạn vui lòng đăng nhập vào tài khoản để xem chi tiết thông tin và thực hiện các bước tiếp theo.',
+      actionUrl: `${shopPublicUrl()}/vi/user-profile?section=inbox`,
+    });
+  } else if (kind.startsWith('reservation')) {
+    body = renderReservationNoticeEmail({
+      reservationId: entityId,
+      title: subject,
+      message: 'Đơn giữ hàng của bạn vừa có cập nhật mới từ Model Universe. Vui lòng kiểm tra thông tin và thời hạn hoàn tất.',
+      actionUrl: `${shopPublicUrl()}/vi/reservations`,
+    });
+  } else {
+    body = renderServiceNoticeEmail({
+      badge: 'Thông báo',
+      title: subject,
+      message: `Model Universe có thông báo mới liên quan đến hồ sơ #${entityId} của bạn.`,
+      details: [{ label: 'Mã hồ sơ', value: `#${entityId}`, isHighlight: true }],
+      actionButton: {
+        text: 'Xem chi tiết trong hộp thư',
+        url: `${shopPublicUrl()}/vi/user-profile?section=inbox`,
+      },
+    });
+  }
+  return { subject, body };
+};
 
 // Durable bridge for committed domain events and inbox-only notices. No email sends inside a business transaction.
 export default class CommerceEmailService {
