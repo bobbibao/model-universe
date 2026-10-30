@@ -12,7 +12,8 @@ import { useRouter } from '@/i18n/navigation';
 import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
 import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
-import ProductApi, { AdminProductListParams } from '@/core/client/api/Product';
+import FilterMultiSelect from '@/components/FormElements/FilterMultiSelect';
+import ProductApi from '@/core/client/api/Product';
 import InventoryStats from '../components/InventoryStats';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Pagination, SortState } from '@/shared/types/pagination';
@@ -40,7 +41,7 @@ const ProductList = () => {
   const ux = useTranslations('commerceUX');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<AdminProductListParams['status']>('');
+  const [status, setStatus] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortState>({ key: 'id', direction: 'desc' });
 
@@ -49,16 +50,23 @@ const ProductList = () => {
     const region = workspace?.querySelector<HTMLElement>('.admin-table-scroll');
     if (!region) return;
     const resize = () => {
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        setPageSize(10);
+        return;
+      }
       const header = region.querySelector('thead')?.getBoundingClientRect().height ?? 44;
       const next = Math.max(1, Math.min(20, Math.floor((region.clientHeight - header - 2) / ROW_HEIGHT)));
       setPageSize(next);
-      setPage(1);
     };
     const observer = new ResizeObserver(resize);
     observer.observe(region);
     resize();
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -318,21 +326,22 @@ const ProductList = () => {
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
               />
-              <select
-                className={`${inputClassName} !py-2 sm:w-40`}
-                aria-label={t('status')}
-                value={status}
-                onChange={(event) => {
-                  setStatus(event.target.value as AdminProductListParams['status']);
+              <FilterMultiSelect
+                label="Trạng thái sản phẩm"
+                placeholder="Tất cả trạng thái"
+                clearLabel="Bỏ lựa chọn"
+                values={status}
+                options={[
+                  { value: 'active', label: t('active') },
+                  { value: 'archived', label: t('archived') },
+                  { value: 'featured', label: t('featured') },
+                  { value: 'held', label: t('held') },
+                ]}
+                onChange={(values) => {
+                  setStatus(values);
                   setPage(1);
                 }}
-              >
-                <option value="">{t('allStatuses')}</option>
-                <option value="active">{t('active')}</option>
-                <option value="archived">{t('archived')}</option>
-                <option value="featured">{t('featured')}</option>
-                <option value="held">{t('held')}</option>
-              </select>
+              />
               <Link href="/admin/products/new" className="catalog-create-button">
                 + {t('create')}
               </Link>

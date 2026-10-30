@@ -66,7 +66,7 @@ export interface ProductListQuery {
   inStock?: boolean;
   featured?: boolean;
   channel?: string;
-  status?: string;
+  status?: string | string[];
   groupByModel?: boolean;
   sort?: string;
   limit: number;
@@ -523,11 +523,13 @@ export default class ProductService implements BaseServiceInterface<ProductModel
   // with every condition it is stocked in.
   async listAdmin(query: ProductListQuery & { sortKey?: string; sortDirection?: string }) {
     const status: WhereOptions[] = [{ catalogCanonicalId: null }];
-    if (query.status === 'active') status.push({ isArchived: false });
-    if (query.status === 'archived') status.push({ isArchived: true });
-    if (query.status === 'featured') status.push({ isFeatured: true });
-    // Held back by a shop agent inventory adjustment (quarantine, donation, recycling).
-    if (query.status === 'held') status.push({ inventoryStatus: { [Op.ne]: 'available' } });
+    const selectedStatuses = Array.isArray(query.status) ? query.status : query.status ? [query.status] : [];
+    const choices: WhereOptions[] = [];
+    if (selectedStatuses.includes('active')) choices.push({ isArchived: false });
+    if (selectedStatuses.includes('archived')) choices.push({ isArchived: true });
+    if (selectedStatuses.includes('featured')) choices.push({ isFeatured: true });
+    if (selectedStatuses.includes('held')) choices.push({ inventoryStatus: { [Op.ne]: 'available' } });
+    if (choices.length) status.push({ [Op.or]: choices });
     const ids = await this.matchingListingIds(this.buildWhere(query));
     const matched = await ProductModel.findAll({
       attributes: ['id', 'modelFamilyId', 'partnerId', 'stock'],

@@ -28,3 +28,6 @@ Kiểm tra: unit form sản phẩm, database integration cho số mẫu/SKU trư
 Bỏ dòng `catalog-inventory-footnote`; báo cáo vẫn truy cập từ menu **Phân tích tồn kho**. Số dòng mỗi trang tự tính theo chiều cao bảng còn lại, thay vì luôn tải 10 dòng. Phân trang tiếp cận toàn bộ sản phẩm; không cắt hoặc giấu các dòng vượt màn hình. Trên điện thoại, bảng ưu tiên tên, loại hàng, giá và tồn; thông tin đầy đủ ở trang sửa sản phẩm.
 
 Nhãn KPI: **Số lượng tồn kho**, **Giá trị bán dự kiến**, **Vốn hàng tồn kho**, **Lãi gộp dự kiến**. Lãi gộp dự kiến vẫn là giá bán trừ giá vốn, chưa trừ ưu đãi và chi phí. Thuộc tính `aria-live="polite"` dành cho trình đọc màn hình, không phải nội dung hiển thị. Khi tải danh sách thất bại, hiển thị trạng thái lỗi thay vì số 0 giả.
+
+Trên điện thoại (dưới 768px), trang cuộn tự nhiên và hiển thị 10 sản phẩm mỗi trang. Desktop vẫn tự tính số dòng theo chiều cao màn hình.
+Bộ lọc trạng thái trên danh sách hỗ trợ chọn một hoặc nhiều mục, kết hợp theo điều kiện HOẶC và loại trùng sản phẩm. Dropdown giữ mở khi chọn/bỏ chọn, dùng component chọn nhiều chung.

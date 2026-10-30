@@ -54,7 +54,7 @@ export default class AdminProductController extends ApiBaseController {
         q: req.query.q as string | undefined,
         groupByModel: req.query.groupByModel === 'true',
         categoryId: toInteger(req.query.categoryId),
-        status: req.query.status as string | undefined,
+        status: req.query.status as string | string[] | undefined,
         sortKey: req.query.sort as string | undefined,
         sortDirection: req.query.direction as string | undefined,
         limit,

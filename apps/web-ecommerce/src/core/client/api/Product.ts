@@ -24,7 +24,7 @@ export interface AdminProductListParams {
   groupByModel?: boolean;
   q?: string;
   categoryId?: number | '';
-  status?: '' | 'active' | 'archived' | 'featured' | 'held';
+  status?: string | string[];
   page?: number;
   per_page?: number;
   sort?: string;

@@ -27,6 +27,7 @@ describe('admin catalog counts', () => {
         stock: i + 1,
         imageUrl: '/uploads/fixture.jpg',
         isArchived: i === 2,
+        isFeatured: i === 2,
       });
   }, 600000);
   afterAll(async () => {
@@ -48,5 +49,18 @@ describe('admin catalog counts', () => {
       products: 0,
       stock: 0,
     });
+  });
+  it('matches any selected status without duplicating overlapping results', async () => {
+    for (const status of [
+      ['active', 'archived'],
+      ['active', 'featured'],
+      ['archived', 'featured'],
+    ]) {
+      const result = await service.listAdmin({ q: 'SummaryCountFixture', status, limit: 10, offset: 0 });
+      const expected = status.includes('active') ? 3 : 1;
+      expect(result.count).toBe(expected);
+      expect(result.summary.products).toBe(expected);
+      expect(new Set(result.rows.map((row) => row.id)).size).toBe(expected);
+    }
   });
 });

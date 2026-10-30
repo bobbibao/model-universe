@@ -45,6 +45,22 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
     await expect(page.locator('select[aria-label="Danh mục"]')).toHaveCount(0);
     await expect(page.locator('.admin-table-toolbar')).toHaveCount(0);
     await expect(page.locator('.catalog-inventory-footnote')).toHaveCount(0);
+    const statusTrigger = page.getByRole('button', { name: /^Trạng thái sản phẩm/ });
+    await statusTrigger.click();
+    const statusMenu = page.getByRole('group', { name: 'Trạng thái sản phẩm', exact: true });
+    await statusMenu.getByRole('button', { name: 'Đang bán', exact: true }).click();
+    await expect(statusMenu).toBeVisible();
+    await statusMenu.getByRole('button', { name: 'Tạm ngưng', exact: true }).click();
+    await expect(statusMenu.getByRole('button', { name: 'Đang bán', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(statusMenu.getByRole('button', { name: 'Tạm ngưng', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await statusMenu.getByRole('button', { name: 'Bỏ lựa chọn', exact: true }).click();
+    await statusMenu.getByRole('button', { name: 'Đóng', exact: true }).click();
     for (const viewport of [
       { width: 1440, height: 900 },
       { width: 1366, height: 768 },
@@ -62,7 +78,7 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
               const last = rows.at(-1)?.getBoundingClientRect();
               return (
                 document.documentElement.scrollWidth <= innerWidth + 1 &&
-                document.documentElement.scrollHeight <= innerHeight + 1 &&
+                (innerWidth < 768 || document.documentElement.scrollHeight <= innerHeight + 1) &&
                 !!last &&
                 last.bottom <= region.getBoundingClientRect().bottom + 1
               );
@@ -71,6 +87,10 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
         )
         .toBe(true);
     }
+    await expect.poll(async () => page.locator('.admin-table tbody tr').count()).toBe(10);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect(page.locator('.admin-table-pagination')).toBeInViewport();
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.setViewportSize({ width: 1440, height: 900 });
     const rows = page.locator('input[aria-label^="Chọn sản phẩm:"]');
     await rows.first().check();

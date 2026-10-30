@@ -789,3 +789,74 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
 .dark .catalog-workspace .is-chart .inventory-kpi-value {
   color: #5bd9b0;
 }
+
+/* Mobile uses natural page scrolling, with ten products per page. */
+@media (max-width: 767px) {
+  .admin-page:has(.catalog-workspace) {
+    height: auto;
+    min-height: calc(100dvh - 52px);
+    overflow: visible;
+    padding-bottom: 100px;
+  }
+  .catalog-workspace {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+  .catalog-workspace .admin-table-scroll {
+    overflow: visible;
+    flex: initial;
+  }
+}
+
+.catalog-workspace .admin-table-actions > .filter-multi {
+  flex: 0 0 160px;
+  width: 160px;
+  min-width: 0;
+  --control-accent: var(--admin-accent);
+  --control-soft: var(--admin-soft);
+  --control-line: var(--admin-line);
+  --control-surface: var(--admin-surface);
+  --control-ink: var(--admin-ink);
+}
+.catalog-workspace .filter-multi > .mu-field {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.catalog-workspace .filter-multi-trigger {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-color: var(--admin-line);
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  font-size: 12px;
+}
+.catalog-workspace .filter-multi-menu {
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  min-width: 235px;
+  width: max-content;
+  max-width: calc(100vw - 40px);
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  border-color: var(--admin-line);
+  z-index: 50;
+}
+.catalog-workspace .filter-multi-options button {
+  color: var(--admin-ink);
+  font-size: 12px;
+}
+.catalog-workspace .filter-multi-options button[aria-pressed='true'] {
+  color: var(--admin-accent);
+  background: var(--admin-soft);
+}
+@media (max-width: 767px) {
+  .catalog-workspace .admin-table-actions > .filter-multi {
+    width: 100%;
+  }
+}
