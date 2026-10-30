@@ -69,7 +69,7 @@ export default function ShipmentTracking({ order, onChange }: { order: Order; on
   const copy = () =>
     void navigator.clipboard?.writeText(code).then(() =>
       showToast.success(t('tracking.copied', { code }), {
-        action: { label: 'Chi tiết bưu tá', href: '/services' },
+        href: '/services',
       }),
     );
   const refresh = async () => {

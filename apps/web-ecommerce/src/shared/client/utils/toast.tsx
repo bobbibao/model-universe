@@ -4,7 +4,7 @@ import React from 'react';
 import { toast as baseToast, ToastOptions, ToastContentProps } from 'react-toastify';
 
 export interface ToastAction {
-  label: string;
+  label?: string;
   href?: string;
   onClick?: () => void;
 }
@@ -32,6 +32,7 @@ export const ToastCard: React.FC<ToastCardProps> = ({
   closeToast,
 }) => {
   const targetHref = action?.href || href;
+  const isInteractive = Boolean(targetHref || action?.onClick);
 
   const navigateTo = (url: string) => {
     if (typeof window === 'undefined') return;
@@ -45,11 +46,15 @@ export const ToastCard: React.FC<ToastCardProps> = ({
     window.location.assign(destination);
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a')) return;
+    if (target.closest('.mu-toast-close')) return;
 
-    if (targetHref) {
+    if (action?.onClick) {
+      e.preventDefault();
+      action.onClick();
+      closeToast?.();
+    } else if (targetHref) {
       e.preventDefault();
       navigateTo(targetHref);
     }
@@ -57,74 +62,46 @@ export const ToastCard: React.FC<ToastCardProps> = ({
 
   return (
     <div
-      className={`mu-toast-wrapper ${targetHref ? 'is-navigable' : ''}`}
-      onClick={handleCardClick}
-      role={targetHref ? 'link' : undefined}
-      tabIndex={targetHref ? 0 : undefined}
+      className={`mu-toast-wrapper ${isInteractive ? 'is-navigable' : ''}`}
+      onClick={isInteractive ? handleClick : undefined}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
       onKeyDown={(e) => {
-        if (targetHref && (e.key === 'Enter' || e.key === ' ')) {
+        if (isInteractive && (e.key === 'Enter' || e.key === ' ')) {
           e.preventDefault();
-          navigateTo(targetHref);
+          if (action?.onClick) {
+            action.onClick();
+            closeToast?.();
+          } else if (targetHref) {
+            navigateTo(targetHref);
+          }
         }
       }}
     >
-      <div className="mu-toast-inner">
+      <div className="mu-toast-body-inner">
         <div className="mu-toast-content">
           {title && <div className="mu-toast-title">{title}</div>}
           <div className="mu-toast-message">{message}</div>
         </div>
 
-        {action && (
-          <div className="mu-toast-action-container">
-            <button
-              type="button"
-              className="mu-toast-action-pill"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (action.onClick) {
-                  action.onClick();
-                  closeToast?.();
-                } else if (action.href) {
-                  navigateTo(action.href);
-                }
-              }}
+        {isInteractive && (
+          <span className="mu-toast-nav-hint" aria-hidden="true">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mu-toast-nav-icon"
             >
-              <span>{action.label}</span>
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mu-toast-arrow"
-              >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </span>
         )}
       </div>
-
-      {targetHref && !action && (
-        <span className="mu-toast-hint">
-          Bấm để xem chi tiết
-          <svg
-            width="11"
-            height="11"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </span>
-      )}
     </div>
   );
 };
@@ -145,12 +122,12 @@ export const CustomCloseButton = ({ closeToast }: CustomCloseButtonProps) => (
     aria-label="Đóng thông báo"
   >
     <svg
-      width="13"
-      height="13"
+      width="12"
+      height="12"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.2"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -164,52 +141,79 @@ export const CustomToastIcon = ({ type }: { type?: string }) => {
   switch (type) {
     case 'success':
       return (
-        <span className="mu-toast-icon-wrap is-success">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </span>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mu-toast-status-icon is-success"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <polyline points="9 12 11.5 14.5 15.5 9.5" />
+        </svg>
       );
     case 'error':
       return (
-        <span className="mu-toast-icon-wrap is-error">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </span>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mu-toast-status-icon is-error"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <line x1="15" y1="9" x2="9" y2="15" />
+          <line x1="9" y1="9" x2="15" y2="15" />
+        </svg>
       );
     case 'warning':
       return (
-        <span className="mu-toast-icon-wrap is-warning">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </span>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mu-toast-status-icon is-warning"
+          aria-hidden="true"
+        >
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
       );
     case 'info':
     default:
       return (
-        <span className="mu-toast-icon-wrap is-info">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.247.25v3.25a.75.75 0 001.5 0v-3.5A1.75 1.75 0 009.25 9H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </span>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mu-toast-status-icon is-info"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
       );
   }
 };

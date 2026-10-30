@@ -268,7 +268,7 @@ const Cart = () => {
     if (coupon && !quoting && entries.every((entry) => !!entry.line) && benefitSubtotalVnd < coupon.minOrderVnd) {
       setCoupon(null);
       showToast.info(t('couponMinimum', { code: coupon.code, amount: formatVND(coupon.minOrderVnd, locale) }), {
-        action: { label: 'Xem ưu đãi', href: '/uu-dai' },
+        href: '/uu-dai',
       });
     }
   }, [coupon, benefitSubtotalVnd, quoting, entries, setCoupon, t, locale]);

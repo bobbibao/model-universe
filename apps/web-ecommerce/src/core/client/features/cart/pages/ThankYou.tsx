@@ -128,7 +128,7 @@ const ThankYou = () => {
     order &&
     void navigator.clipboard?.writeText(transferMemo(order.id)).then(() =>
       showToast.success(done('copied'), {
-        action: { label: 'Lịch sử đơn hàng', href: '/order-history' },
+        href: '/order-history',
       }),
     );
 

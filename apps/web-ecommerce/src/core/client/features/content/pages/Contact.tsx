@@ -42,7 +42,7 @@ const Contact = () => {
       await navigator.clipboard.writeText(text);
       showToast.success(`Đã sao chép ${label}: ${text}`, {
         toastId: `copy-${label}`,
-        action: label === 'Email' ? { label: 'Mở Mail', href: `mailto:${text}` } : undefined,
+        href: label === 'Email' ? `mailto:${text}` : undefined,
       });
     } catch {
       showToast.info(text, { toastId: `copy-${label}` });

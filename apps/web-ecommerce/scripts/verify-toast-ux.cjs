@@ -9,7 +9,7 @@ const ARTIFACTS_DIR = 'C:\\Users\\ACER\\.gemini\\antigravity\\brain\\0b914c65-73
 fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
 
 async function run() {
-  console.log('--- STARTING REAL TOAST SYSTEM VERIFICATION ---');
+  console.log('--- STARTING SENIOR MINIMALIST TOAST SYSTEM VERIFICATION ---');
   const browser = await chromium.launch({
     channel: 'chrome',
     headless: true,
@@ -17,9 +17,9 @@ async function run() {
 
   try {
     // ========================================================================
-    // 1. Desktop Test: Limit 3, Compact UI, & Action Navigation
+    // 1. Desktop Test: Limit 3, Minimalist Senior UI, No Buttons, Card Navigation
     // ========================================================================
-    console.log('\n[1] Testing Desktop Toast: Add to Cart with Action Pill');
+    console.log('\n[1] Testing Desktop Toast: Senior Clean UI & Card Navigation');
     const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await desktopContext.newPage();
 
@@ -42,7 +42,6 @@ async function run() {
       await addToBagButtons.first().click();
       await page.waitForTimeout(500);
     } else {
-      // Fallback: click contact copy button to trigger toast
       await page.goto(`${BASE_URL}/vi/contact`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(1000);
       const copyBtn = page.locator('button').filter({ hasText: /Sao chép/i }).first();
@@ -63,29 +62,40 @@ async function run() {
     assert.ok(visibleToasts <= 3, `Expected at most 3 toasts, but got ${visibleToasts}`);
     console.log('✓ PASS: Limit 3 enforced (at most 3 visible simultaneously)');
 
-    // Verify styling of toast
+    // Verify NO action buttons exist on the toast (clean minimalist requirement)
+    const buttonCount = await page.locator('.Toastify__toast button:not(.mu-toast-close)').count();
+    console.log(`Buttons inside toast (excluding close button): ${buttonCount}`);
+    assert.strictEqual(buttonCount, 0, 'Toasts must NOT have action pill buttons inside!');
+    console.log('✓ PASS: Action button completely removed as requested (no clumsy pills)');
+
+    // Verify NO progress bar is shown
+    const progressBarVisible = await page.locator('.Toastify__progress-bar').isVisible().catch(() => false);
+    assert.strictEqual(progressBarVisible, false, 'Progress bar must not be visible in senior toast design');
+    console.log('✓ PASS: Loud progress bar eliminated');
+
+    // Verify NO 4px colored border stripes (clean uniform border)
     const firstToast = page.locator('.Toastify__toast').first();
-    const borderRadius = await firstToast.evaluate((el) => getComputedStyle(el).borderRadius);
-    console.log(`Toast border radius: ${borderRadius}`);
-    assert.strictEqual(borderRadius, '14px', 'Toast border-radius should be 14px');
+    const borderLeftWidth = await firstToast.evaluate((el) => getComputedStyle(el).borderLeftWidth);
+    console.log(`Toast border-left-width: ${borderLeftWidth}`);
+    assert.strictEqual(borderLeftWidth, '1px', 'Toast border must be a clean, uniform 1px hairline border');
+    console.log('✓ PASS: Loud color bars eliminated, clean 1px border verified');
 
-    // Take Desktop Screenshot
+    // Hover over the toast card and take desktop screenshot
+    await firstToast.hover();
+    await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(ARTIFACTS_DIR, '01_desktop_toast_stack.png') });
-    console.log('✓ Saved desktop toast screenshot');
+    console.log('✓ Saved desktop minimalist toast screenshot (hover state)');
 
-    // Check if Action button is present
-    const actionBtn = page.locator('.mu-toast-action-pill');
-    const hasAction = (await actionBtn.count()) > 0;
-    console.log(`Action pill button present: ${hasAction}`);
-    if (hasAction) {
-      const actionText = await actionBtn.first().innerText();
-      console.log(`Action button text: "${actionText}"`);
-      // Click action button and verify navigation
-      await actionBtn.first().click();
+    // Test Card Click-to-Navigate
+    const navigableCard = page.locator('.mu-toast-wrapper.is-navigable').first();
+    const hasNav = (await navigableCard.count()) > 0;
+    if (hasNav) {
+      console.log('Navigable toast card found, clicking card to navigate...');
+      await navigableCard.click();
       await page.waitForTimeout(1500);
-      console.log(`Current URL after clicking action: ${page.url()}`);
+      console.log(`Current URL after clicking toast card: ${page.url()}`);
       assert.ok(page.url().includes('/cart'), `Expected navigation to /cart, got: ${page.url()}`);
-      console.log('✓ PASS: Action button successfully navigates to /cart');
+      console.log('✓ PASS: Toast card click-to-navigate operational without clumsy buttons');
     }
 
     await desktopContext.close();
@@ -98,14 +108,12 @@ async function run() {
       viewport: { width: 390, height: 844 },
       isMobile: true,
       hasTouch: true,
-      permissions: ['clipboard-read', 'clipboard-write'],
     });
     const mobilePage = await mobileContext.newPage();
 
     await mobilePage.goto(`${BASE_URL}/vi/shop`, { waitUntil: 'domcontentloaded' });
     await mobilePage.waitForTimeout(1500);
 
-    // Click "Thêm vào giỏ" on mobile
     const mobileAddBtn = mobilePage.locator('button').filter({ hasText: /Thêm vào giỏ|Chọn & mua/i }).first();
     await mobileAddBtn.click();
     await mobilePage.waitForTimeout(600);
@@ -130,7 +138,7 @@ async function run() {
     console.log('✓ Saved mobile toast screenshot');
 
     await mobileContext.close();
-    console.log('\n=== ALL TOAST SYSTEM VERIFICATION CHECKS PASSED ===');
+    console.log('\n=== ALL SENIOR TOAST SYSTEM VERIFICATION CHECKS PASSED ===');
   } catch (err) {
     console.error('Test failed:', err);
     process.exit(1);

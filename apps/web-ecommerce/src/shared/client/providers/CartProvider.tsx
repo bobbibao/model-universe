@@ -123,10 +123,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         : [...items, { productId: product.id, quantity, ...snapshot }],
     );
     showToast.success(t('addedToBag'), {
-      action: {
-        label: 'Xem giỏ hàng',
-        href: '/cart',
-      },
+      href: '/cart',
     });
     return true;
   };

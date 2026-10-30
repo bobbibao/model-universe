@@ -99,7 +99,7 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
   const claim = async (drop: VoucherDrop) => {
     if (!user) {
       showToast.info(p('signInFirst'), {
-        action: { label: 'Đăng nhập ngay', href: '/auth/signin' },
+        href: '/auth/signin',
       });
       return;
     }
@@ -107,7 +107,7 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
     try {
       const value = await PromotionApi.claim(drop.id);
       showToast.success(p('savedCode', { code: value.code }), {
-        action: { label: 'Dùng ngay', href: '/cart' },
+        href: '/cart',
       });
       load();
     } catch {

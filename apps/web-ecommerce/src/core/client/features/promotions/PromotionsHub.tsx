@@ -41,7 +41,7 @@ export default function PromotionsHub() {
   const act = async <T,>(action: () => Promise<T>, success: (value: T) => string) => {
     if (!user) {
       showToast.info(t('signInFirst'), {
-        action: { label: 'Đăng nhập ngay', href: '/auth/signin' },
+        href: '/auth/signin',
       });
       return null;
     }
@@ -49,7 +49,7 @@ export default function PromotionsHub() {
     try {
       const value = await action();
       showToast.success(success(value), {
-        action: { label: 'Xem giỏ hàng', href: '/cart' },
+        href: '/cart',
       });
       load();
       return value;

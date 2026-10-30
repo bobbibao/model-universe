@@ -118,7 +118,7 @@ const OrderHistory = ({ embedded = false }: { embedded?: boolean } = {}) => {
     if (added) router.push('/cart');
     else
       showToast.info(t('buyAgainUnavailable'), {
-        action: { label: 'Xem sản phẩm', href: '/shop' },
+        href: '/shop',
       });
   };
 

@@ -35,7 +35,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
         limit={3}
         newestOnTop={true}
         autoClose={3500}
-        hideProgressBar={false}
+        hideProgressBar={true}
         closeOnClick={false}
         pauseOnHover={true}
         draggable={true}
