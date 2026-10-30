@@ -13,9 +13,9 @@ describe('effective production session configuration', () => {
   });
 
   it('blocks disposable databases, destructive seed flags and simulated shipping in real commerce', () => {
-    const environment = { NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(32), REAL_COMMERCE: 'true', DB_NAME: 'shop', SUPERAI_ORDER_MODE: 'live', COOKIE_SECURE: 'true' };
+    const environment = { NODE_ENV: 'production' as const, JWT_SECRET: 'x'.repeat(32), REAL_COMMERCE: 'true', DB_NAME: 'shop', SUPERAI_ORDER_MODE: 'live', COOKIE_SECURE: 'true' };
     expect(() => assertSessionConfiguration(environment)).not.toThrow();
     for (const patch of [{ PORT: '6060' }, { DB_NAME: 'shop_demo' }, { DB_NAME: 'shop_test' }, { SEED_DATA: 'true' }, { DROP_TABLES: 'true' }, { SUPERAI_ORDER_MODE: 'simulate' }, { COOKIE_SECURE: 'false' }])
-      expect(() => assertSessionConfiguration({ ...environment, ...patch })).toThrow();
+      expect(() => assertSessionConfiguration({ ...environment, ...patch } as any)).toThrow();
   });
 });

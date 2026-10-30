@@ -102,11 +102,11 @@ describe('condition catalog integration', () => {
     expect(detail.id).toBe(source.id);
     expect(detail.selectedOptionId).toBe(source.id);
     expect(detail.conditionOptions).toHaveLength(5);
-    const expectedIds = detail.conditionOptions.map(option => option.id).sort((a, b) => a - b);
+    const expectedIds = detail.conditionOptions.map((option: any) => option.id).sort((a: any, b: any) => a - b);
     for (const id of expectedIds) {
       const sibling = await products.getPublicById(id);
       expect(sibling.selectedOptionId).toBe(id);
-      expect(sibling.conditionOptions.map(option => option.id)).toEqual(expectedIds);
+      expect(sibling.conditionOptions.map((option: any) => option.id)).toEqual(expectedIds);
     }
     const listing = await products.listPublic({ q: source.name, limit: 100, offset: 0 });
     expect(listing.rows.filter((row) => row.modelFamilyId === source.modelFamilyId)).toHaveLength(5);

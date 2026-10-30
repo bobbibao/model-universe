@@ -25,15 +25,16 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/đ/g, 'd');
   const matches = (value: string) => normalize(value).includes(normalize(query.trim()));
-  const searchResults = adminNavigation
-    .flatMap((group) =>
-      group.items.flatMap((item) =>
-        'children' in item && item.children
-          ? item.children.map((child) => ({ ...child, icon: item.icon }))
-          : [{ label: item.label, route: item.route, icon: item.icon }],
-      ),
-    )
-    .filter((item) => matches(t(item.label)));
+  const searchResults = adminNavigation.flatMap((group) =>
+    group.items.flatMap((item) => {
+      const parentMatches = matches(t(item.label));
+      if ('children' in item && item.children) {
+        const matched = item.children.filter((child) => parentMatches || matches(t(child.label)));
+        return matched.map((child) => ({ ...child, icon: item.icon }));
+      }
+      return parentMatches ? [{ label: item.label, route: item.route, icon: item.icon }] : [];
+    }),
+  );
   return (
     <aside id="sidebar" className={`admin-sidebar ${sidebarOpen ? 'is-open' : ''}`}>
       <div className="admin-sidebar-brand">

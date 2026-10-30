@@ -199,7 +199,7 @@ describe('finance database and immutable expense ledger', () => {
     try {
       const address = server.address() as { port: number },
         url = `http://127.0.0.1:${address.port}/api/admin/finance`;
-      for (const headers of [{}, { 'x-test-role': 'USER' }]) {
+      for (const headers of [{} as Record<string, string>, { 'x-test-role': 'USER' }]) {
         expect((await fetch(`${url}/report`, { headers })).status).toBe(403);
         expect(
           (

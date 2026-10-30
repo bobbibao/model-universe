@@ -44,6 +44,7 @@ next-env.d.ts
 # Playwright e2e output
 /e2e/.results/
 /e2e/.report/
+/test-results/
 
 # Private business evidence; never published by the web server
 /.private-uploads/

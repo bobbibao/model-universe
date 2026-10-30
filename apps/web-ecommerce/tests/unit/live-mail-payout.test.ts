@@ -14,7 +14,7 @@ describe('real mail and payout transport boundaries', () => {
   });
   it('never claims OTP or transactional delivery without SMTP, including development', async () => {
     delete process.env.SMTP_HOST;
-    process.env.NODE_ENV = 'development';
+    (process.env as any).NODE_ENV = 'development';
     await expect(new MailService().sendRegistrationOtp('recipient@example.test', '123456', 5)).rejects.toThrow('SMTP');
     await expect(new MailService().sendTransactional('recipient@example.test', 'Update', 'Message')).rejects.toThrow(
       'SMTP',
