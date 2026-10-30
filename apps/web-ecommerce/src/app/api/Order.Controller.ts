@@ -23,8 +23,6 @@ export default class OrderController extends ApiBaseController {
   async placeOrder(req: Request, res: Response) {
     try {
       if (!req.user) throw HttpError.unauthorized();
-      // With online payment the order is created only after the QR payment (POST /checkout/sessions).
-      if (paymentsEnabled()) throw HttpError.conflict('Pay online to place this order.', 'CHECKOUT_SESSION_REQUIRED');
       const service = await this.requireService<OrderService>();
       const attribution = parseAttributionCookie(req.cookies?.[ATTRIBUTION_COOKIE]);
       const consent = parseConsentCookie(req.cookies?.[CONSENT_COOKIE]);

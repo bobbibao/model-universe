@@ -5,6 +5,7 @@ import ProductModel, { isSellable } from '../database/client/models/Product.Mode
 import CommerceNotificationModel from '../database/client/models/CommerceNotification.Model';
 import RestockSubscriptionModel from '../database/client/models/RestockSubscription.Model';
 import HttpError from '../../../shared/server/utils/HttpError';
+import NotificationDispatchService from './NotificationDispatchService';
 
 export default class CustomerNotificationService {
   private async actor(userId: number) {
@@ -108,20 +109,28 @@ export default class CustomerNotificationService {
         const product = await ProductModel.findByPk(row.productId, { transaction });
         if (!user?.isActive || !product || !isSellable(product) || product.stock < 1) return;
         const dedupeKey = `restock:${row.id}:${row.cycle}`;
-        const [, created] = await CommerceNotificationModel.findOrCreate({
-          where: { dedupeKey },
-          defaults: {
-            dedupeKey,
+        const baseUrl = process.env.APP_URL || process.env.SHOP_PUBLIC_URL || 'http://localhost:6050';
+        const productUrl = `${baseUrl}/vi/san-pham/${product.slug || product.id}`;
+        await new NotificationDispatchService().notifyCustomer(
+          {
             userId: row.userId,
             kind: 'restock',
             entityId: row.productId,
+            dedupeKey,
             details: { productName: product.name, observedStock: product.stock, observedAt: now.toISOString() },
+            email: {
+              subject: `Sản phẩm "${product.name}" đã có hàng trở lại tại Model Universe!`,
+              body: `Xin chào,\n\nMô hình "${product.name}" mà bạn quan tâm và đăng ký nhận thông báo hiện đã có hàng trở lại trong kho Model Universe (số lượng hiện có: ${product.stock}).\n\nBạn có thể xem chi tiết sản phẩm và đặt hàng ngay tại:\n${productUrl}\n\nTrân trọng,\nĐội ngũ Model Universe`,
+            },
           },
           transaction,
-        });
+        );
         await row.update({ active: false, notifiedAt: now }, { transaction });
-        if (created) notified++;
+        notified++;
       });
+    }
+    if (notified > 0) {
+      new NotificationDispatchService().dispatchSoon();
     }
     return notified;
   }

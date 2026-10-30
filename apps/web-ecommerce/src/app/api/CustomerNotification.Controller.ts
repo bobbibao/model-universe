@@ -18,6 +18,14 @@ export default class CustomerNotificationController extends ApiBaseController {
   @Get('/restocks') async subscriptions(req: Request, res: Response) {
     try { return res.json(await this.service.subscriptions(this.user(req))); } catch (error) { return this.handleError(res, error, 'Restock preferences'); }
   }
+  @Post('/restocks/run') async triggerRestocks(_req: Request, res: Response) {
+    try {
+      const notified = await this.service.runRestocks();
+      return this.sendSuccess(res, { notified }, 'Đã quét và gửi thông báo hàng về.');
+    } catch (error) {
+      return this.handleError(res, error, 'Trigger restocks');
+    }
+  }
   @Post('/restocks/:id') async subscribe(req: Request, res: Response) {
     try { return this.sendSuccess(res, await this.service.subscribe(this.user(req), Number(req.params.id), req.body?.active)); } catch (error) { return this.handleError(res, error, 'Change restock preference'); }
   }

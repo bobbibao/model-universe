@@ -1,4 +1,5 @@
 import { Op, Transaction } from 'sequelize';
+import DatabaseProvider from '../database/Database.Provider';
 import CommerceNotificationModel from '../database/client/models/CommerceNotification.Model';
 import AdminAlertModel, { type AdminAlertKind } from '../database/client/models/AdminAlert.Model';
 import NotificationDeliveryModel from '../database/client/models/NotificationDelivery.Model';
@@ -117,8 +118,9 @@ export default class NotificationDispatchService {
   // Sends pending deliveries (and retries failed ones). Safe to run concurrently: each row is claimed with SKIP LOCKED.
   async dispatch(limit = 50) {
     let processed = 0;
+    const db = NotificationDeliveryModel.sequelize || DatabaseProvider.getInstance();
     for (let index = 0; index < limit; index++) {
-      const claimed = await NotificationDeliveryModel.sequelize!.transaction(async (transaction) => {
+      const claimed = await db.transaction(async (transaction) => {
         const row = await NotificationDeliveryModel.findOne({
           where: {
             scheduledAt: { [Op.lte]: new Date() },
