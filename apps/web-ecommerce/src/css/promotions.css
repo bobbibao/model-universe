@@ -1915,6 +1915,12 @@
   --slide: 20%;
   --gap: 14px;
 }
+@media (min-width: 1720px) {
+  .product-rail-carousel {
+    --slide: 16.666%;
+    --gap: 16px;
+  }
+}
 .product-rail-carousel .carousel-viewport {
   padding-top: 8px;
 }

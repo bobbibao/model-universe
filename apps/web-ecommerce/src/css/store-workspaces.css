@@ -5,6 +5,12 @@
   gap: 24px;
   align-items: start;
 }
+@media (min-width: 1536px) {
+  .cart-workspace-layout {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 32px;
+  }
+}
 .cart-main {
   min-width: 0;
   display: grid;

@@ -382,6 +382,12 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+@media (min-width: 1720px) {
+  .catalog-main .catalog-product-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
 @media (max-width: 1023px) {
   .catalog-layout {
     grid-template-columns: minmax(0, 1fr);

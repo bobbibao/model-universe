@@ -11,7 +11,23 @@
   color-scheme: light;
 }
 .mu-shell .mu-wrap {
-  width: min(1360px, calc(100% - 64px));
+  width: min(1440px, calc(100% - 64px));
+  margin-inline: auto;
+}
+@media (min-width: 1600px) {
+  .mu-shell .mu-wrap {
+    width: min(1536px, calc(100% - 80px));
+  }
+}
+@media (min-width: 1920px) {
+  .mu-shell .mu-wrap {
+    width: min(1680px, calc(100% - 96px));
+  }
+}
+@media (max-width: 1024px) {
+  .mu-shell .mu-wrap {
+    width: calc(100% - 48px);
+  }
 }
 .mu-shell :focus-visible {
   outline: 3px solid #7956d8;
@@ -179,7 +195,7 @@
   color: #dcf56a;
 }
 .studio-hero-intro {
-  max-width: 380px;
+  max-width: 440px;
   font-size: 17px;
   color: #6a6877;
   line-height: 1.65;

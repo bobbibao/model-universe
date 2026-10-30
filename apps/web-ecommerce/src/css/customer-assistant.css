@@ -570,10 +570,15 @@
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
   gap: 48px;
-  max-width: 1280px;
+  max-width: 1440px;
   margin: auto;
   padding: 48px 32px;
   min-height: calc(100dvh - 90px);
+}
+@media (min-width: 1920px) {
+  .agent-workspace {
+    max-width: 1680px;
+  }
 }
 .agent-workspace-intro {
   padding-top: 28px;
