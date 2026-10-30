@@ -98,6 +98,7 @@ describe('product form numeric and inherited data contracts', () => {
     });
     expect(conditionPayload({ ...inventory, condition: 'preowned', conditionPercent: '98' }).conditionPercent).toBe(98);
     expect(conditionPayload({ ...inventory, condition: 'preowned', conditionPercent: '' }).conditionPercent).toBeNull();
+    expect(conditionPayload({ ...inventory, condition: 'new', conditionPercent: '98' }).conditionPercent).toBeNull();
   });
 
   test('typed received dates reject rollover dates and accept a real leap day or empty value', () => {

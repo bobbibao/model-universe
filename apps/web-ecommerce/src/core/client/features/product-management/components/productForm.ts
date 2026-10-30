@@ -244,7 +244,7 @@ export const pricingPayload = (values: ProductFormValues) => {
 
 export const conditionPayload = (values: ProductFormValues) => ({
   condition: values.condition,
-  conditionPercent: values.conditionPercent.trim() ? Math.min(100, Math.max(1, Number(values.conditionPercent))) : null,
+  conditionPercent: values.condition !== 'new' && values.conditionPercent.trim() ? Number(values.conditionPercent) : null,
   itemTypeKey: values.condition === 'new' ? 'new' as const : 'preowned' as const,
   conditionNodeIds: values.conditionNodeIds,
   assemblyState: values.assemblyState,

@@ -285,13 +285,14 @@ export default function ProductConditions({
             {type === 'preowned' && (
               <div className="sm:col-span-2">
                 <TextField
-                  label="Mức độ phần trăm 2hand (%)"
+                  label="Độ mới 2hand (%)"
                   name="variantConditionPercent"
                   type="number"
                   min={1}
                   max={100}
                   step={1}
                   placeholder="95"
+                  hint="Tùy chọn, nhập từ 1–100. Ví dụ: 98. Để trống để không hiển thị tag."
                   value={percent}
                   onChange={(event) => setPercent(event.target.value)}
                 />

@@ -149,13 +149,14 @@ export const ConditionFields = ({
       />
       {values.condition !== 'new' && (
         <TextField
-          label="Mức độ phần trăm 2hand (%)"
+          label="Độ mới 2hand (%)"
           name="conditionPercent"
           type="number"
           min={1}
           max={100}
           step={1}
           placeholder="95"
+          hint="Tùy chọn, nhập từ 1–100. Ví dụ: 98. Để trống để không hiển thị tag."
           value={values.conditionPercent}
           error={errors.conditionPercent ? 'Mức độ phần trăm phải từ 1 đến 100%' : undefined}
           onChange={(event) => onChange('conditionPercent', event.target.value)}

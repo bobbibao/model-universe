@@ -746,6 +746,9 @@ export default class ProductService implements BaseServiceInterface<ProductModel
         }
       }
     }
+    if ((data.itemTypeKey ?? data.condition ?? current?.itemTypeKey ?? current?.condition) === 'new') {
+      conditionPercent = null;
+    }
     for (const field of ['includedAccessories', 'missingAccessories', 'defects'] as const) {
       if (data[field] !== undefined) {
         const list = textList(data[field]);
