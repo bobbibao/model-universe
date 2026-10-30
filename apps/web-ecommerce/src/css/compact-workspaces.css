@@ -365,8 +365,13 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
 }
 .catalog-workspace {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   padding-bottom: 80px;
+}
+.catalog-inventory-overview,
+.catalog-workspace .compact-catalog-results {
+  min-width: 0;
 }
 .admin-page:has(.catalog-workspace) {
   padding-top: 16px;

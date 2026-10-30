@@ -270,7 +270,9 @@ const ProductList = () => {
                 <strong>{count(summary.models)}</strong> mẫu / <strong>{count(summary.products)}</strong> sản phẩm{' '}
                 <small>theo tình trạng</small>
               </span>
-            ) : undefined
+            ) : (
+              '0 sản phẩm'
+            )
           }
           paginationSummary={
             pagination
