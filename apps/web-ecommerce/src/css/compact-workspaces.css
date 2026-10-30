@@ -409,7 +409,19 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   background: transparent;
 }
 .catalog-workspace .admin-table-viewbar > [role='status'] {
-  flex-shrink: 0;
+  flex: 0 0 134px;
+  width: 134px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .catalog-workspace > .inventory-kpis-loading {
+    height: 106px;
+    display: flex;
+    align-items: center;
+  }
 }
 .catalog-product-count {
   font-size: 12px;
@@ -628,7 +640,14 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   letter-spacing: 0;
 }
 .catalog-workspace .admin-table tbody tr {
-  height: 64px;
+  height: var(--catalog-row-height, 64px);
+}
+
+@media (min-width: 768px) {
+  .catalog-workspace.has-full-page .admin-table table,
+  .catalog-workspace .admin-table[aria-busy='true'] table {
+    height: 100%;
+  }
 }
 .catalog-workspace .admin-table.is-compact td {
   padding: 5px 6px;

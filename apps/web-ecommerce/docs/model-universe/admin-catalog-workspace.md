@@ -31,3 +31,5 @@ Nhãn KPI: **Số lượng tồn kho**, **Giá trị bán dự kiến**, **Vốn
 
 Trên điện thoại (dưới 768px), trang cuộn tự nhiên và hiển thị 10 sản phẩm mỗi trang. Desktop vẫn tự tính số dòng theo chiều cao màn hình.
 Bộ lọc trạng thái trên danh sách hỗ trợ chọn một hoặc nhiều mục, kết hợp theo điều kiện HOẶC và loại trùng sản phẩm. Dropdown giữ mở khi chọn/bỏ chọn, dùng component chọn nhiều chung.
+
+Số dòng desktop được đo sau khi bố cục ổn định, không gửi yêu cầu với mặc định 5 sản phẩm. Các trang đủ sản phẩm chia đều phần chiều cao còn lại cho hàng (tối thiểu 58px), tránh để dư gần một hàng trống. Trang cuối chỉ hiển thị các sản phẩm còn lại, không kéo giãn chúng thành hàng quá lớn.

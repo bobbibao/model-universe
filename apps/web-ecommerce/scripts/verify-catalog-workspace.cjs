@@ -62,6 +62,8 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
     await statusMenu.getByRole('button', { name: 'Bỏ lựa chọn', exact: true }).click();
     await statusMenu.getByRole('button', { name: 'Đóng', exact: true }).click();
     for (const viewport of [
+      { width: 1920, height: 1080 },
+      { width: 1582, height: 900 },
       { width: 1440, height: 900 },
       { width: 1366, height: 768 },
       { width: 1280, height: 720 },
@@ -80,7 +82,10 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
                 document.documentElement.scrollWidth <= innerWidth + 1 &&
                 (innerWidth < 768 || document.documentElement.scrollHeight <= innerHeight + 1) &&
                 !!last &&
-                last.bottom <= region.getBoundingClientRect().bottom + 1
+                last.bottom <= region.getBoundingClientRect().bottom + 1 &&
+                (innerWidth < 768 ||
+                  (document.querySelector('.catalog-workspace').classList.contains('has-full-page') &&
+                    region.getBoundingClientRect().bottom - last.bottom < 3))
               );
             }),
           { timeout: 15000 },

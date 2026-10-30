@@ -13,13 +13,12 @@ import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
 import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
 import FilterMultiSelect from '@/components/FormElements/FilterMultiSelect';
+import { catalogTableLayout } from '@/shared/catalog-table-layout';
 import ProductApi from '@/core/client/api/Product';
 import InventoryStats from '../components/InventoryStats';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { Pagination, SortState } from '@/shared/types/pagination';
 import type { AdminProductListItem, AdminCatalogSummary } from '@/shared/types/product';
-
-const ROW_HEIGHT = 64;
 
 // Set by the shop agent's inventory adjustments; such products are hidden from the storefront.
 const SEARCH_DEBOUNCE_MS = 400;
@@ -27,7 +26,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 const ProductList = () => {
   const router = useRouter();
   const workspaceRef = useRef<HTMLDivElement>(null);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(0);
   const t = useTranslations('adminProducts');
   const conditionTypes = useProductConditions();
   const bulk = useTranslations('productBulk');
@@ -48,20 +47,35 @@ const ProductList = () => {
   useEffect(() => {
     const workspace = workspaceRef.current;
     const region = workspace?.querySelector<HTMLElement>('.admin-table-scroll');
-    if (!region) return;
-    const resize = () => {
+    if (!region || !workspace) return;
+    let frame = 0;
+    const measure = () => {
       if (window.matchMedia('(max-width: 767px)').matches) {
+        workspace.style.removeProperty('--catalog-row-height');
         setPageSize(10);
         return;
       }
       const header = region.querySelector('thead')?.getBoundingClientRect().height ?? 44;
-      const next = Math.max(1, Math.min(20, Math.floor((region.clientHeight - header - 2) / ROW_HEIGHT)));
-      setPageSize(next);
+      const layout = catalogTableLayout(region.clientHeight - header);
+      if (!layout) return;
+      workspace.style.setProperty('--catalog-row-height', `${layout.rowHeight}px`);
+      setPageSize(layout.pageSize);
+    };
+    const resize = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
     };
     const observer = new ResizeObserver(resize);
     observer.observe(region);
+    const header = region.querySelector('thead');
+    if (header) observer.observe(header);
+    window.addEventListener('resize', resize);
     resize();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(() => {
@@ -77,6 +91,7 @@ const ProductList = () => {
   }, [searchInput]);
 
   useEffect(() => {
+    if (!pageSize) return;
     let cancelled = false;
     const loadProducts = async () => {
       setLoading(true);
@@ -283,7 +298,10 @@ const ProductList = () => {
 
   const count = (value: number) => value.toLocaleString('vi-VN');
   return (
-    <div ref={workspaceRef} className="compact-admin-catalog-page catalog-workspace">
+    <div
+      ref={workspaceRef}
+      className={`compact-admin-catalog-page catalog-workspace${!loading && products.length === pageSize ? ' has-full-page' : ''}`}
+    >
       <h1 className="sr-only">{t('title')}</h1>
       <InventoryStats compact refreshKey={retry} />
       <div className="compact-catalog-results">
