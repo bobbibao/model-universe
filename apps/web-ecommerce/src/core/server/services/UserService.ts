@@ -1,4 +1,5 @@
-import { FindOptions, Op, WhereOptions } from 'sequelize';
+import { deliveredCustomerOrders } from './AdminListOverviewService';
+import { FindOptions, Op, WhereOptions, literal, fn, col, where as sqlWhere } from 'sequelize';
 import UserModel, { UserRole } from '../database/internal/models/User.Model';
 import { BaseServiceInterface } from './BaseServiceInterface';
 import HttpError from '../../../shared/server/utils/HttpError';
@@ -7,7 +8,9 @@ import type { AuthUser } from '../../../shared/server/types/express';
 
 export interface UserListQuery {
   q?: string;
-  role?: string;
+  role?: string | string[];
+  status?: string | string[];
+  segment?: string;
   limit: number;
   offset: number;
   sortKey?: string;
@@ -45,23 +48,62 @@ export default class UserService implements BaseServiceInterface<UserModel> {
     throw new Error('Use AuthService.register to create users.');
   }
 
-  async list({ q, role, limit, offset, sortKey, sortDirection }: UserListQuery) {
+  async list({ q, role, status, segment, limit, offset, sortKey, sortDirection }: UserListQuery) {
     const where: WhereOptions = {};
     const search = asTrimmedString(q);
     if (search) {
       Object.assign(where, {
-        [Op.or]: ['email', 'firstName', 'lastName', 'phone'].map((column) => ({
-          [column]: { [Op.iLike]: `%${search}%` },
-        })),
+        [Op.or]: [
+          ...['email', 'firstName', 'lastName', 'phone'].map((column) => ({
+            [column]: { [Op.iLike]: `%${search}%` },
+          })),
+          sqlWhere(fn('concat_ws', ' ', col('UserModel.lastName'), col('UserModel.firstName')), {
+            [Op.iLike]: `%${search}%`,
+          }),
+        ],
       });
     }
-    if (role && ROLES.includes(role as UserRole)) {
-      Object.assign(where, { role });
+    const roles = (Array.isArray(role) ? role : role ? [role] : []).filter((value) =>
+      ROLES.includes(value as UserRole),
+    );
+    if (roles.length) Object.assign(where, { role: { [Op.in]: roles } });
+    const states = Array.isArray(status) ? status : status ? [status] : [];
+    if (states.includes('active') !== states.includes('blocked'))
+      Object.assign(where, { isActive: states.includes('active') });
+    const extra: WhereOptions[] = [];
+    if (['new', 'purchased', 'repeat'].includes(segment ?? '')) {
+      Object.assign(where, { role: 'USER' });
+      if (segment === 'new')
+        Object.assign(where, { createdAt: { [Op.gte]: literal("CURRENT_TIMESTAMP - INTERVAL '30 days'") } });
+      else extra.push(literal(`${deliveredCustomerOrders} >= ${segment === 'repeat' ? 2 : 1}`));
     }
     const column = sortKey && SORTABLE_COLUMNS.includes(sortKey) ? sortKey : 'id';
     const direction = sortDirection === 'desc' ? 'DESC' : 'ASC';
-    const { rows, count } = await UserModel.findAndCountAll({ where, limit, offset, order: [[column, direction]] });
-    return { rows: rows.map(toPublicUser), count };
+    const { rows, count } = await UserModel.findAndCountAll({
+      where: { [Op.and]: [where, ...extra] },
+      attributes: {
+        include: [
+          [literal(deliveredCustomerOrders), 'completedOrders'],
+          [
+            literal(
+              `(SELECT MAX(COALESCE(customer_order."deliveredAt", customer_order."createdAt")) FROM "order" customer_order WHERE customer_order."userId" = "UserModel".id AND customer_order.status = 'DELIVERED')`,
+            ),
+            'lastDeliveredAt',
+          ],
+        ],
+      },
+      limit,
+      offset,
+      order: [[column, direction]],
+    });
+    return {
+      rows: rows.map((user) => ({
+        ...toPublicUser(user),
+        completedOrders: Number(user.getDataValue('completedOrders') ?? 0),
+        lastDeliveredAt: user.getDataValue('lastDeliveredAt') ?? null,
+      })),
+      count,
+    };
   }
 
   // Customers edit one field at a time; only the provided fields are validated and saved.

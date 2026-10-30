@@ -1,6 +1,7 @@
 'use client';
 
 import Api from './Api';
+import type { OrderOverview } from '@/shared/admin-list-overview';
 import { ADMIN_ORDER_API, ORDER_API } from './endpoint';
 import type { PaginatedResult } from '@/shared/types/pagination';
 import type { Order, OrderStatus, ShippingInfo } from '@/shared/types/order';
@@ -24,8 +25,9 @@ export interface PlaceOrderInput {
 }
 
 export interface AdminOrderListParams {
-  channel?: string;
-  status?: OrderStatus | '';
+  channel?: string | string[];
+  status?: OrderStatus | '' | OrderStatus[];
+  attention?: string;
   q?: string;
   page?: number;
   per_page?: number;
@@ -36,6 +38,14 @@ export interface AdminOrderListParams {
 let pendingCheckout: { digest: string; key: string } | undefined;
 
 export default class OrderApi {
+  static async overview(): Promise<OrderOverview | undefined> {
+    try {
+      return (await Api.get('/admin/orders/stats')).data;
+    } catch {
+      return undefined;
+    }
+  }
+
   static async confirmCollection(
     orderId: number,
     input: { amountVnd: number; externalReference: string; reason: string; moneyVerified: boolean },

@@ -33,6 +33,7 @@ export type ShippingInfo = {
 };
 
 export type Order = {
+  outstandingVnd?: number;
   id: number;
   userId: number | null;
   salesChannel?: 'WEBSITE' | 'COUNTER' | 'ASSISTED';

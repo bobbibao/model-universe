@@ -1,3 +1,4 @@
+import { orderOutstandingSql } from './AdminListOverviewService';
 /* eslint-disable @typescript-eslint/no-var-requires -- Resolve mutually dependent workflow services only when an operation runs. */
 import { effectiveItemType } from '../../../shared/condition-tree';
 import CatalogTreeService from './catalog/CatalogTreeService';
@@ -6,7 +7,7 @@ import LoyaltyService from './LoyaltyService';
 import Logger from '../../../shared/server/utils/logger';
 import MoneyReferenceService from './MoneyReferenceService';
 import { validateShipping } from '../../../shared/server/utils/ShippingValidation';
-import { Op, Transaction, WhereOptions } from 'sequelize';
+import { Op, Transaction, WhereOptions, literal } from 'sequelize';
 import { createHash, randomInt } from 'crypto';
 import OrderModel, { OrderStatus } from '../database/client/models/Order.Model';
 import OrderItemModel from '../database/client/models/OrderItem.Model';
@@ -91,8 +92,9 @@ const cancelReasonOf = (data: Record<string, unknown>, allowed: readonly string[
 };
 
 export interface OrderListQuery {
-  channel?: string;
-  status?: string;
+  channel?: string | string[];
+  status?: string | string[];
+  attention?: string;
   q?: string;
   limit: number;
   offset: number;
@@ -1124,10 +1126,21 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     return this.getAdmin(orderId);
   }
 
-  async listAdmin({ status, channel, q, limit, offset, sortKey, sortDirection }: OrderListQuery) {
+  async listAdmin({ status, channel, attention, q, limit, offset, sortKey, sortDirection }: OrderListQuery) {
     const conditions: WhereOptions[] = [];
-    if (channel && ['WEBSITE', 'COUNTER', 'ASSISTED'].includes(channel)) conditions.push({ salesChannel: channel });
-    if (status && STATUSES.includes(status as OrderStatus)) conditions.push({ status });
+    const channels = (Array.isArray(channel) ? channel : channel ? [channel] : []).filter((value) =>
+      ['WEBSITE', 'COUNTER', 'ASSISTED'].includes(value),
+    );
+    if (channels.length) conditions.push({ salesChannel: { [Op.in]: channels } });
+    const statuses = (Array.isArray(status) ? status : status ? [status] : []).filter((value) =>
+      STATUSES.includes(value as OrderStatus),
+    );
+    if (statuses.length) conditions.push({ status: { [Op.in]: statuses } });
+    if (attention === 'unpaid') conditions.push(literal(`${orderOutstandingSql('OrderModel')} > 0`));
+    if (attention === 'cancellation')
+      conditions.push(
+        literal(`"OrderModel".status <> 'CANCELLED' AND "OrderModel"."cancelRequest"->>'status' = 'PENDING'`),
+      );
     const search = asTrimmedString(q);
     if (search) {
       const id = toInteger(search.replace(/^#/, ''));
@@ -1141,7 +1154,8 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       });
     }
     const column = sortKey && SORTABLE_COLUMNS.includes(sortKey) ? sortKey : 'createdAt';
-    return OrderModel.findAndCountAll({
+    const result = await OrderModel.findAndCountAll({
+      attributes: { include: [[literal(orderOutstandingSql('OrderModel')), 'outstandingVnd']] },
       where: { [Op.and]: conditions },
       include: [userInclude],
       order: [[column, sortDirection === 'asc' ? 'ASC' : 'DESC']],
@@ -1151,6 +1165,8 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       // The search condition on the joined user email must be in the main query.
       subQuery: false,
     });
+    for (const row of result.rows) row.setDataValue('outstandingVnd', Number(row.getDataValue('outstandingVnd')));
+    return result;
   }
 
   async getAdmin(orderId: number) {

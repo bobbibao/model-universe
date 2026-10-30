@@ -13,7 +13,7 @@ import DataTable, { DataTableColumn } from '@/components/Tables/DataTable';
 import { inputClassName } from '@/components/FormElements/TextField';
 import ProductImage from '@/components/ProductImage';
 import FilterMultiSelect from '@/components/FormElements/FilterMultiSelect';
-import { catalogTableLayout } from '@/shared/catalog-table-layout';
+import useAdminTableLayout from '@/shared/client/hooks/useAdminTableLayout';
 import ProductApi from '@/core/client/api/Product';
 import InventoryStats from '../components/InventoryStats';
 import { formatVND } from '@/shared/server/utils/utils';
@@ -26,7 +26,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 const ProductList = () => {
   const router = useRouter();
   const workspaceRef = useRef<HTMLDivElement>(null);
-  const [pageSize, setPageSize] = useState(0);
+  const pageSize = useAdminTableLayout(workspaceRef);
   const t = useTranslations('adminProducts');
   const conditionTypes = useProductConditions();
   const bulk = useTranslations('productBulk');
@@ -43,40 +43,6 @@ const ProductList = () => {
   const [status, setStatus] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortState>({ key: 'id', direction: 'desc' });
-
-  useEffect(() => {
-    const workspace = workspaceRef.current;
-    const region = workspace?.querySelector<HTMLElement>('.admin-table-scroll');
-    if (!region || !workspace) return;
-    let frame = 0;
-    const measure = () => {
-      if (window.matchMedia('(max-width: 767px)').matches) {
-        workspace.style.removeProperty('--catalog-row-height');
-        setPageSize(10);
-        return;
-      }
-      const header = region.querySelector('thead')?.getBoundingClientRect().height ?? 44;
-      const layout = catalogTableLayout(region.clientHeight - header);
-      if (!layout) return;
-      workspace.style.setProperty('--catalog-row-height', `${layout.rowHeight}px`);
-      setPageSize(layout.pageSize);
-    };
-    const resize = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(measure);
-    };
-    const observer = new ResizeObserver(resize);
-    observer.observe(region);
-    const header = region.querySelector('thead');
-    if (header) observer.observe(header);
-    window.addEventListener('resize', resize);
-    resize();
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', resize);
-      cancelAnimationFrame(frame);
-    };
-  }, []);
 
   useEffect(() => {
     setPage(1);

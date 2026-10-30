@@ -1,13 +1,16 @@
 'use client';
 
 import Api from './Api';
+import type { CustomerOverview } from '@/shared/admin-list-overview';
 import { ADMIN_USER_API, USER_API } from './endpoint';
 import type { PaginatedResult } from '@/shared/types/pagination';
 import type { User, UserRole } from '@/shared/types/user';
 
 export interface UserListParams {
   q?: string;
-  role?: UserRole | '';
+  role?: UserRole | '' | UserRole[];
+  status?: string[];
+  segment?: string;
   page?: number;
   per_page?: number;
   sort?: string;
@@ -15,6 +18,14 @@ export interface UserListParams {
 }
 
 export default class UserApi {
+  static async overview(): Promise<CustomerOverview | undefined> {
+    try {
+      return (await Api.get('/admin/users/stats')).data;
+    } catch {
+      return undefined;
+    }
+  }
+
   static async updateProfile(changes: Partial<Pick<User, 'firstName' | 'lastName' | 'phone' | 'address'>>) {
     try {
       const response = await Api.put(USER_API.UPDATE_ME, changes);

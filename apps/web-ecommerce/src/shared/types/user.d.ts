@@ -15,6 +15,8 @@ export type User = {
   avatar?: string | null;
   isActive: boolean;
   createdAt: string;
+  completedOrders?: number;
+  lastDeliveredAt?: string | null;
 };
 
 export type RegisterProfile = {

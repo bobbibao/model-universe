@@ -1,3 +1,4 @@
+import AdminListOverviewService from '../../core/server/services/AdminListOverviewService';
 import { ControllerModel } from '../../shared/server/decorators/controllerModel.decorator';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
 import { Get, Put } from '../../shared/server/decorators/router.decorator';
@@ -10,6 +11,15 @@ import { parsePagination, toPaginatedPayload } from '../../shared/server/utils/P
 @Controller('/admin/users')
 @ControllerModel('UserModel')
 export default class AdminUserController extends ApiBaseController {
+  @Get('/stats')
+  async stats(_: Request, res: Response) {
+    try {
+      return res.json(await new AdminListOverviewService().customers());
+    } catch (error) {
+      return this.handleError(res, error, 'Customer overview');
+    }
+  }
+
   @Get('/')
   async getUsers(req: Request, res: Response) {
     try {
@@ -17,7 +27,9 @@ export default class AdminUserController extends ApiBaseController {
       const { page, perPage, limit, offset } = parsePagination(req);
       const { rows, count } = await service.list({
         q: req.query.q as string | undefined,
-        role: req.query.role as string | undefined,
+        role: req.query.role as string | string[] | undefined,
+        status: req.query.status as string | string[] | undefined,
+        segment: req.query.segment as string | undefined,
         sortKey: req.query.sort as string | undefined,
         sortDirection: req.query.direction as string | undefined,
         limit,

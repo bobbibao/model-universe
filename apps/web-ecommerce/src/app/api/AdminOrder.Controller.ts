@@ -1,3 +1,4 @@
+import AdminListOverviewService from '../../core/server/services/AdminListOverviewService';
 import { ControllerModel } from '../../shared/server/decorators/controllerModel.decorator';
 import { Controller } from '../../shared/server/decorators/controller.decorator';
 import { Get, Put, Post } from '../../shared/server/decorators/router.decorator';
@@ -29,14 +30,24 @@ export default class AdminOrderController extends ApiBaseController {
     return this.run(res, 'Create direct sale', () => new DirectSaleService().create(req.user!.id, req.body || {}));
   }
 
+  @Get('/stats')
+  async stats(_: Request, res: Response) {
+    try {
+      return res.json(await new AdminListOverviewService().orders());
+    } catch (error) {
+      return this.handleError(res, error, 'Order overview');
+    }
+  }
+
   @Get('/')
   async getOrders(req: Request, res: Response) {
     try {
       const service = await this.requireService<OrderService>();
       const { page, perPage, limit, offset } = parsePagination(req);
       const { rows, count } = await service.listAdmin({
-        status: req.query.status as string | undefined,
-        channel: req.query.channel as string | undefined,
+        status: req.query.status as string | string[] | undefined,
+        attention: req.query.attention as string | undefined,
+        channel: req.query.channel as string | string[] | undefined,
         q: req.query.q as string | undefined,
         sortKey: req.query.sort as string | undefined,
         sortDirection: req.query.direction as string | undefined,
