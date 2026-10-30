@@ -2,6 +2,8 @@ import { deliveredCustomerOrders } from './AdminListOverviewService';
 import { FindOptions, Op, WhereOptions, literal, fn, col, where as sqlWhere } from 'sequelize';
 import UserModel, { UserRole } from '../database/internal/models/User.Model';
 import { BaseServiceInterface } from './BaseServiceInterface';
+import LoyaltyService from './LoyaltyService';
+import Logger from '../../../shared/server/utils/logger';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { asTrimmedString, isNonEmpty, isValidPhone } from '../../../shared/server/utils/ValidationUtils';
 import type { AuthUser } from '../../../shared/server/types/express';
@@ -133,6 +135,22 @@ export default class UserService implements BaseServiceInterface<UserModel> {
     if (Object.keys(changes).length === 0) throw HttpError.badRequest('Không có thông tin nào để cập nhật.');
 
     await user.update(changes);
+
+    // If profile is fully completed with all required contact details, award one-time 50 loyalty points
+    const isProfileComplete = Boolean(
+      user.firstName?.trim() &&
+      user.lastName?.trim() &&
+      user.phone?.trim() &&
+      user.address?.trim()
+    );
+    if (isProfileComplete) {
+      try {
+        await new LoyaltyService().awardProfileCompletionPoints(userId);
+      } catch (err) {
+        Logger.ERROR('awardProfileCompletionPoints failed:', err);
+      }
+    }
+
     return toPublicUser(user);
   }
 

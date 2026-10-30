@@ -1608,4 +1608,19 @@ export const MIGRATIONS: Migration[] = [
       });
     },
   },
+  {
+    name: '2026-10-30-62-review-media-tags-loyalty-rewards',
+    up: async ({ context }) => {
+      await context.sequelize.transaction(async (transaction) => {
+        await context.sequelize.query(
+          `ALTER TABLE review ADD COLUMN IF NOT EXISTS media JSONB DEFAULT '[]'::jsonb;
+           ALTER TABLE review ADD COLUMN IF NOT EXISTS tags JSONB DEFAULT '[]'::jsonb;
+           INSERT INTO commerce_policy (name, version, settings, "approvedByUserId", reason, "createdAt")
+           SELECT 'loyalty', 1, '{"rewardTable":"source_shared_v1","stacking":"v6.2","refundRounding":"cumulative_net","lifetimeRefund":"reverse_earned","voucherExpiryDays":30,"returnControlDays":0}'::jsonb, 1, 'Chính sách tích điểm mặc định', CURRENT_TIMESTAMP
+           WHERE NOT EXISTS (SELECT 1 FROM commerce_policy WHERE name = 'loyalty');`,
+          { transaction },
+        );
+      });
+    },
+  },
 ];

@@ -41,7 +41,7 @@ import {
   isMeetingSlotOpen,
 } from '../../../shared/fulfillment';
 import NotificationDispatchService from './NotificationDispatchService';
-import { renderOrderConfirmationEmail, renderOrderCancelledEmail, renderServiceNoticeEmail } from './mail/EmailTemplate';
+import { renderOrderConfirmationEmail, renderOrderCancelledEmail, renderServiceNoticeEmail, renderShipmentEmail } from './mail/EmailTemplate';
 import { shopPublicUrl } from './marketing/platforms';
 import ShippingService from './ShippingService';
 import PackagePlanService, { planItems } from './PackagePlanService';
@@ -1016,16 +1016,22 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       );
     }
     // Delivery does not prove remittance. Preserve the old semantics only for retained orders.
+    const delivered = nextStatus === 'DELIVERED';
     await order.update(
       {
         status: nextStatus,
-        ...(nextStatus === 'DELIVERED'
-          ? { ...(!order.requiresCollectionConfirmation ? { paymentStatus: 'PAID' } : {}), deliveredAt: new Date() }
+        ...(delivered
+          ? { paymentStatus: 'PAID', deliveredAt: order.deliveredAt || new Date() }
           : {}),
       },
       { transaction },
     );
-    if (nextStatus === 'DELIVERED' && order.paymentStatus === 'PAID') {
+    order.status = nextStatus;
+    if (delivered) {
+      order.paymentStatus = 'PAID';
+      order.deliveredAt = order.deliveredAt || new Date();
+    }
+    if (delivered) {
       if (order.couponCode)
         await CouponModel.update(
           { usedAt: new Date(), usageCount: 1, reservedOrderId: null },
@@ -1033,6 +1039,77 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
         );
       await new PromotionService().finalize(order, transaction);
       await new LoyaltyService().reconcileOrder(order, actorUserId || order.userId, transaction);
+
+      try {
+        const emailHtml = renderServiceNoticeEmail({
+          badge: 'Giao hàng thành công',
+          title: `Đơn hàng #${order.id} đã được giao thành công!`,
+          message: `Đơn hàng #${order.id} của bạn đã được giao hoàn tất. Bạn có thể kiểm tra sản phẩm và gửi đánh giá để nhận tới +40 điểm thưởng tích lũy (Model Universe Rewards).`,
+          details: [
+            { label: 'Mã đơn hàng', value: `#${order.id}`, isHighlight: true },
+            { label: 'Trạng thái', value: 'Đã giao hàng (DELIVERED)' },
+            { label: 'Tổng thanh toán', value: `${(order.total || 0).toLocaleString('vi-VN')} VND` },
+          ],
+          actionButton: {
+            text: 'Đánh giá sản phẩm nhận điểm thưởng',
+            url: `${shopPublicUrl()}/vi/user-profile?section=orders`,
+          },
+          note: 'Cảm ơn bạn đã tin tưởng mua sắm tại Model Universe. Mọi thắc mắc hoặc cần hỗ trợ bảo hành / đổi trả xin vui lòng liên hệ hotline: 0373498729.',
+        });
+        if (order.userId) {
+          await new NotificationDispatchService().notifyCustomer(
+            {
+              userId: order.userId,
+              kind: 'order_delivered',
+              entityId: order.id,
+              dedupeKey: `email-delivered:${order.id}`,
+              details: { orderId: order.id },
+              email: {
+                subject: `Đơn hàng #${order.id} đã được giao thành công - Tích lũy điểm thưởng!`,
+                body: emailHtml,
+              },
+            },
+            transaction,
+          );
+        }
+      } catch (err) {
+        Logger.WARN(`Failed to dispatch delivered email for order ${order.id}:`, err);
+      }
+    }
+
+    if (nextStatus === 'SHIPPED') {
+      try {
+        const shipments = await this.shipments(order.id);
+        const trackingNumber = shipments?.[0]?.trackingNumber || shipments?.[0]?.carrierCode || `MU-SHIP-${order.id}`;
+        const carrierName = shipments?.[0]?.carrierName || shipments?.[0]?.carrier || 'GHN Express (Giao Hàng Nhanh)';
+        const emailHtml = renderShipmentEmail({
+          orderCode: String(order.id),
+          trackingNumber,
+          carrierName,
+          customerName: order.recipientName || 'Quý khách',
+          trackingUrl: `${shopPublicUrl()}/vi/user-profile?section=orders`,
+          orderUrl: `${shopPublicUrl()}/vi/user-profile?section=orders`,
+          codAmountVnd: order.paymentStatus === 'PAID' ? 0 : order.total,
+        });
+        if (order.userId) {
+          await new NotificationDispatchService().notifyCustomer(
+            {
+              userId: order.userId,
+              kind: 'order_shipped',
+              entityId: order.id,
+              dedupeKey: `email-shipped:${order.id}`,
+              details: { orderId: order.id, trackingNumber },
+              email: {
+                subject: `Đơn hàng #${order.id} đang trên đường giao đến bạn!`,
+                body: emailHtml,
+              },
+            },
+            transaction,
+          );
+        }
+      } catch (err) {
+        Logger.WARN(`Failed to dispatch shipment email for order ${order.id}:`, err);
+      }
     }
   }
 

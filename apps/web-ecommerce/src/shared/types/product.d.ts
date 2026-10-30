@@ -154,6 +154,12 @@ export type AdminProduct = Omit<ProductDetail, 'ratingDistribution' | 'condition
   packaging?: ProductPackaging | null;
 };
 
+export type ReviewMediaItem = {
+  type: 'image' | 'video';
+  url: string;
+  name?: string;
+};
+
 export type Review = {
   id: number;
   rating: number;
@@ -163,6 +169,8 @@ export type Review = {
   createdAt: string;
   author: string;
   authorAvatar?: string | null;
+  media?: ReviewMediaItem[];
+  tags?: string[];
 };
 
 export type ProductFilterOptions = {

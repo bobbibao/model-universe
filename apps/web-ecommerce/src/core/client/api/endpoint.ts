@@ -98,6 +98,7 @@ export const ADMIN_ORDER_API = {
 export const REVIEW_API = {
   GET_ELIGIBILITY: (productId: number) => `/reviews/eligibility/${productId}`,
   CREATE_REVIEW: '/reviews',
+  UPLOAD_MEDIA: '/reviews/upload',
 };
 
 export const ADMIN_STOCK_IMPORT_API = {

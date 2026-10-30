@@ -7,9 +7,23 @@ import type ReviewService from '../../core/server/services/ReviewService';
 import HttpError from '../../shared/server/utils/HttpError';
 import { toInteger } from '../../shared/server/utils/ValidationUtils';
 
+import FileStorageService from '../../core/server/services/FileStorageService';
+
 @Controller('/reviews')
 @ControllerModel('ReviewModel')
 export default class ReviewController extends ApiBaseController {
+  @Post('/upload')
+  async uploadMedia(req: Request, res: Response) {
+    try {
+      if (!req.user) throw HttpError.unauthorized();
+      const storage = new FileStorageService();
+      const files = await storage.saveReviewMedia(req, res);
+      return this.sendSuccess(res, files, 'Tải tệp đính kèm đánh giá thành công.', 201);
+    } catch (error) {
+      return this.handleError(res, error, "ReviewController's uploadMedia");
+    }
+  }
+
   @Get('/eligibility/:productId')
   async getEligibility(req: Request, res: Response) {
     try {

@@ -144,7 +144,15 @@ export default class CommerceEmailService {
             defaults: {
               ...where,
               subject: row.title,
-              body: `${row.content}\nMở trang quản trị Model Universe để xử lý hồ sơ.`,
+              body: renderServiceNoticeEmail({
+                badge: 'Cảnh báo Quản trị',
+                title: row.title,
+                message: row.content,
+                actionButton: {
+                  text: 'Mở trang quản trị Model Universe',
+                  url: `${shopPublicUrl()}/vi/admin`,
+                },
+              }),
               scheduledAt: new Date(),
             },
             transaction,

@@ -5,6 +5,7 @@ import UserModel from '../database/internal/models/User.Model';
 import OrderModel from '../database/client/models/Order.Model';
 import OrderItemModel from '../database/client/models/OrderItem.Model';
 import DatabaseProvider from '../database/Database.Provider';
+import LoyaltyService from './LoyaltyService';
 import HttpError from '../../../shared/server/utils/HttpError';
 import { asTrimmedString, toInteger } from '../../../shared/server/utils/ValidationUtils';
 
@@ -72,13 +73,40 @@ export default class ReviewService {
     const eligibility = await this.getEligibility(userId, productId as number);
     if (!eligibility.canReview) throw HttpError.forbidden(eligibility.reason);
 
+    const media = Array.isArray(data.media)
+      ? (data.media as { type: 'image' | 'video'; url: string; name?: string }[])
+          .filter((item) => item && typeof item.url === 'string' && ['image', 'video'].includes(item.type))
+          .slice(0, 10)
+      : [];
+    const tags = Array.isArray(data.tags)
+      ? (data.tags as string[])
+          .map((t) => String(t || '').trim())
+          .filter((t) => t.length > 0 && t.length <= 60)
+          .slice(0, 10)
+      : [];
+
     const { listingId } = await reviewedListing(productId as number);
     return DatabaseProvider.getInstance().transaction(async (transaction) => {
       const review = await ReviewModel.create(
-        { productId: listingId, userId, rating, title, content: content || null },
+        {
+          productId: listingId,
+          userId,
+          rating,
+          title,
+          content: content || null,
+          media,
+          tags,
+        },
         { transaction },
       );
       await refreshProductRating(listingId, transaction);
+      await new LoyaltyService().awardReviewPoints(
+        userId,
+        review.id,
+        media.length > 0,
+        listingId,
+        transaction,
+      );
       return review;
     });
   }
@@ -105,6 +133,8 @@ export default class ReviewService {
         createdAt: review.createdAt,
         author: user ? `${user.lastName} ${user.firstName}` : 'Khách hàng',
         authorAvatar: user?.avatar ?? null,
+        media: review.media || [],
+        tags: review.tags || [],
       };
     });
     return { rows: reviews, count };

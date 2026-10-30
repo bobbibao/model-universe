@@ -34,6 +34,18 @@ export default class ReviewModel extends Model {
   @Column(DataType.STRING)
   location?: string;
 
+  @Column({
+    type: DataType.JSONB,
+    defaultValue: [],
+  })
+  media?: { type: 'image' | 'video'; url: string; name?: string }[];
+
+  @Column({
+    type: DataType.JSONB,
+    defaultValue: [],
+  })
+  tags?: string[];
+
   public static async seedData(): Promise<void> {
     await seedReviewData();
   }

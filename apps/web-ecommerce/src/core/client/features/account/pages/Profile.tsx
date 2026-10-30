@@ -81,7 +81,10 @@ function AccountWorkspace({ user }: { user: User }) {
   const saveField = async (value: string) => {
     if (!editing) return false;
     const updated = await UserApi.updateProfile({ [editing]: value });
-    if (updated) setUser(updated);
+    if (updated) {
+      setUser(updated);
+      void loadMembership();
+    }
     return Boolean(updated);
   };
 

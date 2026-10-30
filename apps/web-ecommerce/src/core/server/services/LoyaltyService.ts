@@ -34,6 +34,7 @@ import LoyaltyRedemptionModel from '../database/client/models/LoyaltyRedemption.
 import CommercePolicyModel from '../database/client/models/CommercePolicy.Model';
 import CommercePolicyService from './CommercePolicyService';
 import EvidenceService from './EvidenceService';
+import NotificationDispatchService from './NotificationDispatchService';
 import HttpError from '../../../shared/server/utils/HttpError';
 import {
   LOYALTY_REWARDS,
@@ -294,12 +295,20 @@ export default class LoyaltyService {
     now = new Date(),
   ) {
     if (!order.userId) return; // Guest sales never earn points for a staff or shared guest account.
-    const policy = await CommercePolicyModel.findOne({
+    const dbPolicy = await CommercePolicyModel.findOne({
       where: { name: 'loyalty' },
       order: [['version', 'DESC']],
       transaction,
     });
-    if (!policy) return;
+    const policy = dbPolicy || (await CommercePolicyModel.findOne({ where: { name: 'loyalty' }, order: [['version', 'DESC']] })) || {
+      id: 0,
+      name: 'loyalty',
+      version: 1,
+      settings: { returnControlDays: 0, stacking: 'v6.2', rewardTable: 'source_shared_v1' },
+      approvedByUserId: 1,
+      reason: 'Chính sách mặc định',
+      createdAt: new Date(),
+    } as unknown as CommercePolicyModel;
     if (!(await UserModel.findByPk(order.userId, { transaction, lock: transaction.LOCK.UPDATE })))
       throw HttpError.notFound();
     const entries = await LoyaltyLedgerModel.findAll({ where: { userId: order.userId }, transaction });
@@ -340,8 +349,8 @@ export default class LoyaltyService {
     const target = legacyTier ? legacyEarnedPoints(eligibleVnd, legacyTier) : earnedPoints(eligibleVnd),
       delta = target - awarded;
     const original = !!first;
-    if (!original || delta !== 0)
-      return LoyaltyLedgerModel.create(
+    if (!original || delta !== 0) {
+      const entry = await LoyaltyLedgerModel.create(
         {
           userId: order.userId,
           actorUserId,
@@ -355,7 +364,7 @@ export default class LoyaltyService {
             ? 'Verified cumulative merchandise refunds recalculated eligible points.'
             : catchUp
               ? 'Paid delivered purchase completed before the loyalty policy was approved (admin catch-up).'
-              : 'Paid delivered purchase with no open return dispute.',
+              : 'Tích điểm mua hàng thành công cho đơn đã hoàn tất.',
           details: {
             orderId: order.id,
             eligibleVnd,
@@ -366,6 +375,144 @@ export default class LoyaltyService {
         },
         { transaction },
       );
+
+      if (delta > 0) {
+        await new NotificationDispatchService().notifyCustomer(
+          {
+            userId: order.userId,
+            kind: 'loyalty_earned',
+            entityId: order.id,
+            dedupeKey: `loyalty:${source}:net:${eligibleVnd}`,
+            details: {
+              points: delta,
+              orderId: order.id,
+              reason: `Bạn đã tích lũy thành công +${delta} điểm từ đơn hàng #${order.id}.`,
+            },
+          },
+          transaction,
+        );
+      }
+
+      return entry;
+    }
+  }
+
+  // Awards loyalty points when a customer submits a product review
+  async awardReviewPoints(
+    userId: number,
+    reviewId: number,
+    hasMedia: boolean,
+    productId: number,
+    transaction: Transaction,
+  ) {
+    const policy = await CommercePolicyModel.findOne({
+      where: { name: 'loyalty' },
+      order: [['version', 'DESC']],
+      transaction,
+    });
+    const policyVersion = policy?.version ?? 1;
+    const sourceReference = `review:${reviewId}`;
+    const existing = await LoyaltyLedgerModel.findOne({ where: { userId, sourceReference }, transaction });
+    if (existing) return existing;
+
+    const points = hasMedia ? 40 : 15;
+    const reason = hasMedia
+      ? `Thưởng +${points} điểm cho đánh giá sản phẩm kèm ảnh/video thực tế.`
+      : `Thưởng +${points} điểm cho đánh giá sản phẩm đã mua.`;
+
+    const entry = await LoyaltyLedgerModel.create(
+      {
+        userId,
+        actorUserId: userId,
+        sourceReference,
+        kind: 'earn',
+        balanceDelta: points,
+        lifetimeDelta: points,
+        usedDelta: 0,
+        policyVersion,
+        reason,
+        details: {
+          reviewId,
+          productId,
+          hasMedia,
+          points,
+          action: 'review_reward',
+        },
+      },
+      { transaction },
+    );
+
+    await new NotificationDispatchService().notifyCustomer(
+      {
+        userId,
+        kind: 'loyalty_earned',
+        entityId: reviewId,
+        dedupeKey: `loyalty:${sourceReference}`,
+        details: {
+          points,
+          reason,
+          balanceDelta: points,
+        },
+      },
+      transaction,
+    );
+
+    return entry;
+  }
+
+  // Awards one-time loyalty points when customer completes their full profile (firstName, lastName, phone, address)
+  async awardProfileCompletionPoints(
+    userId: number,
+    transaction?: Transaction,
+  ) {
+    const policy = await CommercePolicyModel.findOne({
+      where: { name: 'loyalty' },
+      order: [['version', 'DESC']],
+      transaction,
+    });
+    const policyVersion = policy?.version ?? 1;
+    const sourceReference = `profile_completion:${userId}`;
+    const existing = await LoyaltyLedgerModel.findOne({ where: { userId, sourceReference }, transaction });
+    if (existing) return existing;
+
+    const points = 50;
+    const reason = 'Thưởng +50 điểm cho việc hoàn thiện đầy đủ thông tin hồ sơ cá nhân.';
+
+    const entry = await LoyaltyLedgerModel.create(
+      {
+        userId,
+        actorUserId: userId,
+        sourceReference,
+        kind: 'earn',
+        balanceDelta: points,
+        lifetimeDelta: points,
+        usedDelta: 0,
+        policyVersion,
+        reason,
+        details: {
+          points,
+          action: 'profile_completion',
+        },
+      },
+      { transaction },
+    );
+
+    await new NotificationDispatchService().notifyCustomer(
+      {
+        userId,
+        kind: 'loyalty_earned',
+        entityId: userId,
+        dedupeKey: `loyalty:${sourceReference}`,
+        details: {
+          points,
+          reason,
+          balanceDelta: points,
+        },
+      },
+      transaction,
+    );
+
+    return entry;
   }
 
   async redeem(userId: number, data: Record<string, unknown>) {

@@ -159,6 +159,75 @@ export default class FileStorageService {
     };
   }
 
+  // Customer review media: images (JPG, PNG, WEBP) and videos (MP4, WEBM, MOV)
+  async saveReviewMedia(
+    req: Request,
+    res: Response,
+  ): Promise<{ type: 'image' | 'video'; url: string; name: string }[]> {
+    const allowedTypes: Record<string, { ext: string; type: 'image' | 'video' }> = {
+      'image/jpeg': { ext: '.jpg', type: 'image' },
+      'image/png': { ext: '.png', type: 'image' },
+      'image/webp': { ext: '.webp', type: 'image' },
+      'video/mp4': { ext: '.mp4', type: 'video' },
+      'video/webm': { ext: '.webm', type: 'video' },
+      'video/quicktime': { ext: '.mov', type: 'video' },
+    };
+    const folder = 'reviews';
+    const destination = path.join(FileStorageService.getUploadRoot(), folder);
+    const maxFiles = 6;
+    const maxBytes = 50 * 1024 * 1024;
+    const upload = multer({
+      storage: multer.diskStorage({
+        destination: (_req, _file, callback) => {
+          fs.mkdirSync(destination, { recursive: true });
+          callback(null, destination);
+        },
+        filename: (_req, file, callback) => {
+          const config = allowedTypes[file.mimetype];
+          const ext = config ? config.ext : path.extname(file.originalname) || '.bin';
+          callback(null, `${crypto.randomUUID()}${ext}`);
+        },
+      }),
+      limits: { fileSize: maxBytes, files: maxFiles },
+      fileFilter: (_req, file, callback) => {
+        if (allowedTypes[file.mimetype]) {
+          callback(null, true);
+        } else {
+          callback(HttpError.badRequest('Chỉ chấp nhận file ảnh (JPG, PNG, WEBP) hoặc video (MP4, WEBM, MOV).'));
+        }
+      },
+    }).array('files', maxFiles);
+
+    await new Promise<void>((resolve, reject) => {
+      upload(req, res, (error: unknown) => {
+        if (!error) return resolve();
+        if (error instanceof multer.MulterError) {
+          const message =
+            error.code === 'LIMIT_FILE_SIZE'
+              ? 'Mỗi file tối đa 50MB.'
+              : error.code === 'LIMIT_FILE_COUNT'
+                ? `Tối đa ${maxFiles} file mỗi lần đánh giá.`
+                : 'Tải file lên không thành công.';
+          return reject(HttpError.badRequest(message));
+        }
+        reject(error);
+      });
+    });
+
+    const files = (req.files as Express.Multer.File[] | undefined) || [];
+    if (files.length === 0) throw HttpError.badRequest('Vui lòng chọn ít nhất một file.');
+
+    return files.map((file) => {
+      const config = allowedTypes[file.mimetype];
+      const type = config ? config.type : (file.mimetype.startsWith('video/') ? 'video' : 'image');
+      return {
+        type,
+        url: `${PUBLIC_UPLOAD_PREFIX}/${folder}/${file.filename}`,
+        name: path.basename(file.originalname).slice(0, 150),
+      };
+    });
+  }
+
   // Deletes locally stored files; external URLs and unknown paths are ignored.
   async removeFiles(urls: string[]): Promise<void> {
     const root = FileStorageService.getUploadRoot();
