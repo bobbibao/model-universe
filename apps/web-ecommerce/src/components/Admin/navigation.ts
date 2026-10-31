@@ -139,6 +139,8 @@ export function hasInlineAdminAssistant(pathname: string) {
   return (
     pathname === '/admin/dashboard' ||
     pathname === '/admin/finance' ||
+    pathname === '/admin/customers' ||
+    pathname === '/admin/orders' ||
     pathname === '/admin/products' ||
     pathname.startsWith('/admin/products/')
   );

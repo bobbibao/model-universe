@@ -971,10 +971,12 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   clip-path: inset(50%);
   overflow: hidden;
 }
-.list-inline-select select {
+.admin-workspace .admin-list-workspace .list-inline-select select {
+  height: 32px;
   min-height: 32px;
-  padding: 4px 22px 4px 6px;
+  padding: 4px 24px 4px 6px;
   font-size: 11px;
+  line-height: 18px;
 }
 .list-account-status {
   display: flex;
@@ -1078,10 +1080,6 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
     display: block;
     margin-top: 2px;
   }
-  .customer-mobile-role select {
-    min-height: 26px;
-    font-size: 10px;
-  }
   .list-mobile-contact,
   .order-mobile-payment {
     display: block;
@@ -1127,6 +1125,8 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   }
   .admin-list-workspace .admin-table-actions > .catalog-create-button {
     grid-column: 1 / -1;
+    width: 100%;
+    margin-left: 0;
   }
   .admin-list-workspace .admin-table-actions > .list-clear-filter {
     grid-column: 1 / -1;

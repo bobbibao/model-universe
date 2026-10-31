@@ -63,6 +63,8 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
       await page.goto(`/vi/admin/${definition.name}`, { waitUntil: 'domcontentloaded' });
       const workspace = page.locator('.admin-list-workspace:visible').first();
       await expect(workspace.locator('.inventory-kpi')).toHaveCount(4);
+      await expect(page.locator('.admin-header .admin-assistant-launcher.is-inline')).toBeVisible();
+      await expect(page.locator('.admin-assistant-launcher:not(.is-inline)')).toHaveCount(0);
       await expect(workspace.locator('.admin-table-toolbar')).toHaveCount(0);
       await expect(workspace.locator('[role="tablist"]')).toHaveCount(0);
       for (const [label, field, matches] of definition.cards) {
@@ -94,6 +96,7 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
         { width: 1440, height: 900 },
         { width: 1366, height: 768 },
         { width: 1280, height: 720 },
+        { width: 1440, height: 900 },
       ]) {
         stage = `${definition.name}: ${viewport.width}x${viewport.height}`;
         await page.setViewportSize(viewport);
@@ -102,9 +105,13 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
           .poll(
             async () =>
               workspace.evaluate((w) => {
+                if (w.querySelector('.admin-table')?.getAttribute('aria-busy') !== 'false') return false;
                 const region = w.querySelector('.admin-table-scroll'),
                   last = region.querySelector('tbody tr:last-child');
                 if (!last) return false;
+                const total = Number(w.querySelector('.catalog-product-count strong')?.textContent.replace(/\D/g, ''));
+                const rows = region.querySelectorAll('tbody tr').length;
+                if (total > rows && !w.classList.contains('has-full-page')) return false;
                 const gap = region.getBoundingClientRect().bottom - last.getBoundingClientRect().bottom;
                 return (
                   document.documentElement.scrollWidth <= innerWidth + 1 &&
@@ -117,10 +124,11 @@ require('@next/env').loadEnvConfig(process.cwd(), false);
           )
           .toBe(true);
       }
-      await page.setViewportSize({ width: 1440, height: 900 });
       await page.screenshot({ path: path.join(output, `${definition.name}-desktop.png`), fullPage: true });
       stage = `${definition.name}: mobile`;
       await page.setViewportSize({ width: 390, height: 844 });
+      await expect(workspace.locator('.admin-table')).toHaveAttribute('aria-busy', 'false');
+      await expect.poll(() => workspace.locator('tbody tr').count()).toBe(10);
       await expect(workspace.locator('.admin-table')).toHaveAttribute('aria-busy', 'false');
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1))
         throw new Error('Mobile horizontal overflow');
