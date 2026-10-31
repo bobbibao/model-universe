@@ -1056,10 +1056,35 @@
 
 /* --- Offers page (/uu-dai) ----------------------------------------------------------------------------------- */
 .promo-page {
-  width: min(1240px, calc(100% - 48px));
+  width: min(1440px, calc(100% - 64px));
   margin: 0 auto;
   padding: 36px 0 24px;
   color: var(--p-ink);
+}
+@media (min-width: 1600px) {
+  .promo-page {
+    width: min(1536px, calc(100% - 80px));
+  }
+  .promo-overview,
+  .promo-daily {
+    gap: 24px;
+  }
+}
+@media (min-width: 1920px) {
+  .promo-page {
+    width: min(1680px, calc(100% - 96px));
+  }
+}
+@media (max-width: 1024px) {
+  .promo-page {
+    width: calc(100% - 48px);
+  }
+}
+@media (max-width: 640px) {
+  .promo-page {
+    width: calc(100% - 32px);
+    padding-top: 22px;
+  }
 }
 .promo-head {
   display: flex;
