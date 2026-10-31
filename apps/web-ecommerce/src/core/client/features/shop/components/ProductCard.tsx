@@ -97,12 +97,9 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         />
         <div className="product-tile-badges">
           <div className="tile-condition-badges">
-            <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>{isNew ? t('new') : '2hand'}</span>
-            {!isNew && conditionPercent != null && conditionPercent > 0 && (
-              <span className="tile-condition-percent" title={en ? `Condition: ${conditionPercent}%` : `Độ mới: ${conditionPercent}%`}>
-                {conditionPercent}%
-              </span>
-            )}
+            <span className={`tile-condition ${isNew ? 'is-new' : 'is-preowned'}`}>
+              {isNew ? t('new') : (conditionPercent != null && conditionPercent > 0 ? `2hand / ${conditionPercent}%` : '2hand')}
+            </span>
           </div>
           {groupStock <= 0 && <span className="tile-soldout">{t('soldOut')}</span>}
           {product.stock > 0 && onSale && <span className="tile-ribbon">-{product.discountPercent}%</span>}
@@ -118,11 +115,6 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         <div className="product-tile-tags">
           {product.scale && <span>{product.scale}</span>}
           {product.salesChannel === 'outlet' && <span>Outlet</span>}
-          {!isNew && conditionPercent != null && conditionPercent > 0 && (
-            <span className="product-tile-condition-tag is-condition-percent" title={en ? `Condition: ${conditionPercent}%` : `Độ mới: ${conditionPercent}%`}>
-              {en ? `${conditionPercent}% Condition` : `Độ mới ${conditionPercent}%`}
-            </span>
-          )}
           {(product.conditionLabels ?? []).slice(0, 1).map((label) => (
             <span key={label} className="product-tile-condition-tag" title={label}>
               {shortConditionLabel(label)}
