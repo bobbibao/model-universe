@@ -56,8 +56,8 @@ app
   .then(() => {
     // Database initialization successful, now setup the server
     const server = e();
-    // The public tunnel connects over loopback; keep each remote client's IP for rate limits.
-    server.set('trust proxy', 'loopback');
+    // Behind a reverse proxy (Nginx, Docker bridge, Cloudflare); trust local and private subnets so req.ip and req.protocol reflect the real visitor.
+    server.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
     server.use(bodyParser.json());
     server.use(bodyParser.urlencoded({ extended: true }));

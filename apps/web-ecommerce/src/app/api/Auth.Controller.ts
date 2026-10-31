@@ -8,6 +8,7 @@ import HttpError from '../../shared/server/utils/HttpError';
 import PasswordResetService from '../../core/server/services/PasswordResetService';
 import GoogleAuthService, { googleEnabled, GOOGLE_FLOW_COOKIE } from '../../core/server/services/GoogleAuthService';
 import { AUTH_COOKIE_NAME, getAuthCookieOptions, getStepUpMaxAgeSeconds } from '../../shared/server/utils/JwtUtils';
+import Logger from '../../shared/server/utils/logger';
 
 @Controller('/auth')
 @ControllerModel('AuthModel')
@@ -55,7 +56,8 @@ export default class AuthController extends ApiBaseController {
         maxAge: 10 * 60_000,
       });
       return res.redirect(url);
-    } catch {
+    } catch (error) {
+      Logger.ERROR('Google OAuth initiation failed:', error instanceof Error ? error.message : String(error));
       return res.redirect(`/${req.query.locale === 'en' ? 'en' : 'vi'}/auth/signin?google=unavailable`);
     }
   }
@@ -74,7 +76,8 @@ export default class AuthController extends ApiBaseController {
       );
       res.cookie(AUTH_COOKIE_NAME, result.token, getAuthCookieOptions());
       return res.redirect(result.redirect);
-    } catch {
+    } catch (error) {
+      Logger.ERROR('Google OAuth callback failed:', error instanceof Error ? error.message : String(error));
       // Provider codes, tokens and raw errors must never reach the URL, logs or browser.
       return res.redirect('/vi/auth/signin?google=failed');
     }
