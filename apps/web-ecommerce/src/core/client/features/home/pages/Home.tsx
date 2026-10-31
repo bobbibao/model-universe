@@ -28,6 +28,11 @@ const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
   }, []);
   return (
     <>
+      <h1 className="sr-only">
+        {en
+          ? 'Model Universe — Authentic Pre-owned Gunpla & Alloy Figures Store'
+          : 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng'}
+      </h1>
       <AnnouncementTicker />
       <HomePromotions products={initialProducts} />
       <SaleShelf />

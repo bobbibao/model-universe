@@ -115,14 +115,22 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
         <div className="product-tile-tags">
           {product.scale && <span>{product.scale}</span>}
           {product.salesChannel === 'outlet' && <span>Outlet</span>}
-          {(product.conditionLabels ?? []).slice(0, 1).map((label) => (
-            <span key={label} className="product-tile-condition-tag" title={label}>
-              {shortConditionLabel(label)}
-            </span>
-          ))}
-          {(product.conditionLabels?.length ?? 0) > 1 && (
-            <span className="product-tile-condition-tag" title={product.conditionLabels?.join(' · ')}>
-              +{product.conditionLabels!.length - 1}
+          {(product.conditionLabels ?? [])
+            .filter((label) => !label.includes('%') && !label.toLowerCase().includes('độ mới'))
+            .slice(0, 1)
+            .map((label) => (
+              <span key={label} className="product-tile-condition-tag" title={label}>
+                {shortConditionLabel(label)}
+              </span>
+            ))}
+          {((product.conditionLabels ?? []).filter((label) => !label.includes('%') && !label.toLowerCase().includes('độ mới')).length > 1) && (
+            <span
+              className="product-tile-condition-tag"
+              title={(product.conditionLabels ?? [])
+                .filter((label) => !label.includes('%') && !label.toLowerCase().includes('độ mới'))
+                .join(' · ')}
+            >
+              +{(product.conditionLabels ?? []).filter((label) => !label.includes('%') && !label.toLowerCase().includes('độ mới')).length - 1}
             </span>
           )}
         </div>

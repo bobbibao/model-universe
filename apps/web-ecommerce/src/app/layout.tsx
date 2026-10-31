@@ -23,9 +23,80 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import AppProviders from '@/components/AppProviders';
 import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
-export function generateMetadata() {
-  return { metadataBase: new URL(siteUrl()) };
+
+export function generateMetadata(): Metadata {
+  const base = siteUrl();
+  return {
+    metadataBase: new URL(base),
+    title: {
+      default: 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng',
+      template: '%s | Model Universe',
+    },
+    description:
+      'Chuyên mô hình Gundam, Metal Build, Figure hợp kim chính hãng 2hand (độ mới 95-98%). Định giá 3 giá minh bạch, kiểm định nghiêm ngặt, giao hàng COD toàn quốc tại Model Universe.',
+    keywords: [
+      'mô hình 2hand',
+      'mô hình gundam cũ',
+      'metal build 2hand',
+      'figure chính hãng',
+      'cangdao',
+      'motor nuclear',
+      'snaa',
+      'in era',
+      'moshow',
+      'thu mua mô hình',
+      'ký gửi mô hình',
+      'model universe',
+    ],
+    authors: [{ name: 'Model Universe', url: base }],
+    creator: 'Model Universe',
+    publisher: 'Model Universe',
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'Model Universe',
+      title: 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng',
+      description:
+        'Chuyên mô hình Gundam, Metal Build, Figure chính hãng 2hand độ mới 95-98%. Giá minh bạch, hỗ trợ thu đổi, giao hàng toàn quốc.',
+      url: base,
+      images: [
+        {
+          url: `${base}/images/store/hero.jpg`,
+          width: 1200,
+          height: 630,
+          alt: 'Model Universe — Mô hình 2hand & Figure Chính Hãng',
+        },
+      ],
+      locale: 'vi_VN',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng',
+      description:
+        'Chuyên mô hình Gundam, Metal Build, Figure chính hãng 2hand độ mới 95-98%. Giá minh bạch, giao hàng toàn quốc.',
+      images: [`${base}/images/store/hero.jpg`],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    },
+  };
 }
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();

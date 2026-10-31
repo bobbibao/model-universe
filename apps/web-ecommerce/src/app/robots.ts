@@ -3,14 +3,30 @@ import { siteUrl } from '@/shared/server/utils/SiteUrl';
 
 export const dynamic = 'force-dynamic';
 
-// /robots.txt: the storefront is public; accounts, checkout, the admin and the API are not for search engines.
+// /robots.txt: the storefront is public; internal search queries, auth, cart, account, and admin are blocked.
 export default function robots(): MetadataRoute.Robots {
+  const base = siteUrl();
   return {
     rules: {
       userAgent: '*',
-      allow: '/',
-      disallow: ['/api/', '/*/admin', '/*/cart', '/*/thank-you', '/*/user-profile', '/*/order-history', '/*/account'],
+      allow: ['/', '/_next/static/', '/_next/image', '/images/'],
+      disallow: [
+        '/api/',
+        '/*/admin',
+        '/*/admin/*',
+        '/*/cart',
+        '/*/thank-you',
+        '/*/user-profile',
+        '/*/order-history',
+        '/*/account',
+        '/*/account/*',
+        '/*/search',
+        '/*/auth/',
+        '/*/auth/*',
+        '/*/wishlist',
+        '/*/reservations',
+      ],
     },
-    sitemap: `${siteUrl()}/sitemap.xml`,
+    sitemap: `${base}/sitemap.xml`,
   };
 }
