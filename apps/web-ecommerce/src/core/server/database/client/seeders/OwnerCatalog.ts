@@ -191,6 +191,8 @@ export const ownerProductValues = (row: OwnerCatalogRow) => {
     descriptionEn: en,
     descriptionVi: vi,
     condition: row.condition,
+    itemTypeKey: row.condition === 'preowned' ? 'preowned' : 'new',
+    conditionPercent: row.condition === 'preowned' ? 98 : null,
     assemblyState: PRODUCT_TYPES[row.productType].assemblyState,
     packaging,
     weight: `${row.weightGram / 1000} kg`,
@@ -406,12 +408,16 @@ export const demoStock = (row: OwnerCatalogRow): number => 1 + (hash(row.key) % 
 let seededInThisProcess = false;
 export const ownerCatalogSeeded = () => seededInThisProcess;
 
-// The development seed: the owner's catalogue with demo stock and the synthetic history.
+// The development seed: the owner's catalogue with demo stock (dev/test) or real stock (production).
 export const seedOwnerCatalog = async (history: ProductHistory): Promise<OwnerCatalogSyncResult> => {
   const sequelize = ProductModel.sequelize;
   if (!sequelize) throw new Error('The database is not initialized.');
+  const stockResolver =
+    process.env.DEMO_STOCK === 'false' || process.env.NODE_ENV === 'production'
+      ? (row: OwnerCatalogRow) => row.stock
+      : demoStock;
   const result = await sequelize.transaction((transaction) =>
-    syncOwnerCatalog(loadOwnerCatalog(), transaction, { stock: demoStock, history }),
+    syncOwnerCatalog(loadOwnerCatalog(), transaction, { stock: stockResolver, history }),
   );
   seededInThisProcess = true;
   return result;
