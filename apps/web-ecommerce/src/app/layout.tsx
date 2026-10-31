@@ -96,6 +96,11 @@ export function generateMetadata(): Metadata {
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
     },
+    icons: {
+      icon: '/favicon.ico',
+      shortcut: '/favicon.ico',
+      apple: '/favicon.ico',
+    },
   };
 }
 export default async function RootLayout({ children }: { children: ReactNode }) {

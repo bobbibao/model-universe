@@ -30,11 +30,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     entry('', 1.0, 'daily'),
-    entry('/cua-hang', 0.9, 'daily'),
-    entry('/uu-dai', 0.85, 'daily'),
-    entry('/services', 0.8, 'weekly'),
-    ...categories.map((category) => entry(`/cua-hang/${category.slug}`, 0.8, 'daily')),
-    ...products.map((product) => entry(`/san-pham/${product.slug}`, 0.75, 'daily', product.updatedAt)),
+    entry('/cua-hang', 0.95, 'daily'),
+    entry('/uu-dai', 0.9, 'daily'),
+    entry('/services', 0.85, 'weekly'),
+    entry('/services/sell', 0.85, 'daily'),
+    entry('/services/trade', 0.8, 'weekly'),
+    entry('/services/pawn', 0.75, 'weekly'),
+    entry('/services/loyalty', 0.7, 'monthly'),
+    entry('/services/partner', 0.7, 'monthly'),
+    ...categories.map((category) => entry(`/cua-hang/${category.slug}`, 0.85, 'daily')),
+    ...products.map((product) => entry(`/san-pham/${product.slug}`, 0.8, 'daily', product.updatedAt)),
     entry('/about', 0.6, 'monthly'),
     entry('/contact', 0.6, 'monthly'),
   ];
