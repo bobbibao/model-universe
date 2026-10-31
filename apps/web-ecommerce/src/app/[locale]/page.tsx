@@ -19,7 +19,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       : 'Authentic pre-owned Gunpla, Metal Build, and alloy figures. Transparent pricing, strict QC inspection, verified collectors store.';
 
   return {
-    title,
+    title: {
+      absolute: title,
+    },
     description,
     alternates: {
       canonical: `${base}/${locale}`,

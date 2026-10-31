@@ -26,12 +26,12 @@ const buildSeoTitle = (
   const isPreowned = product.condition === 'preowned';
   if (locale === 'vi') {
     return isPreowned
-      ? `Mô hình ${product.name} 2hand (${percent}%) | Model Universe`
-      : `Mô hình ${product.name} chính hãng | Model Universe`;
+      ? `Mô hình ${product.name} 2hand (${percent}%)`
+      : `Mô hình ${product.name} chính hãng`;
   }
   return isPreowned
-    ? `${product.name} Authentic Pre-owned (${percent}%) | Model Universe`
-    : `${product.name} Official Model | Model Universe`;
+    ? `${product.name} Authentic Pre-owned (${percent}%)`
+    : `${product.name} Official Model`;
 };
 
 const buildSeoDescription = (
@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: 'article',
       siteName: 'Model Universe',
-      title,
+      title: `${title} | Model Universe`,
       description,
       url: `${base}/${locale}${path}`,
       images: product.imageUrl
@@ -103,7 +103,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: `${title} | Model Universe`,
       description,
       images: product.imageUrl ? [product.imageUrl] : [],
     },
