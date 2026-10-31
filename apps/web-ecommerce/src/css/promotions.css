@@ -1917,8 +1917,25 @@
 }
 @media (min-width: 1720px) {
   .product-rail-carousel {
-    --slide: 16.666%;
+    --slide: 16.6666%;
     --gap: 16px;
+  }
+}
+@media (max-width: 1279px) {
+  .product-rail-carousel {
+    --slide: 25%;
+  }
+}
+@media (max-width: 1023px) {
+  .product-rail-carousel {
+    --slide: 33.3333%;
+    --gap: 12px;
+  }
+}
+@media (max-width: 639px) {
+  .product-rail-carousel {
+    --slide: 50%;
+    --gap: 10px;
   }
 }
 .product-rail-carousel .carousel-viewport {

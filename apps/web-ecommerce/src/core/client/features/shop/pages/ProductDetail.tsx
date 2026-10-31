@@ -260,7 +260,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   };
 
   return (
-    <div className="studio-product-detail mx-auto max-w-7xl px-4 py-10">
+    <div className="studio-product-detail mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <nav aria-label={ux('breadcrumb')} className="product-breadcrumb mb-6 text-sm text-body dark:text-store-muted">
         <Link href="/cua-hang" className="hover:text-brand-hover">
           {t('title')}

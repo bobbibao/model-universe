@@ -29,6 +29,30 @@
     width: calc(100% - 48px);
   }
 }
+.studio-product-detail {
+  width: min(1440px, calc(100% - 64px));
+  margin-inline: auto;
+}
+@media (min-width: 1600px) {
+  .studio-product-detail {
+    width: min(1536px, calc(100% - 80px));
+  }
+}
+@media (min-width: 1920px) {
+  .studio-product-detail {
+    width: min(1680px, calc(100% - 96px));
+  }
+}
+@media (max-width: 1024px) {
+  .studio-product-detail {
+    width: calc(100% - 48px);
+  }
+}
+@media (max-width: 640px) {
+  .studio-product-detail {
+    width: calc(100% - 32px);
+  }
+}
 .mu-shell :focus-visible {
   outline: 3px solid #7956d8;
   outline-offset: 4px;
@@ -938,13 +962,15 @@
 }
 .studio-detail-stage {
   aspect-ratio: 1;
+  max-height: min(72vh, 640px);
   height: auto;
-  background: #eeeee7;
-  border-radius: 28px;
+  background: #f1f1ed;
+  border-radius: 24px;
+  margin-inline: auto;
 }
 .studio-detail-stage .product-stage-photo {
-  inset: 8% 14% 13%;
-  border-radius: 18px;
+  inset: 4% 5% 5%;
+  border-radius: 16px;
 }
 
 /* Service History Toolbar & Pills */
