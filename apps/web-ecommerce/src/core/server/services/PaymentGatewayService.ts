@@ -26,7 +26,15 @@ export { paymentsEnabled };
 // checkout keeps the verified manual bank transfer.
 
 const env = (name: string) => process.env[name]?.trim() ?? '';
-// payOS order codes: an order's links are orderId × 100 + attempt; a checkout session's are offset by 10^12.
+
+// payOS order codes: integer <= Number.MAX_SAFE_INTEGER (9_007_199_254_740_991).
+// Starts with 10-digit Unix timestamp in seconds so orderCodes are monotonically increasing
+// and never collide with past orders across database reseeds, dev environments, or test runs.
+export const generateProviderOrderCode = (prefix: number, id: number, attempt = 0): number => {
+  const ts = Math.floor(Date.now() / 1000);
+  const salt = ((id * 31 + attempt * 7 + Math.floor(Math.random() * 100)) % 9000) + 1000;
+  return Number(`${ts}${salt}`);
+};
 const SESSION_CODE_OFFSET = 1_000_000_000_000;
 
 // The subset of the SDK this service uses (replaced by a double in tests).
@@ -120,8 +128,9 @@ export default class PaymentGatewayService {
       const expiresAt = new Date(
         Math.min(Date.now() + paymentLinkMinutes() * 60000, row.expiresAt?.getTime() || Infinity),
       );
+      const providerOrderCode = generateProviderOrderCode(3, reservationId, 0);
       const link = await OrderPaymentLinkModel.create(
-        { id, reservationId, providerOrderCode: 2000000000000 + id, amountVnd, expiresAt, status: 'PROCESSING' },
+        { id, reservationId, providerOrderCode, amountVnd, expiresAt, status: 'PROCESSING' },
         { transaction },
       );
       return { link, create: true };
@@ -134,19 +143,35 @@ export default class PaymentGatewayService {
     const link = result.link;
     try {
       const back = `${shopPublicUrl()}/${locale === 'en' ? 'en' : 'vi'}/reservations?hold=${reservationId}`;
-      const created = await payos().paymentRequests.create({
-        orderCode: link.providerOrderCode,
-        amount: amountVnd,
-        description: `H${reservationId}`.slice(0, 9),
-        returnUrl: back,
-        cancelUrl: back,
-        expiredAt: Math.floor(link.expiresAt!.getTime() / 1000),
-        items: [{ name: `HOLD_DEPOSIT ${reservationId}`, quantity: 1, price: amountVnd }],
-      });
-      await link.update(this.linkDetails(created, `H${reservationId}`.slice(0, 9)));
+      let created;
+      for (let retry = 0; retry < 3; retry++) {
+        try {
+          created = await payos().paymentRequests.create({
+            orderCode: link.providerOrderCode,
+            amount: amountVnd,
+            description: `H${reservationId}`.slice(0, 9),
+            returnUrl: back,
+            cancelUrl: back,
+            expiredAt: Math.floor(link.expiresAt!.getTime() / 1000),
+            items: [{ name: `HOLD_DEPOSIT ${reservationId}`, quantity: 1, price: amountVnd }],
+          });
+          break;
+        } catch (error: any) {
+          const isCollision = error?.code === '231' || error?.code === 231 || String(error?.message).includes('231');
+          if (isCollision && retry < 2) {
+            const nextCode = generateProviderOrderCode(3, reservationId, retry + 1);
+            Logger.WARN(`payOS orderCode collision detected for hold ${reservationId}. Retrying with code ${nextCode}...`);
+            await link.update({ providerOrderCode: nextCode });
+            continue;
+          }
+          throw error;
+        }
+      }
+      await link.update(this.linkDetails(created!, `H${reservationId}`.slice(0, 9)));
       return { ...this.linkView(link), paymentPurpose: 'HOLD_DEPOSIT' };
     } catch (error) {
       await link.update({ status: 'FAILED' });
+      Logger.ERROR(`payOS link for hold ${reservationId} failed:`, (error as Error)?.message || error);
       throw HttpError.serviceUnavailable(
         'Payment provider unavailable; no money or stock is confirmed from the browser.',
       );
@@ -197,8 +222,7 @@ export default class PaymentGatewayService {
     if (open?.checkoutUrl) return this.linkView(open);
     const attempts = await OrderPaymentLinkModel.count({ where: { orderId } });
     if (attempts >= 50) throw HttpError.conflict('Too many payment attempts for this order. Contact the shop.');
-    // Unique per payOS channel: the order id with a two-digit attempt counter.
-    const providerOrderCode = orderId * 100 + attempts + 1;
+    const providerOrderCode = generateProviderOrderCode(2, orderId, attempts);
     const expiresAt = new Date(Math.min(Date.now() + paymentLinkMinutes() * 60_000, dueAt.getTime()));
     const user = await UserModel.findByPk(userId, { attributes: ['email', 'firstName', 'lastName'] });
     const back = (outcome: string) =>
@@ -212,24 +236,39 @@ export default class PaymentGatewayService {
       status: 'PENDING',
     });
     try {
-      const created = await payos().paymentRequests.create({
-        orderCode: providerOrderCode,
-        amount: amountVnd,
-        // At most 9 characters without a payOS-linked account: the same memo staff use for manual transfers.
-        description: transferMemo(orderId).slice(0, 9),
-        returnUrl: back('return'),
-        cancelUrl: back('cancel'),
-        expiredAt: Math.floor(expiresAt.getTime() / 1000),
-        buyerName: order.recipientName,
-        buyerPhone: order.phone,
-        buyerEmail: user?.email || undefined,
-        items: [{ name: `Đơn hàng ${transferMemo(orderId)}`, quantity: 1, price: amountVnd }],
-      });
-      await link.update(this.linkDetails(created, transferMemo(orderId).slice(0, 9)));
+      let created;
+      for (let retry = 0; retry < 3; retry++) {
+        try {
+          created = await payos().paymentRequests.create({
+            orderCode: link.providerOrderCode,
+            amount: amountVnd,
+            // At most 9 characters without a payOS-linked account: the same memo staff use for manual transfers.
+            description: transferMemo(orderId).slice(0, 9),
+            returnUrl: back('return'),
+            cancelUrl: back('cancel'),
+            expiredAt: Math.floor(expiresAt.getTime() / 1000),
+            buyerName: order.recipientName,
+            buyerPhone: order.phone,
+            buyerEmail: user?.email || undefined,
+            items: [{ name: `Đơn hàng ${transferMemo(orderId)}`, quantity: 1, price: amountVnd }],
+          });
+          break;
+        } catch (error: any) {
+          const isCollision = error?.code === '231' || error?.code === 231 || String(error?.message).includes('231');
+          if (isCollision && retry < 2) {
+            const nextCode = generateProviderOrderCode(2, orderId, attempts + retry + 1);
+            Logger.WARN(`payOS orderCode collision detected for order ${orderId}. Retrying with code ${nextCode}...`);
+            await link.update({ providerOrderCode: nextCode });
+            continue;
+          }
+          throw error;
+        }
+      }
+      await link.update(this.linkDetails(created!, transferMemo(orderId).slice(0, 9)));
       return this.linkView(link);
     } catch (error) {
       await link.update({ status: 'FAILED' });
-      Logger.ERROR(`payOS link for order ${orderId} failed:`, error);
+      Logger.ERROR(`payOS link for order ${orderId} failed:`, (error as Error)?.message || error);
       throw HttpError.serviceUnavailable(
         'The payment page could not be opened. Please try again.',
         'PAYMENT_UNAVAILABLE',
@@ -293,7 +332,7 @@ export default class PaymentGatewayService {
   ) {
     const attempts = await OrderPaymentLinkModel.count({ where: { checkoutSessionId: session.id } });
     if (attempts >= 99) throw HttpError.conflict('Too many payment attempts for this checkout. Start again.');
-    const providerOrderCode = SESSION_CODE_OFFSET + session.id * 100 + attempts + 1;
+    const providerOrderCode = generateProviderOrderCode(1, session.id, attempts);
     // At most 9 characters without a payOS-linked account.
     const description = `MUC${session.id}`.slice(0, 9);
     const back = (outcome: string) =>
@@ -308,23 +347,38 @@ export default class PaymentGatewayService {
       status: 'PENDING',
     });
     try {
-      const created = await payos().paymentRequests.create({
-        orderCode: providerOrderCode,
-        amount: session.upfrontDueVnd,
-        description,
-        returnUrl: back('return'),
-        cancelUrl: back('cancel'),
-        expiredAt: Math.floor(session.expiresAt.getTime() / 1000),
-        buyerName: buyer.name,
-        buyerPhone: buyer.phone,
-        buyerEmail: buyer.email || undefined,
-        items: [{ name: `Thanh toán ${description}`, quantity: 1, price: session.upfrontDueVnd }],
-      });
-      await link.update(this.linkDetails(created, description));
+      let created;
+      for (let retry = 0; retry < 3; retry++) {
+        try {
+          created = await payos().paymentRequests.create({
+            orderCode: link.providerOrderCode,
+            amount: session.upfrontDueVnd,
+            description,
+            returnUrl: back('return'),
+            cancelUrl: back('cancel'),
+            expiredAt: Math.floor(session.expiresAt.getTime() / 1000),
+            buyerName: buyer.name,
+            buyerPhone: buyer.phone,
+            buyerEmail: buyer.email || undefined,
+            items: [{ name: `Thanh toán ${description}`, quantity: 1, price: session.upfrontDueVnd }],
+          });
+          break;
+        } catch (error: any) {
+          const isCollision = error?.code === '231' || error?.code === 231 || String(error?.message).includes('231');
+          if (isCollision && retry < 2) {
+            const nextCode = generateProviderOrderCode(1, session.id, attempts + retry + 1);
+            Logger.WARN(`payOS orderCode collision detected for session ${session.id}. Retrying with code ${nextCode}...`);
+            await link.update({ providerOrderCode: nextCode });
+            continue;
+          }
+          throw error;
+        }
+      }
+      await link.update(this.linkDetails(created!, description));
       return link;
     } catch (error) {
       await link.update({ status: 'FAILED' });
-      Logger.ERROR(`payOS link for checkout ${session.id} failed:`, error);
+      Logger.ERROR(`payOS link for checkout ${session.id} failed:`, (error as Error)?.message || error);
       throw HttpError.serviceUnavailable(
         'The payment QR could not be created. Please try again.',
         'PAYMENT_UNAVAILABLE',
