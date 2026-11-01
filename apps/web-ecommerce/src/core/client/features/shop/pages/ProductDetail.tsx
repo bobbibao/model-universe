@@ -137,8 +137,20 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   );
 
   useEffect(() => {
-    loadProduct(true);
-  }, [loadProduct]);
+    if (!initialProduct && productKey) {
+      void loadProduct(true);
+    } else if (initialProduct) {
+      trackViewContent({ id: String(initialProduct.id), name: initialProduct.name, price: initialProduct.salePrice, quantity: 1 });
+      rememberViewed(initialProduct);
+      trackRecommendationEvent({
+        eventType: 'product_view',
+        productId: initialProduct.id,
+        categoryId: initialProduct.categoryId,
+        priceVnd: initialProduct.salePrice ?? initialProduct.price,
+        surface: 'product_detail',
+      });
+    }
+  }, [initialProduct, productKey, loadProduct]);
 
   useEffect(() => {
     if (!product?.id) return;

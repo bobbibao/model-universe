@@ -116,12 +116,6 @@ export default function ProductRecommendations({ productId }: { productId: numbe
     }
   }, [activeSmartItems, rows, productId]);
 
-  if (rows?.length === 0 && (!activeSmartItems || activeSmartItems.length === 0)) return null;
-
-  const headingTitle = sections.length > 0 ? tSmart(`sections.${activeStrategy}.title`) : t('relatedProducts');
-  const headingSubtitle =
-    sections.length > 0 ? tSmart(`sections.${activeStrategy}.subtitle`) : t('relatedProductsNote');
-
   const items = activeSmartItems
     ? activeSmartItems
     : rows
@@ -133,6 +127,12 @@ export default function ProductRecommendations({ productId }: { productId: numbe
           breakdown: { relevance: 1, preference: 0, recentBehavior: 0, popularity: 0, inStock: 1, marginOrBusiness: 0 },
         }))
       : null;
+
+  if (!items || items.length === 0) return null;
+
+  const headingTitle = sections.length > 0 ? tSmart(`sections.${activeStrategy}.title`) : t('relatedProducts');
+  const headingSubtitle =
+    sections.length > 0 ? tSmart(`sections.${activeStrategy}.subtitle`) : t('relatedProductsNote');
 
   return (
     <section

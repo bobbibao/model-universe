@@ -233,6 +233,9 @@ export default async function Page({ params }: Props) {
 
   return (
     <StoreLayout>
+      {product.imageUrl && (
+        <link rel="preload" as="image" href={product.imageUrl} fetchPriority="high" />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
