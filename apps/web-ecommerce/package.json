@@ -129,5 +129,14 @@
   },
   "engines": {
     "node": "^22.13.0 || >=24.0.0"
-  }
+  },
+  "browserslist": [
+    "defaults and fully supports es6-module",
+    "Chrome >= 95",
+    "Safari >= 15.4",
+    "iOS >= 15.4",
+    "Firefox >= 95",
+    "Edge >= 95",
+    "not dead"
+  ]
 }

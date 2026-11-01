@@ -2,8 +2,8 @@
    violet accent, red only for sale prices, teal only for shipping. Line icons, real product photos, quiet motion. */
 :root {
   --p-ink: #22212b;
-  --p-muted: #6a6877;
-  --p-faint: #9a98a5;
+  --p-muted: #524f60;
+  --p-faint: #595667;
   --p-line: #e7e5dd;
   --p-paper: #f8f8f3;
   --p-card: #ffffff;
@@ -12,7 +12,7 @@
   --p-accent-soft: #f1edfb;
   --p-sale: #d92d20;
   --p-sale-soft: #fdeceb;
-  --p-ship: #0e7f76;
+  --p-ship: #075952;
   --p-ship-soft: #e5f3f1;
   --p-lime: #dcf56a;
   --p-price: #ee4d2d;
@@ -149,21 +149,27 @@
 .carousel-dots {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
   margin-top: 14px;
 }
 .carousel-dots button {
+  box-sizing: content-box;
   width: 8px;
   height: 8px;
+  padding: 20px 8px;
   border-radius: 999px;
-  background: #d6d3c9;
+  background-color: #d6d3c9;
+  background-clip: content-box;
+  border: 0;
+  cursor: pointer;
   transition:
     width 0.3s,
-    background 0.3s;
+    background-color 0.3s;
 }
 .carousel-dots button.is-active {
   width: 26px;
-  background: var(--p-ink);
+  background-color: var(--p-ink);
 }
 @keyframes carousel-fill {
   from {
@@ -176,12 +182,12 @@
 .carousel.is-autoplay .carousel-dots button.is-active {
   position: relative;
   overflow: hidden;
-  background: #d6d3c9;
+  background-color: #d6d3c9;
 }
 .carousel.is-autoplay .carousel-dots button.is-active::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 20px 8px;
   border-radius: inherit;
   background: var(--p-ink);
   transform-origin: left;

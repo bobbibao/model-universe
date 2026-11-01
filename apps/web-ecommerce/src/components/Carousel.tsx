@@ -48,10 +48,15 @@ export default function Carousel({
   }, [api]);
   useEffect(() => {
     if (!api) return;
-    sync();
-    api.on('select', sync).on('reInit', sync);
+    let animId: number;
+    const rafSync = () => {
+      animId = requestAnimationFrame(sync);
+    };
+    rafSync();
+    api.on('select', sync).on('reInit', rafSync);
     return () => {
-      api.off('select', sync).off('reInit', sync);
+      cancelAnimationFrame(animId);
+      api.off('select', sync).off('reInit', rafSync);
     };
   }, [api, sync]);
   const slides = Children.toArray(children);

@@ -17,7 +17,7 @@ import { productPath } from '@/shared/slug';
 import VoucherTicket from './VoucherTicket';
 
 // Up to three product photos arranged as a still life on the right of a banner; each opens its product.
-function Collage({ products }: { products: ProductSummary[] }) {
+function Collage({ products, priority = false }: { products: ProductSummary[]; priority?: boolean }) {
   return (
     <div className="banner-collage">
       {products.slice(0, 3).map((product, index) => (
@@ -25,6 +25,7 @@ function Collage({ products }: { products: ProductSummary[] }) {
           <ProductImage
             src={product.imageUrl}
             alt={product.name}
+            priority={priority && index === 0}
             sizes="(min-width: 1024px) 22vw, 40vw"
             className="object-contain"
           />
@@ -40,18 +41,20 @@ function Slide({
   tone,
   copy,
   products,
+  priority = false,
 }: {
   href: string;
   tone: string;
   copy: React.ReactNode;
   products: ProductSummary[];
+  priority?: boolean;
 }) {
   return (
     <div className={`home-banner ${tone}`}>
       <Link href={href} className="banner-copy">
         {copy}
       </Link>
-      <Collage products={products} />
+      <Collage products={products} priority={priority} />
     </div>
   );
 }
@@ -131,6 +134,7 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
       <Carousel label={t('bannerLabel')} className="home-banner-carousel" autoplayMs={6000} loop>
         {event ? (
           <Slide
+            priority={true}
             href={`/su-kien/${event.id}`}
             tone="is-sale"
             products={event.products.length ? event.products : pick(0)}
@@ -151,6 +155,7 @@ export default function HomePromotions({ products = [] }: { products?: ProductSu
           />
         ) : null}
         <Slide
+          priority={!event}
           href="/uu-dai#vouchers"
           tone="is-vouchers"
           products={pick(3)}
