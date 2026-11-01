@@ -81,17 +81,106 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     '@context': 'https://schema.org',
     '@type': 'OnlineStore',
     name: 'Model Universe',
+    alternateName: [
+      'Model Universe Vietnam',
+      'Model Universe VN',
+      'Vũ Trụ Mô Hình',
+      'Model Universe Store',
+    ],
     url: `${base}/${locale}`,
     logo: `${base}/images/store/hero.jpg`,
+    image: `${base}/images/store/hero.jpg`,
     description:
-      'Hệ thống thương mại điện tử chuyên mô hình Gundam, Metal Build và figure hợp kim chính hãng 2hand. Định giá minh bạch và dịch vụ thu mua, ký gửi chuyên nghiệp.',
+      locale === 'vi'
+        ? 'Model Universe (modeluniverse.vn) là hệ thống thương mại điện tử chuyên mô hình Gundam, Gunpla, Metal Build và figure hợp kim chính hãng tại Việt Nam. Tiên phong định giá 3 mức minh bạch, kiểm định QC nghiêm ngặt cho mô hình 2hand và cung cấp dịch vụ thu cũ đổi mới, ký gửi uy tín.'
+        : 'Model Universe is the leading platform in Vietnam for authentic pre-owned Gundam, Gunpla, Metal Build, and alloy figures. Strict QC inspection, transparent pricing, and trusted buyback services.',
     priceRange: '100.000đ - 45.000.000đ',
     currenciesAccepted: 'VND',
     paymentAccepted: 'Cash, Bank Transfer, QR Code, Credit Card',
+    areaServed: {
+      '@type': 'Country',
+      name: 'Vietnam',
+    },
     address: {
       '@type': 'PostalAddress',
       addressCountry: 'VN',
     },
+    knowsAbout: [
+      'Mô hình Gundam',
+      'Gunpla',
+      'Metal Build',
+      'Mô hình hợp kim',
+      'Motor Nuclear',
+      'Bandai',
+      'CangDao',
+      'In Era+',
+      'SNAA',
+      'Moshow',
+      'Thu mua mô hình',
+      'Thu cũ đổi mới mô hình',
+      'Mô hình 2hand chính hãng',
+    ],
+    slogan: 'Khám phá vũ trụ mô hình — Định giá minh bạch, kiểm định an tâm',
+  };
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: locale === 'vi' ? 'Model Universe là gì?' : 'What is Model Universe?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            locale === 'vi'
+              ? 'Model Universe (modeluniverse.vn) là hệ thống thương mại điện tử chuyên mô hình Gundam, Gunpla, Metal Build và figure hợp kim chính hãng tại Việt Nam, tiên phong với kiểm định chất lượng 2hand nghiêm ngặt và dịch vụ thu mua, ký gửi chuyên nghiệp.'
+              : 'Model Universe (modeluniverse.vn) is Vietnam’s premier e-commerce platform specializing in authentic Gundam, Gunpla, Metal Build, and alloy figures with strict QC inspection and certified buyback/trade-in services.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name:
+          locale === 'vi'
+            ? 'Mô hình 2hand tại Model Universe có bảo đảm chất lượng không?'
+            : 'Are pre-owned figures at Model Universe quality-guaranteed?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            locale === 'vi'
+              ? 'Mọi mô hình 2hand tại Model Universe đều trải qua quy trình kiểm tra khớp, phụ kiện, nước sơn và độ hoàn thiện nghiêm ngặt, công khai độ mới 95-98% cùng chính sách đổi trả miễn phí trong 7 ngày.'
+              : 'Every pre-owned figure at Model Universe undergoes rigorous QC inspection for joints, paint, and accessories, with 95-98% mint condition verified and a 7-day hassle-free return guarantee.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name:
+          locale === 'vi'
+            ? 'Model Universe có hỗ trợ thu mua mô hình cũ và trade-in không?'
+            : 'Does Model Universe offer buyback and trade-in services?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            locale === 'vi'
+              ? 'Có, Model Universe cung cấp dịch vụ thu mua mô hình giá cao, định giá online tức thì và chính sách thu cũ đổi mới (trade-in) trợ giá tối đa cho người chơi Gunpla và figure sưu tầm.'
+              : 'Yes, Model Universe provides instant online valuation, cash buyback, and subsidized trade-in programs for Gunpla and collectors figures across Vietnam.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name:
+          locale === 'vi'
+            ? 'Chính sách vận chuyển và giao hàng tại Model Universe như thế nào?'
+            : 'What is the shipping policy at Model Universe?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text:
+            locale === 'vi'
+              ? 'Model Universe áp dụng chính sách miễn phí vận chuyển (Freeship 0đ) toàn quốc, đóng gói 3 lớp chống sốc chuyên dụng và hỗ trợ kiểm tra hàng (đồng kiểm COD) trước khi thanh toán.'
+              : 'Model Universe provides free nationwide shipping (0 VND) in Vietnam, multi-layer shockproof protective packaging, and cash-on-delivery inspection before payment.',
+        },
+      },
+    ],
   };
 
   return (
@@ -99,7 +188,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([websiteSchema, storeSchema]).replace(/</g, '\\u003c'),
+          __html: JSON.stringify([websiteSchema, storeSchema, faqSchema]).replace(/</g, '\\u003c'),
         }}
       />
       <Home initialProducts={initialProducts} />
