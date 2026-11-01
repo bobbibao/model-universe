@@ -23,8 +23,14 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import AppProviders from '@/components/AppProviders';
 import type { ReactNode } from 'react';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0a0d14',
+};
 
 export function generateMetadata(): Metadata {
   const base = siteUrl();
