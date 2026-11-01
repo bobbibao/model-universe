@@ -126,7 +126,13 @@ export default async function Page({ params }: Props) {
     productID: product.uuid,
     sku: product.sku,
     mpn: product.modelCode || product.sku,
-    image: [product.imageUrl, ...(product.images || [])].filter(Boolean),
+    image: [product.imageUrl, ...(product.images || [])]
+      .filter((img): img is string => Boolean(img))
+      .map((img) =>
+        img.startsWith('http://') || img.startsWith('https://')
+          ? img
+          : `${base}${img.startsWith('/') ? '' : '/'}${img}`
+      ),
     description: seoDescription,
     brand: {
       '@type': 'Brand',
