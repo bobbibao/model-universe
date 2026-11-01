@@ -6,6 +6,7 @@ import '@/css/finance-workspace.css';
 import '@/css/compact-workspaces.css';
 import '@/css/product-forms.css';
 import '@/css/direct-sales.css';
+import '@/css/condition-tree.css';
 
 // Keep the navigation mounted across admin routes (scroll position, dropdowns and header).
 // Admin portal is strictly Vietnamese-only.

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { preload } from 'react-dom';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import Home from '@/core/client/features/home/pages/Home';
 import { getTranslations } from 'next-intl/server';
@@ -184,6 +185,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   };
 
   const lcpImage = initialProducts?.[3]?.imageUrl || initialProducts?.[0]?.imageUrl;
+  if (lcpImage) {
+    preload(lcpImage, { as: 'image', fetchPriority: 'high' });
+  }
 
   return (
     <StoreLayout>

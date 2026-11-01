@@ -33,8 +33,17 @@ export default function Carousel({
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setReduced(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true);
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
+    // Defer Embla DOM geometry measurement until after initial render is completed, preventing forced reflow
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const win = window as unknown as {
+        requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
+        cancelIdleCallback: (id: number) => void;
+      };
+      const handle = win.requestIdleCallback(() => setMounted(true), { timeout: 500 });
+      return () => win.cancelIdleCallback(handle);
+    }
+    const timer = setTimeout(() => setMounted(true), 200);
+    return () => clearTimeout(timer);
   }, []);
   const [viewport, api] = useEmblaCarousel(
     { loop, align: 'start', dragFree, containScroll: 'trimSnaps', active: mounted },

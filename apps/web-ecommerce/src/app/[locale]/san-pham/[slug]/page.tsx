@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { preload } from 'react-dom';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
@@ -114,6 +115,10 @@ export default async function Page({ params }: Props) {
   const { locale, slug } = await params,
     product = await getPublicProduct(slug);
   if (!product) notFound();
+
+  if (product.imageUrl) {
+    preload(product.imageUrl, { as: 'image', fetchPriority: 'high' });
+  }
 
   const base = siteUrl();
   const canonicalUrl = `${base}/${locale}/san-pham/${product.slug}`;
