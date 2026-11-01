@@ -32,6 +32,7 @@ const ProductImage = ({ src, alt, className = 'object-cover', sizes, priority }:
       sizes={sizes}
       priority={priority}
       loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : undefined}
       className={className}
       onError={() => setCurrentSrc(PRODUCT_IMAGE_PLACEHOLDER)}
     />

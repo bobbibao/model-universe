@@ -183,8 +183,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     ],
   };
 
+  const lcpImage = initialProducts?.[3]?.imageUrl || initialProducts?.[0]?.imageUrl;
+
   return (
     <StoreLayout>
+      {lcpImage && (
+        <link rel="preload" as="image" href={lcpImage} fetchPriority="high" />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

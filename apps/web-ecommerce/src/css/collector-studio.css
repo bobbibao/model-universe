@@ -599,8 +599,12 @@
 .mu-shell .mu-footer .text-brand {
   color: #22212b;
 }
-.mu-shell .mu-footer .mu-note {
-  color: #6a6877;
+.mu-shell .mu-footer .mu-note,
+.mu-shell .mu-footer .text-store-muted,
+.mu-shell .mu-footer a,
+.mu-shell .mu-footer p,
+.mu-shell .mu-footer span {
+  color: #334155;
 }
 .mu-shell .mu-footer a:hover {
   color: #7956d8;
@@ -1579,7 +1583,7 @@
 
 /* Keep secondary copy readable on the light storefront, regardless of admin theme. */
 .mu-shell .mu-footer .text-store-muted {
-  color: #94a3b8;
+  color: #334155;
 }
 .mu-shell .dark\:bg-store-panel {
   background-color: #ffffff;

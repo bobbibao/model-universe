@@ -30,9 +30,14 @@ export default function Carousel({
 }: CarouselProps) {
   // Read after mount so the server and the first client render agree.
   const [reduced, setReduced] = useState(false);
-  useEffect(() => setReduced(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true), []);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setReduced(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true);
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
   const [viewport, api] = useEmblaCarousel(
-    { loop, align: 'start', dragFree, containScroll: 'trimSnaps' },
+    { loop, align: 'start', dragFree, containScroll: 'trimSnaps', active: mounted },
     autoplayMs && !reduced ? [Autoplay({ delay: autoplayMs, stopOnInteraction: false, stopOnMouseEnter: true })] : [],
   );
   const [selected, setSelected] = useState(0);
