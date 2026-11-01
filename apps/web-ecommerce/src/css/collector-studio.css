@@ -1579,7 +1579,7 @@
 
 /* Keep secondary copy readable on the light storefront, regardless of admin theme. */
 .mu-shell .mu-footer .text-store-muted {
-  color: #6a6877;
+  color: #94a3b8;
 }
 .mu-shell .dark\:bg-store-panel {
   background-color: #ffffff;

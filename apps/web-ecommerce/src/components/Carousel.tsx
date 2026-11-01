@@ -111,7 +111,7 @@ export default function Carousel({
               type="button"
               key={index === selected ? `active-${selected}` : index}
               className={index === selected ? 'is-active' : ''}
-              aria-label={`${index + 1}`}
+              aria-label={`Slide ${index + 1}`}
               aria-current={index === selected}
               onClick={() => api?.scrollTo(index)}
             />
