@@ -28,8 +28,7 @@ const ProductImage = ({ src, alt, className = 'object-cover', sizes, priority }:
       src={currentSrc}
       alt={alt}
       fill
-      unoptimized
-      sizes={sizes}
+      sizes={sizes || '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw'}
       priority={priority}
       loading={priority ? 'eager' : 'lazy'}
       fetchPriority={priority ? 'high' : undefined}

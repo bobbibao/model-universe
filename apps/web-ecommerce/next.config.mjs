@@ -21,8 +21,11 @@ const nextConfig = {
         pagesBufferLength: 64,
     },
     images: {
-        // Retained historical photos may still reference the previous CDN; the new catalog is self-hosted.
-        remotePatterns: [{ protocol: 'https', hostname: 'images.asos-media.com' }],
+        formats: ['image/avif', 'image/webp'],
+        remotePatterns: [
+            { protocol: 'https', hostname: '**' },
+            { protocol: 'http', hostname: '**' },
+        ],
     },
     async redirects() {
         return [
