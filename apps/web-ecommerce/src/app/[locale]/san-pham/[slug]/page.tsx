@@ -111,6 +111,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+const formatSku = (raw?: string | null, fallback?: string | number): string => {
+  const val = (raw || (fallback ? `MU-${fallback}` : '')).trim();
+  if (!val) return 'MU-PROD';
+  if (val.length <= 50) return val;
+  const shortened = val.replace(/^MU-OWNER-/, 'MU-');
+  return shortened.length <= 50 ? shortened : shortened.slice(0, 50);
+};
+
 export default async function Page({ params }: Props) {
   const { locale, slug } = await params,
     product = await getPublicProduct(slug);
@@ -123,14 +131,17 @@ export default async function Page({ params }: Props) {
   const base = siteUrl();
   const canonicalUrl = `${base}/${locale}/san-pham/${product.slug}`;
   const seoDescription = buildSeoDescription(product, locale);
+  const validFromDate = product.createdAt
+    ? new Date(product.createdAt).toISOString().split('T')[0]
+    : '2026-01-01';
 
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     productID: product.uuid,
-    sku: product.sku,
-    mpn: product.modelCode || product.sku,
+    sku: formatSku(product.sku, product.id),
+    mpn: formatSku(product.modelCode || product.sku, product.id),
     image: [product.imageUrl, ...(product.images || [])]
       .filter((img): img is string => Boolean(img))
       .map((img) =>
@@ -150,16 +161,19 @@ export default async function Page({ params }: Props) {
             '@type': 'AggregateRating',
             ratingValue: product.rating,
             reviewCount: product.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
           },
         }
       : {}),
     offers: (product.conditionOptions ?? [{ ...product, isMain: true }]).map((option) => ({
       '@type': 'Offer',
       url: `${base}/${locale}/san-pham/${product.slug}${option.isMain ? '' : `?tinh-trang=${option.id}`}`,
-      sku: option.sku,
+      sku: formatSku(option.sku, option.id),
       priceCurrency: 'VND',
       price: option.salePrice ?? option.price,
       priceValidUntil: '2027-12-31',
+      validFrom: validFromDate,
       availability: (option.stock ?? 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: ITEM_CONDITIONS[option.condition ?? 'preowned'] ?? ITEM_CONDITIONS.preowned,
       seller: {
@@ -192,13 +206,13 @@ export default async function Page({ params }: Props) {
             '@type': 'QuantitativeValue',
             minValue: 0,
             maxValue: 1,
-            unitCode: 'd',
+            unitCode: 'DAY',
           },
           transitTime: {
             '@type': 'QuantitativeValue',
             minValue: 1,
             maxValue: 3,
-            unitCode: 'd',
+            unitCode: 'DAY',
           },
         },
       },

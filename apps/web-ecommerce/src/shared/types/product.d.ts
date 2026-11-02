@@ -94,6 +94,8 @@ export type ProductDetail = ProductSummary & {
   // The main listing first, then its condition options; the unit the page was opened with.
   conditionOptions?: ProductConditionOption[];
   selectedOptionId?: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type AdminProductListItem = ProductSummary & {
