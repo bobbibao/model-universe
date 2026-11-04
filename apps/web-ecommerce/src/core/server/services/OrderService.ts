@@ -1054,7 +1054,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
             text: 'Đánh giá sản phẩm nhận điểm thưởng',
             url: `${shopPublicUrl()}/vi/user-profile?section=orders`,
           },
-          note: 'Cảm ơn bạn đã tin tưởng mua sắm tại Model Universe. Mọi thắc mắc hoặc cần hỗ trợ bảo hành / đổi trả xin vui lòng liên hệ hotline: 0373498729.',
+          note: 'Cảm ơn bạn đã tin tưởng mua sắm tại Model Universe. Mọi thắc mắc hoặc cần hỗ trợ bảo hành / đổi trả xin vui lòng liên hệ hotline: 0373725104.',
         });
         if (order.userId) {
           await new NotificationDispatchService().notifyCustomer(
@@ -1238,7 +1238,7 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
                 text: 'Xem chi tiết đơn hàng',
                 url: `${shopPublicUrl()}/vi/user-profile?section=orders`,
               },
-              note: 'Nếu cần giải đáp thêm, vui lòng phản hồi email này hoặc liên hệ hotline Model Universe 0373498729.',
+              note: 'Nếu cần giải đáp thêm, vui lòng phản hồi email này hoặc liên hệ hotline Model Universe 0373725104.',
             }),
           },
         },

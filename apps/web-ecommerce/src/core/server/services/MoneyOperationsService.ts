@@ -73,7 +73,7 @@ export default class MoneyOperationsService {
               text: 'Xem chi tiết trong tài khoản',
               url: `${shopPublicUrl()}/vi/user-profile?section=inbox`,
             },
-            note: 'Chỉ trạng thái "Đã chuyển tiền hoàn thành công" mới xác nhận giao dịch đã được ngân hàng thực hiện. Nếu có thắc mắc, vui lòng liên hệ hotline 0373498729.',
+            note: 'Chỉ trạng thái "Đã chuyển tiền hoàn thành công" mới xác nhận giao dịch đã được ngân hàng thực hiện. Nếu có thắc mắc, vui lòng liên hệ hotline 0373725104.',
           }),
         },
       },

@@ -320,7 +320,7 @@ async function dispatchAll() {
   // 17. Admin Alert: New Direct Meeting Order
   const adminMeetingHtml = renderAdminAlertEmail({
     title: 'MODEL universe – ĐƠN GDTT MỚI #ORD-962',
-    content: `Mã đơn: ORD-962\nKhách hàng: Bobby Lê\nSố điện thoại: 0373498729\nSản phẩm: MNP-XH03 - Ao Bing / Ngao Bính\nGiá trị đơn: 611.111 ₫\nĐã cọc: 200.000 ₫\nCòn lại: 411.111 ₫\nĐịa điểm GDTT: Showroom TP. Hồ Chí Minh\nThời gian mong muốn: 15:00 31/10/2026\nTrạng thái: Chờ xác nhận lịch giao dịch.\nXem đơn: http://localhost:6050/vi/admin/orders/962`,
+    content: `Mã đơn: ORD-962\nKhách hàng: Bobby Lê\nSố điện thoại: 0373725104\nSản phẩm: MNP-XH03 - Ao Bing / Ngao Bính\nGiá trị đơn: 611.111 ₫\nĐã cọc: 200.000 ₫\nCòn lại: 411.111 ₫\nĐịa điểm GDTT: Showroom TP. Hồ Chí Minh\nThời gian mong muốn: 15:00 31/10/2026\nTrạng thái: Chờ xác nhận lịch giao dịch.\nXem đơn: http://localhost:6050/vi/admin/orders/962`,
     severity: 'Đơn Showroom Mới',
     actionUrl: 'http://localhost:6050/vi/admin/orders/962',
   });
@@ -336,7 +336,7 @@ async function dispatchAll() {
   // 18. Admin Alert: New Pawn Appraisal Request
   const adminPawnHtml = renderAdminAlertEmail({
     title: 'MODEL universe – ĐỀ XUẤT TÌNH TRẠNG CẦM MỚI #4',
-    content: `Mã hồ sơ: #4\nKhách hàng: Bobby Lê\nSố điện thoại: 0373498729\nSản phẩm tài sản: MGEX 1/100 Strike Freedom Gundam\nKhoản vay đề xuất: 2.500.000 ₫\nThời hạn: 30 ngày\nLãi suất niêm yết: 3.5%/tháng\nTrạng thái: Chờ chuyên viên thẩm định.\nXem hồ sơ: http://localhost:6050/vi/admin/pawn`,
+    content: `Mã hồ sơ: #4\nKhách hàng: Bobby Lê\nSố điện thoại: 0373725104\nSản phẩm tài sản: MGEX 1/100 Strike Freedom Gundam\nKhoản vay đề xuất: 2.500.000 ₫\nThời hạn: 30 ngày\nLãi suất niêm yết: 3.5%/tháng\nTrạng thái: Chờ chuyên viên thẩm định.\nXem hồ sơ: http://localhost:6050/vi/admin/pawn`,
     severity: 'Cầm cố mới',
     actionUrl: 'http://localhost:6050/vi/admin/pawn',
   });

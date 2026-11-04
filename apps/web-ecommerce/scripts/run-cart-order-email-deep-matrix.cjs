@@ -2,8 +2,8 @@
  * MODEL UNIVERSE - COMPREHENSIVE CART, ORDERING & EMAIL TEMPLATES E2E TEST SUITE
  * 
  * Target: http://localhost:6050
- * Customer: bobby.le.2k3@gmail.com | Phone: 0373498729
- * Admin: lehoangbao5678@gmail.com | Phone: 0373498729
+ * Customer: bobby.le.2k3@gmail.com | Phone: 0373725104
+ * Admin: lehoangbao5678@gmail.com | Phone: 0373725104
  */
 
 const { chromium } = require('playwright');
@@ -36,14 +36,14 @@ const CUSTOMER = {
   email: 'bobby.le.2k3@gmail.com',
   password: 'Customer@123',
   name: 'Bobby Lê',
-  phone: '0373498729',
+  phone: '0373725104',
 };
 
 const ADMIN = {
   email: 'lehoangbao5678@gmail.com',
   password: 'Admin@e661150577d9',
   name: 'Bảo Lê',
-  phone: '0373498729',
+  phone: '0373725104',
 };
 
 const report = {
@@ -251,7 +251,7 @@ async function main() {
     const codOrder = codOrderJson.data || codOrderJson;
     const codOrderId = codOrder.id;
     console.log(`   ✓ Successfully placed COD Order: #${codOrderId}`);
-    recordTest('Order Checkout', `3.2 Placed COD Order #${codOrderId} with recipient Bobby Lê, Phone 0373498729`, true);
+    recordTest('Order Checkout', `3.2 Placed COD Order #${codOrderId} with recipient Bobby Lê, Phone 0373725104`, true);
 
     // 3.3 Inventory deduction check
     const postStock1 = Number(queryDb(`SELECT stock FROM product WHERE id = ${prod1Id};`));

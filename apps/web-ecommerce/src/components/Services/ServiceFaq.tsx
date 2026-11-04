@@ -219,12 +219,12 @@ export default function ServiceFaq() {
       {/* Clean Footnote */}
       <div className="mt-8 border-t border-slate-200 pt-5 text-xs text-slate-500 dark:border-strokedark dark:text-slate-400">
         <span>Vẫn còn thắc mắc? Liên hệ Hotline </span>
-        <a href="tel:+84373498729" className="font-bold text-slate-900 hover:underline dark:text-white">
-          0373 498 729
+        <a href="tel:+84373725104" className="font-bold text-slate-900 hover:underline dark:text-white">
+          0373 725 104
         </a>
         <span> hoặc </span>
         <a
-          href="https://zalo.me/0373498729"
+          href="https://zalo.me/0373725104"
           target="_blank"
           rel="noopener noreferrer"
           className="font-bold text-slate-900 hover:underline dark:text-white"

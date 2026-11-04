@@ -255,7 +255,7 @@ export const emailShipmentStatus = (
       text: 'Tra cứu hành trình vận đơn',
       url: trackingUrl || orderTrackingUrl(),
     },
-    note: 'Cần hỗ trợ giao lại hoặc thay đổi thông tin nhận? Hãy phản hồi email này hoặc liên hệ hotline Model Universe 0373498729.',
+    note: 'Cần hỗ trợ giao lại hoặc thay đổi thông tin nhận? Hãy phản hồi email này hoặc liên hệ hotline Model Universe 0373725104.',
   });
   return { subject, body };
 };
@@ -337,7 +337,7 @@ export const emailHandoverCompleted = (
       text: 'Xem chi tiết đơn hàng & Viết đánh giá',
       url: orderUrl(),
     },
-    note: 'Cần hỗ trợ lắp ráp, bảo hành hoặc phụ kiện thay thế? Đừng ngần ngại liên hệ hotline Model Universe 0373498729.',
+    note: 'Cần hỗ trợ lắp ráp, bảo hành hoặc phụ kiện thay thế? Đừng ngần ngại liên hệ hotline Model Universe 0373725104.',
   });
   return { subject, body };
 };

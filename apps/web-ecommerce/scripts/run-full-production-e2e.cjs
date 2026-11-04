@@ -8,7 +8,7 @@
  * - 5. Customer Profile All Capabilities (Account, Address book, Order tracking, Inbox, Wishlist, Services history, Vouchers)
  *
  * Accounts:
- * - Customer: bobby.le.2k3@gmail.com / Customer@123 (Phone: 0373498729)
+ * - Customer: bobby.le.2k3@gmail.com / Customer@123 (Phone: 0373725104)
  * - Admin: lehoangbao5678@gmail.com / Admin@e661150577d9
  */
 
@@ -32,14 +32,14 @@ const CUSTOMER = {
   email: 'bobby.le.2k3@gmail.com',
   password: 'Customer@123',
   name: 'Bobby Lê',
-  phone: '0373498729',
+  phone: '0373725104',
 };
 
 const ADMIN = {
   email: 'lehoangbao5678@gmail.com',
   password: 'Admin@e661150577d9',
   name: 'Bảo Lê',
-  phone: '0373498729',
+  phone: '0373725104',
 };
 
 // Fixture images for service uploads
@@ -436,7 +436,7 @@ async function main() {
     // 5.1 Account Details & Phone Update
     await customerPage.goto('/vi/user-profile?section=account', { waitUntil: 'networkidle' });
     await customerPage.screenshot({ path: path.join(EVIDENCE_DIR, '19_profile_account_details.png') });
-    recordTest('Customer Profile', `5.1 Personal details display Bobby Lê, Phone 0373498729, ${CUSTOMER.email}`, true);
+    recordTest('Customer Profile', `5.1 Personal details display Bobby Lê, Phone 0373725104, ${CUSTOMER.email}`, true);
 
     // 5.2 Membership & Loyalty Tier
     await customerPage.goto('/vi/user-profile?section=membership', { waitUntil: 'networkidle' });

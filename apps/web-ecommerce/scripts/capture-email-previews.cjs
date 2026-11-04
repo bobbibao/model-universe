@@ -101,7 +101,7 @@ async function capture() {
       title: 'Cảnh báo Quản trị: Hồ sơ cầm cố mới',
       html: renderAdminAlertEmail({
         title: 'MODEL universe – ĐỀ XUẤT TÌNH TRẠNG CẦM MỚI #4',
-        content: `Mã hồ sơ: #4\nKhách hàng: Bobby Lê\nSố điện thoại: 0373498729\nSản phẩm tài sản: MGEX 1/100 Strike Freedom Gundam\nKhoản vay đề xuất: 2.500.000 ₫\nThời hạn: 30 ngày\nLãi suất niêm yết: 3.5%/tháng\nTrạng thái: Chờ chuyên viên thẩm định.\nXem hồ sơ: http://localhost:6050/vi/admin/pawn`,
+        content: `Mã hồ sơ: #4\nKhách hàng: Bobby Lê\nSố điện thoại: 0373725104\nSản phẩm tài sản: MGEX 1/100 Strike Freedom Gundam\nKhoản vay đề xuất: 2.500.000 ₫\nThời hạn: 30 ngày\nLãi suất niêm yết: 3.5%/tháng\nTrạng thái: Chờ chuyên viên thẩm định.\nXem hồ sơ: http://localhost:6050/vi/admin/pawn`,
         severity: 'Cầm cố mới',
         actionUrl: 'http://localhost:6050/vi/admin/pawn',
       }),

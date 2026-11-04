@@ -100,22 +100,22 @@ const Contact = () => {
                   <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     {t('hotlineLabel')}
                   </span>
-                  <a href="tel:+84373498729" className="text-sm font-bold text-slate-900 hover:underline dark:text-white sm:text-base">
-                    0373 498 729
+                  <a href="tel:+84373725104" className="text-sm font-bold text-slate-900 hover:underline dark:text-white sm:text-base">
+                    0373 725 104
                   </a>
                   <span className="block text-xs text-slate-400">Hỗ trợ 08:00 - 22:00</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <a
-                  href="tel:+84373498729"
+                  href="tel:+84373725104"
                   className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900"
                 >
                   {t('callNow')}
                 </a>
                 <button
                   type="button"
-                  onClick={() => handleCopy('0373498729', 'Hotline')}
+                  onClick={() => handleCopy('0373725104', 'Hotline')}
                   className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 dark:border-strokedark dark:text-slate-400 dark:hover:bg-meta-4"
                   title={t('copyPhone')}
                 >
@@ -138,13 +138,13 @@ const Contact = () => {
                     {t('zaloLabel')}
                   </span>
                   <span className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
-                    0373 498 729
+                    0373 725 104
                   </span>
                   <span className="block text-xs text-slate-400">Tư vấn trực tiếp 1:1</span>
                 </div>
               </div>
               <a
-                href="https://zalo.me/0373498729"
+                href="https://zalo.me/0373725104"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-strokedark dark:text-slate-200 dark:hover:bg-meta-4"
@@ -154,7 +154,7 @@ const Contact = () => {
               </a>
             </div>
 
-            {/* 3. Messenger */}
+            {/* 3. Facebook & Messenger */}
             <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
               <div className="flex items-center gap-3.5">
                 <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
@@ -166,24 +166,74 @@ const Contact = () => {
                   <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     {t('messengerLabel')}
                   </span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
+                  <a
+                    href="https://www.facebook.com/modeluniverse.vn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-bold text-slate-900 hover:underline dark:text-white sm:text-base"
+                  >
                     Model Universe
+                  </a>
+                  <span className="block text-xs text-slate-400">Fanpage Facebook chính thức</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://www.facebook.com/modeluniverse.vn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-strokedark dark:text-slate-200 dark:hover:bg-meta-4"
+                >
+                  <span>Fanpage</span>
+                  <span>↗</span>
+                </a>
+                <a
+                  href="https://m.me/modeluniverse.vn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900"
+                >
+                  <span>{t('chatMessenger')}</span>
+                  <span>↗</span>
+                </a>
+              </div>
+            </div>
+
+            {/* 4. TikTok */}
+            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
+              <div className="flex items-center gap-3.5">
+                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                </div>
+                <div>
+                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    Kênh TikTok
                   </span>
-                  <span className="block text-xs text-slate-400">Fanpage Facebook</span>
+                  <a
+                    href="https://www.tiktok.com/@model.universe.c"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-bold text-slate-900 hover:underline dark:text-white sm:text-base"
+                  >
+                    @model.universe.c
+                  </a>
+                  <span className="block text-xs text-slate-400">Video unbox & giới thiệu kit</span>
                 </div>
               </div>
               <a
-                href="https://m.me/modeluniverse.vn"
+                href="https://www.tiktok.com/@model.universe.c"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-strokedark dark:text-slate-200 dark:hover:bg-meta-4"
               >
-                <span>{t('chatMessenger')}</span>
+                <span>Xem TikTok</span>
                 <span>↗</span>
               </a>
             </div>
 
-            {/* 4. Email */}
+            {/* 5. Email liên hệ */}
             <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
               <div className="flex items-center gap-3.5 min-w-0 pr-2">
                 <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
@@ -194,17 +244,56 @@ const Contact = () => {
                 </div>
                 <div className="min-w-0">
                   <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Email chính thức
+                    Email liên hệ & Hợp tác
                   </span>
-                  <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">
-                    lehoangbao5678@gmail.com
-                  </span>
-                  <span className="block text-xs text-slate-400">Hỗ trợ đối tác & khiếu nại</span>
+                  <a
+                    href="mailto:contact@modeluniverse.vn"
+                    className="block truncate text-sm font-bold text-slate-900 hover:underline dark:text-white"
+                  >
+                    contact@modeluniverse.vn
+                  </a>
+                  <span className="block text-xs text-slate-400">Đối tác, ký gửi & khiếu nại</span>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => handleCopy('lehoangbao5678@gmail.com', 'Email')}
+                onClick={() => handleCopy('contact@modeluniverse.vn', 'Email liên hệ')}
+                className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 dark:border-strokedark dark:text-slate-400 dark:hover:bg-meta-4"
+                title="Sao chép email"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              </button>
+            </div>
+
+            {/* 6. Email hỗ trợ khách hàng */}
+            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
+              <div className="flex items-center gap-3.5 min-w-0 pr-2">
+                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    Email hỗ trợ khách hàng
+                  </span>
+                  <a
+                    href="mailto:support@modeluniverse.vn"
+                    className="block truncate text-sm font-bold text-slate-900 hover:underline dark:text-white"
+                  >
+                    support@modeluniverse.vn
+                  </a>
+                  <span className="block text-xs text-slate-400">Đơn hàng, bảo hành & hoàn tiền</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleCopy('support@modeluniverse.vn', 'Email hỗ trợ')}
                 className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 dark:border-strokedark dark:text-slate-400 dark:hover:bg-meta-4"
                 title="Sao chép email"
               >
@@ -221,7 +310,7 @@ const Contact = () => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-strokedark">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Showroom & Điểm tiếp nhận trực tiếp</h3>
               <a
-                href="https://maps.google.com/?q=123+Van+Kiep+Phuong+3+Binh+Thanh+Ho+Chi+Minh"
+                href="https://maps.google.com/?q=730/126+Le+Duc+Tho+An+Hoi+Dong+Ho+Chi+Minh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
@@ -232,7 +321,7 @@ const Contact = () => {
             <div className="mt-3 space-y-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
               <p>
                 <strong className="text-slate-900 dark:text-white">Địa chỉ: </strong>
-                123 Vạn Kiếp, Phường 3, Quận Bình Thạnh, TP. Hồ Chí Minh
+                730/126 Đ. Lê Đức Thọ, An Hội Đông, Hồ Chí Minh, Việt Nam
               </p>
               <p>
                 <strong className="text-slate-900 dark:text-white">Giờ mở cửa: </strong>

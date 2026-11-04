@@ -112,7 +112,7 @@ export default class PawnReminderService {
                     { label: 'Giai đoạn xử lý', value: next === 'DUE_GRACE' ? 'Thời gian ân hạn' : 'Đối soát quá hạn', isHighlight: true },
                   ],
                   message: `Hợp đồng cầm cố #${row.id} đã đến hạn thanh toán và đang ở bước ${next}. Đội ngũ quản lý hợp đồng của Model Universe sẽ tiến hành đối chiếu cùng bạn. Shop cam kết không tự động thanh lý tài sản.`,
-                  note: 'Vui lòng liên hệ hotline Model Universe 0373498729 hoặc đăng nhập vào hệ thống để được hỗ trợ kịp thời.',
+                  note: 'Vui lòng liên hệ hotline Model Universe 0373725104 hoặc đăng nhập vào hệ thống để được hỗ trợ kịp thời.',
                 }),
               },
             },

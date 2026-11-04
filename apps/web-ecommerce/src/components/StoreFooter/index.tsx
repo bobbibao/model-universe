@@ -16,7 +16,7 @@ export default function StoreFooter() {
             <p className="mt-5 max-w-sm text-sm leading-7 text-store-muted">{t('description')}</p>
             <div className="mt-4 flex items-center gap-3">
               <a
-                href="https://zalo.me/0373498729"
+                href="https://zalo.me/0373725104"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Zalo"
@@ -33,7 +33,7 @@ export default function StoreFooter() {
                 </svg>
               </a>
               <a
-                href="https://facebook.com/modeluniverse.vn"
+                href="https://www.facebook.com/modeluniverse.vn"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
@@ -48,7 +48,7 @@ export default function StoreFooter() {
                 </svg>
               </a>
               <a
-                href="https://www.tiktok.com/@modeluniverse.vn"
+                href="https://www.tiktok.com/@model.universe.c"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="TikTok"

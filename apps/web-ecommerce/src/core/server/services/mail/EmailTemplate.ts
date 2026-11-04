@@ -10,9 +10,9 @@
 
 const SHOP_NAME = 'MODEL UNIVERSE';
 const SHOP_TAGLINE = 'Mô hình Gunpla & Mecha Collectibles chính hãng';
-const SHOP_PHONE = '0373498729';
+const SHOP_PHONE = '0373725104';
 const SHOP_EMAIL = 'support@modeluniverse.vn';
-const SHOP_ADDRESS = 'Showroom Model Universe, TP. Hồ Chí Minh';
+const SHOP_ADDRESS = '730/126 Đ. Lê Đức Thọ, An Hội Đông, Hồ Chí Minh, Việt Nam';
 const BASE_URL = process.env.APP_URL || process.env.SHOP_PUBLIC_URL || 'http://localhost:6050';
 
 export interface EmailBaseOptions {
@@ -344,7 +344,7 @@ export function renderShipmentEmail(data: {
       text: 'Tra cứu hành trình đơn hàng',
       url: data.trackingUrl || data.orderUrl,
     },
-    noteHtml: 'Lưu ý kiểm tra kỹ kiện hàng và đối chiếu mã vận đơn khi nhận từ nhân viên bưu tá. Nếu có vấn đề phát sinh, hãy liên hệ ngay hotline 0373498729.',
+    noteHtml: 'Lưu ý kiểm tra kỹ kiện hàng và đối chiếu mã vận đơn khi nhận từ nhân viên bưu tá. Nếu có vấn đề phát sinh, hãy liên hệ ngay hotline 0373725104.',
   });
 }
 
@@ -633,7 +633,7 @@ export function renderPawnNoticeEmail(opts: {
       text: 'Xem chi tiết hợp đồng',
       url: opts.actionUrl || `${BASE_URL}/vi/user-profile?section=inbox`,
     },
-    note: opts.note || 'Hồ sơ cầm cố tuân thủ chính sách bảo mật tài sản tuyệt đối. Cần hỗ trợ khẩn cấp, vui lòng liên hệ hotline 0373498729.',
+    note: opts.note || 'Hồ sơ cầm cố tuân thủ chính sách bảo mật tài sản tuyệt đối. Cần hỗ trợ khẩn cấp, vui lòng liên hệ hotline 0373725104.',
   });
 }
 
@@ -768,7 +768,7 @@ export function renderOrderCancelledEmail(opts: {
       text: 'Xem chi tiết đơn hàng',
       url: opts.orderUrl || `${BASE_URL}/vi/user-profile?section=orders`,
     },
-    note: 'Mọi thắc mắc về đối soát và thời gian nhận tiền hoàn, vui lòng phản hồi email này hoặc liên hệ hotline 0373498729.',
+    note: 'Mọi thắc mắc về đối soát và thời gian nhận tiền hoàn, vui lòng phản hồi email này hoặc liên hệ hotline 0373725104.',
   });
 }
 

@@ -89,7 +89,7 @@ export const commerceEmail = (
         ...(details?.stage ? [{ label: 'Tiến trình', value: String(details.stage) }] : []),
       ],
       actionUrl: `${shopPublicUrl()}/vi/user-profile?section=inbox`,
-      note: 'Hồ sơ cầm cố tuân thủ chính sách bảo mật tài sản tuyệt đối theo quy chuẩn Model Universe. Cần hỗ trợ khẩn cấp, vui lòng liên hệ hotline 0373498729.',
+      note: 'Hồ sơ cầm cố tuân thủ chính sách bảo mật tài sản tuyệt đối theo quy chuẩn Model Universe. Cần hỗ trợ khẩn cấp, vui lòng liên hệ hotline 0373725104.',
     });
     return { subject, body };
   }

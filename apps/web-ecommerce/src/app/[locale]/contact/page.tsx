@@ -77,8 +77,22 @@ export default async function ContactPage({ params }: Props) {
       name: 'Model Universe',
       url: base,
       email: 'contact@modeluniverse.vn',
+      telephone: '+84373725104',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '730/126 Đ. Lê Đức Thọ, An Hội Đông',
+        addressLocality: 'Hồ Chí Minh',
+        addressCountry: 'VN',
+      },
+      sameAs: [
+        'https://www.facebook.com/modeluniverse.vn',
+        'https://www.tiktok.com/@model.universe.c',
+        'https://zalo.me/0373725104',
+      ],
       contactPoint: {
         '@type': 'ContactPoint',
+        telephone: '+84373725104',
+        email: 'support@modeluniverse.vn',
         contactType: 'customer service',
         availableLanguage: ['Vietnamese', 'English'],
       },
