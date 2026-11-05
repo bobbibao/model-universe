@@ -42,7 +42,7 @@ async def test_injections_put_market_events_in() -> None:
     s = shop()
     await s.sell_day(vn_date(NOW) - timedelta(days=1))
     world = await s._world(NOW)
-    keyword = await s.inject(ScenarioInjection(day=1, kind="trend_spike", keyword="áo khoác", factor=2.0), NOW)
+    keyword = await s.inject(ScenarioInjection(day=1, kind="trend_spike", keyword="gundam", factor=2.0), NOW)
     series = [p.interest for p in sorted(world.trends.values(), key=lambda p: p.day) if p.keyword == keyword][-14:]
     assert min(series[-7:]) >= 2 * max(series[:7]) - 1
     sku = await s.inject(ScenarioInjection(day=1, kind="competitor_undercut", factor=1.15), NOW)

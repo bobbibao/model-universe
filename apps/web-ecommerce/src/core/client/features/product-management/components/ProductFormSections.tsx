@@ -11,7 +11,10 @@ import TextField from '@/components/FormElements/TextField';
 import TextAreaField from '@/components/FormElements/TextAreaField';
 import SelectField from '@/components/FormElements/SelectField';
 import { formatVND } from '@/shared/server/utils/utils';
+import { useEffect, useState } from 'react';
 import type { SupplierOption } from '@/core/client/api/Supplier';
+import CategoryApi from '@/core/client/api/Category';
+import type { Category } from '@/shared/types/product';
 import { conditionRules, INVENTORY_STATUS_VALUES, ProductFormErrors, ProductFormValues } from './productForm';
 import type { InventoryStatus } from '@/shared/types/product';
 
@@ -72,6 +75,7 @@ export const BasicInfoFields = ({
         readOnly={readOnly}
         onChange={(event) => onChange('scale', event.target.value)}
       />
+      <CategoryField values={values} onChange={onChange} readOnly={readOnly} />
       {withCondition && (
         <fieldset className="grid grid-cols-1 gap-5 rounded-lg border border-stroke p-4 md:col-span-2 md:grid-cols-2 dark:border-dark-3">
           <legend className="px-1 text-sm font-semibold text-black dark:text-white">{t('conditionSection')}</legend>
@@ -382,6 +386,34 @@ export const InventoryFields = ({
         </div>
       </fieldset>
     </div>
+  );
+};
+
+// The storefront category the model is listed under (/cua-hang/<slug>); the admin list includes empty categories.
+export const CategoryField = ({
+  values,
+  onChange,
+  readOnly = false,
+}: Omit<SectionProps, 'errors'> & { readOnly?: boolean }) => {
+  const t = useTranslations('adminProducts');
+  const [categories, setCategories] = useState<Category[]>([]);
+  useEffect(() => {
+    let active = true;
+    void CategoryApi.getAdminCategories().then((rows) => active && setCategories(rows ?? []));
+    return () => {
+      active = false;
+    };
+  }, []);
+  return (
+    <SelectField
+      label={t('category')}
+      name="categoryId"
+      disabled={readOnly}
+      placeholder={t('noSupplier')}
+      options={categories.map((category) => ({ value: String(category.id), label: category.name }))}
+      value={values.categoryId}
+      onChange={(event) => onChange('categoryId', event.target.value)}
+    />
   );
 };
 

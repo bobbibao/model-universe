@@ -19,6 +19,7 @@ import AppProviders from '@/components/AppProviders';
 import type { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
+import { OG_IMAGE, SITE_NAME } from '@/shared/seo';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -28,31 +29,20 @@ export const viewport: Viewport = {
 
 export function generateMetadata(): Metadata {
   const base = siteUrl();
+  const title = 'Model Universe – Mô Hình Lắp Ráp, Gunpla, Mecha New & 2hand';
+  const description =
+    'Vũ Trụ Mô Hình – Model Universe: mua bán mô hình lắp ráp Gunpla, Mecha, Robot, kit Trung Quốc New & 2hand. Thu mua, trade, cầm cố, hỗ trợ lắp ráp. Gò Vấp, TP.HCM, COD toàn quốc.';
   return {
     metadataBase: new URL(base),
+    applicationName: SITE_NAME,
     title: {
-      default: 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng',
-      template: '%s | Model Universe',
+      default: title,
+      template: `%s | ${SITE_NAME}`,
     },
-    description:
-      'Chuyên mô hình Gundam, Metal Build, Figure hợp kim chính hãng 2hand (độ mới 95-98%). Định giá 3 giá minh bạch, kiểm định nghiêm ngặt, giao hàng COD toàn quốc tại Model Universe.',
-    keywords: [
-      'mô hình 2hand',
-      'mô hình gundam cũ',
-      'metal build 2hand',
-      'figure chính hãng',
-      'cangdao',
-      'motor nuclear',
-      'snaa',
-      'in era',
-      'moshow',
-      'thu mua mô hình',
-      'ký gửi mô hình',
-      'model universe',
-    ],
-    authors: [{ name: 'Model Universe', url: base }],
-    creator: 'Model Universe',
-    publisher: 'Model Universe',
+    description,
+    authors: [{ name: SITE_NAME, url: base }],
+    creator: SITE_NAME,
+    publisher: SITE_NAME,
     formatDetection: {
       email: false,
       address: false,
@@ -60,27 +50,18 @@ export function generateMetadata(): Metadata {
     },
     openGraph: {
       type: 'website',
-      siteName: 'Model Universe',
-      title: 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng',
-      description:
-        'Chuyên mô hình Gundam, Metal Build, Figure chính hãng 2hand độ mới 95-98%. Giá minh bạch, hỗ trợ thu đổi, giao hàng toàn quốc.',
+      siteName: SITE_NAME,
+      title,
+      description,
       url: base,
-      images: [
-        {
-          url: `${base}/images/store/hero.jpg`,
-          width: 1200,
-          height: 630,
-          alt: 'Model Universe — Mô hình 2hand & Figure Chính Hãng',
-        },
-      ],
+      images: [{ url: `${base}${OG_IMAGE.path}`, width: OG_IMAGE.width, height: OG_IMAGE.height, alt: title }],
       locale: 'vi_VN',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng',
-      description:
-        'Chuyên mô hình Gundam, Metal Build, Figure chính hãng 2hand độ mới 95-98%. Giá minh bạch, giao hàng toàn quốc.',
-      images: [`${base}/images/store/hero.jpg`],
+      title,
+      description,
+      images: [`${base}${OG_IMAGE.path}`],
     },
     robots: {
       index: true,
@@ -96,10 +77,16 @@ export function generateMetadata(): Metadata {
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
     },
+    // Google shows the site icon next to the result only when it is a square of at least 48px.
     icons: {
-      icon: '/favicon.ico',
+      icon: [
+        { url: '/favicon.ico', sizes: '32x32' },
+        { url: '/icons/icon-48.png', sizes: '48x48', type: 'image/png' },
+        { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      ],
       shortcut: '/favicon.ico',
-      apple: '/favicon.ico',
+      apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
     },
   };
 }

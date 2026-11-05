@@ -42,9 +42,9 @@ describe('Agent API: ads', () => {
     platform: 'meta',
     daily_budget_vnd: 200000,
     duration_days: 5,
-    link_path: '/products?category=shoes',
-    headline: 'Giày mới mùa thu',
-    primary_text: 'Êm chân cả ngày, nhiều mẫu mới.',
+    link_path: '/products?category=gunpla',
+    headline: 'Gunpla mới về',
+    primary_text: 'Khớp chắc, dễ ráp, nhiều mẫu mới.',
     sku,
     ...extra,
   });
@@ -59,7 +59,7 @@ describe('Agent API: ads', () => {
       key: 'a:campaign',
       body: {
         ref: 'ag-ads00001-opt1',
-        name: 'Quảng cáo giày',
+        name: 'Quảng cáo gunpla',
         objective: 'sales',
         channels: ['ads_meta', 'ads_tiktok'],
         duration_days: 10,
@@ -87,7 +87,7 @@ describe('Agent API: ads', () => {
     const spec = created?.args as { landingUrl: string; creative: { imageUrl: string | null; headline: string } };
     expect(new URL(spec.landingUrl).searchParams.get('utm_campaign')).toBe('ag-ads00001-opt1');
     expect(new URL(spec.landingUrl).searchParams.get('utm_content')).toBe('ad-meta-1');
-    expect(spec.creative.headline).toBe('Giày mới mùa thu');
+    expect(spec.creative.headline).toBe('Gunpla mới về');
   });
 
   it('activates only with a grant (ads_meta is in shadow) and pauses without one', async () => {
@@ -182,7 +182,7 @@ describe('Agent API: ads', () => {
         daily_budget_vnd: 100000,
         duration_days: 3,
         link_path: '/',
-        ad_text: 'Giày mới',
+        ad_text: 'Gunpla mới',
         asset_id: imageId,
       },
     });

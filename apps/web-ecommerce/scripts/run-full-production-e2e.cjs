@@ -9,7 +9,7 @@
  *
  * Accounts:
  * - Customer: bobby.le.2k3@gmail.com / Customer@123 (Phone: 0373725104)
- * - Admin: lehoangbao5678@gmail.com / Admin@e661150577d9
+ * - Admin: lehoangbao5678@gmail.com (password from E2E_ADMIN_PASSWORD)
  */
 
 const fs = require('node:fs');
@@ -19,6 +19,7 @@ const { execSync } = require('node:child_process');
 const { chromium, expect } = require('@playwright/test');
 const FormData = require('form-data');
 const axios = require('axios');
+require('@next/env').loadEnvConfig(process.cwd(), false);
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:6050';
 const EVIDENCE_DIR = 'C:\\Users\\ACER\\.gemini\\antigravity\\brain\\0b914c65-7392-4466-a685-a7b3bfe70f07\\full-production-e2e-evidence';
@@ -37,7 +38,7 @@ const CUSTOMER = {
 
 const ADMIN = {
   email: 'lehoangbao5678@gmail.com',
-  password: 'Admin@e661150577d9',
+  password: process.env.E2E_ADMIN_PASSWORD,
   name: 'Bảo Lê',
   phone: '0373725104',
 };

@@ -14,18 +14,18 @@ coupon_percent: 10
 attributed_order_share: 0.45
 catalog: []
 competitors:
-  - {name: "Thời Trang An Nhiên", website: "https://an-nhien.example", matched_skus: 12}
+  - {name: "Mô Hình An Nhiên", website: "https://an-nhien.example", matched_skus: 12}
   - {name: "Phong Cách Sài Gòn", website: "https://phongcachsaigon.example", matched_skus: 8}
 price_weeks: 8
 trends:
-  - {keyword: "áo khoác", category: ao, base: 45}
-  - {keyword: "giày thể thao", category: giay, base: 55}
-  - {keyword: "túi xách", category: tui, base: 30}
+  - {keyword: "gundam", category: gunpla, base: 45}
+  - {keyword: "motor nuclear", category: kit-trung, base: 55}
+  - {keyword: "mô hình mecha", category: mecha, base: 30}
 trend_days: 90
 # The true response to a discount (the agent's prior says 0.04 extra units per 1% off; measurement teaches it this).
 response_uplift_per_pct: 0.03
 injections:
-  - {day: 5, kind: trend_spike, keyword: "giày thể thao", factor: 1.8}
+  - {day: 5, kind: trend_spike, keyword: "motor nuclear", factor: 1.8}
   - {day: 12, kind: competitor_undercut, factor: 1.15}
   - {day: 20, kind: roas_breach}
 # The owner after the brand review, two weeks into the ramp: posts and small promotions run on their own, Meta ads ask,
@@ -42,6 +42,6 @@ settings:
     inventory: ask
     ops_tasks: ask
   market.trend_keywords:
-    - {keyword: "áo khoác", category: ao}
-    - {keyword: "giày thể thao", category: giay}
-    - {keyword: "túi xách", category: tui}
+    - {keyword: "gundam", category: gunpla}
+    - {keyword: "motor nuclear", category: kit-trung}
+    - {keyword: "mô hình mecha", category: mecha}

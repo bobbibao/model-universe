@@ -22,6 +22,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 const { chromium, expect } = require('@playwright/test');
+require('@next/env').loadEnvConfig(process.cwd(), false);
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:6060';
 const SCREENSHOTS_DIR = 'C:\\Users\\ACER\\.gemini\\antigravity\\brain\\0b914c65-7392-4466-a685-a7b3bfe70f07\\playwright-e2e-screenshots';
@@ -68,7 +69,7 @@ async function runAdminTradeSellE2ETests() {
   });
   const customerPage = await customerContext.newPage();
 
-  // Context 2: Admin Context (admin@clothingshop.local)
+  // Context 2: Admin Context (ADMIN_EMAIL)
   const adminContext = await browser.newContext({
     baseURL: BASE_URL,
     viewport: { width: 1440, height: 900 },
@@ -104,10 +105,10 @@ async function runAdminTradeSellE2ETests() {
   await expect(customerPage.locator('.qv')).toBeVisible({ timeout: 10000 });
   console.log(`✓ Customer logged in successfully.`);
 
-  console.log(`[Step 0B] Real user login as Shop Owner/Admin (admin@clothingshop.local)...`);
+  console.log(`[Step 0B] Real user login as Shop Owner/Admin (ADMIN_EMAIL)...`);
   await adminPage.goto('/vi/auth/signin?redirect=/vi/admin/buyback', { waitUntil: 'networkidle' });
-  await adminPage.locator('input[name="email"]').fill('admin@clothingshop.local');
-  await adminPage.locator('input[name="password"]').fill('Admin@e661150577d9');
+  await adminPage.locator('input[name="email"]').fill(process.env.ADMIN_EMAIL);
+  await adminPage.locator('input[name="password"]').fill(process.env.ADMIN_PASSWORD);
   await adminPage.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
   await adminPage.waitForURL('**/vi/admin/buyback', { timeout: 15000 });
   await expect(adminPage.locator('.service-workspace')).toBeVisible({ timeout: 10000 });

@@ -118,7 +118,7 @@ export const seedMarketCompetitorData = async (): Promise<void> => {
 };
 
 const TREND_DAYS = 90;
-const SPIKE_KEYWORD = 'áo khoác';
+const SPIKE_KEYWORD = 'motor nuclear';
 const SPIKE_DAYS = 7;
 const SPIKE_FACTOR = 1.6; // +60% week over week: above the agent's 40% trend-spike threshold
 

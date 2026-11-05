@@ -95,7 +95,7 @@ async def test_the_shops_rules_refuse_before_sending(shop: FakeShop, deps: ShopD
 
 
 async def test_a_retried_post_replays(shop: FakeShop, deps: ShopDeps) -> None:
-    args = {"ref": "copilot-post-1", "message": "Áo khoác gió mới về.", "sku": "BEST"}
+    args = {"ref": "copilot-post-1", "message": "Kit Motor Nuclear mới về.", "sku": "BEST"}
     first = await call_tool(create_post, args, deps, call_id="c3")
     again = await call_tool(create_post, args, deps, call_id="c3")
     assert first.startswith("Done") and again == first and len(shop.applied("marketing/posts")) == 1

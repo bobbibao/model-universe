@@ -18,7 +18,7 @@ import { makeUser } from './support/gatewayApp';
 import PricingApprovalService from '../../src/core/server/services/PricingApprovalService';
 import { DEFAULT_VOUCHER_POLICY } from '../../src/shared/voucher-stack';
 
-const product = { id: 3, name: 'Giày đi bộ', price: 700000, salePrice: 600000, stock: 4, availableSizes: ['M', 'L'] };
+const product = { id: 3, name: 'Gundam RG Zaku II', price: 700000, salePrice: 600000, stock: 4 };
 describe('customer assistant boundaries and catalog advice', () => {
   it('rejects navigation to the retired kit comparison page', () => {
     expect(customerPath('/compare')).toBeUndefined();
@@ -147,7 +147,7 @@ describe('customer assistant boundaries and catalog advice', () => {
     const service = new CustomerAssistantService();
     const decide = jest
       .spyOn(service, 'decide')
-      .mockResolvedValueOnce({ reads: [{ kind: 'search_products', q: 'giày', maxPrice: 1000000 }] })
+      .mockResolvedValueOnce({ reads: [{ kind: 'search_products', q: 'gundam', maxPrice: 1000000 }] })
       .mockResolvedValueOnce({ reads: [{ kind: 'product_details', productId: 3 }] })
       .mockResolvedValueOnce({
         answer: 'Giá đang bán 600.000đ.',
@@ -159,7 +159,7 @@ describe('customer assistant boundaries and catalog advice', () => {
         ],
       });
     const reply = await service.chat(makeUser('USER'), {
-      message: 'Nghiên cứu giày và lưu yêu thích',
+      message: 'Nghiên cứu gundam và lưu yêu thích',
       research: true,
       history: [],
       cart: [],
@@ -304,12 +304,12 @@ describe('customer assistant boundaries and catalog advice', () => {
     const service = new CustomerAssistantService();
     const decide = jest
       .spyOn(service, 'decide')
-      .mockResolvedValueOnce({ reads: [{ kind: 'search_products', q: 'giày' }], route: { intent: 'search', confidence: 0.9 } })
+      .mockResolvedValueOnce({ reads: [{ kind: 'search_products', q: 'gundam' }], route: { intent: 'search', confidence: 0.9 } })
       .mockResolvedValueOnce({ answer: 'Có 1 mẫu.', productIds: [3] });
-    await service.chat(undefined, { message: 'Tìm giày', cart: [] });
+    await service.chat(undefined, { message: 'Tìm gundam', cart: [] });
     const second = decide.mock.calls[1][1] as Record<string, any>;
     expect(second.observations).toEqual([
-      { tool: { kind: 'search_products', q: 'giày' }, data: { count: 1, page: 1, productIds: [3] } },
+      { tool: { kind: 'search_products', q: 'gundam' }, data: { count: 1, page: 1, productIds: [3] } },
     ]);
     expect(second.catalog).toEqual([expect.objectContaining({ id: 3, name: product.name, salePrice: 600000 })]);
     // The route the planner returned is echoed back, so later rounds are not classified again.

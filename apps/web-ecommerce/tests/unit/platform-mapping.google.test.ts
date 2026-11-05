@@ -83,7 +83,7 @@ describe('Google Ads request mapping', () => {
       campaign: 'customers/1234567890/campaigns/-2',
       type: enums.AdGroupType.SEARCH_STANDARD,
     });
-    expect(keyword).toMatchObject({ keyword: { text: 'giày nam', match_type: enums.KeywordMatchType.PHRASE } });
+    expect(keyword).toMatchObject({ keyword: { text: 'gunpla', match_type: enums.KeywordMatchType.PHRASE } });
     expect(rsa.ad).toEqual({
       final_urls: [ad.landingUrl],
       responsive_search_ad: {

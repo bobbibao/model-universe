@@ -13,11 +13,7 @@
     "starts_on": "2026-02-10",
     "ends_on": "2026-02-14",
     "lead_days": 10,
-    "categories": [
-      "bags",
-      "belts",
-      "heels"
-    ]
+    "categories": []
   },
   {
     "code": "womens_day_8_3",
@@ -25,10 +21,7 @@
     "starts_on": "2026-03-04",
     "ends_on": "2026-03-08",
     "lead_days": 14,
-    "categories": [
-      "heels",
-      "bags"
-    ]
+    "categories": []
   },
   {
     "code": "reunification",
@@ -92,10 +85,7 @@
     "starts_on": "2026-10-16",
     "ends_on": "2026-10-20",
     "lead_days": 14,
-    "categories": [
-      "heels",
-      "bags"
-    ]
+    "categories": []
   },
   {
     "code": "double_11_11",
@@ -127,11 +117,7 @@
     "starts_on": "2026-12-18",
     "ends_on": "2026-12-25",
     "lead_days": 14,
-    "categories": [
-      "jackets",
-      "sweaters",
-      "boots"
-    ]
+    "categories": []
   },
   {
     "code": "tet",
@@ -147,11 +133,7 @@
     "starts_on": "2027-02-10",
     "ends_on": "2027-02-14",
     "lead_days": 10,
-    "categories": [
-      "bags",
-      "belts",
-      "heels"
-    ]
+    "categories": []
   },
   {
     "code": "womens_day_8_3",
@@ -159,10 +141,7 @@
     "starts_on": "2027-03-04",
     "ends_on": "2027-03-08",
     "lead_days": 14,
-    "categories": [
-      "heels",
-      "bags"
-    ]
+    "categories": []
   },
   {
     "code": "reunification",
@@ -226,10 +205,7 @@
     "starts_on": "2027-10-16",
     "ends_on": "2027-10-20",
     "lead_days": 14,
-    "categories": [
-      "heels",
-      "bags"
-    ]
+    "categories": []
   },
   {
     "code": "double_11_11",
@@ -261,10 +237,6 @@
     "starts_on": "2027-12-18",
     "ends_on": "2027-12-25",
     "lead_days": 14,
-    "categories": [
-      "jackets",
-      "sweaters",
-      "boots"
-    ]
+    "categories": []
   }
 ]

@@ -46,8 +46,8 @@ describe('Meta Ads request mapping', () => {
       page_id: 'page-1',
       link_data: {
         link: ad.landingUrl,
-        message: 'Êm chân cả ngày.',
-        name: 'Giày mới mùa thu',
+        message: 'Khớp chắc, dễ ráp.',
+        name: 'Gunpla mới về',
         picture: 'https://shop.example.vn/uploads/shoe.jpg',
         call_to_action: { type: 'SHOP_NOW', value: { link: ad.landingUrl } },
       },

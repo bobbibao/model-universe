@@ -28,12 +28,12 @@ async def test_search_products(deps: ShopDeps) -> None:
     store = InMemoryVectorStore(HashingEmbedding())
     await store.aadd_documents(
         [
-            Document("Giày sneaker Nike Air (sneakers)", metadata={"sku": "N1"}),
-            Document("Áo len cổ tròn (sweaters)", metadata={"sku": "S1"}),
+            Document("Motor Nuclear Ao Bing (kit-trung)", metadata={"sku": "N1"}),
+            Document("Gundam Exia RG (gunpla)", metadata={"sku": "S1"}),
         ]
     )
     deps.catalog = store
-    assert (await call_tool(search_products, {"query": "giày sneaker", "k": 1}, deps)).startswith("- N1:")
+    assert (await call_tool(search_products, {"query": "motor nuclear", "k": 1}, deps)).startswith("- N1:")
 
 
 async def test_unavailable_knowledge_is_explained(deps: ShopDeps) -> None:

@@ -65,9 +65,9 @@ describe('admin marketing validation', () => {
       publishBody(
         {
           ...draft,
-          headlines: ['New collection', 'Shop clothing', 'Autumn essentials'],
-          descriptions: ['Explore our autumn styles', 'Find your everyday outfit'],
-          keywords: ['clothing'],
+          headlines: ['New arrivals', 'Shop model kits', 'Gunpla essentials'],
+          descriptions: ['Explore new Gunpla kits', 'Find your next build'],
+          keywords: ['model kits'],
         },
         REF,
         NOW,
@@ -76,7 +76,7 @@ describe('admin marketing validation', () => {
     expect(() =>
       publishBody({ ...draft, channel: 'meta', headline: 'New collection', primaryText: 'Explore our shop' }, REF, NOW),
     ).toThrow();
-    expect(() => publishBody({ ...draft, channel: 'tiktok', adText: 'Explore autumn looks' }, REF, NOW)).toThrow();
+    expect(() => publishBody({ ...draft, channel: 'tiktok', adText: 'Explore new model kits' }, REF, NOW)).toThrow();
   });
   it('refuses stale or near-term post schedules instead of silently publishing immediately', () => {
     const draft = parseDraft({ name: 'Schedule', channel: 'facebook', message: 'Hi' });

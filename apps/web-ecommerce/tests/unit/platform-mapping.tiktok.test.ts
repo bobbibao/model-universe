@@ -71,7 +71,7 @@ describe('TikTok Ads request mapping', () => {
         identity_id: 'id-1',
         video_id: 'v1',
         image_ids: ['i1'],
-        ad_text: 'Giày mới mùa thu',
+        ad_text: 'Gunpla mới về',
         call_to_action: 'SHOP_NOW',
         landing_page_url: ad.landingUrl,
       },

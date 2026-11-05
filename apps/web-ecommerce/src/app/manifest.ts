@@ -2,10 +2,10 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Model Universe — Hệ Thống Mô Hình 2hand, Gunpla & Figure Chính Hãng',
+    name: 'Model Universe – Vũ Trụ Mô Hình',
     short_name: 'Model Universe',
     description:
-      'Chuyên mô hình Gundam, Metal Build, Figure hợp kim chính hãng 2hand độ mới 95-98%. Kiểm định nghiêm ngặt, bảo hành an tâm.',
+      'Mua bán mô hình lắp ráp Gunpla, Mecha, Robot, kit Trung Quốc New & 2hand. Thu mua, trade, cầm cố, hỗ trợ lắp ráp. Gò Vấp, TP.HCM, COD toàn quốc.',
     start_url: '/vi',
     display: 'standalone',
     background_color: '#0a0d14',
@@ -13,15 +13,21 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: 'vi',
     icons: [
       {
-        src: '/favicon.ico',
-        sizes: '48x48',
-        type: 'image/x-icon',
+        src: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/favicon.ico',
-        sizes: '48x48',
-        type: 'image/x-icon',
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/logo.png',
+        sizes: '512x512',
+        type: 'image/png',
         purpose: 'maskable',
       },
     ],

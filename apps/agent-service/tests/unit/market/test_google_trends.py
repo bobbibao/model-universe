@@ -30,11 +30,11 @@ def collector(client: ScriptedTrends, limiter: DomainRateLimiter) -> GoogleTrend
 
 
 async def test_reads_complete_days_of_the_window(limiter: DomainRateLimiter) -> None:
-    found = await collector(ScriptedTrends(), limiter).collect(snapshot(keywords=("áo khoác",)))
+    found = await collector(ScriptedTrends(), limiter).collect(snapshot(keywords=("gundam",)))
     assert found.status == "ok" and found.source == "trends"
     days = sorted(p.date for p in found.trends)
     assert days[0] == TODAY - timedelta(days=DAYS_SENT) and days[-1] == TODAY - timedelta(days=1)
-    assert all(p.geo == "VN" and p.keyword == "áo khoác" for p in found.trends)
+    assert all(p.geo == "VN" and p.keyword == "gundam" for p in found.trends)
 
 
 async def test_at_most_twenty_keywords_spaced_apart(clock: FakeClock, limiter: DomainRateLimiter) -> None:
