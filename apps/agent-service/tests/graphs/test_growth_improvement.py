@@ -148,7 +148,7 @@ async def test_edited_copy_must_quote_the_executed_numbers(world: World, scripts
     scripts({"improvement.investigate.overstock": proposing("discount+post", percent=10)})
     result = await world.run({"opportunity": growth_opportunity(world, "overstock", ("OLD1",)).model_dump(mode="json")})
     payload = world.review(result)
-    edited = await world.approve(payload, {"message": "Giảm 30% cho áo khoác!"})
+    edited = await world.approve(payload, {"message": "Giảm 30% cho kit Motor Nuclear!"})
     assert "edited copy" in world.review(edited)["error"]
     assert shop_changes(world) == []
 

@@ -11,6 +11,7 @@ const assert = require('assert');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+require('@next/env').loadEnvConfig(process.cwd(), false);
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:6050';
 const EVIDENCE_DIR = 'C:\\Users\\ACER\\.gemini\\antigravity\\brain\\0b914c65-7392-4466-a685-a7b3bfe70f07\\cart-order-email-evidence';
@@ -41,7 +42,7 @@ const CUSTOMER = {
 
 const ADMIN = {
   email: 'lehoangbao5678@gmail.com',
-  password: 'Admin@e661150577d9',
+  password: process.env.E2E_ADMIN_PASSWORD,
   name: 'Bảo Lê',
   phone: '0373725104',
 };

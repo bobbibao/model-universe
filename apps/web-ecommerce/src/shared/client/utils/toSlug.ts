@@ -1,4 +1,4 @@
-// URL-safe slug; strips Vietnamese diacritics ("Áo khoác" -> "ao-khoac").
+// URL-safe slug; strips Vietnamese diacritics ("Mô hình lắp ráp" -> "mo-hinh-lap-rap").
 export const toSlug = (name: string) =>
   name
     .normalize('NFD')

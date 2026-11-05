@@ -19,7 +19,7 @@ def item(
     cost: int = 500_000,
     price: int = 900_000,
     days: int = 120,
-    category: str = "ao",
+    category: str = "gunpla",
     channel: str = "web",
     condition: str = "new",
 ) -> StockItem:
@@ -78,7 +78,7 @@ SAMPLE_BODIES: dict[str, dict[str, object]] = {
     "end_promotion": {"reason": "incremental margin below the floor"},
     "create_campaign": {
         "ref": "ag-1234abcd-o1",
-        "name": "Xả hàng áo khoác",
+        "name": "Xả hàng kit Motor Nuclear",
         "objective": "clearance",
         "channels": ["promotion", "facebook_post", "ads_meta"],
         "thread_id": "1234abcd-0000-0000-0000-000000000000",
@@ -89,7 +89,7 @@ SAMPLE_BODIES: dict[str, dict[str, object]] = {
     "create_post": {
         "ref": "ag-1234abcd-o1-p1",
         "campaign_ref": "ag-1234abcd-o1",
-        "message": "Áo khoác gió mới về, mời bạn ghé xem.",
+        "message": "Kit Motor Nuclear mới về, mời bạn ghé xem.",
         "link_path": "/shop/product/12",
         "sku": "A1",
     },
@@ -101,8 +101,8 @@ SAMPLE_BODIES: dict[str, dict[str, object]] = {
         "daily_budget_vnd": 200_000,
         "duration_days": 5,
         "link_path": "/shop/product/12",
-        "headline": "Áo khoác gió",
-        "primary_text": "Nhẹ, chống nước, đủ size.",
+        "headline": "Kit Motor Nuclear",
+        "primary_text": "Khung hợp kim, kèm đế trưng bày.",
         "sku": "A1",
     },
     "activate_ad": {},

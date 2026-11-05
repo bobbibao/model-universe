@@ -92,7 +92,7 @@ STATE = ShopState(
     settings=GrowthSettings(),
     products=(
         ProductState(
-            sku="A", category="ao", price_vnd=1_000_000, cost_vnd=300_000, created_at=NOW - timedelta(days=200)
+            sku="A", category="gunpla", price_vnd=1_000_000, cost_vnd=300_000, created_at=NOW - timedelta(days=200)
         ),
     ),
     campaigns=(CampaignState(ref="ag-12345678-x", budget_vnd=3_000_000, status="active"),),
@@ -121,8 +121,8 @@ def test_policies_reject_over_caps(daily: int) -> None:
         "daily_budget_vnd": daily,
         "duration_days": 1,
         "link_path": "/",
-        "headline": "Áo",
-        "primary_text": "Áo mới",
+        "headline": "Kit",
+        "primary_text": "Kit mới",
         "sku": "A",
     }
     verdict = evaluate("marketing/ads", {}, body, STATE, has_grant=True)
@@ -143,8 +143,8 @@ def test_tier_monotonic_in_spend(low: int, extra: int, days: int, measured: bool
             "daily_budget_vnd": daily,
             "duration_days": days,
             "link_path": "/",
-            "headline": "Áo",
-            "primary_text": "Áo mới",
+            "headline": "Kit",
+            "primary_text": "Kit mới",
             "sku": "A",
         }
         spec = to_spec(ActionDraft(type="create_ad", body=body), action_id="a", idempotency_key="k")

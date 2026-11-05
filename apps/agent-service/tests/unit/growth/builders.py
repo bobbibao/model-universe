@@ -13,7 +13,7 @@ NOW = datetime(2026, 10, 15, 2, 0, tzinfo=UTC)  # 09:00 in Vietnam on 15 October
 TODAY = date(2026, 10, 15)
 
 
-def item(sku: str, *, category: str = "ao", price: int = 200_000, cost: int = 120_000, quantity: int = 50,
+def item(sku: str, *, category: str = "gunpla", price: int = 200_000, cost: int = 120_000, quantity: int = 50,
          created_days_ago: int = 200, discount_pct: float = 0.0) -> CatalogItem:  # fmt: skip
     return CatalogItem(
         sku=sku,

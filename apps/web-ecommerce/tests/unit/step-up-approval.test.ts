@@ -13,7 +13,7 @@ const ad: ReviewAction = {
   type: 'create_ad',
   endpoint: 'marketing/ads',
   body: { ref: 'a-1a2b3c4d-ads-meta', campaign_ref: 'ag-1a2b3c4d-ads', platform: 'meta', daily_budget_vnd: 200000,
-          duration_days: 7, link_path: '/shop', headline: 'Áo mới', primary_text: 'Áo mới về', sku: 'A1' }, // prettier-ignore
+          duration_days: 7, link_path: '/shop', headline: 'Kit mới', primary_text: 'Kit mới về', sku: 'A1' }, // prettier-ignore
   idempotency_key: `${T}:ads:2`,
   editable_fields: ['daily_budget_vnd', 'duration_days'],
 };

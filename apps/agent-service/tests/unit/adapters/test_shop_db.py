@@ -29,7 +29,7 @@ from tests.support.factories import NOW
 
 def _stock(sku: str, quantity: int = 40, cost: int = 500_000, days: int = 120) -> dict[str, Any]:
     return {
-        "sku": sku, "name": f"P {sku}", "category": "Áo", "quantity": quantity, "unit_cost_vnd": cost,
+        "sku": sku, "name": f"P {sku}", "category": "Gunpla", "quantity": quantity, "unit_cost_vnd": cost,
         "unit_price_vnd": 1_000_000, "sales_channel": "web", "stocked_at": NOW - timedelta(days=days),
     }  # fmt: skip
 

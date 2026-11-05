@@ -43,7 +43,7 @@ describe('Agent API: Facebook posts', () => {
       ref: 'post-autumn-1',
       campaign_ref: 'ag-feed0001-opt1',
       message: 'Bộ sưu tập mới đã có mặt tại cửa hàng!',
-      link_path: '/products?category=shoes',
+      link_path: '/products?category=gunpla',
       sku,
     };
     const response = await callApproved(app, { path: 'marketing/posts', key: 'm:post:1', body });
@@ -58,7 +58,7 @@ describe('Agent API: Facebook posts', () => {
     const link = new URL(post.link as string);
     expect(link.origin + link.pathname).toBe('https://shop.example.vn/products');
     expect(Object.fromEntries(link.searchParams)).toEqual({
-      category: 'shoes',
+      category: 'gunpla',
       utm_source: 'facebook',
       utm_medium: 'social',
       utm_campaign: 'ag-feed0001-opt1',
@@ -127,13 +127,13 @@ describe('Agent API: Facebook posts', () => {
     const plain = await callAgent(app, {
       path: 'marketing/posts',
       key: 'm:post:6',
-      body: { ref: 'post-autumn-6', message: 'Phong cách mới cho mùa thu', scheduled_at: later(4) },
+      body: { ref: 'post-autumn-6', message: 'Kit mới cho mùa thu', scheduled_at: later(4) },
     });
     expect(plain.status).toBe(200);
     const price = await callAgent(app, {
       path: 'marketing/posts',
       key: 'm:post:7',
-      body: { ref: 'post-autumn-7', message: 'Giảm 20% toàn bộ giày', scheduled_at: later(5) },
+      body: { ref: 'post-autumn-7', message: 'Giảm 20% toàn bộ gunpla', scheduled_at: later(5) },
     });
     expect(price.status).toBe(403);
     expect(price.body.reason).toBe('above_low_caps');

@@ -14,10 +14,10 @@ from evals.evaluators import CaseOutput
 from shop_agent import llm
 from shop_agent.agents.middleware import role_middleware
 
-STOCK = {"AO-TRANG-01": 42, "QUAN-JEAN-02": 7}
-PRICES_VND = {"AO-TRANG-01": 199000, "QUAN-JEAN-02": 459000}
+STOCK = {"RG-ZAKU-01": 42, "MNP-XH03": 7}
+PRICES_VND = {"RG-ZAKU-01": 199000, "MNP-XH03": 459000}
 SYSTEM = (
-    "Bạn là trợ lý của một cửa hàng thời trang. Luôn trả lời bằng tiếng Việt, ngắn gọn. "
+    "Bạn là trợ lý của một cửa hàng mô hình lắp ráp. Luôn trả lời bằng tiếng Việt, ngắn gọn. "
     "Chỉ dùng số liệu lấy từ công cụ; không tự đoán số."
 )
 

@@ -51,7 +51,7 @@ def spec(action_type: str, body: dict[str, Any], *, ref: str | None = None, n: i
 
 CAMPAIGN_BODY = {
     "ref": CAMPAIGN,
-    "name": "Áo khoác gió",
+    "name": "Kit Motor Nuclear",
     "objective": "sales",
     "channels": ["promotion", "facebook_post", "ads_meta"],
     "duration_days": 7,
@@ -64,8 +64,8 @@ AD_BODY = {
     "daily_budget_vnd": 300_000,
     "duration_days": 5,
     "link_path": "/shop/product/1",
-    "headline": "Áo khoác gió",
-    "primary_text": "Nhẹ, chống nước.",
+    "headline": "Kit Motor Nuclear",
+    "primary_text": "Khung hợp kim chắc chắn.",
     "sku": "A1",
 }
 
@@ -81,7 +81,7 @@ async def saga(fake: FakeShop) -> list[Any]:
         ),
         spec(
             "create_post",
-            {"ref": f"{CAMPAIGN}-p1", "campaign_ref": CAMPAIGN, "message": "Áo khoác gió mới về.", "sku": "A1"},
+            {"ref": f"{CAMPAIGN}-p1", "campaign_ref": CAMPAIGN, "message": "Kit Motor Nuclear mới về.", "sku": "A1"},
             n=4,
         ),
         spec("create_ad", AD_BODY, n=5),

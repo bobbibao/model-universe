@@ -47,11 +47,11 @@
       "body": {
         "title": "Kiểm tra hàng tồn kho",
         "assignee_role": "staff",
-        "description": "Giảm 20% cho áo thun \"đỏ\"\nhết hàng",
+        "description": "Giảm 20% cho gunpla \"đỏ\"\nhết hàng",
         "due_in_days": 3
       },
-      "canonical": "{\"assignee_role\":\"staff\",\"description\":\"Giảm 20% cho áo thun \\\"đỏ\\\"\\nhết hàng\",\"due_in_days\":3,\"title\":\"Kiểm tra hàng tồn kho\"}",
-      "hash": "6a200022be8af28b9115e37814794731733d61ef7fd2e2d883448ff27f5ffe75"
+      "canonical": "{\"assignee_role\":\"staff\",\"description\":\"Giảm 20% cho gunpla \\\"đỏ\\\"\\nhết hàng\",\"due_in_days\":3,\"title\":\"Kiểm tra hàng tồn kho\"}",
+      "hash": "52d228c6d4f7a8eccb148f92195caa357996ebde84a649dca0864efb6baeca49"
     },
     {
       "name": "nested-and-null",

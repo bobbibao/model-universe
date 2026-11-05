@@ -34,7 +34,7 @@ from shop_agent.domain.growth.snapshot import (
 from tests.unit.growth.builders import NOW, TODAY, item, sales, snapshot
 
 D = GrowthDefaults()
-ITEMS = [item("A", quantity=40), item("B", quantity=30), item("C", category="giay", price=900_000, cost=600_000)]
+ITEMS = [item("A", quantity=40), item("B", quantity=30), item("C", category="kit-trung", price=900_000, cost=600_000)]
 STEADY = sales(ITEMS, 60, lambda i, _d: 2)
 
 
@@ -66,14 +66,14 @@ def test_overstock_groups_slow_selling_skus_by_category() -> None:
     snap = snapshot(items, sales(items, 60, lambda i, _d: 1))
     [opportunity] = OverstockDetector().detect(snap, D)
     assert opportunity.skus == ("A",)  # B has 10 days of cover; N is a new arrival
-    assert opportunity.evidence["category"] == "ao"
+    assert opportunity.evidence["category"] == "gunpla"
 
 
 def test_rising_demand_compares_7_and_28_day_velocity() -> None:
     stocked = [replace(i, quantity=400) for i in ITEMS]
-    rows = sales(stocked, 60, lambda i, d: 6 if i.category == "ao" and d >= TODAY - timedelta(days=7) else 2)
+    rows = sales(stocked, 60, lambda i, d: 6 if i.category == "gunpla" and d >= TODAY - timedelta(days=7) else 2)
     [opportunity] = RisingDemandDetector().detect(snapshot(stocked, rows), D)
-    assert opportunity.evidence["category"] == "ao" and float(opportunity.evidence["ratio"]) >= 1.5
+    assert opportunity.evidence["category"] == "gunpla" and float(opportunity.evidence["ratio"]) >= 1.5
     assert RisingDemandDetector().detect(snapshot(stocked, STEADY), D) == []
     assert RisingDemandDetector().detect(snapshot(ITEMS, rows), D) == []  # 70 units last 6 days: not enough cover
 
@@ -87,7 +87,7 @@ def test_competitor_undercut_needs_a_fresh_price_well_below_ours() -> None:
             "https://rival.example/a",
             False,
             "manual",
-            "Áo",
+            "Kit",
             amount,
             NOW - timedelta(hours=hours),
             1.0,
@@ -104,11 +104,19 @@ def test_competitor_undercut_needs_a_fresh_price_well_below_ours() -> None:
 
 def test_competitor_campaign_in_one_of_our_categories() -> None:
     running = CompetitorCampaign(
-        "Đối thủ", "Giảm 30% giày", "giay", 30, NOW - timedelta(days=1), NOW + timedelta(days=5), None, "manual", NOW
+        "Đối thủ",
+        "Giảm 30% kit Trung",
+        "kit-trung",
+        30,
+        NOW - timedelta(days=1),
+        NOW + timedelta(days=5),
+        None,
+        "manual",
+        NOW,
     )
     [opportunity] = CompetitorCampaignDetector().detect(snapshot(ITEMS, STEADY, competitor_campaigns=(running,)), D)
     assert opportunity.severity == "high" and opportunity.skus == ("C",)
-    elsewhere = replace(running, category="tui")
+    elsewhere = replace(running, category="mecha")
     assert CompetitorCampaignDetector().detect(snapshot(ITEMS, STEADY, competitor_campaigns=(elsewhere,)), D) == []
     ended = replace(running, ends_at=NOW - timedelta(hours=1))
     assert CompetitorCampaignDetector().detect(snapshot(ITEMS, STEADY, competitor_campaigns=(ended,)), D) == []
@@ -117,11 +125,11 @@ def test_competitor_campaign_in_one_of_our_categories() -> None:
 def test_trend_spike_on_a_mapped_keyword_with_fresh_data() -> None:
     def series(recent: int) -> tuple[TrendPoint, ...]:
         return tuple(
-            TrendPoint("áo", "VN", TODAY - timedelta(days=age), recent if age <= 7 else 40, "fixture")
+            TrendPoint("gunpla", "VN", TODAY - timedelta(days=age), recent if age <= 7 else 40, "fixture")
             for age in range(14, 0, -1)
         )
 
-    settings = GrowthSettings(trend_keywords=(TrendKeyword(keyword="áo", category="ao"),))
+    settings = GrowthSettings(trend_keywords=(TrendKeyword(keyword="gunpla", category="gunpla"),))
     [opportunity] = TrendSpikeDetector().detect(snapshot(ITEMS, STEADY, trends=series(60), settings=settings), D)
     assert opportunity.evidence["change_pct"] == 50.0
     assert TrendSpikeDetector().detect(snapshot(ITEMS, STEADY, trends=series(50), settings=settings), D) == []

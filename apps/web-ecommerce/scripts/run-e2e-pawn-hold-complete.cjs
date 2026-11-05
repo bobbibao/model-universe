@@ -14,6 +14,7 @@ const assert = require('node:assert/strict');
 const { chromium, expect } = require('@playwright/test');
 const axios = require('axios');
 const FormData = require('form-data');
+require('@next/env').loadEnvConfig(process.cwd(), false);
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:6050';
 const SCREENSHOTS_DIR = 'C:\\Users\\ACER\\.gemini\\antigravity\\brain\\0b914c65-7392-4466-a685-a7b3bfe70f07\\pawn-hold-e2e-screenshots';
@@ -32,8 +33,8 @@ const CUSTOMER_CREDENTIALS = {
   password: 'Customer@123',
 };
 const ADMIN_CREDENTIALS = {
-  email: 'admin@clothingshop.local',
-  password: 'Admin@e661150577d9',
+  email: process.env.ADMIN_EMAIL,
+  password: process.env.ADMIN_PASSWORD,
 };
 
 // Test report collector
@@ -123,7 +124,7 @@ async function main() {
     await adminPage.locator('input[name="password"]').fill(ADMIN_CREDENTIALS.password);
     await adminPage.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
     await adminPage.waitForURL((url) => url.pathname.includes('/admin/pawn'), { timeout: 15000 });
-    recordTest('Authentication', 'Admin real UI login (admin@clothingshop.local)', true);
+    recordTest('Authentication', 'Admin real UI login (ADMIN_EMAIL)', true);
 
     /* =======================================================================
      * SUITE A: DỊCH VỤ GIỮ HÀNG (HOLD / RESERVATION) - E2E FLOW

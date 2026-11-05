@@ -13,7 +13,7 @@ const product = {
   discountPercent: 40,
   discountEndsAt: null,
   stock: 5,
-  imageUrl: '/images/store/hero.jpg',
+  imageUrl: '/images/catalog/gundam-unicorn.webp',
   images: [],
   rating: 4.5,
   reviewCount: 0,

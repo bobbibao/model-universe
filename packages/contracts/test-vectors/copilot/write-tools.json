@@ -74,19 +74,19 @@
       "tool": "create_task",
       "tool_call_id": "call-4",
       "args": {
-        "title": "Kiểm kê áo khoác",
+        "title": "Kiểm kê kit Motor Nuclear",
         "assignee_role": "warehouse",
         "description": null,
         "due_in_days": 3
       },
       "endpoint": "tasks",
       "body": {
-        "title": "Kiểm kê áo khoác",
+        "title": "Kiểm kê kit Motor Nuclear",
         "assignee_role": "warehouse",
         "due_in_days": 3
       },
       "idempotency_key": "chat-1:call-4",
-      "body_hash": "eb7be4522f1dfb029ce5c0e1723b9bbd3eec830c85c29824a997d5ae532a6b23",
+      "body_hash": "3c83178b17d40069de1693b49ef28e6fc69d439af712e859730c29be30944308",
       "editable_fields": [
         "title",
         "description",
@@ -169,7 +169,7 @@
       "tool_call_id": "call-8",
       "args": {
         "ref": "copilot-post-1",
-        "message": "Áo khoác gió mới về, mời bạn ghé xem.",
+        "message": "Kit Motor Nuclear mới về, mời bạn ghé xem.",
         "link_path": "/products/ao-khoac-gio",
         "sku": null,
         "campaign_ref": null,
@@ -178,12 +178,12 @@
       "endpoint": "marketing/posts",
       "body": {
         "ref": "copilot-post-1",
-        "message": "Áo khoác gió mới về, mời bạn ghé xem.",
+        "message": "Kit Motor Nuclear mới về, mời bạn ghé xem.",
         "link_path": "/products/ao-khoac-gio",
         "scheduled_at": "2026-10-05T19:00:00+07:00"
       },
       "idempotency_key": "chat-1:call-8",
-      "body_hash": "3f84008f703fe9baeec2cba44c167b7dee0d7aeab9af07205ba2dc699be9f732",
+      "body_hash": "31804f705b2473aec3feb6b76bcdd0a792ebeb7a356486d8c0837948dc4fb000",
       "editable_fields": [
         "message",
         "scheduled_at"

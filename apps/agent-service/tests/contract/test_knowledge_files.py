@@ -37,11 +37,11 @@ def test_catalog_documents_come_from_the_catalog_view() -> None:
     from shop_agent.domain.growth.snapshot import CatalogItem
     from shop_agent.knowledge.ingest import catalog_documents
 
-    shoe = CatalogItem(
-        "SKU-2", "Giày cao gót", "Mira", "heels", "Giày cao gót", 500_000, 500_000, 0, 300_000, 4, "available", "web",
-        False, datetime(2026, 1, 1, tzinfo=UTC), "Da  bò thật,\nđế 7 cm",
+    kit = CatalogItem(
+        "SKU-2", "Mô hình RX0", "Bandai", "gunpla", "Mô hình RX0", 500_000, 500_000, 0, 300_000, 4, "available", "web",
+        False, datetime(2026, 1, 1, tzinfo=UTC), "Khung  trong,\ntỉ lệ 1/144",
     )  # fmt: skip
-    archived = replace(shoe, sku="SKU-1", is_archived=True)
-    [doc] = catalog_documents([shoe, archived])
-    assert doc.page_content == "Giày cao gót (Giày cao gót, Mira)\nDa bò thật, đế 7 cm"
-    assert doc.metadata == {"source": "catalog", "sku": "SKU-2", "category": "heels", "lang": "vi"}
+    archived = replace(kit, sku="SKU-1", is_archived=True)
+    [doc] = catalog_documents([kit, archived])
+    assert doc.page_content == "Mô hình RX0 (Mô hình RX0, Bandai)\nKhung trong, tỉ lệ 1/144"
+    assert doc.metadata == {"source": "catalog", "sku": "SKU-2", "category": "gunpla", "lang": "vi"}

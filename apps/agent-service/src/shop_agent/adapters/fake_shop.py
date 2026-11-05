@@ -129,7 +129,7 @@ class FakeShop:
         autonomy: AutonomySettings | None = None,
     ) -> FakeShop:
         rng = random.Random(seed)  # noqa: S311 - simulation data, not security
-        categories = ["ao", "quan", "vay", "giay", "phu-kien", "tui"]
+        categories = ["gunpla", "figure", "dung-cu", "kit-trung", "phu-kien", "mecha"]
         now = clock()
         stock: dict[str, StockItem] = {}
         base: dict[str, float] = {}

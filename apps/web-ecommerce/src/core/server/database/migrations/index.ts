@@ -1623,4 +1623,74 @@ export const MIGRATIONS: Migration[] = [
       });
     },
   },
+  {
+    name: '2026-11-05-63-purge-apparel-demo-data',
+    up: async ({ context }) => {
+      // The former clothing shop's demo data outlived its catalogue (2026-10-25-46): fashion and footwear suppliers,
+      // competitors with their prices and campaigns, apparel trend keywords with their history, apparel categories on
+      // the event calendar and the admin's "Clothing Shop" surname. Rows are matched by the old seed's own values; a
+      // supplier something still refers to is kept.
+      const { sequelize } = context;
+      const supplierSites = [
+        'https://phuongnamfashion.example.com',
+        'https://saigonfootwear.example.com',
+        'https://globalsportswear.example.com',
+        'https://hanoitextile.example.com',
+        'https://dongaaccessories.example.com',
+      ];
+      const competitorSites = ['https://an-nhien.example', 'https://phongcachsaigon.example', 'https://giayviet.example'];
+      const apparelKeywords = ['giày nam', 'dép', 'áo thun', 'bốt', 'áo khoác', 'giày sneaker'];
+      const apparelCategories = ['bags', 'belts', 'heels', 'jackets', 'sweaters', 'boots'];
+      // Google Trends keywords for what the shop sells (no category: they apply to the whole catalogue).
+      const modelKitKeywords = ['gundam', 'gunpla', 'mô hình lắp ráp', 'mô hình mecha', 'motor nuclear', 'kit trung quốc'];
+      await sequelize.transaction(async (transaction) => {
+        const select = (sql: string, replacements: Record<string, unknown>) =>
+          sequelize
+            .query<{ id: number }>(sql, { replacements, type: QueryTypes.SELECT, transaction })
+            .then((rows) => rows.map((row) => row.id));
+        const suppliers = await select(
+          `SELECT id FROM supplier s WHERE s.website IN (:sites)
+             AND NOT EXISTS (SELECT 1 FROM product p WHERE p."supplierId" = s.id)
+             AND NOT EXISTS (SELECT 1 FROM stock_import i WHERE i."supplierId" = s.id)`,
+          { sites: supplierSites },
+        );
+        const competitors = await select(`SELECT id FROM market_competitor WHERE website IN (:sites)`, {
+          sites: competitorSites,
+        });
+        const deleted = await purgeRows(sequelize, { supplier: suppliers, market_competitor: competitors }, transaction);
+        await sequelize.query(`DELETE FROM market_trend_point WHERE keyword IN (:keywords)`, {
+          replacements: { keywords: apparelKeywords },
+          transaction,
+        });
+        await sequelize.query(
+          `UPDATE market_event SET categories = '[]'::jsonb, "updatedAt" = CURRENT_TIMESTAMP
+            WHERE EXISTS (SELECT 1 FROM jsonb_array_elements_text(categories) c WHERE c IN (:categories))`,
+          { replacements: { categories: apparelCategories }, transaction },
+        );
+        const setting = await AgentSettingModel.findByPk('market.trend_keywords', { transaction });
+        const current = Array.isArray(setting?.value) ? (setting.value as { keyword: string }[]) : [];
+        const kept = current.filter((item) => !apparelKeywords.includes(item.keyword));
+        if (setting && kept.length !== current.length) {
+          const value = kept.length > 0 ? kept : modelKitKeywords.map((keyword) => ({ keyword, category: null }));
+          const version = setting.version + 1;
+          await AgentSettingAuditModel.create(
+            {
+              key: setting.key,
+              oldValue: setting.value,
+              newValue: value,
+              version,
+              changedBy: null,
+              reason: 'Thay từ khoá thời trang cũ bằng từ khoá mô hình.',
+            },
+            { transaction },
+          );
+          await setting.update({ value, version, updatedBy: null }, { transaction });
+        }
+        await sequelize.query(`UPDATE "user" SET "lastName" = 'Model Universe' WHERE "lastName" = 'Clothing Shop'`, {
+          transaction,
+        });
+        Logger.INFO(`Apparel demo data purged: ${JSON.stringify(deleted)}.`);
+      });
+    },
+  },
 ];

@@ -28,10 +28,22 @@ from shop_agent.domain.policies.autonomy import AutonomyMode
 NOW = datetime(2026, 9, 29, 2, 0, tzinfo=UTC)  # 09:00 in Vietnam
 PRODUCTS = (
     ScenarioProduct(
-        sku="A", name="Áo A", category="ao", price_vnd=200_000, unit_cost_vnd=120_000, quantity=40, daily_units=3
+        sku="A",
+        name="Gunpla A",
+        category="gunpla",
+        price_vnd=200_000,
+        unit_cost_vnd=120_000,
+        quantity=40,
+        daily_units=3,
     ),
     ScenarioProduct(
-        sku="B", name="Giày B", category="giay", price_vnd=900_000, unit_cost_vnd=600_000, quantity=5, daily_units=0.5
+        sku="B",
+        name="Kit B",
+        category="kit-trung",
+        price_vnd=900_000,
+        unit_cost_vnd=600_000,
+        quantity=5,
+        daily_units=0.5,
     ),
 )
 
@@ -72,7 +84,7 @@ def test_fake_world_is_deterministic_for_a_seed() -> None:
 
 def test_history_ends_yesterday_and_new_products_start_when_added() -> None:
     fresh = ScenarioProduct(
-        sku="N", name="Mới", category="ao", price_vnd=100_000, unit_cost_vnd=50_000, quantity=10, daily_units=5,
+        sku="N", name="Mới", category="gunpla", price_vnd=100_000, unit_cost_vnd=50_000, quantity=10, daily_units=5,
         created_days_ago=10,
     )  # fmt: skip
     snap = FakeWorld.generate(Scenario(name="t", catalog=(*PRODUCTS, fresh)), NOW, events=()).snapshot(NOW)
@@ -145,10 +157,10 @@ def test_upcoming_events_and_trend_series() -> None:
         MarketEvent("soon", "Sắp tới", today + timedelta(days=20), today + timedelta(days=21), 14),
         MarketEvent("later", "Còn xa", today + timedelta(days=60), today + timedelta(days=61), 14),
     )
-    trends = tuple(TrendPoint("áo", "VN", today - timedelta(days=n), 50 + n, "fixture") for n in (3, 1, 2))
+    trends = tuple(TrendPoint("gunpla", "VN", today - timedelta(days=n), 50 + n, "fixture") for n in (3, 1, 2))
     snap = GrowthSnapshot(taken_at=NOW, events=events, trends=trends)
     assert [e.code for e in snap.upcoming_events(30)] == ["running", "soon"]
-    assert [p.interest for p in snap.trend_series("áo")] == [53, 52, 51]
+    assert [p.interest for p in snap.trend_series("gunpla")] == [53, 52, 51]
 
 
 def _sales(first: date, last: date, per_day: int) -> tuple[DailySales, ...]:
@@ -215,7 +227,7 @@ def observations(interest: int = 60) -> MarketObservations:
     return MarketObservations(
         source="trends",
         observed_at=NOW,
-        trends=(TrendObservation(keyword="áo khoác", date=date(2026, 9, 28), interest=interest),),
+        trends=(TrendObservation(keyword="gundam", date=date(2026, 9, 28), interest=interest),),
     )
 
 
@@ -229,7 +241,7 @@ async def test_ingest_records_observations_in_the_world(shop: FakeShop) -> None:
     result = await shop.ingest(MARKET_OBSERVATIONS_ENDPOINT, body.body(), idempotency_key=body.idempotency_key())
     assert result.ok, result.detail
     snap = await shop.growth_snapshot(NOW)
-    assert [p.interest for p in snap.trend_series("áo khoác") if p.day == date(2026, 9, 28)] == [60]
+    assert [p.interest for p in snap.trend_series("gundam") if p.day == date(2026, 9, 28)] == [60]
     assert {s.name: s.status for s in snap.sources}["trends"] == "ok"
 
 

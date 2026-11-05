@@ -2,7 +2,7 @@ import { Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript
 import MarketCompetitorModel from './MarketCompetitor.Model';
 import type { MarketDataSource } from './MarketCompetitorPrice.Model';
 
-// A promotion a competitor runs (e.g. "giảm 30% áo khoác"), entered by hand, from the CSV or by the collector.
+// A promotion a competitor runs (e.g. "giảm 30% kit Motor Nuclear"), entered by hand, from the CSV or by the collector.
 @Table({
   tableName: 'market_competitor_campaign',
 })

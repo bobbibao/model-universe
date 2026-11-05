@@ -50,7 +50,7 @@ def test_a_tool_call_is_the_request_the_gateway_signs(case: dict[str, Any], snap
 
 
 def test_arguments_the_request_would_rewrite_are_refused(snapshot: GrowthSnapshot) -> None:
-    post = {"ref": "copilot-post-1", "message": "Áo mới về.", "scheduled_at": "2026-10-05T12:00:00.000Z"}
+    post = {"ref": "copilot-post-1", "message": "Kit mới về.", "scheduled_at": "2026-10-05T12:00:00.000Z"}
     with pytest.raises(ValueError, match=r"scheduled_at exactly as the request takes them \("):
         write_request("create_post", post, snapshot, thread_id="chat-1", call_id="call-1")
     with pytest.raises(ValueError, match="percent"):  # a number written as text

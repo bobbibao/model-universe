@@ -52,20 +52,18 @@ async def test_observations_are_accepted_by_the_contract() -> None:
         status="degraded",
         detail="1 giá từ 2 trang",
         observed_at=observed,
-        trends=(TrendObservation(keyword="áo khoác", date=date(2026, 9, 29), interest=55),),
+        trends=(TrendObservation(keyword="gundam", date=date(2026, 9, 29), interest=55),),
         competitor_prices=(
             PriceObservation(
-                competitor="Thời Trang An Nhiên",
+                competitor="Mô Hình An Nhiên",
                 sku="SKU-1",
                 url="https://an-nhien.example/p/1",
-                title="Áo",
+                title="Kit",
                 price_vnd=349_000,
                 confidence=0.8,
             ),
         ),
-        competitor_campaigns=(
-            CampaignObservation(competitor="Thời Trang An Nhiên", title="Giảm 20%", discount_pct=20),
-        ),
+        competitor_campaigns=(CampaignObservation(competitor="Mô Hình An Nhiên", title="Giảm 20%", discount_pct=20),),
     )
     result = await writer.ingest(MARKET_OBSERVATIONS_ENDPOINT, body.body(), idempotency_key=body.idempotency_key())
     assert result.ok, result.detail

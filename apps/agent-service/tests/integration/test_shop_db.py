@@ -27,14 +27,14 @@ DB, WEB_ROLE, WEB_PASSWORD, READER_PASSWORD = "shop_read_test", "shop_web_test",
 VIEWS = """
 CREATE TABLE product (sku text PRIMARY KEY, name text, category text, quantity int, cost int, price int,
                       channel text, stocked_at timestamptz);
-INSERT INTO product VALUES ('OLD', 'Áo len', 'Áo len', 10, 300000, 600000, 'web', now() - interval '150 days'),
-                           ('NEW', 'Áo thun', 'Áo thun', 5, 100000, 250000, 'web', now() - interval '3 days');
+INSERT INTO product VALUES ('OLD', 'Gunpla HG', 'Gunpla', 10, 300000, 600000, 'web', now() - interval '150 days'),
+                           ('NEW', 'Kit MNP', 'Kit Trung', 5, 100000, 250000, 'web', now() - interval '3 days');
 CREATE VIEW analytics.stock_on_hand AS
   SELECT sku, name, category, quantity, cost AS unit_cost_vnd, price AS unit_price_vnd, channel AS sales_channel,
          stocked_at FROM product;
 CREATE VIEW analytics.units_sold_30d AS SELECT 'NEW'::text AS sku, 12 AS units;
 CREATE VIEW analytics.returns AS
-  SELECT 1 AS order_id, 'NEW'::text AS sku, 'size'::text AS reason, 'new'::text AS condition, 2 AS quantity,
+  SELECT 1 AS order_id, 'NEW'::text AS sku, 'damaged'::text AS reason, 'new'::text AS condition, 2 AS quantity,
          500000 AS refund_vnd, now() - interval '2 days' AS returned_at;
 CREATE VIEW analytics.clearance_sales AS SELECT 'OLD'::text AS sku, now() AS sold_at, 480000 AS revenue_vnd;
 """

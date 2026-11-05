@@ -29,7 +29,7 @@ async def test_reads_watched_pages(limiter: DomainRateLimiter) -> None:
     assert found.status == "ok" and fetcher.closed
     [price] = found.competitor_prices
     assert (price.competitor, price.sku, price.url, price.price_vnd) == (
-        "Thời Trang An Nhiên",
+        "Mô Hình An Nhiên",
         "SKU-1",
         f"{A}/p/1",
         349_000,

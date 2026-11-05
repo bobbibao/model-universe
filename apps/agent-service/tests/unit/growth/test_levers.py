@@ -63,16 +63,16 @@ def test_priors_read_the_yaml_shape() -> None:
 
 def test_brand_lint_rules() -> None:
     policy = BrandPolicy(banned_terms=("rẻ bèo",), superlatives=("tốt nhất",), max_hashtags=2, max_emoji=1)
-    assert lint_copy("Áo khoác mới, ấm áp cho mùa thu.", "post", policy) == []
+    assert lint_copy("Kit Motor Nuclear mới, khung hợp kim chắc chắn.", "post", policy) == []
     problems = lint_copy(
-        "Áo rẻ bèo, tốt nhất hơn cả Shop Bên Kia! #a #b #c 🎉🎉 https://evil.example/x",
+        "Kit rẻ bèo, tốt nhất hơn cả Shop Bên Kia! #a #b #c 🎉🎉 https://evil.example/x",
         "post",
         policy,
         competitors=["Shop Bên Kia"],
         shop_domain="shop.example.vn",
     )
     assert len(problems) == 6
-    assert lint_copy("Buy new jackets now please", "post", policy) == ["not written in Vietnamese"]
+    assert lint_copy("Buy new model kits now please", "post", policy) == ["not written in Vietnamese"]
     assert lint_copy("x" * 41, "headline", policy)[0].startswith("headline is longer")
     assert lint_copy("Xem tại https://www.shop.example.vn/a", "post", policy, shop_domain="shop.example.vn") == []
 
