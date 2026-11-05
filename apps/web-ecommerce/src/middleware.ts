@@ -29,6 +29,11 @@ async function legacyProductRedirect(request: NextRequest) {
 }
 
 export async function middleware(request: NextRequest) {
+  // The bare domain always opens the Vietnamese home page: a permanent 308 (next-intl answers 307), so search engines
+  // pass the domain's signals to /vi instead of treating the redirect as temporary.
+  if (request.nextUrl.pathname === '/') {
+    return NextResponse.redirect(new URL(`/vi${request.nextUrl.search}`, request.url), 308);
+  }
   const legacy = await legacyProductRedirect(request);
   if (legacy) return legacy;
   const { search } = request.nextUrl;

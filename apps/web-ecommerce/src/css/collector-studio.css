@@ -2071,3 +2071,67 @@ a.channel-value:hover {
     display: none;
   }
 }
+/* Home: the shop in plain words and its FAQ (HomeSeoContent). */
+.home-about {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  border-top: 1px solid var(--studio-line);
+}
+.home-about-intro > p:not(.studio-kicker) {
+  margin-top: 16px;
+  color: var(--studio-muted);
+  font-size: 16px;
+  line-height: 1.65;
+}
+.home-about-intro .mu-heading {
+  margin-top: 12px;
+  font-size: clamp(26px, 2.4vw, 36px);
+}
+.home-about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+.home-about-links a {
+  padding: 10px 16px;
+  border: 1px solid var(--studio-line);
+  border-radius: 100px;
+  background: #fff;
+  color: var(--studio-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+.home-about-links a:hover {
+  border-color: var(--studio-purple);
+  color: var(--studio-purple);
+}
+.home-about-faq h2 {
+  margin-bottom: 12px;
+  color: var(--studio-ink);
+  font-size: 20px;
+  font-weight: 750;
+}
+.home-about-faq details {
+  border-bottom: 1px solid var(--studio-line);
+  padding-block: 14px;
+}
+.home-about-faq summary {
+  cursor: pointer;
+  color: var(--studio-ink);
+  font-size: 15px;
+  font-weight: 650;
+}
+.home-about-faq details p {
+  margin-top: 10px;
+  color: var(--studio-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+@media (max-width: 900px) {
+  .home-about {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+}

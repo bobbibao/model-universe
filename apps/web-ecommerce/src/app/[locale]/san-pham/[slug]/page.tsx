@@ -2,12 +2,22 @@ import { Suspense } from 'react';
 import { preload } from 'react-dom';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import ProductDetail from '@/core/client/features/shop/pages/ProductDetail';
 import { getPublicProduct } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { formatVND } from '@/shared/server/utils/utils';
+import {
+  breadcrumbSchema,
+  canonicalOption,
+  isEnglish,
+  jsonLd,
+  organizationId,
+  pageMetadata,
+  productSeoDescription,
+  productSeoTitle,
+  SITE_NAME,
+} from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -19,97 +29,37 @@ const ITEM_CONDITIONS: Record<string, string> = {
   defective: 'https://schema.org/DamagedCondition',
 };
 
-const buildSeoTitle = (
-  product: NonNullable<Awaited<ReturnType<typeof getPublicProduct>>>,
-  locale: string,
-) => {
-  const percent = product.conditionPercent || 98;
-  const isPreowned = product.condition === 'preowned';
-  if (locale === 'vi') {
-    return isPreowned
-      ? `Mô hình ${product.name} 2hand (${percent}%)`
-      : `Mô hình ${product.name} chính hãng`;
-  }
-  return isPreowned
-    ? `${product.name} Authentic Pre-owned (${percent}%)`
-    : `${product.name} Official Model`;
-};
-
-const buildSeoDescription = (
-  product: NonNullable<Awaited<ReturnType<typeof getPublicProduct>>>,
-  locale: string,
-) => {
-  const priceFormatted = formatVND(product.salePrice || product.price, locale);
-  const percent = product.conditionPercent || 98;
-  const isPreowned = product.condition === 'preowned';
-
-  if (locale === 'vi') {
-    const conditionStr = isPreowned ? `2hand độ mới ${percent}%, đầy đủ phụ kiện` : 'mới 100% nguyên hộp';
-    return `Mua mô hình ${product.name} chính hãng ${product.brandName} (${conditionStr}). Giá chỉ ${priceFormatted}. Kiểm định QC nghiêm ngặt, freeship, bảo hành an tâm tại Model Universe.`;
-  }
-  return `Buy authentic ${product.name} by ${product.brandName} (${isPreowned ? `Pre-owned ${percent}%` : 'Brand New'}). Price: ${priceFormatted}. Strictly inspected, fast nationwide delivery at Model Universe.`;
-};
-
 // The product page at its SEO path (/vi/san-pham/<slug>): canonical URL, hreflang, Open Graph and schema.org Product
-// data so search engines show the name, price and availability.
+// data so search engines show the name, price and availability. Title and description state only the listing's real
+// condition (no default percentage, no "complete" claim).
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params,
     product = await getPublicProduct(slug);
   if (!product) notFound();
-  const t = await getTranslations({ locale, namespace: 'catalog' });
-
-  const title = buildSeoTitle(product, locale);
-  const description = buildSeoDescription(product, locale);
-  const path = `/san-pham/${product.slug}`;
   const base = siteUrl();
+  const title = productSeoTitle(product, locale);
+  const imageUrl = product.imageUrl ? absoluteUrl(base, product.imageUrl) : undefined;
 
-  return {
+  return pageMetadata(base, {
+    locale,
+    path: `/san-pham/${canonicalOption<{ id: number; slug?: string }>(product.conditionOptions ?? [product]).slug}`,
     title,
-    description,
+    description: productSeoDescription(product, locale, formatVND(product.salePrice || product.price, locale)),
     keywords: [
       product.name,
       product.brandName,
-      product.scale || '',
       product.modelCode || '',
-      'mô hình 2hand',
-      'mô hình chính hãng',
-      `${product.brandName} 2hand`,
-      'model universe',
+      product.scale ? `mô hình ${product.scale}` : '',
+      `mô hình ${product.brandName}`,
+      product.condition === 'new' ? `${product.name} new` : `${product.name} 2hand`,
+      'mô hình lắp ráp',
     ].filter(Boolean),
-    alternates: {
-      canonical: `${base}/${locale}${path}`,
-      languages: {
-        vi: `${base}/vi${path}`,
-        en: `${base}/en${path}`,
-        'x-default': `${base}/vi${path}`,
-      },
-    },
-    openGraph: {
-      type: 'article',
-      siteName: 'Model Universe',
-      title: `${title} | Model Universe`,
-      description,
-      url: `${base}/${locale}${path}`,
-      images: product.imageUrl
-        ? [
-            {
-              url: product.imageUrl,
-              width: 800,
-              height: 800,
-              alt: `${product.name} - Model Universe`,
-            },
-          ]
-        : [],
-      locale: locale === 'vi' ? 'vi_VN' : 'en_US',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${title} | Model Universe`,
-      description,
-      images: product.imageUrl ? [product.imageUrl] : [],
-    },
-  };
+    image: imageUrl ? { url: imageUrl, alt: product.name } : undefined,
+  });
 }
+
+const absoluteUrl = (base: string, url: string) =>
+  url.startsWith('http://') || url.startsWith('https://') ? url : `${base}${url.startsWith('/') ? '' : '/'}${url}`;
 
 const formatSku = (raw?: string | null, fallback?: string | number): string => {
   const val = (raw || (fallback ? `MU-${fallback}` : '')).trim();
@@ -129,8 +79,13 @@ export default async function Page({ params }: Props) {
   }
 
   const base = siteUrl();
-  const canonicalUrl = `${base}/${locale}/san-pham/${product.slug}`;
-  const seoDescription = buildSeoDescription(product, locale);
+  const en = isEnglish(locale);
+  // Every condition variant's URL describes the family's canonical page (see canonicalOption).
+  const canonical = canonicalOption<{ id: number; slug?: string }>(product.conditionOptions ?? [product]);
+  const description =
+    (en ? product.descriptionEn : product.descriptionVi) ||
+    product.description ||
+    productSeoDescription(product, locale, formatVND(product.salePrice || product.price, locale));
   const validFromDate = product.createdAt
     ? new Date(product.createdAt).toISOString().split('T')[0]
     : '2026-01-01';
@@ -142,20 +97,15 @@ export default async function Page({ params }: Props) {
     productID: product.uuid,
     sku: formatSku(product.sku, product.id),
     mpn: formatSku(product.modelCode || product.sku, product.id),
-    image: [product.imageUrl, ...(product.images || [])]
-      .filter((img): img is string => Boolean(img))
-      .map((img) =>
-        img.startsWith('http://') || img.startsWith('https://')
-          ? img
-          : `${base}${img.startsWith('/') ? '' : '/'}${img}`
-      ),
-    description: seoDescription,
+    image: [...new Set([product.imageUrl, ...(product.images || [])].filter((img): img is string => Boolean(img)))].map(
+      (img) => absoluteUrl(base, img),
+    ),
+    description,
     brand: {
       '@type': 'Brand',
       name: product.brandName,
     },
-    category: product.scale ? `Mô hình tỷ lệ ${product.scale}` : 'Mô hình sưu tầm',
-    ...(product.reviewCount > 0
+    category: product.category?.name || (product.scale ? `Mô hình lắp ráp tỷ lệ ${product.scale}` : 'Mô hình lắp ráp'),    ...(product.reviewCount > 0
       ? {
           aggregateRating: {
             '@type': 'AggregateRating',
@@ -168,7 +118,7 @@ export default async function Page({ params }: Props) {
       : {}),
     offers: (product.conditionOptions ?? [{ ...product, isMain: true }]).map((option) => ({
       '@type': 'Offer',
-      url: `${base}/${locale}/san-pham/${product.slug}${option.isMain ? '' : `?tinh-trang=${option.id}`}`,
+      url: `${base}/${locale}/san-pham/${canonical.slug}${option.id === canonical.id ? '' : `?tinh-trang=${option.id}`}`,
       sku: formatSku(option.sku, option.id),
       priceCurrency: 'VND',
       price: option.salePrice ?? option.price,
@@ -177,9 +127,10 @@ export default async function Page({ params }: Props) {
       availability: (option.stock ?? 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: ITEM_CONDITIONS[option.condition ?? 'preowned'] ?? ITEM_CONDITIONS.preowned,
       seller: {
-        '@type': 'Organization',
-        name: 'Model Universe',
-        url: base,
+        '@type': 'HobbyShop',
+        '@id': organizationId(base),
+        name: SITE_NAME,
+        url: `${base}/`,
       },
       hasMerchantReturnPolicy: {
         '@type': 'MerchantReturnPolicy',
@@ -189,66 +140,17 @@ export default async function Page({ params }: Props) {
         returnMethod: 'https://schema.org/ReturnByMail',
         returnFees: 'https://schema.org/FreeReturn',
       },
-      shippingDetails: {
-        '@type': 'OfferShippingDetails',
-        shippingRate: {
-          '@type': 'MonetaryAmount',
-          value: 0,
-          currency: 'VND',
-        },
-        shippingDestination: {
-          '@type': 'DefinedRegion',
-          addressCountry: 'VN',
-        },
-        deliveryTime: {
-          '@type': 'ShippingDeliveryTime',
-          handlingTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 0,
-            maxValue: 1,
-            unitCode: 'DAY',
-          },
-          transitTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 3,
-            unitCode: 'DAY',
-          },
-        },
-      },
+      // No shippingDetails: the carrier prices shipping per address and free shipping applies only to eligible orders
+      // (shippingOfferText), so there is no flat rate Google could show truthfully.
     })),
   };
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: locale === 'vi' ? 'Trang chủ' : 'Home',
-        item: `${base}/${locale}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: locale === 'vi' ? 'Cửa hàng' : 'Store',
-        item: `${base}/${locale}/cua-hang`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: product.brandName,
-        item: `${base}/${locale}/cua-hang?brand=${encodeURIComponent(product.brandName)}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 4,
-        name: product.name,
-        item: canonicalUrl,
-      },
-    ],
-  };
+  // Home > Store > category (when the product has one) > product.
+  const breadcrumbs = breadcrumbSchema(base, locale, [
+    [en ? 'Store' : 'Cửa hàng', '/cua-hang'],
+    ...(product.category ? [[product.category.name, `/cua-hang/${product.category.slug}`] as [string, string]] : []),
+    [product.name, `/san-pham/${canonical.slug}`],
+  ]);
 
   return (
     <StoreLayout>
@@ -258,7 +160,7 @@ export default async function Page({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([productSchema, breadcrumbSchema]).replace(/</g, '\\u003c'),
+          __html: jsonLd([productSchema, breadcrumbs]),
         }}
       />
       <Suspense>

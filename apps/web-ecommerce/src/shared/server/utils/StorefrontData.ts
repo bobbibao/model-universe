@@ -44,7 +44,8 @@ export async function getPublicProduct(key: number | string): Promise<ProductDet
 }
 
 // The storefront categories (for category landing pages and the sitemap).
-export async function getPublicCategories(): Promise<{ id: number; name: string; slug: string; description?: string | null }[]> {
+export type PublicCategory = { id: number; name: string; slug: string; description?: string | null; productCount?: number };
+export async function getPublicCategories(): Promise<PublicCategory[]> {
   try {
     const port = Number(process.env.PORT || 6050);
     const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(2500) };
@@ -58,17 +59,40 @@ export async function getPublicCategories(): Promise<{ id: number; name: string;
   }
 }
 
-// Every published product's slug for the sitemap (paged through the public listing).
-export async function getPublicProductSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {
+// A category worth indexing: it has products and is not an internal ("[DEV] ...") one.
+export const isIndexableCategory = (category: PublicCategory) =>
+  (category.productCount ?? 1) > 0 && !category.name.trim().startsWith('[');
+
+type PublicProductSlug = {
+  id: number;
+  slug: string;
+  modelFamilyId?: number | null;
+  partnerId?: number | null;
+  updatedAt?: string;
+  imageUrl?: string;
+};
+
+// Every published product's slug for the sitemap (paged through the public listing), with its main photo and model
+// family (condition variants share one canonical page).
+export async function getPublicProductSlugs(): Promise<PublicProductSlug[]> {
   const port = Number(process.env.PORT || 6050);
-  const slugs: { slug: string; updatedAt?: string }[] = [];
+  const slugs: PublicProductSlug[] = [];
   try {
     for (let page = 1; page <= 50; page++) {
       const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(4000) };
       const response = await fetch(`http://127.0.0.1:${port}/api/products?per_page=100&page=${page}`, options);
       if (!response.ok) break;
       const result = await response.json() as { payload?: { data?: (ProductSummary & { updatedAt?: string })[]; pagination?: { total_pages?: number } } };
-      for (const row of result.payload?.data || []) if (row.slug) slugs.push({ slug: row.slug, updatedAt: row.updatedAt });
+      for (const row of result.payload?.data || [])
+        if (row.slug)
+          slugs.push({
+            id: row.id,
+            slug: row.slug,
+            modelFamilyId: row.modelFamilyId,
+            partnerId: row.partnerId,
+            updatedAt: row.updatedAt,
+            imageUrl: row.imageUrl || undefined,
+          });
       if (page >= (result.payload?.pagination?.total_pages || 1)) break;
     }
   } catch {
