@@ -31,7 +31,40 @@ different USB stick), into the same path on the new host.
 Moving back works the same way in the other direction (export on the new host, setup on the old one). After a move,
 the old host must not start the site again: nothing starts it automatically there.
 
-## Prompt for Claude Code on the new host
+## New host is a Mac
+
+`setup-host-macos.sh` does the same with Homebrew (node@22, postgresql@18, openssl@3, cloudflared) and three launchd
+boot daemons (`vn.modeluniverse.postgres`, `.web`, `.tunnel`: start at boot without login, restarted when they die).
+Steps: `bash scripts/host/setup-host-macos.sh check | build | restore <file> | service`; later `redeploy` (pull, build,
+restart the web: about 20 s of downtime) and `status`. Runtime folder: `~/ModelUniverseRuntime`, logs in its `host/`.
+A MacBook sleeps when its lid is closed (unless an external display is attached): keep it open and on power.
+
+### Prompt for Claude Code on the Mac
+
+```
+This Mac becomes the 24/7 host of the live shop modeluniverse.vn (repository bobbibao/model-universe).
+Follow scripts/host/README.md, section "New host is a Mac". Work carefully: it is a live shop with real customers
+and payments.
+
+1. Make sure the repository is cloned and on the latest main (git pull).
+2. Run `bash scripts/host/setup-host-macos.sh check`. Install what is missing (Homebrew, then
+   `brew install node@22 postgresql@18 openssl@3 cloudflared`). When something needs my Mac password or a decision,
+   stop and ask me; never invent or print secrets. Re-run check until every line says ok (I copy the bundle key file
+   ~/.model-universe-bundle-key in myself).
+3. Run `bash scripts/host/setup-host-macos.sh build`. If it fails, read the output, fix the cause (not the shop's
+   code) and retry. Tell me when the release is built: I will then run export-host.ps1 on the old laptop and copy
+   the bundle file here.
+4. When I give you the bundle path, run `restore "<path>"`, then `service` (it asks for my password via sudo: tell me
+   when to type it). Report the restored product count and that https://modeluniverse.vn/api/products/filters
+   answers 200.
+5. Run `status`, show me where the logs are (~/ModelUniverseRuntime/host), and remind me to keep the MacBook on power
+   with the lid open.
+
+Never commit, upload or print the bundle, the key, .env files, uploads or ~/.cloudflared. Do not change the shop's
+code or data unless I ask.
+```
+
+## Prompt for Claude Code on a Windows host
 
 ```
 This machine becomes the 24/7 host of the live shop modeluniverse.vn (repository bobbibao/model-universe, Windows).
