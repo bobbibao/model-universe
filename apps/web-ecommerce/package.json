@@ -34,6 +34,7 @@
     "production:status": "node scripts/production-runtime.cjs status",
     "production:restart": "node scripts/production-runtime.cjs restart",
     "production:stop": "node scripts/production-runtime.cjs stop",
+    "deploy:zero-downtime": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-zero-downtime.ps1",
     "build:production": "node scripts/build-production.cjs"
   },
   "dependencies": {
