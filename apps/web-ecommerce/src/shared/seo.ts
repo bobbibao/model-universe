@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { FREESHIP_TIERS } from './promotions';
+import { CONTACT } from './contact-channels';
 
 // Search and social metadata shared by every storefront page: the business facts (name, address, contacts) used in
 // schema.org data, page metadata (canonical, hreflang, Open Graph) and product titles built from the real condition.
@@ -36,18 +37,14 @@ export const shippingOfferText = (locale: string) =>
     : `freeship tới ${FREESHIP_MAX_K}k cho đơn đủ điều kiện`;
 
 export const BUSINESS = {
-  phone: '+84373725104',
-  phoneDisplay: '0373 725 104',
-  email: 'contact@modeluniverse.vn',
-  streetAddress: '730/126 Lê Đức Thọ',
-  locality: 'An Hội Đông, Gò Vấp',
-  region: 'Thành phố Hồ Chí Minh',
+  phone: CONTACT.phone,
+  phoneDisplay: CONTACT.phoneDisplay,
+  email: CONTACT.email,
+  streetAddress: CONTACT.streetAddress,
+  locality: CONTACT.locality,
+  region: CONTACT.region,
   country: 'VN',
-  socials: [
-    'https://www.facebook.com/modeluniverse.vn',
-    'https://www.tiktok.com/@model.universe.c',
-    'https://zalo.me/0373725104',
-  ],
+  socials: [CONTACT.facebook, CONTACT.tiktok, CONTACT.zalo],
 } as const;
 
 export const isEnglish = (locale: string) => locale === 'en';

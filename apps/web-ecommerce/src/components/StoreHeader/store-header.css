@@ -244,3 +244,53 @@
     display: none;
   }
 }
+
+/* Hotline in the header (wide screens) and the contact block in the mobile menu. */
+.store-hotline {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 100px;
+  background: #e7f6ee;
+  color: #11734a;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.store-hotline:hover {
+  background: #d4efe1;
+}
+@media (min-width: 1200px) {
+  .store-hotline {
+    display: inline-flex;
+  }
+}
+.store-menu-contact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px 14px 4px;
+  margin-top: 8px;
+  border-top: 1px solid #e7dfec;
+}
+.store-menu-contact a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid #e7dfec;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #30293c;
+}
+.store-menu-contact a:first-child {
+  grid-column: 1 / -1;
+  background: #14955a;
+  border-color: #14955a;
+  color: #fff;
+}
