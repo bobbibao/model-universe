@@ -1,4 +1,5 @@
 import MoneyOperationModel from '../client/models/MoneyOperation.Model';
+import PaymentSourceModel from '../client/models/PaymentSource.Model';
 import {
   FinanceCostTypeModel,
   FinanceExpenseModel,
@@ -1691,6 +1692,28 @@ export const MIGRATIONS: Migration[] = [
         });
         Logger.INFO(`Apparel demo data purged: ${JSON.stringify(deleted)}.`);
       });
+    },
+  },
+  {
+    // Refund to source (owner decision 2026-11-06): the paying account of each payOS payment, as payOS signed it.
+    name: '2026-11-06-64-payment-source',
+    up: async ({ context }) => {
+      await ensureTables(PaymentSourceModel);
+      await context.sequelize.query(`
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'payment_source_link_fk') THEN
+            ALTER TABLE payment_source ADD CONSTRAINT payment_source_link_fk
+              FOREIGN KEY ("linkId") REFERENCES order_payment_link(id) ON DELETE RESTRICT;
+            ALTER TABLE payment_source ADD CONSTRAINT payment_source_valid
+              CHECK ("amountVnd" > 0 AND "verifiedBy" IN ('payos_webhook', 'payos_api'));
+          END IF;
+        END $$;
+        CREATE OR REPLACE FUNCTION protect_payment_source() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+          RAISE EXCEPTION 'Payment sources are append-only';
+        END $$;
+        DROP TRIGGER IF EXISTS payment_source_protected ON payment_source;
+        CREATE TRIGGER payment_source_protected BEFORE UPDATE OR DELETE ON payment_source
+          FOR EACH ROW EXECUTE FUNCTION protect_payment_source();`);
     },
   },
 ];

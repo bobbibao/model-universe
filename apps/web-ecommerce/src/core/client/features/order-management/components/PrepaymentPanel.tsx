@@ -1,6 +1,7 @@
 'use client';
 
 import RefundRequest from '../../finance/RefundRequest';
+import RefundToSource from '../../finance/RefundToSource';
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import OrderApi from '@/core/client/api/Order';
@@ -96,6 +97,9 @@ export default function PrepaymentPanel({ order, onChange }: { order: Order; onC
       {refund && entry(refund)}
       {!receipt && order.status === 'PROCESSING' && <p className="prepayment-warning">{t('blocksShipping')}</p>}
       {order.status === 'CANCELLED' && prepaid > 0 && !refund && <p className="prepayment-warning">{t('refundDue')}</p>}
+      {kind === 'refund' && (
+        <RefundToSource key={`source-${order.id}`} purpose="purchase_refund" entityId={order.id} onUpdated={() => {}} />
+      )}
       {kind === 'refund' && (
         <RefundRequest
           key={order.id}

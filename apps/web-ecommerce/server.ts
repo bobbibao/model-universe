@@ -1,4 +1,5 @@
 import PayOSPayoutService from './src/core/server/services/PayOSPayoutService';
+import RefundToSourceService from './src/core/server/services/RefundToSourceService';
 import CommerceEmailService from './src/core/server/services/CommerceEmailService';
 import SaleCampaignService from './src/core/server/services/SaleCampaignService';
 import e, { NextFunction, Request, Response } from 'express';
@@ -126,7 +127,8 @@ app
         new CommerceEmailService()
           .run()
           .then(() => dispatcher.dispatch())
-          .then(() => new PayOSPayoutService().reconcilePending()),
+          .then(() => new PayOSPayoutService().reconcilePending())
+          .then(() => new RefundToSourceService().sweep()),
         orderSync.run(),
         promotions.ensureStandingOffers(),
         loyalty.creditMatured(),
