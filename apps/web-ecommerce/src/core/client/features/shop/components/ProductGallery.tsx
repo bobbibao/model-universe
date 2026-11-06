@@ -88,7 +88,8 @@ const ProductGallery = ({ images, alt, isSoldOut }: { images: string[]; alt: str
                 index === current ? 'border-brand-hover' : 'border-transparent'
               }`}
             >
-              <ProductImage src={image} alt="" sizes="120px" />
+              {/* Described for image search; the button's aria-label is what screen readers announce. */}
+              <ProductImage src={image} alt={`${alt} · ${index + 1}`} sizes="120px" />
             </button>
           ))}
         </div>
