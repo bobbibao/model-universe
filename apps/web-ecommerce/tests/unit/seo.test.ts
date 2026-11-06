@@ -1,6 +1,7 @@
 import {
   breadcrumbSchema,
   canonicalOption,
+  categoryKitName,
   familyCanonicals,
   jsonLd,
   pageMetadata,
@@ -68,5 +69,11 @@ describe('storefront SEO', () => {
   it('states the shipping offer from the free-shipping tiers', () => {
     expect(shippingOfferText('vi')).toBe('freeship tới 50k cho đơn đủ điều kiện');
     expect(shippingOfferText('en')).toBe('free shipping up to 50k VND on eligible orders');
+  });
+
+  it('names a category as a kit line without doubling "Mô hình"', () => {
+    expect(categoryKitName('Mô hình Motor Nuclear', 'vi')).toBe('Mô hình Motor Nuclear');
+    expect(categoryKitName('Mecha Trung Quốc', 'vi')).toBe('Mô hình Mecha Trung Quốc');
+    expect(categoryKitName('Mô hình SNAA', 'en')).toBe('SNAA');
   });
 });

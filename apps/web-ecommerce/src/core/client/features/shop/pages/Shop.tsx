@@ -29,7 +29,8 @@ const getResponsivePageSize = (): number => {
 
 // The catalog. On a category landing page (/cua-hang/<category>) the category comes from the path; filters stay in
 // the query string and choosing another category moves to its own path (one canonical URL per category).
-const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
+// categoryName comes from the server so a category page's H1 is in its HTML before the category list loads.
+const Shop = ({ categorySlug = '', categoryName }: { categorySlug?: string; categoryName?: string } = {}) => {
   const t = useTranslations('catalog');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -222,7 +223,9 @@ const Shop = ({ categorySlug = '' }: { categorySlug?: string } = {}) => {
     <div className="mu-wrap catalog-page">
       <header className="catalog-page-header">
         <h1 className="mu-heading">
-          {categories.find((category) => category.slug === applied.category)?.name || t('title')}
+          {categories.find((category) => category.slug === applied.category)?.name ||
+            (applied.category === categorySlug && categoryName) ||
+            t('heading')}
         </h1>
         {!failed && (
           <p role="status" aria-live="polite" className="catalog-results">

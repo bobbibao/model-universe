@@ -273,6 +273,13 @@ const ASSEMBLY_LABELS: Record<string, { vi: string; en: string }> = {
 
 const includesText = (text: string, part: string) => text.toLowerCase().includes(part.toLowerCase());
 
+// A category as a kit line: "Mô hình Motor Nuclear" (Vietnamese, without doubling a "Mô hình" the name already has) or
+// "Motor Nuclear" (English, the Vietnamese prefix dropped).
+export function categoryKitName(name: string, locale: string): string {
+  const bare = name.replace(/^mô hình\s+/i, '');
+  return isEnglish(locale) ? bare : `Mô hình ${bare}`;
+}
+
 // The condition as shoppers search it ("2hand 95% chưa ráp", "New"): only what the listing states, never a guessed
 // percentage or "complete" claim.
 export function productConditionLabel(product: ProductSeoInput, locale: string): string {

@@ -60,8 +60,31 @@ export default function PromotionsHub() {
     }
   };
 
-  if (hub === undefined) return <div className="promo-skeleton" aria-busy="true" />;
-  if (!hub) return null;
+  // The heading renders before the data so the server HTML has the page's H1.
+  const head = (
+    <header className="promo-head">
+      <div>
+        <p className="promo-kicker">{t('kicker')}</p>
+        <h1>{t('title')}</h1>
+        <p>{t('intro')}</p>
+      </div>
+      <nav className="promo-anchors" aria-label={t('sections')}>
+        {SECTIONS.map((section) => (
+          <a key={section} href={`#${section}`}>
+            {t(`nav.${section}`)}
+          </a>
+        ))}
+      </nav>
+    </header>
+  );
+  if (hub === undefined)
+    return (
+      <div className="promo-page">
+        {head}
+        <div className="promo-skeleton" aria-busy="true" />
+      </div>
+    );
+  if (!hub) return <div className="promo-page">{head}</div>;
   const member = hub.member;
   const tierIndex = member ? TIER_ORDER.indexOf(member.tier as (typeof TIER_ORDER)[number]) : -1;
   const vouchers = [...hub.standing, ...hub.drops].filter((drop) => filter === 'all' || drop.benefitType === filter);
@@ -75,20 +98,7 @@ export default function PromotionsHub() {
 
   return (
     <div className="promo-page">
-      <header className="promo-head">
-        <div>
-          <p className="promo-kicker">{t('kicker')}</p>
-          <h1>{t('title')}</h1>
-          <p>{t('intro')}</p>
-        </div>
-        <nav className="promo-anchors" aria-label={t('sections')}>
-          {SECTIONS.map((section) => (
-            <a key={section} href={`#${section}`}>
-              {t(`nav.${section}`)}
-            </a>
-          ))}
-        </nav>
-      </header>
+      {head}
 
       <section className="promo-overview">
         {member ? (
