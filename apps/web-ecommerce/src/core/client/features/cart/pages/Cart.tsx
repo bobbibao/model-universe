@@ -10,6 +10,7 @@ import { useRouter } from '@/i18n/navigation';
 import { showToast } from '@/shared/client/utils/toast';
 import ConfirmModal from '@/components/Modal/ConfirmModal';
 import AdminIcon from '@/components/Admin/AdminIcon';
+import CartContactHelp from '@/components/Contact/CartContactHelp';
 import WorkspaceHeader from '@/components/Store/WorkspaceHeader';
 import EmptyState from '@/components/Store/EmptyState';
 import OrderApi from '@/core/client/api/Order';
@@ -701,6 +702,7 @@ const Cart = () => {
               {quoting || couponPending ? t('quotePending') : t('reviewNote')}
             </p>
           </section>
+          <CartContactHelp />
         </aside>
       </div>
       {/* Phones: the total and the action stay on screen above the tab bar (TikTok-style). */}

@@ -1,28 +1,47 @@
 'use client';
 
 import React, { FormEvent, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import Link from '@/i18n/navigation';
 import TextField, { inputClassName } from '@/components/FormElements/TextField';
+import SuccessSignal from '@/components/SuccessSignal';
+import AdminIcon from '@/components/Admin/AdminIcon';
+import ContactIcon from '@/components/Contact/ContactIcon';
+import { isShopOpen } from '@/components/Contact/openingHours';
 import ContactApi from '@/core/client/api/Contact';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
-import type { ContactMessageInput } from '@/shared/types/contact';
-import { useTranslations } from 'next-intl';
-import BrandLogo from '@/components/BrandLogo';
-import SuccessSignal from '@/components/SuccessSignal';
 import { showToast } from '@/shared/client/utils/toast';
+import { CONTACT } from '@/shared/contact-channels';
+import type { ContactMessageInput } from '@/shared/types/contact';
+import '@/components/Contact/contact.css';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_MESSAGE_LENGTH = 10;
 const emptyForm: ContactMessageInput = { name: '', email: '', phone: '', company: '', message: '' };
+const TOPICS = ['topicAdviceTitle', 'topicOrderTitle', 'topicServiceTitle', 'topicPartnerTitle', 'topicOther'] as const;
+type Topic = (typeof TOPICS)[number];
 
 type ContactErrors = Partial<Record<keyof ContactMessageInput, string>>;
 
+const external = { target: '_blank', rel: 'noopener noreferrer' } as const;
+
 const Contact = () => {
   const t = useTranslations('studioContent');
+  const c = useTranslations('contactHub');
   const { user } = useCurrentUser();
   const [form, setForm] = useState<ContactMessageInput>(emptyForm);
+  const [topic, setTopic] = useState<Topic>('topicAdviceTitle');
   const [errors, setErrors] = useState<ContactErrors>({});
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  // Computed after hydration: the server does not know the visitor's clock.
+  const [open, setOpen] = useState<boolean>();
+
+  useEffect(() => {
+    setOpen(isShopOpen());
+    const timer = setInterval(() => setOpen(isShopOpen()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -37,15 +56,12 @@ const Contact = () => {
 
   const update = (key: keyof ContactMessageInput) => (value: string) => setForm({ ...form, [key]: value });
 
-  const handleCopy = async (text: string, label: string) => {
+  const copy = async (value: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      showToast.success(`Đã sao chép ${label}: ${text}`, {
-        toastId: `copy-${label}`,
-        href: label === 'Email' ? `mailto:${text}` : undefined,
-      });
+      await navigator.clipboard.writeText(value);
+      showToast.success(c('copied', { value }), { toastId: `copy-${value}` });
     } catch {
-      showToast.info(text, { toastId: `copy-${label}` });
+      showToast.info(value, { toastId: `copy-${value}` });
     }
   };
 
@@ -61,7 +77,8 @@ const Contact = () => {
     if (Object.keys(nextErrors).length > 0) return;
 
     setSending(true);
-    const ok = await ContactApi.sendMessage(form);
+    // The topic travels as the first line of the message, so the admin inbox shows it without a schema change.
+    const ok = await ContactApi.sendMessage({ ...form, message: `[${c(topic)}] ${form.message.trim()}` });
     setSending(false);
     if (ok) {
       setSent(true);
@@ -69,296 +86,251 @@ const Contact = () => {
     }
   };
 
+  const channels = [
+    {
+      icon: 'phone',
+      label: c('hotline'),
+      value: CONTACT.phoneDisplay,
+      note: c('hotlineNote'),
+      href: CONTACT.tel,
+      copy: CONTACT.phoneDisplay,
+    },
+    {
+      icon: 'zalo',
+      label: c('zalo'),
+      value: CONTACT.phoneDisplay,
+      note: c('zaloNote'),
+      href: CONTACT.zalo,
+      external: true,
+    },
+    {
+      icon: 'messenger',
+      label: c('messenger'),
+      value: 'Model Universe',
+      note: c('messengerNote'),
+      href: CONTACT.messenger,
+      external: true,
+    },
+    {
+      icon: 'tiktok',
+      label: c('tiktok'),
+      value: CONTACT.tiktokHandle,
+      note: c('tiktokNote'),
+      href: CONTACT.tiktok,
+      external: true,
+    },
+    {
+      icon: 'mail',
+      label: c('supportEmail'),
+      value: CONTACT.supportEmail,
+      note: c('supportEmailNote'),
+      href: `mailto:${CONTACT.supportEmail}`,
+      copy: CONTACT.supportEmail,
+    },
+    {
+      icon: 'mail',
+      label: c('email'),
+      value: CONTACT.email,
+      note: c('emailNote'),
+      href: `mailto:${CONTACT.email}`,
+      copy: CONTACT.email,
+    },
+  ] as const;
+
   return (
-    <div className="mu-wrap mu-section contact-clean-page">
-      <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14 items-start">
-        {/* Left Column: Official Brand & Direct Information */}
-        <div className="space-y-6">
-          <div>
-            <div className="mb-3">
-              <BrandLogo href="/contact" showName={true} className="text-xl text-slate-900 dark:text-white" />
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-              {t('contactTitle')}
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-              {t('contactIntro')}
-            </p>
-          </div>
+    <div className="mu-wrap ch-page">
+      <section className="ch-hero" aria-labelledby="contact-title">
+        <div className="ch-hero-copy">
+          <p className="ch-eyebrow">{c('eyebrow')}</p>
+          <h1 id="contact-title">{c('heroTitle')}</h1>
+          <p className="ch-hero-intro">{c('heroIntro')}</p>
+          <p className="ch-status" data-open={open === undefined ? undefined : String(open)}>
+            <span className="ch-status-dot" aria-hidden="true" />
+            {open === false ? c('closedNow') : open ? c('openNow') : null}
+            <span className="ch-status-hours">
+              <ContactIcon name="clock" size={14} />
+              {c('openHours', { hours: CONTACT.hours })}
+            </span>
+          </p>
+        </div>
+        <div className="ch-hero-actions">
+          <a className="ch-action is-phone" href={CONTACT.tel}>
+            <span className="ch-action-icon">
+              <ContactIcon name="phone" size={20} />
+            </span>
+            <span>
+              <strong>{c('callHotline')}</strong>
+              <small>{CONTACT.phoneDisplay}</small>
+            </span>
+          </a>
+          <a className="ch-action is-zalo" href={CONTACT.zalo} {...external}>
+            <ContactIcon name="zalo" size={40} />
+            <span>
+              <strong>{c('chatZalo')}</strong>
+              <small>{c('fastestReply')}</small>
+            </span>
+          </a>
+          <a className="ch-action is-messenger" href={CONTACT.messenger} {...external}>
+            <ContactIcon name="messenger" size={40} />
+            <span>
+              <strong>{c('chatMessenger')}</strong>
+              <small>Model Universe</small>
+            </span>
+          </a>
+        </div>
+      </section>
 
-          {/* Clean Contact Information List */}
-          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200/90 bg-white shadow-xs dark:divide-strokedark dark:border-strokedark dark:bg-boxdark">
-            {/* 1. Hotline */}
-            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
-              <div className="flex items-center gap-3.5">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                </div>
-                <div>
-                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    {t('hotlineLabel')}
-                  </span>
-                  <a href="tel:+84373725104" className="text-sm font-bold text-slate-900 hover:underline dark:text-white sm:text-base">
-                    0373 725 104
-                  </a>
-                  <span className="block text-xs text-slate-400">Hỗ trợ 08:00 - 22:00</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <a
-                  href="tel:+84373725104"
-                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900"
-                >
-                  {t('callNow')}
-                </a>
-                <button
-                  type="button"
-                  onClick={() => handleCopy('0373725104', 'Hotline')}
-                  className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 dark:border-strokedark dark:text-slate-400 dark:hover:bg-meta-4"
-                  title={t('copyPhone')}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* 2. Zalo */}
-            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
-              <div className="flex items-center gap-3.5">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
-                  <span className="text-xs font-extrabold tracking-tighter">ZALO</span>
-                </div>
-                <div>
-                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    {t('zaloLabel')}
-                  </span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
-                    0373 725 104
-                  </span>
-                  <span className="block text-xs text-slate-400">Tư vấn trực tiếp 1:1</span>
-                </div>
-              </div>
-              <a
-                href="https://zalo.me/0373725104"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-strokedark dark:text-slate-200 dark:hover:bg-meta-4"
-              >
-                <span>{t('chatZalo')}</span>
-                <span>↗</span>
+      <section className="ch-topics" aria-labelledby="contact-topics">
+        <div className="ch-section-head">
+          <h2 id="contact-topics">{c('channelsTitle')}</h2>
+          <p>{c('channelsIntro')}</p>
+        </div>
+        <div className="ch-topic-grid">
+          <article className="ch-topic">
+            <span className="ch-topic-icon">
+              <AdminIcon name="spark" size={20} />
+            </span>
+            <h3>{c('topicAdviceTitle')}</h3>
+            <p>{c('topicAdviceText')}</p>
+            <a className="ch-topic-link" href={CONTACT.zalo} {...external}>
+              {c('chatZalo')} →
+            </a>
+          </article>
+          <article className="ch-topic">
+            <span className="ch-topic-icon">
+              <AdminIcon name="truck" size={20} />
+            </span>
+            <h3>{c('topicOrderTitle')}</h3>
+            <p>{c('topicOrderText')}</p>
+            <div className="ch-topic-links">
+              <Link className="ch-topic-link" href="/order-history">
+                {c('topicOrderAction')} →
+              </Link>
+              <a className="ch-topic-link is-quiet" href={CONTACT.tel}>
+                {c('call')} {CONTACT.phoneDisplay}
               </a>
             </div>
+          </article>
+          <article className="ch-topic">
+            <span className="ch-topic-icon">
+              <AdminIcon name="exchange" size={20} />
+            </span>
+            <h3>{c('topicServiceTitle')}</h3>
+            <p>{c('topicServiceText')}</p>
+            <Link className="ch-topic-link" href="/services/sell">
+              {c('topicServiceAction')} →
+            </Link>
+          </article>
+          <article className="ch-topic">
+            <span className="ch-topic-icon">
+              <AdminIcon name="users" size={20} />
+            </span>
+            <h3>{c('topicPartnerTitle')}</h3>
+            <p>{c('topicPartnerText')}</p>
+            <a className="ch-topic-link" href={`mailto:${CONTACT.email}`}>
+              {CONTACT.email} →
+            </a>
+          </article>
+        </div>
+      </section>
 
-            {/* 3. Facebook & Messenger */}
-            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
-              <div className="flex items-center gap-3.5">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    {t('messengerLabel')}
-                  </span>
-                  <a
-                    href="https://www.facebook.com/modeluniverse.vn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-bold text-slate-900 hover:underline dark:text-white sm:text-base"
+      <div className="ch-columns">
+        <div className="ch-stack">
+          <section className="ch-card" aria-labelledby="contact-channels">
+            <h2 id="contact-channels" className="ch-card-title">
+              {c('allChannels')}
+            </h2>
+            <ul className="ch-channel-list">
+              {channels.map((channel) => (
+                <li key={channel.label} className="ch-channel">
+                  <span
+                    className={`ch-channel-icon ${channel.icon === 'phone' || channel.icon === 'mail' ? 'is-line' : ''}`}
                   >
-                    Model Universe
+                    <ContactIcon
+                      name={channel.icon}
+                      size={channel.icon === 'phone' || channel.icon === 'mail' ? 18 : 36}
+                    />
+                  </span>
+                  <a className="ch-channel-body" href={channel.href} {...('external' in channel ? external : {})}>
+                    <small>{channel.label}</small>
+                    <strong>{channel.value}</strong>
+                    <span>{channel.note}</span>
                   </a>
-                  <span className="block text-xs text-slate-400">Fanpage Facebook chính thức</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <a
-                  href="https://www.facebook.com/modeluniverse.vn"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-strokedark dark:text-slate-200 dark:hover:bg-meta-4"
-                >
-                  <span>Fanpage</span>
-                  <span>↗</span>
-                </a>
-                <a
-                  href="https://m.me/modeluniverse.vn"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900"
-                >
-                  <span>{t('chatMessenger')}</span>
-                  <span>↗</span>
-                </a>
-              </div>
-            </div>
+                  {'copy' in channel && (
+                    <button
+                      type="button"
+                      className="ch-copy"
+                      onClick={() => copy(channel.copy)}
+                      aria-label={`${c('copy')} ${channel.value}`}
+                      title={c('copy')}
+                    >
+                      <ContactIcon name="copy" size={16} />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-            {/* 4. TikTok */}
-            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
-              <div className="flex items-center gap-3.5">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                  </svg>
-                </div>
-                <div>
-                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Kênh TikTok
-                  </span>
-                  <a
-                    href="https://www.tiktok.com/@model.universe.c"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-bold text-slate-900 hover:underline dark:text-white sm:text-base"
-                  >
-                    @model.universe.c
-                  </a>
-                  <span className="block text-xs text-slate-400">Video unbox & giới thiệu kit</span>
-                </div>
-              </div>
-              <a
-                href="https://www.tiktok.com/@model.universe.c"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-strokedark dark:text-slate-200 dark:hover:bg-meta-4"
-              >
-                <span>Xem TikTok</span>
-                <span>↗</span>
+          <section className="ch-card ch-showroom" aria-labelledby="contact-showroom">
+            <div className="ch-showroom-head">
+              <h2 id="contact-showroom" className="ch-card-title">
+                {c('showroomTitle')}
+              </h2>
+              <a className="ch-directions" href={CONTACT.mapsUrl} {...external}>
+                <ContactIcon name="pin" size={16} />
+                {c('directions')}
               </a>
             </div>
-
-            {/* 5. Email liên hệ */}
-            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
-              <div className="flex items-center gap-3.5 min-w-0 pr-2">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="20" height="16" x="2" y="4" rx="2" />
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Email liên hệ & Hợp tác
-                  </span>
-                  <a
-                    href="mailto:contact@modeluniverse.vn"
-                    className="block truncate text-sm font-bold text-slate-900 hover:underline dark:text-white"
-                  >
-                    contact@modeluniverse.vn
-                  </a>
-                  <span className="block text-xs text-slate-400">Đối tác, ký gửi & khiếu nại</span>
-                </div>
+            <dl className="ch-facts">
+              <div>
+                <dt>
+                  <ContactIcon name="pin" size={16} />
+                  {c('address')}
+                </dt>
+                <dd>{CONTACT.addressLine}</dd>
               </div>
-              <button
-                type="button"
-                onClick={() => handleCopy('contact@modeluniverse.vn', 'Email liên hệ')}
-                className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 dark:border-strokedark dark:text-slate-400 dark:hover:bg-meta-4"
-                title="Sao chép email"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              </button>
-            </div>
-
-            {/* 6. Email hỗ trợ khách hàng */}
-            <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
-              <div className="flex items-center gap-3.5 min-w-0 pr-2">
-                <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 dark:bg-meta-4 dark:text-slate-200">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Email hỗ trợ khách hàng
-                  </span>
-                  <a
-                    href="mailto:support@modeluniverse.vn"
-                    className="block truncate text-sm font-bold text-slate-900 hover:underline dark:text-white"
-                  >
-                    support@modeluniverse.vn
-                  </a>
-                  <span className="block text-xs text-slate-400">Đơn hàng, bảo hành & hoàn tiền</span>
-                </div>
+              <div>
+                <dt>
+                  <ContactIcon name="clock" size={16} />
+                  {c('hours')}
+                </dt>
+                <dd>{c('hoursValue', { hours: CONTACT.hours })}</dd>
               </div>
-              <button
-                type="button"
-                onClick={() => handleCopy('support@modeluniverse.vn', 'Email hỗ trợ')}
-                className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 dark:border-strokedark dark:text-slate-400 dark:hover:bg-meta-4"
-                title="Sao chép email"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Showroom & Operating Hours */}
-          <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs dark:border-strokedark dark:bg-boxdark sm:p-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-strokedark">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Showroom & Điểm tiếp nhận trực tiếp</h3>
-              <a
-                href="https://maps.google.com/?q=730/126+Le+Duc+Tho+An+Hoi+Dong+Ho+Chi+Minh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-              >
-                Bản đồ ↗
-              </a>
-            </div>
-            <div className="mt-3 space-y-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-              <p>
-                <strong className="text-slate-900 dark:text-white">Địa chỉ: </strong>
-                730/126 Đ. Lê Đức Thọ, An Hội Đông, Hồ Chí Minh, Việt Nam
-              </p>
-              <p>
-                <strong className="text-slate-900 dark:text-white">Giờ mở cửa: </strong>
-                08:00 - 22:00 hàng ngày (kể cả Thứ 7, Chủ Nhật và ngày Lễ)
-              </p>
-            </div>
-          </div>
+            </dl>
+            <p className="ch-visit-note">{c('visitNote')}</p>
+          </section>
         </div>
 
-        {/* Right Column: Clean, Straightforward Contact Form */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark sm:p-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Gửi tin nhắn trực tiếp
-            </h2>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Điền thông tin bên dưới, chúng tôi sẽ phản hồi trong thời gian sớm nhất.
-            </p>
-          </div>
+        <section className="ch-card ch-form-card" aria-labelledby="contact-form">
+          <h2 id="contact-form" className="ch-form-title">
+            {c('formTitle')}
+          </h2>
+          <p className="ch-form-intro">{c('formIntro')}</p>
 
           {sent ? (
-            <div className="py-12 text-center">
+            <div className="py-10 text-center">
               <SuccessSignal />
-              <h3 className="mb-2 mt-4 text-xl font-bold text-slate-900 dark:text-white" role="status">
+              <h3 className="mb-2 mt-4 text-xl font-bold text-slate-900" role="status">
                 {t('thanks')}
               </h3>
-              <p className="mb-6 text-xs text-slate-500 dark:text-slate-400">{t('reply')}</p>
-              <button
-                type="button"
-                onClick={() => setSent(false)}
-                className="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900"
-              >
+              <p className="mb-6 text-sm text-slate-500">{t('reply')}</p>
+              <button type="button" onClick={() => setSent(false)} className="ch-submit">
                 {t('sendAnother')}
               </button>
             </div>
           ) : (
-            <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2" noValidate>
+            <form onSubmit={submit} className="ch-form" noValidate>
+              <fieldset className="ch-topic-picker">
+                <legend>{c('formTopic')}</legend>
+                <div>
+                  {TOPICS.map((value) => (
+                    <button key={value} type="button" aria-pressed={topic === value} onClick={() => setTopic(value)}>
+                      {c(value)}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
               <TextField
                 label={t('name')}
                 name="name"
@@ -393,28 +365,23 @@ const Contact = () => {
                 value={form.company}
                 onChange={(event) => update('company')(event.target.value)}
               />
-
-              <div className="sm:col-span-2">
-                <label htmlFor="message" className="mb-1.5 block text-xs font-bold text-slate-800 dark:text-white">
+              <div className="ch-form-wide">
+                <label htmlFor="message" className="mb-1.5 block text-sm font-semibold text-slate-800">
                   {t('message')}
                 </label>
                 <textarea
                   id="message"
                   rows={5}
                   maxLength={2000}
-                  className={`${inputClassName} ${errors.message ? 'border-danger' : ''} text-xs leading-relaxed`}
-                  placeholder="Nhập nội dung tin nhắn hoặc yêu cầu của bạn..."
+                  className={`${inputClassName} ${errors.message ? 'border-danger' : ''} text-sm leading-relaxed`}
+                  placeholder={c('messagePlaceholder')}
                   value={form.message}
                   onChange={(event) => update('message')(event.target.value)}
+                  aria-invalid={errors.message ? true : undefined}
                 />
-                {errors.message && <p className="mt-1 text-xs text-rose-500">{errors.message}</p>}
+                {errors.message && <p className="mt-1 text-xs text-rose-600">{errors.message}</p>}
               </div>
-
-              <button
-                type="submit"
-                disabled={sending}
-                className="mu-button mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold disabled:opacity-60 sm:col-span-2"
-              >
+              <button type="submit" disabled={sending} className="ch-submit ch-form-wide">
                 {sending ? (
                   <>
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -424,9 +391,10 @@ const Contact = () => {
                   <span>{t('send')}</span>
                 )}
               </button>
+              <p className="ch-privacy ch-form-wide">{c('privacy')}</p>
             </form>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -9,10 +9,13 @@ import CartDropdown from './CartDropdown';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCustomerAssistant } from '@/shared/client/providers/CustomerAssistantProvider';
+import ContactIcon from '@/components/Contact/ContactIcon';
+import { CONTACT } from '@/shared/contact-channels';
 import './store-header.css';
 
 export default function StoreHeader() {
   const t = useTranslations('nav');
+  const c = useTranslations('contactHub');
   const locale = useLocale();
   const pathname = usePathname();
   const search = useSearchParams();
@@ -78,6 +81,10 @@ export default function StoreHeader() {
             ))}
           </nav>
           <div className="store-header-tools">
+            <a className="store-hotline" href={CONTACT.tel} aria-label={`${c('callHotline')} ${CONTACT.phoneDisplay}`}>
+              <ContactIcon name="phone" size={15} />
+              <span>{CONTACT.phoneDisplay}</span>
+            </a>
             <a
               className="store-language"
               href={`/${locale === 'vi' ? 'en' : 'vi'}${switchHref}`}
@@ -144,6 +151,20 @@ export default function StoreHeader() {
                 <AdminIcon name="users" size={17} />
                 {accountLabel}
               </a>
+            </div>
+            <div className="store-menu-contact">
+              <a href={CONTACT.tel}>
+                <ContactIcon name="phone" size={17} />
+                {c('call')} {CONTACT.phoneDisplay}
+              </a>
+              <a href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
+                <ContactIcon name="zalo" size={22} />
+                {c('chatZalo')}
+              </a>
+              <Link href="/contact" onClick={() => setMenuOpen(false)}>
+                <ContactIcon name="chat" size={17} />
+                {t('contact')}
+              </Link>
             </div>
           </nav>
         )}

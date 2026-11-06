@@ -29,6 +29,7 @@ import ProductRecommendations from '../components/ProductRecommendations';
 import RestockAlert from '../components/RestockAlert';
 import { trackAddToCart, trackViewContent } from '@/shared/client/utils/tracking';
 import AdminIcon from '@/components/Admin/AdminIcon';
+import ProductContactHelp from '@/components/Contact/ProductContactHelp';
 import ProductImage from '@/components/ProductImage';
 import WorkspaceTabs from '@/components/Store/WorkspaceTabs';
 
@@ -449,6 +450,8 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               </div>
             )}
           </div>
+
+          <ProductContactHelp productName={product.name} />
 
           <ul className="product-service-strip" aria-label={ux('shoppingServices')}>
             {(
