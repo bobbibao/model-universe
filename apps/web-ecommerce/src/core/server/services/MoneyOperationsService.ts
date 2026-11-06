@@ -9,6 +9,17 @@ import crypto from 'node:crypto';
 import { Op, type Transaction } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
 import MoneyOperationModel from '../database/client/models/MoneyOperation.Model';
+import OrderPaymentLinkModel from '../database/client/models/OrderPaymentLink.Model';
+import PaymentSourceModel from '../database/client/models/PaymentSource.Model';
+import {
+  REFUND_TO_SOURCE_POLICY,
+  autoApproves,
+  maskAccount,
+  resolveSource,
+  shopDayStart,
+  type SourceResolution,
+} from '../../../shared/refund-to-source';
+import { transferMemo } from '../../../shared/payment';
 import ReservationModel from '../database/client/models/Reservation.Model';
 import ReservationPaymentModel from '../database/client/models/ReservationPayment.Model';
 import ReservationEventModel from '../database/client/models/ReservationEvent.Model';
@@ -31,6 +42,16 @@ const integer = (value: unknown) => {
   return Number(value);
 };
 type Purpose = 'hold_refund' | 'pawn_credit_refund' | 'purchase_refund' | 'pawn_disposal_surplus';
+// Only these are paid through payOS links, so only they have a signed paying account to refund to.
+// Kill switch: REFUND_TO_SOURCE_AUTO=off sends nothing automatically; every refund to source then waits for review.
+export const automaticRefundsOn = () => process.env.REFUND_TO_SOURCE_AUTO?.trim().toLowerCase() !== 'off';
+export type SourcePurpose = 'purchase_refund' | 'hold_refund';
+export type SourceSkip =
+  | Exclude<SourceResolution, { ok: true }>['reason']
+  | 'existing_refund'
+  | 'no_customer'
+  | 'nothing_owed'
+  | 'cancellation_fee';
 
 export default class MoneyOperationsService {
   async notify(row: MoneyOperationModel, transaction: Transaction) {
@@ -68,6 +89,14 @@ export default class MoneyOperationsService {
               { label: 'Mã yêu cầu', value: `#${row.id}`, isHighlight: true },
               { label: 'Trạng thái', value: status },
               { label: 'Số tiền xử lý', value: `${Number(row.amountVnd).toLocaleString('vi-VN')} ₫`, isHighlight: true },
+              ...(row.details.source
+                ? [
+                    {
+                      label: 'Hoàn về tài khoản',
+                      value: `${row.details.source.bankName || 'Ngân hàng'} ${row.details.source.maskedAccount} (tài khoản đã thanh toán)`,
+                    },
+                  ]
+                : []),
             ],
             actionButton: {
               text: 'Xem chi tiết trong tài khoản',
@@ -215,6 +244,173 @@ export default class MoneyOperationsService {
       return created;
     });
   }
+  // The account a refund for this cancelled order or hold would go back to (refund to source), from the payOS-signed
+  // payment data. Read-only; used by the refund itself, the admin preview and the cancellation alert.
+  async sourceFor(purpose: SourcePurpose, entityId: number, refundVnd: number, transaction?: Transaction) {
+    const links = await OrderPaymentLinkModel.findAll({
+      where: purpose === 'purchase_refund' ? { orderId: entityId } : { reservationId: entityId },
+      attributes: ['id'],
+      transaction,
+    });
+    const rows = links.length
+      ? await PaymentSourceModel.findAll({
+          where: { linkId: links.map((link) => link.id) },
+          order: [['id', 'ASC']],
+          transaction,
+        })
+      : [];
+    return resolveSource(
+      rows.map((row) => ({
+        id: row.id,
+        amountVnd: row.amountVnd,
+        bankBin: row.bankBin,
+        bankName: row.bankName,
+        accountNumber: row.accountNumber,
+        accountName: row.accountName,
+      })),
+      refundVnd,
+    );
+  }
+
+  // Creates the refund of what is still owed on a cancelled order or hold, to the single account that paid it. Within
+  // the owner's limits it is approved by policy (no reviewer) and the caller sends it; otherwise it waits for review.
+  // Without `staffId` (the background sweep) it never acts on an entity that already has a refund record, since a
+  // person decided that one; staff may ask again after a rejected or failed refund.
+  async refundToSource(
+    purpose: SourcePurpose,
+    entityId: number,
+    options: { staffId?: number; now?: Date } = {},
+  ): Promise<{ operation?: MoneyOperationModel; auto: boolean; reason?: SourceSkip }> {
+    const now = options.now ?? new Date();
+    return DatabaseProvider.getInstance().transaction(async (transaction) => {
+      if (options.staffId !== undefined) await CommerceAccessService.require(options.staffId, 'finance', transaction);
+      // One refund-to-source decision at a time: the daily cap is read and used under this lock.
+      await DatabaseProvider.getInstance().query(`SELECT pg_advisory_xact_lock(hashtext('refund_to_source'))`, {
+        transaction,
+      });
+      const previous = await MoneyOperationModel.findAll({ where: { purpose, entityId }, transaction });
+      if (options.staffId === undefined ? previous.length : previous.some((row) => row.status !== 'rejected'))
+        return { auto: false, reason: 'existing_refund' };
+      const { owner, balance } = await this.liability(purpose, entityId, transaction);
+      if (!owner) return { auto: false, reason: 'no_customer' };
+      if (balance < 1) return { auto: false, reason: 'nothing_owed' };
+      if (purpose === 'purchase_refund') {
+        const order = await OrderModel.findByPk(entityId, { transaction });
+        // A deduction the shop keeps is a decision for a person, never for the automatic refund.
+        if (!order || Number(order.cancellationFeeVnd || 0) > 0) return { auto: false, reason: 'cancellation_fee' };
+      }
+      const source = await this.sourceFor(purpose, entityId, balance, transaction);
+      if (!source.ok) return { auto: false, reason: source.reason };
+      const autoTodayBeforeVnd = Number(
+        (await MoneyOperationModel.sum('amountVnd', {
+          where: {
+            createdAt: { [Op.gte]: shopDayStart(now) },
+            status: { [Op.ne]: 'rejected' },
+            'details.autoApproval.policy': REFUND_TO_SOURCE_POLICY.version,
+          },
+          transaction,
+        })) || 0,
+      );
+      const auto = automaticRefundsOn() && autoApproves(balance, autoTodayBeforeVnd);
+      const { account: paid } = source;
+      const account = {
+        bank: paid.bankBin,
+        number: paid.accountNumber,
+        holder: paid.accountName || 'Chủ tài khoản đã thanh toán',
+      };
+      const accountHash = crypto.createHash('sha256').update(JSON.stringify(account)).digest('hex');
+      const reason =
+        purpose === 'purchase_refund'
+          ? `Hoàn về tài khoản đã thanh toán đơn ${transferMemo(entityId)} sau khi huỷ`
+          : `Hoàn cọc giữ hàng #${entityId} về tài khoản đã thanh toán`;
+      const at = now.toISOString();
+      const operation = await MoneyOperationModel.create(
+        {
+          purpose,
+          entityId,
+          amountVnd: balance,
+          requestKey: `refund-to-source:${purpose}:${entityId}:${previous.length + 1}`,
+          requestDigest: crypto
+            .createHash('sha256')
+            .update(JSON.stringify({ purpose, entityId, amountVnd: balance, accountHash, reason }))
+            .digest('hex'),
+          requestedBy: owner,
+          status: auto ? 'approved' : 'requested',
+          approvedBy: null,
+          details: {
+            reason,
+            account,
+            accountHash,
+            source: {
+              paymentSourceIds: paid.paymentSourceIds,
+              bankName: paid.bankName,
+              maskedAccount: maskAccount(paid.accountNumber),
+              paidVnd: paid.paidVnd,
+            },
+            ...(auto
+              ? {
+                  autoApproval: {
+                    policy: REFUND_TO_SOURCE_POLICY.version,
+                    perRefundCapVnd: REFUND_TO_SOURCE_POLICY.perRefundCapVnd,
+                    dailyCapVnd: REFUND_TO_SOURCE_POLICY.dailyCapVnd,
+                    autoTodayBeforeVnd,
+                    at,
+                  },
+                }
+              : {}),
+            history: [
+              { action: 'requested_to_source', at, ...(options.staffId ? { by: options.staffId } : {}) },
+              ...(auto ? [{ action: 'auto_approved', at, reason: REFUND_TO_SOURCE_POLICY.version }] : []),
+            ],
+          },
+        },
+        { transaction },
+      );
+      await this.notify(operation, transaction);
+      return { operation, auto };
+    });
+  }
+  // What a refund to source would do now, for the admin panel: the account, the amount and whether it is sent
+  // automatically. Finance only; changes nothing.
+  async sourcePreview(purpose: SourcePurpose, entityId: number, staffId: number, now = new Date()) {
+    return DatabaseProvider.getInstance().transaction(async (transaction) => {
+      await CommerceAccessService.require(staffId, 'finance', transaction);
+      const active = await MoneyOperationModel.count({
+        where: { purpose, entityId, status: ['requested', 'approved', 'completed', 'reconciliation'] },
+        transaction,
+      });
+      let balance = 0;
+      try {
+        balance = (await this.liability(purpose, entityId, transaction)).balance;
+      } catch (error) {
+        return { ok: false as const, reason: (error as Error).message, amountVnd: 0 };
+      }
+      if (active) return { ok: false as const, reason: 'existing_refund', amountVnd: balance };
+      if (balance < 1) return { ok: false as const, reason: 'nothing_owed', amountVnd: 0 };
+      const source = await this.sourceFor(purpose, entityId, balance, transaction);
+      if (!source.ok) return { ok: false as const, reason: source.reason, amountVnd: balance };
+      const autoTodayVnd = Number(
+        (await MoneyOperationModel.sum('amountVnd', {
+          where: {
+            createdAt: { [Op.gte]: shopDayStart(now) },
+            status: { [Op.ne]: 'rejected' },
+            'details.autoApproval.policy': REFUND_TO_SOURCE_POLICY.version,
+          },
+          transaction,
+        })) || 0,
+      );
+      return {
+        ok: true as const,
+        amountVnd: balance,
+        bankName: source.account.bankName,
+        maskedAccount: maskAccount(source.account.accountNumber),
+        accountName: source.account.accountName,
+        automatic: automaticRefundsOn() && autoApproves(balance, autoTodayVnd),
+        perRefundCapVnd: REFUND_TO_SOURCE_POLICY.perRefundCapVnd,
+        dailyLeftVnd: Math.max(0, REFUND_TO_SOURCE_POLICY.dailyCapVnd - autoTodayVnd),
+      };
+    });
+  }
   async validatePayout(row: MoneyOperationModel, transaction: Transaction) {
     const { balance } = await this.liability(row.purpose, row.entityId, transaction);
     const pending = Number(
@@ -352,7 +548,7 @@ export default class MoneyOperationsService {
         await ReservationPaymentModel.create(
           {
             reservationId: row.entityId,
-            confirmedByUserId: row.approvedBy,
+            confirmedByUserId: row.approvedBy ?? row.requestedBy,
             amountVnd,
             externalReference: reference,
             kind: 'refund',
@@ -364,7 +560,7 @@ export default class MoneyOperationsService {
         await ReservationEventModel.create(
           {
             reservationId: row.entityId,
-            actorUserId: row.approvedBy,
+            actorUserId: row.approvedBy ?? row.requestedBy,
             action: 'refund_provider_confirmed',
             reason: row.details.reason,
             details: { operationId: row.id, reference, amountVnd },
@@ -375,7 +571,7 @@ export default class MoneyOperationsService {
         await OrderPrepaymentModel.create(
           {
             orderId: row.entityId,
-            actorUserId: row.approvedBy,
+            actorUserId: row.approvedBy ?? row.requestedBy,
             kind: 'refund',
             amountVnd,
             externalReference: reference,
@@ -383,12 +579,13 @@ export default class MoneyOperationsService {
           },
           { transaction },
         );
-        await OrderModel.update({ paymentStatus: 'REFUNDED' }, { where: { id: row.entityId }, transaction });
+        // The refund is the order_prepayment `refund` entry, as when staff record one; paymentStatus has no
+        // REFUNDED value (enum PENDING | PAID), and writing one failed the whole confirmation after the money left.
       } else if (row.purpose === 'pawn_disposal_surplus') {
         await PawnDisposalEntryModel.create(
           {
             pawnContractId: row.entityId,
-            actorUserId: row.approvedBy,
+            actorUserId: row.approvedBy ?? row.requestedBy,
             kind: 'surplus',
             amountVnd,
             costsVnd: 0,
@@ -400,7 +597,7 @@ export default class MoneyOperationsService {
         await PawnEventModel.create(
           {
             pawnContractId: row.entityId,
-            actorUserId: row.approvedBy,
+            actorUserId: row.approvedBy ?? row.requestedBy,
             action: 'surplus_provider_confirmed',
             details: { operationId: row.id, reference, amountVnd },
           },
@@ -410,7 +607,7 @@ export default class MoneyOperationsService {
         await PawnPaymentModel.create(
           {
             pawnContractId: row.entityId,
-            actorUserId: row.approvedBy,
+            actorUserId: row.approvedBy ?? row.requestedBy,
             kind: 'credit_refund',
             amountVnd,
             principalVnd: 0,
@@ -424,7 +621,7 @@ export default class MoneyOperationsService {
         await PawnEventModel.create(
           {
             pawnContractId: row.entityId,
-            actorUserId: row.approvedBy,
+            actorUserId: row.approvedBy ?? row.requestedBy,
             action: 'credit_refund_confirmed',
             details: { operationId: row.id, reference, amountVnd },
           },

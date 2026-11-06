@@ -158,6 +158,9 @@ services:
       PAYOS_PAYOUT_CLIENT_ID: ${PAYOS_PAYOUT_CLIENT_ID:-}
       PAYOS_PAYOUT_API_KEY: ${PAYOS_PAYOUT_API_KEY:-}
       PAYOS_PAYOUT_CHECKSUM_KEY: ${PAYOS_PAYOUT_CHECKSUM_KEY:-}
+      # Refund to source: cancelled payOS payments go back to the paying account; within 2,000,000 VND per refund and
+      # 10,000,000 VND per day they are sent without a reviewer. `off` makes every one wait for review.
+      REFUND_TO_SOURCE_AUTO: ${REFUND_TO_SOURCE_AUTO:-on}
       SMTP_ENABLED_AT: ${SMTP_ENABLED_AT:-}
       NODE_OPTIONS: ${NODE_OPTIONS:-}
       PAYOS_LINK_MINUTES: ${PAYOS_LINK_MINUTES:-30}

@@ -2,6 +2,7 @@
 import HoldReview from './HoldReview';
 import HoldPayment from './HoldPayment';
 import RefundRequest, { RefundHistory } from '../finance/RefundRequest';
+import RefundToSource from '../finance/RefundToSource';
 import { ServiceHeader, ServiceTerms } from '@/components/Services/ServiceExperience';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -403,6 +404,14 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
                 )}
                 {admin && <HoldReview id={selected.id} onUpdated={() => void open(selected.id)} />}
                 <RefundHistory operations={selected.operations} />
+                {admin && ['cancelled', 'expired'].includes(selected.status) && (
+                  <RefundToSource
+                    key={`source-${selected.id}`}
+                    purpose="hold_refund"
+                    entityId={selected.id}
+                    onUpdated={() => void open(selected.id)}
+                  />
+                )}
                 <RefundRequest
                   key={`refund-${selected.id}`}
                   endpoint={`/reservations/${selected.id}/refund-request`}
