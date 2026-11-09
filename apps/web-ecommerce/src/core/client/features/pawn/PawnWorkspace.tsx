@@ -2,7 +2,7 @@
 
 import DateTimeInput from '@/components/DateTimeInput';
 import PawnGovernancePanel from './PawnGovernancePanel';
-import { ServiceHeader, ServiceTerms, ServiceEmpty } from '@/components/Services/ServiceExperience';
+import { ServiceGuestPanel, ServiceHeader, ServiceTerms, ServiceEmpty } from '@/components/Services/ServiceExperience';
 
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -198,9 +198,7 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
         <p>{t('capNote')}</p>
       </ServiceTerms>
       {!user ? (
-        <Link className="mu-button" href="/auth/signin?redirect=/services/pawn">
-          {t('signIn')}
-        </Link>
+        <ServiceGuestPanel service="pawn" signInHref="/auth/signin?redirect=/services/pawn" signInLabel={t('signIn')} />
       ) : (
         <>
           {failed && (
