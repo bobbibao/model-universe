@@ -1,6 +1,6 @@
 'use client';
 
-import { ServiceHeader, ServiceTerms, ServiceEmpty } from '@/components/Services/ServiceExperience';
+import { ServiceGuestPanel, ServiceHeader, ServiceTerms, ServiceEmpty } from '@/components/Services/ServiceExperience';
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
@@ -222,11 +222,11 @@ export default function BuybackWorkspace({
       />
 
       {!user ? (
-        <div className="my-8 text-center">
-          <Link className="mu-button" href={`/auth/signin?redirect=/services/${mode}`}>
-            {t('signIn')}
-          </Link>
-        </div>
+        <ServiceGuestPanel
+          service={mode}
+          signInHref={`/auth/signin?redirect=/services/${mode}`}
+          signInLabel={t('signIn')}
+        />
       ) : (
         <>
           {failed && (

@@ -3,7 +3,7 @@ import HoldReview from './HoldReview';
 import HoldPayment from './HoldPayment';
 import RefundRequest, { RefundHistory } from '../finance/RefundRequest';
 import RefundToSource from '../finance/RefundToSource';
-import { ServiceHeader, ServiceTerms } from '@/components/Services/ServiceExperience';
+import { ServiceGuestPanel, ServiceHeader, ServiceTerms } from '@/components/Services/ServiceExperience';
 
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -124,9 +124,11 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
         <p>{t('moneyNotice')}</p>
       </ServiceTerms>
       {!user ? (
-        <Link className="mu-button" href="/auth/signin?redirect=/reservations">
-          {t('signIn')}
-        </Link>
+        <ServiceGuestPanel
+          service="reserve"
+          signInHref="/auth/signin?redirect=/reservations"
+          signInLabel={t('signIn')}
+        />
       ) : (
         <>
           {notifications.map((notification) => (

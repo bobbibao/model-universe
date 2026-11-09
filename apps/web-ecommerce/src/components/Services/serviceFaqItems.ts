@@ -1,3 +1,5 @@
+import { SERVICE_FACTS } from './serviceFacts';
+
 // The service FAQ shown on /services; the page's FAQPage data is built from the same list so both always match.
 export interface FaqItem {
   id: string;
@@ -29,13 +31,13 @@ export const FAQ_LIST: FaqItem[] = [
     category: 'hold',
     badge: 'Giữ hàng',
     question: 'Dịch vụ Giữ mô hình (Hold / Reservation) hoạt động ra sao? Cọc bao nhiêu?',
-    answer:
-      'Khách hàng cọc tối thiểu 20% giá trị sản phẩm để giữ mô hình từ 15 ngày đến 90 ngày. Sản phẩm được niêm phong giữ riêng cho bạn và cam kết không bán cho khách hàng khác. Bạn có thể tất toán phần còn lại bất kỳ lúc nào để nhận hàng.',
+    // Numbers from the hold rules (src/shared/reservation.ts): the old text said 15-90 days, which the shop never applied.
+    answer: `Bạn cọc từ ${SERVICE_FACTS.holdMinPercent}% tiền hàng để giữ mô hình; thời hạn giữ từ ${SERVICE_FACTS.holdMinDays} đến ${SERVICE_FACTS.holdMaxDays} ngày tuỳ mức cọc (cọc càng cao, giữ càng lâu). Sản phẩm được giữ riêng cho bạn và không bán cho khách hàng khác trong thời hạn giữ. Bạn có thể thanh toán phần còn lại bất kỳ lúc nào để nhận hàng; shop không tự tịch thu cọc.`,
   },
   {
     id: 'pawn-safety',
     category: 'pawn',
-    badge: 'Cầm đồ',
+    badge: 'Cầm cố',
     question: 'Dịch vụ Cầm đồ mô hình có bảo quản an toàn không? Biểu phí ra sao?',
     answer:
       'Mô hình được lưu giữ trong tủ chống ẩm chuyên dụng với camera giám sát 24/7 và niêm phong có chữ ký hai bên. Phí dịch vụ 0.3%/ngày, minh bạch, không phụ phí ẩn. Bạn có thể chuộc lại mô hình bất cứ lúc nào trong thời hạn hợp đồng.',
