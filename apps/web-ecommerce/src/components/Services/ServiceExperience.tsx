@@ -4,6 +4,10 @@ import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
+import ContactIcon from '@/components/Contact/ContactIcon';
+import { CONTACT } from '@/shared/contact-channels';
+import { SERVICE_FACTS } from './serviceFacts';
+import './service-guide.css';
 
 export type CollectorService = 'sell' | 'trade' | 'pawn' | 'partner' | 'reserve' | 'loyalty';
 const services: { key: CollectorService; icon: string; route: string }[] = [
@@ -83,5 +87,84 @@ export function ServiceEmpty({ children }: { children: ReactNode }) {
         <p>{children}</p>
       </div>
     </div>
+  );
+}
+
+type GuideService = Exclude<CollectorService, 'loyalty'>;
+
+// The key fact of each service, with its numbers computed from the pricing rules (serviceFacts.ts).
+export function useServiceFact() {
+  const g = useTranslations('serviceGuide');
+  return (service: GuideService) =>
+    ({
+      sell: g('factSell', { percent: SERVICE_FACTS.sellMaxPercent }),
+      trade: g('factTrade'),
+      pawn: g('factPawn', { percent: SERVICE_FACTS.pawnPercent }),
+      reserve: g('factReserve', {
+        percent: SERVICE_FACTS.holdMinPercent,
+        minDays: SERVICE_FACTS.holdMinDays,
+        maxDays: SERVICE_FACTS.holdMaxDays,
+      }),
+      partner: g('factPartner'),
+    })[service];
+}
+
+// Signed-out visitors of a service page: how it works in four steps, its key terms, then sign in or ask first.
+export function ServiceGuestPanel({
+  service,
+  signInHref,
+  signInLabel,
+}: {
+  service: GuideService;
+  signInHref: string;
+  signInLabel: string;
+}) {
+  const g = useTranslations('serviceGuide');
+  const fact = useServiceFact();
+  const numbers = {
+    percent: SERVICE_FACTS.holdMinPercent,
+    minDays: SERVICE_FACTS.holdMinDays,
+    maxDays: SERVICE_FACTS.holdMaxDays,
+  };
+  return (
+    <section className="sg-guest" aria-labelledby={`guest-${service}`}>
+      <div className="sg-guest-main">
+        <h2 id={`guest-${service}`}>{g('guestTitle')}</h2>
+        <ol className="sg-steps">
+          {[1, 2, 3, 4].map((step) => (
+            <li key={step}>
+              <span className="sg-step-number">{step}</span>
+              <span>{g(`${service}Step${step}`, numbers)}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <aside className="sg-guest-side">
+        <ul className="sg-facts">
+          <li>
+            <AdminIcon name="check" size={16} />
+            {fact(service)}
+          </li>
+          <li>
+            <AdminIcon name="check" size={16} />
+            {g(`${service}Fact2`)}
+          </li>
+        </ul>
+        <p>{g('guestIntro')}</p>
+        <div className="sg-guest-actions">
+          <Link className="sg-button is-primary" href={signInHref}>
+            {signInLabel}
+          </Link>
+          <a className="sg-button" href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
+            <ContactIcon name="zalo" size={22} />
+            {g('guestZalo')}
+          </a>
+          <a className="sg-button is-quiet" href={CONTACT.tel}>
+            <ContactIcon name="phone" size={16} />
+            {g('guestCall', { phone: CONTACT.phoneDisplay })}
+          </a>
+        </div>
+      </aside>
+    </section>
   );
 }

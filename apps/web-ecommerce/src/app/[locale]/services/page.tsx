@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import StoreLayout from '@/components/Layouts/StoreLayout';
-import { getFeaturedProducts } from '@/shared/server/utils/StorefrontData';
 import CollectorServices from '@/core/client/features/content/pages/CollectorServices';
 import { FAQ_LIST } from '@/components/Services/serviceFaqItems';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
@@ -26,7 +25,6 @@ export default async function ServicesPage({ params }: Props) {
   const { locale } = await params;
   const en = isEnglish(locale);
   const base = siteUrl();
-  const featured = await getFeaturedProducts();
 
   return (
     <StoreLayout>
@@ -49,7 +47,7 @@ export default async function ServicesPage({ params }: Props) {
           ]),
         }}
       />
-      <CollectorServices product={featured?.find((product) => product.stock > 0)} />
+      <CollectorServices />
     </StoreLayout>
   );
 }

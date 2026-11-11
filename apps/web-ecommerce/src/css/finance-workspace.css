@@ -1339,3 +1339,11 @@
     width: 100%;
   }
 }
+
+/* Dashboard: separates "needs your attention" from the period report. */
+.finance-section-title {
+  margin: 4px 0 12px;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+}

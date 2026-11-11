@@ -7,6 +7,7 @@ import MoneyOperationModel from '../database/client/models/MoneyOperation.Model'
 import CommerceAccessService from './CommerceAccessService';
 import MoneyOperationsService from './MoneyOperationsService';
 import HttpError from '../../../shared/server/utils/HttpError';
+import Logger from '../../../shared/server/utils/logger';
 
 export interface PayoutClient {
   payouts: {
@@ -91,7 +92,7 @@ export default class PayOSPayoutService {
     });
     let checked = 0;
     for (const row of rows) {
-      if (!row.details.payout || !row.approvedBy) continue;
+      if (!row.details.payout || (!row.approvedBy && !row.details.autoApproval)) continue;
       try {
         await this.execute(row.id, row.approvedBy, row.version, false);
         checked++;
@@ -102,15 +103,44 @@ export default class PayOSPayoutService {
     return checked;
   }
 
-  async execute(id: number, actorId: number, expectedVersion: unknown, send = true) {
+  // Sends the refunds approved under the automatic refund-to-source policy that were not submitted yet (a crash or a
+  // missing payout key between approval and sending). Each keeps its own stable payOS reference.
+  async submitAutoApproved() {
+    if (!this.injected && !payoutConfigured()) return 0;
+    const rows = await MoneyOperationModel.findAll({
+      where: { status: 'approved', approvedBy: null, 'details.autoApproval.policy': { [Op.ne]: null } },
+      order: [['id', 'ASC']],
+      limit: 25,
+    });
+    let sent = 0;
+    for (const row of rows) {
+      if (row.details.payout) continue; // reconcilePending checks submitted ones; never send twice.
+      try {
+        await this.execute(row.id, null, row.version, true);
+        sent++;
+      } catch (error) {
+        Logger.WARN(`Automatic refund #${row.id} not sent: ${(error as Error).message}`);
+      }
+    }
+    return sent;
+  }
+
+  // `actorId` null: the system sends a refund that the automatic refund-to-source policy approved (no reviewer).
+  async execute(id: number, actorId: number | null, expectedVersion: unknown, send = true) {
     const sdk = this.injected || client();
     const approved = await DatabaseProvider.getInstance().transaction(async (transaction) => {
-      await CommerceAccessService.require(actorId, 'finance', transaction);
+      if (actorId !== null) await CommerceAccessService.require(actorId, 'finance', transaction);
       const row = await MoneyOperationModel.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
       if (!row) throw HttpError.notFound();
       if (row.status === 'completed') return row;
-      if (row.status !== 'approved' || row.version !== expectedVersion || !row.approvedBy)
+      if (
+        row.status !== 'approved' ||
+        row.version !== expectedVersion ||
+        (!row.approvedBy && !row.details.autoApproval)
+      )
         throw HttpError.conflict('Xem lại yêu cầu đã được duyệt trước khi chuyển tiền.');
+      if (actorId === null && (row.approvedBy || !row.details.autoApproval))
+        throw HttpError.forbidden('Only refunds approved by the automatic policy are sent without a person.');
       const payload = payoutPayload(row);
       if (!row.details.payout?.providerId && send) await new MoneyOperationsService().validatePayout(row, transaction);
       if (row.details.payout?.providerId || !send) return row;
@@ -122,7 +152,11 @@ export default class PayOSPayoutService {
             payout: { ...row.details.payout, referenceId: payload.referenceId, state: 'SUBMITTING' },
             history: [
               ...row.details.history,
-              { action: 'payos_submission_requested', by: actorId, at: new Date().toISOString() },
+              {
+                action: 'payos_submission_requested',
+                ...(actorId ? { by: actorId } : {}),
+                at: new Date().toISOString(),
+              },
             ],
           },
         },
@@ -167,7 +201,11 @@ export default class PayOSPayoutService {
               },
               history: [
                 ...row.details.history,
-                { action: `payos_${tx.state.toLowerCase()}`, by: actorId, at: new Date().toISOString() },
+                {
+                  action: `payos_${tx.state.toLowerCase()}`,
+                  ...(actorId ? { by: actorId } : {}),
+                  at: new Date().toISOString(),
+                },
               ],
             },
           },

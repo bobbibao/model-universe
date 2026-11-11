@@ -25,6 +25,13 @@ export function RefundHistory({ operations = [] }: { operations?: MoneyOperation
           <p className="mu-note">
             #{row.id} · {new Date(row.createdAt).toLocaleString('vi-VN')}
           </p>
+          {row.details?.source && (
+            <p>
+              Về tài khoản đã thanh toán: {row.details.source.bankName || 'Ngân hàng'}{' '}
+              {row.details.source.maskedAccount}
+              {row.details.autoApproval ? ' · tự động trong hạn mức' : ''}
+            </p>
+          )}
           {row.providerReference && <p className="break-all">{row.providerReference}</p>}
         </li>
       ))}

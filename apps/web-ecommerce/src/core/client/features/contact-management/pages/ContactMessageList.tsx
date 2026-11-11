@@ -32,6 +32,14 @@ const ContactMessageList = () => {
   const [status, setStatus] = useState<ContactMessageStatus | ''>('');
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<ContactMessage | null>(null);
+  // ?status=NEW (from the dashboard) opens the list filtered; nothing loads until the filter is read.
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('status');
+    if (requested === 'NEW' || requested === 'HANDLED') setStatus(requested);
+    setReady(true);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,8 +58,8 @@ const ContactMessageList = () => {
   }, [search, status, page]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (ready) load();
+  }, [load, ready]);
 
   const toggleStatus = async (message: ContactMessage) => {
     const updated = await ContactApi.updateStatus(message.id, message.status === 'NEW' ? 'HANDLED' : 'NEW');

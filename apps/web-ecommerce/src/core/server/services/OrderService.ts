@@ -653,17 +653,28 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       },
       transaction,
     );
-    if (refund)
+    if (refund) {
+      // Refund to source: when payOS reported the single account that paid, the background job refunds it there.
+      // Staff must not also transfer by hand.
+      const { default: MoneyOperationsService } =
+        require('./MoneyOperationsService') as typeof import('./MoneyOperationsService');
+      const toSource =
+        feeVnd === 0 &&
+        (await new MoneyOperationsService().sourceFor('purchase_refund', order.id, refundVnd, transaction)).ok;
+      const next = toSource
+        ? 'Hệ thống tự hoàn về đúng tài khoản đã thanh toán trong khoảng 1 phút (tự gửi nếu ≤ 2.000.000 VND/lệnh và trong hạn mức ngày; lớn hơn thì chờ duyệt ở Tài chính → Hoàn tiền).\nKHÔNG chuyển khoản tay.'
+        : 'Hoàn tiền rồi ghi nhận ở mục Thanh toán trước.';
       await new NotificationDispatchService().alertAdmins(
         {
           kind: 'refund_due',
           orderId: order.id,
           dedupeKey: `order:${order.id}:refund-due`,
           title: 'MODEL universe – ĐƠN ĐÃ HUỶ, CẦN HOÀN TIỀN',
-          content: `Mã đơn: ${transferMemo(order.id)}\nĐã thu: ${order.prepaidVnd} VND\nKhoản khấu trừ đã duyệt: ${feeVnd} VND\nCần hoàn: ${refundVnd} VND\nHoàn tiền rồi ghi nhận ở mục Thanh toán trước.\nXem đơn: ${adminOrderUrl(order.id)}`,
+          content: `Mã đơn: ${transferMemo(order.id)}\nĐã thu: ${order.prepaidVnd} VND\nKhoản khấu trừ đã duyệt: ${feeVnd} VND\nCần hoàn: ${refundVnd} VND\n${next}\nXem đơn: ${adminOrderUrl(order.id)}`,
         },
         transaction,
       );
+    }
   }
 
   // Cancellations the system makes (src/shared/cancellation.ts): an unpaid order past its deadline, or a customer's

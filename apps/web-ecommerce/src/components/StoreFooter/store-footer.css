@@ -1,0 +1,231 @@
+/* Storefront footer. Selectors start with `.mu-shell .mu-footer.sf` to win over the older light-footer rules. */
+.mu-shell .mu-footer.sf {
+  background: #1c1b25;
+  color: #c9c3d6;
+  border-top: 0;
+  padding-top: 48px;
+}
+.mu-shell .mu-footer.sf a,
+.mu-shell .mu-footer.sf p,
+.mu-shell .mu-footer.sf span,
+.mu-shell .mu-footer.sf button {
+  color: inherit;
+}
+.mu-shell .mu-footer.sf a:hover,
+.mu-shell .mu-footer.sf button:hover {
+  color: #dcf56a;
+}
+.mu-shell .mu-footer.sf h2 {
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+/* Call to action band */
+.mu-shell .mu-footer.sf .sf-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+  padding: 28px 32px;
+  border-radius: 22px;
+  background: linear-gradient(120deg, #2e2647 0%, #3b2f5f 100%);
+  border: 1px solid #ffffff14;
+}
+.mu-shell .mu-footer.sf .sf-cta h2 {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 26px);
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+.mu-shell .mu-footer.sf .sf-cta p {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #d8d1e6;
+}
+.mu-shell .mu-footer.sf .sf-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.mu-shell .mu-footer.sf .sf-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 18px 0 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #22212b;
+  font-size: 14px;
+  font-weight: 750;
+}
+.mu-shell .mu-footer.sf .sf-cta-button.is-primary {
+  padding-left: 16px;
+  background: #dcf56a;
+}
+.mu-shell .mu-footer.sf .sf-cta-button:hover {
+  color: #22212b;
+  filter: brightness(0.95);
+}
+
+/* Columns */
+.mu-shell .mu-footer.sf .sf-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 0.8fr)) minmax(0, 1.3fr);
+  gap: 32px;
+  margin-top: 48px;
+}
+.mu-shell .mu-footer.sf .sf-grid nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+}
+.mu-shell .mu-footer.sf .sf-brand,
+.mu-shell .mu-footer.sf .sf-brand span {
+  color: #fff;
+  font-size: 22px;
+}
+.mu-shell .mu-footer.sf .sf-brand svg {
+  color: #dcf56a;
+}
+.mu-shell .mu-footer.sf .sf-about p {
+  margin-top: 16px;
+  max-width: 340px;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.mu-shell .mu-footer.sf .sf-socials {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.mu-shell .mu-footer.sf .sf-socials a {
+  display: inline-flex;
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+.mu-shell .mu-footer.sf .sf-socials a:hover {
+  transform: translateY(-2px);
+}
+.mu-shell .mu-footer.sf .sf-contact {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  font-style: normal;
+  font-size: 14px;
+}
+.mu-shell .mu-footer.sf .sf-contact a,
+.mu-shell .mu-footer.sf .sf-contact p {
+  display: flex;
+  gap: 10px;
+  line-height: 1.5;
+}
+.mu-shell .mu-footer.sf .sf-contact svg {
+  flex-shrink: 0;
+  margin-top: 18px;
+  color: #dcf56a;
+}
+.mu-shell .mu-footer.sf .sf-contact small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8e86a3;
+}
+
+/* Bottom bar */
+.mu-shell .mu-footer.sf .sf-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-top: 44px;
+  padding-top: 22px;
+  border-top: 1px solid #ffffff17;
+  font-size: 13px;
+}
+.mu-shell .mu-footer.sf .sf-payments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.mu-shell .mu-footer.sf .sf-payments-label {
+  margin-right: 4px;
+  color: #8e86a3;
+}
+.mu-shell .mu-footer.sf .sf-chip {
+  padding: 5px 12px;
+  border: 1px solid #ffffff24;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e9e4f2;
+}
+.mu-shell .mu-footer.sf .sf-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  color: #8e86a3;
+}
+
+@media (max-width: 1100px) {
+  .mu-shell .mu-footer.sf .sf-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .mu-shell .mu-footer.sf .sf-about {
+    grid-column: 1 / -1;
+  }
+  .mu-shell .mu-footer.sf .sf-contact {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mu-shell .mu-footer.sf .sf-contact h2 {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+}
+@media (max-width: 640px) {
+  .mu-shell .mu-footer.sf {
+    padding-top: 28px;
+  }
+  .mu-shell .mu-footer.sf .sf-cta {
+    padding: 22px 20px;
+  }
+  .mu-shell .mu-footer.sf .sf-cta-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .mu-shell .mu-footer.sf .sf-cta-button {
+    justify-content: center;
+  }
+  .mu-shell .mu-footer.sf .sf-cta-button.is-primary {
+    grid-column: 1 / -1;
+  }
+  .mu-shell .mu-footer.sf .sf-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 20px;
+    margin-top: 32px;
+  }
+  .mu-shell .mu-footer.sf .sf-grid > nav:last-of-type {
+    grid-column: 1 / -1;
+  }
+  .mu-shell .mu-footer.sf .sf-contact {
+    grid-template-columns: 1fr;
+  }
+  .mu-shell .mu-footer.sf .sf-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

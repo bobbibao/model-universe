@@ -1,166 +1,148 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { FAQ_LIST } from './serviceFaqItems';
+import { useTranslations } from 'next-intl';
+import Link from '@/i18n/navigation';
+import ContactIcon from '@/components/Contact/ContactIcon';
+import { CONTACT } from '@/shared/contact-channels';
+import { FAQ_LIST, type FaqItem } from './serviceFaqItems';
+import './service-guide.css';
 
-type CategoryFilter = 'all' | 'buyback' | 'hold' | 'pawn' | 'valuation';
+type CategoryFilter = 'all' | FaqItem['category'];
+const FILTERS: { key: CategoryFilter; label: 'faqAll' | 'faqBuyback' | 'faqHold' | 'faqPawn' | 'faqValuation' }[] = [
+  { key: 'all', label: 'faqAll' },
+  { key: 'buyback', label: 'faqBuyback' },
+  { key: 'hold', label: 'faqHold' },
+  { key: 'pawn', label: 'faqPawn' },
+  { key: 'valuation', label: 'faqValuation' },
+];
+
+// Accent-insensitive search, so "giu hang" finds "giữ hàng".
+const fold = (text: string) =>
+  text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 
 export default function ServiceFaq() {
+  const g = useTranslations('serviceGuide');
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({
-    'buyback-flow': true,
-    'hold-policy': true,
-  });
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({ 'buyback-flow': true });
 
-  const toggleExpand = (id: string) => {
-    setExpandedIds((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
-  const filteredFaqs = useMemo(() => {
-    return FAQ_LIST.filter((item) => {
-      const matchCat = activeCategory === 'all' || item.category === activeCategory;
-      const matchQuery =
-        !searchTerm.trim() ||
-        item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.answer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.badge.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchCat && matchQuery;
-    });
-  }, [activeCategory, searchTerm]);
+  const matchesSearch = useMemo(() => {
+    const query = fold(searchTerm.trim());
+    return (item: FaqItem) => !query || fold(`${item.question} ${item.answer} ${item.badge}`).includes(query);
+  }, [searchTerm]);
+  const visible = FAQ_LIST.filter(
+    (item) => (activeCategory === 'all' || item.category === activeCategory) && matchesSearch(item),
+  );
+  const count = (key: CategoryFilter) =>
+    FAQ_LIST.filter((item) => (key === 'all' || item.category === key) && matchesSearch(item)).length;
 
   return (
-    <div className="service-faq-section py-4">
-      {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 dark:border-strokedark sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            Câu hỏi thường gặp
-          </h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-            Thông tin chi tiết về quy trình thẩm định, điều kiện thu mua, dịch vụ cầm đồ và giữ mô hình.
-          </p>
-        </div>
-
-        {/* Clean Search Input */}
-        <div className="relative w-full sm:w-64">
+    <section className="sg-faq" aria-labelledby="faq-title">
+      <div className="sg-faq-side">
+        <h2 id="faq-title">{g('faqTitle')}</h2>
+        <p className="sg-faq-intro">{g('faqIntro')}</p>
+        <label className="sg-faq-search">
+          <span className="sr-only">{g('faqSearch')}</span>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
           <input
-            type="text"
+            type="search"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Tìm câu hỏi..."
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-7 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-hidden dark:border-strokedark dark:bg-meta-4 dark:text-white"
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder={g('faqSearch')}
           />
-          <div className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-          </div>
           {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-white"
-            >
+            <button type="button" onClick={() => setSearchTerm('')} aria-label={g('faqClear')}>
               ✕
             </button>
           )}
+        </label>
+        <div className="sg-faq-filters" role="group" aria-label={g('faqTitle')}>
+          {FILTERS.map((filter) => (
+            <button
+              key={filter.key}
+              type="button"
+              aria-pressed={activeCategory === filter.key}
+              onClick={() => setActiveCategory(filter.key)}
+            >
+              {g(filter.label)}
+              <span>{count(filter.key)}</span>
+            </button>
+          ))}
+        </div>
+        <div className="sg-faq-help">
+          <strong>{g('faqHelpTitle')}</strong>
+          <p>{g('faqHelpText', { hours: CONTACT.hours })}</p>
+          <div>
+            <a href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
+              <ContactIcon name="zalo" size={22} />
+              {g('guestZalo')}
+            </a>
+            <a href={CONTACT.tel}>
+              <ContactIcon name="phone" size={15} />
+              {CONTACT.phoneDisplay}
+            </a>
+          </div>
+          <Link href="/contact" className="sg-faq-help-link">
+            {g('faqContact')} →
+          </Link>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="my-4 flex flex-wrap gap-1.5">
-        {(
-          [
-            ['all', 'Tất cả'],
-            ['buyback', 'Thu mua'],
-            ['hold', 'Giữ mô hình'],
-            ['pawn', 'Cầm đồ'],
-            ['valuation', 'Định giá & Giải ngân'],
-          ] as const
-        ).map(([key, label]) => {
-          const isActive = activeCategory === key;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setActiveCategory(key)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                isActive
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-meta-4'
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Accordion Divider List */}
-      <div className="divide-y divide-slate-200 dark:divide-strokedark">
-        {filteredFaqs.length === 0 ? (
-          <div className="py-10 text-center text-xs text-slate-400">
-            Không tìm thấy câu hỏi phù hợp.
-          </div>
+      <div className="sg-faq-list">
+        <p className="sg-faq-count" role="status">
+          {g('faqCount', { count: visible.length })}
+        </p>
+        {visible.length === 0 ? (
+          <p className="sg-faq-empty">{g('faqEmpty')}</p>
         ) : (
-          filteredFaqs.map((faq) => {
-            const isExpanded = !!expandedIds[faq.id];
+          visible.map((faq) => {
+            const open = !!expandedIds[faq.id];
             return (
-              <div key={faq.id} className="py-4">
-                <button
-                  type="button"
-                  onClick={() => toggleExpand(faq.id)}
-                  aria-expanded={isExpanded}
-                  className="flex w-full items-start justify-between gap-4 text-left"
-                >
-                  <div className="flex items-baseline gap-2.5">
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:bg-meta-4 dark:text-slate-400">
-                      {faq.badge}
+              <article key={faq.id} id={`faq-${faq.id}`} className="sg-faq-item" data-open={open}>
+                <h3>
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-controls={`faq-answer-${faq.id}`}
+                    onClick={() => setExpandedIds((current) => ({ ...current, [faq.id]: !current[faq.id] }))}
+                  >
+                    <span className={`sg-faq-badge is-${faq.category}`}>{faq.badge}</span>
+                    <span className="sg-faq-question">{faq.question}</span>
+                    <span className="sg-faq-chevron" aria-hidden="true">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
                     </span>
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
-                      {faq.question}
-                    </h3>
-                  </div>
-                  <span className="mt-0.5 text-base font-bold text-slate-400">
-                    {isExpanded ? '−' : '+'}
-                  </span>
-                </button>
-
+                  </button>
+                </h3>
                 {/* Collapsed answers stay in the HTML (hidden) so search engines read every answer. */}
-                <div
-                  hidden={!isExpanded}
-                  className="mt-2.5 pl-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300 sm:text-sm"
-                >
+                <div id={`faq-answer-${faq.id}`} className="sg-faq-answer" hidden={!open}>
                   {faq.answer}
                 </div>
-              </div>
+              </article>
             );
           })
         )}
       </div>
-
-      {/* Clean Footnote */}
-      <div className="mt-8 border-t border-slate-200 pt-5 text-xs text-slate-500 dark:border-strokedark dark:text-slate-400">
-        <span>Vẫn còn thắc mắc? Liên hệ Hotline </span>
-        <a href="tel:+84373725104" className="font-bold text-slate-900 hover:underline dark:text-white">
-          0373 725 104
-        </a>
-        <span> hoặc </span>
-        <a
-          href="https://zalo.me/0373725104"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-bold text-slate-900 hover:underline dark:text-white"
-        >
-          Nhắn tin Zalo ↗
-        </a>
-        <span> để được hỗ trợ trực tiếp.</span>
-      </div>
-    </div>
+    </section>
   );
 }

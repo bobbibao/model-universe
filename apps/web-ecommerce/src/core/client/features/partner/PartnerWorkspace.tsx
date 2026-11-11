@@ -1,5 +1,5 @@
 'use client';
-import { ServiceHeader, ServiceTerms } from '@/components/Services/ServiceExperience';
+import { ServiceGuestPanel, ServiceHeader, ServiceTerms } from '@/components/Services/ServiceExperience';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -97,9 +97,11 @@ export default function PartnerWorkspace() {
       <section className="mu-wrap mu-section service-workspace">
         <ServiceHeader service="partner" title={t('title')} />
         <ServiceTerms><p>{t('intro')}</p></ServiceTerms>
-        <Link className="mu-button" href="/auth/signin?redirect=%2Fservices%2Fpartner">
-          {common('signIn')}
-        </Link>
+        <ServiceGuestPanel
+          service="partner"
+          signInHref="/auth/signin?redirect=%2Fservices%2Fpartner"
+          signInLabel={common('signIn')}
+        />
       </section>
     );
   const canRevise = (!selected || ['submitted', 'changes_requested', 'rejected'].includes(selected.status));

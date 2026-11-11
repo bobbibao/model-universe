@@ -63,6 +63,14 @@ export default function OrderList() {
     [page, setPage] = useState(1),
     [refresh, setRefresh] = useState(0);
   const [sort, setSort] = useState<SortState>({ key: 'createdAt', direction: 'desc' });
+  // Links from the dashboard open the list already filtered: ?status=PROCESSING|SHIPPED, ?attention=unpaid|cancellation.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    const focus = params.get('attention');
+    if (status && status in statusNames) setStatuses([status as OrderStatus]);
+    if (focus === 'unpaid' || focus === 'cancellation') setAttention(focus);
+  }, []);
   useEffect(() => {
     setPage(1);
   }, [pageSize]);

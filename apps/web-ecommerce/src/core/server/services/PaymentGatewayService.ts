@@ -5,6 +5,7 @@ import { PayOS } from '@payos/node';
 import { Op, QueryTypes } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
 import OrderModel from '../database/client/models/Order.Model';
+import PaymentSourceModel from '../database/client/models/PaymentSource.Model';
 import OrderPaymentLinkModel from '../database/client/models/OrderPaymentLink.Model';
 import type CheckoutSessionModel from '../database/client/models/CheckoutSession.Model';
 import UserModel from '../database/internal/models/User.Model';
@@ -51,11 +52,56 @@ export interface PayOSLike {
     }>;
     get(
       orderCode: number,
-    ): Promise<{ status: string; amountPaid: number; transactions: { reference: string; amount: number }[] }>;
+    ): Promise<{
+      status: string;
+      amountPaid: number;
+      transactions: ({ reference: string; amount: number } & CounterAccount)[];
+    }>;
     cancel?(orderCode: number, cancellationReason?: string): Promise<unknown>;
   };
-  webhooks: { verify(body: unknown): Promise<{ orderCode: number; amount: number; reference: string; code: string }> };
+  webhooks: {
+    verify(
+      body: unknown,
+    ): Promise<{ orderCode: number; amount: number; reference: string; code: string } & CounterAccount>;
+  };
 }
+
+// The paying account payOS reports with a confirmed transaction (any field may be empty, depending on the bank).
+export interface CounterAccount {
+  counterAccountBankId?: string | null;
+  counterAccountBankName?: string | null;
+  counterAccountName?: string | null;
+  counterAccountNumber?: string | null;
+}
+
+// Keeps the paying account of one confirmed payment (refund to source). Idempotent per provider reference; a failure
+// here never blocks recording the payment itself.
+export const recordPaymentSource = async (
+  linkId: number,
+  payment: { reference: string; amount: number } & CounterAccount,
+  verifiedBy: 'payos_webhook' | 'payos_api',
+) => {
+  if (!payment.reference || !Number.isSafeInteger(payment.amount) || payment.amount < 1) return;
+  const clean = (value?: string | null) => (value?.trim() ? value.trim().slice(0, 255) : null);
+  try {
+    await PaymentSourceModel.findOrCreate({
+      where: { provider: 'payos', reference: payment.reference.slice(0, 255) },
+      defaults: {
+        provider: 'payos',
+        linkId,
+        reference: payment.reference.slice(0, 255),
+        amountVnd: payment.amount,
+        bankBin: clean(payment.counterAccountBankId),
+        bankName: clean(payment.counterAccountBankName),
+        accountNumber: clean(payment.counterAccountNumber),
+        accountName: clean(payment.counterAccountName),
+        verifiedBy,
+      },
+    });
+  } catch (error) {
+    Logger.WARN(`payOS payment source ${payment.reference} not recorded: ${(error as Error).message}`);
+  }
+};
 
 // When an unpaid order stops being payable (orders from before the deadline existed: 24 hours after placing).
 export const paymentDeadline = (order: OrderModel) =>
@@ -191,6 +237,7 @@ export default class PaymentGatewayService {
           require('./ReservationService') as typeof import('./ReservationService');
         for (const payment of remote.transactions) {
           if (!payment.reference || !Number.isSafeInteger(payment.amount) || payment.amount < 1) continue;
+          await recordPaymentSource(link.id, payment, 'payos_api');
           await new ReservationService().confirmProviderPayment(reservationId, {
             linkId: link.id,
             amountVnd: payment.amount,
@@ -395,6 +442,7 @@ export default class PaymentGatewayService {
     for (const link of links) {
       try {
         const remote = await payos().paymentRequests.get(link.providerOrderCode);
+        for (const payment of remote.transactions) await recordPaymentSource(link.id, payment, 'payos_api');
         if (remote.status === 'PAID') {
           const reference = remote.transactions[0]?.reference || `LINK${link.providerOrderCode}`;
           await checkoutService().settlePayment(link.id, remote.amountPaid, reference);
@@ -447,6 +495,7 @@ export default class PaymentGatewayService {
     if (data.code !== '00') return { recorded: false };
     const link = await OrderPaymentLinkModel.findOne({ where: { providerOrderCode: data.orderCode } });
     if (!link) return { recorded: false };
+    await recordPaymentSource(link.id, data, 'payos_webhook');
     if (link.reservationId) {
       const { default: ReservationService } = require('./ReservationService') as typeof import('./ReservationService');
       await new ReservationService().confirmProviderPayment(link.reservationId, {
@@ -470,6 +519,7 @@ export default class PaymentGatewayService {
     for (const link of links) {
       try {
         const remote = await payos().paymentRequests.get(link.providerOrderCode);
+        for (const payment of remote.transactions) await recordPaymentSource(link.id, payment, 'payos_api');
         if (remote.status === 'PAID') {
           const reference = remote.transactions[0]?.reference || `LINK${link.providerOrderCode}`;
           await this.settle(link.id, remote.amountPaid, reference);

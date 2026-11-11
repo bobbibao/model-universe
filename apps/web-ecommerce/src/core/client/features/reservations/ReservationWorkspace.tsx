@@ -2,7 +2,8 @@
 import HoldReview from './HoldReview';
 import HoldPayment from './HoldPayment';
 import RefundRequest, { RefundHistory } from '../finance/RefundRequest';
-import { ServiceHeader, ServiceTerms } from '@/components/Services/ServiceExperience';
+import RefundToSource from '../finance/RefundToSource';
+import { ServiceGuestPanel, ServiceHeader, ServiceTerms } from '@/components/Services/ServiceExperience';
 
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -123,9 +124,11 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
         <p>{t('moneyNotice')}</p>
       </ServiceTerms>
       {!user ? (
-        <Link className="mu-button" href="/auth/signin?redirect=/reservations">
-          {t('signIn')}
-        </Link>
+        <ServiceGuestPanel
+          service="reserve"
+          signInHref="/auth/signin?redirect=/reservations"
+          signInLabel={t('signIn')}
+        />
       ) : (
         <>
           {notifications.map((notification) => (
@@ -403,6 +406,14 @@ export default function ReservationWorkspace({ admin = false }: { admin?: boolea
                 )}
                 {admin && <HoldReview id={selected.id} onUpdated={() => void open(selected.id)} />}
                 <RefundHistory operations={selected.operations} />
+                {admin && ['cancelled', 'expired'].includes(selected.status) && (
+                  <RefundToSource
+                    key={`source-${selected.id}`}
+                    purpose="hold_refund"
+                    entityId={selected.id}
+                    onUpdated={() => void open(selected.id)}
+                  />
+                )}
                 <RefundRequest
                   key={`refund-${selected.id}`}
                   endpoint={`/reservations/${selected.id}/refund-request`}

@@ -6,10 +6,27 @@ import Link from '@/i18n/navigation';
 import FinancePeriod, { currentFinanceRange } from './FinancePeriod';
 import { financeApi, type Report } from './api';
 import ReportView from './ReportView';
+import AttentionBoard from '../dashboard/components/AttentionBoard';
+import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
+
+const greetingFor = (hour: number, en: boolean) => {
+  if (en) return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  if (hour < 11) return 'Chào buổi sáng';
+  if (hour < 14) return 'Chào buổi trưa';
+  return hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
+};
 
 export default function BusinessDashboard() {
   const en = useLocale() === 'en',
     router = useRouter();
+  const { user } = useCurrentUser();
+  // Rendered after hydration: the greeting and date depend on the admin's clock, not the server's.
+  const [today, setToday] = useState<Date>();
+  useEffect(() => setToday(new Date()), []);
+  const hour = today
+    ? Number(today.toLocaleString('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Ho_Chi_Minh' }))
+    : 12;
+  const greeting = greetingFor(hour, en);
   const [range, setRange] = useState(currentFinanceRange),
     [report, setReport] = useState<Report>(),
     [revision, setRevision] = useState(0);
@@ -50,18 +67,38 @@ export default function BusinessDashboard() {
       )}
       <header className="finance-heading">
         <div>
-          <p className="finance-eyebrow">MODEL UNIVERSE / {en ? 'BUSINESS' : 'KINH DOANH'}</p>
-          <h1>{en ? 'Business overview' : 'Tổng quan kinh doanh'}</h1>
+          <p className="finance-eyebrow">
+            MODEL UNIVERSE /{' '}
+            {today
+              ? today
+                  .toLocaleDateString(en ? 'en-GB' : 'vi-VN', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    timeZone: 'Asia/Ho_Chi_Minh',
+                  })
+                  .toUpperCase()
+              : en
+                ? 'BUSINESS'
+                : 'KINH DOANH'}
+          </p>
+          <h1>
+            {greeting}
+            {user?.firstName ? `, ${user.firstName}` : ''}
+          </h1>
           <p>
             {en
-              ? 'Revenue, profit and business performance.'
-              : 'Doanh thu, lợi nhuận và hiệu quả hoạt động của cửa hàng.'}
+              ? 'What needs doing first, then revenue, profit and stock for the period.'
+              : 'Việc cần xử lý trước, sau đó là doanh thu, lợi nhuận và tồn kho trong kỳ.'}
           </p>
         </div>
         <Link className="finance-button is-primary" href="/admin/orders/new">
           {en ? 'Create sale' : '+ Tạo đơn bán'}
         </Link>
       </header>
+      <AttentionBoard en={en} />
+      <h2 className="finance-section-title">{en ? 'Business results' : 'Kết quả kinh doanh'}</h2>
       <FinancePeriod range={range} onChange={setRange} loading={loading} />
       <div className="finance-dashboard-content" aria-busy={loading}>
         {loading ? (

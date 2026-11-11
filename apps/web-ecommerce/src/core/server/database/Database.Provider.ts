@@ -78,6 +78,7 @@ import OrderReceiptModel from './client/models/OrderReceipt.Model';
 import OrderPrepaymentModel from './client/models/OrderPrepayment.Model';
 import OrderShipmentModel from './client/models/OrderShipment.Model';
 import OrderPaymentLinkModel from './client/models/OrderPaymentLink.Model';
+import PaymentSourceModel from './client/models/PaymentSource.Model';
 import CheckoutSessionModel from './client/models/CheckoutSession.Model';
 import ShipmentPrintBatchModel from './client/models/ShipmentPrintBatch.Model';
 import ShippingCartonModel from './client/models/ShippingCarton.Model';
@@ -188,6 +189,7 @@ export default class DatabaseProvider {
     OrderPrepaymentModel,
     OrderShipmentModel,
     OrderPaymentLinkModel,
+    PaymentSourceModel,
     CheckoutSessionModel,
     ShipmentPrintBatchModel,
     ShippingCartonModel,
