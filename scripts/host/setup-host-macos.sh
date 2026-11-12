@@ -26,10 +26,21 @@ if [ -n "$BREW" ]; then
   [ -x "$(prefix node@22)/bin/node" ] && NODE_BIN="$(prefix node@22)/bin"
   [ -x "$(prefix postgresql@18)/bin/psql" ] && PG_BIN="$(prefix postgresql@18)/bin"
   [ -x "$(prefix openssl@3)/bin/openssl" ] && OPENSSL="$(prefix openssl@3)/bin/openssl"
-  CLOUDFLARED=$(command -v cloudflared || true)
 fi
+CLOUDFLARED=$(command -v cloudflared || true)
+PGDATA=""; if [ -n "$PG_BIN" ]; then PGDATA="$("$BREW" --prefix)/var/postgresql@18"; fi
+# Official binaries, for a macOS that Homebrew has no bottles for (it would compile from source for hours):
+# Node 22 tarball (nodejs.org) and cloudflared (GitHub release) unpacked into $RUNTIME/tools, PostgreSQL 18 from
+# Postgres.app or the EDB installer. Their cluster lives in $RUNTIME/postgres-18 (created by restore).
+TOOLS="$RUNTIME/tools"
+if [ -z "$NODE_BIN" ] && [ -x "$TOOLS/node/bin/node" ]; then NODE_BIN="$TOOLS/node/bin"; fi
+if [ -z "$PG_BIN" ]; then
+  for d in /Applications/Postgres.app/Contents/Versions/18/bin /Library/PostgreSQL/18/bin; do
+    if [ -x "$d/psql" ]; then PG_BIN="$d"; PGDATA="$RUNTIME/postgres-18"; break; fi
+  done
+fi
+if [ -z "$CLOUDFLARED" ] && [ -x "$TOOLS/cloudflared" ]; then CLOUDFLARED="$TOOLS/cloudflared"; fi
 [ -n "$NODE_BIN" ] && export PATH="$NODE_BIN:$PATH"
-PGDATA="$( [ -n "$BREW" ] && echo "$("$BREW" --prefix)/var/postgresql@18" )"
 envget() { grep -E "^$1=" "$APP/.env" | tail -1 | cut -d= -f2- | tr -d '\r' | sed -e 's/^["'\'']//' -e 's/["'\'']$//'; }
 pg_running() { [ -n "$PG_BIN" ] && "$PG_BIN/pg_isready" -q -h 127.0.0.1 -p 5432; }
 public_up() { curl -fsS -m 15 -o /dev/null https://modeluniverse.vn/api/products/filters; }
@@ -39,6 +50,10 @@ build_release() {
   corepack enable >/dev/null 2>&1 || "$NODE_BIN/corepack" enable
   yarn install --immutable
   mkdir -p "$RUNTIME"
+  # Node resolves modules from the real path of build-output/ and releases/ (outside the repository): let it find
+  # the app's node_modules from the runtime folder.
+  ln -sfn "$APP/node_modules" "$RUNTIME/node_modules"
+  mkdir -p "$APP/dist"  # the release link dist/.next-live-* goes here (absent in a fresh clone)
   MODEL_UNIVERSE_RUNTIME_DIR="$RUNTIME" MODEL_UNIVERSE_BUILD_SNAPSHOT=true SHOP_PUBLIC_URL=https://modeluniverse.vn \
     node scripts/build-production.cjs
   log "Release built: $(cat "$RUNTIME/release.json" | tr -d '\n ')"
@@ -50,7 +65,7 @@ check)
   missing=0
   [ -n "$BREW" ] && ok Homebrew ok || { ok Homebrew MISSING; missing=1; }
   [ -n "$NODE_BIN" ] && ok 'Node 22 (node@22)' "ok $("$NODE_BIN/node" -v)" || { ok 'Node 22 (node@22)' MISSING; missing=1; }
-  [ -n "$PG_BIN" ] && ok 'PostgreSQL 18' ok || { ok 'PostgreSQL 18' MISSING; missing=1; }
+  [ -n "$PG_BIN" ] && ok 'PostgreSQL 18' "ok $PG_BIN" || { ok 'PostgreSQL 18' MISSING; missing=1; }
   [ -n "$OPENSSL" ] && ok 'openssl@3' ok || { ok 'openssl@3' MISSING; missing=1; }
   [ -n "$CLOUDFLARED" ] && ok cloudflared ok || { ok cloudflared MISSING; missing=1; }
   { [ -n "${MU_BUNDLE_KEY:-}" ] || [ -f "$HOME/.model-universe-bundle-key" ]; } && ok 'Bundle key file' ok || { ok 'Bundle key file' 'MISSING (copy it from the old host)'; missing=1; }
@@ -60,6 +75,10 @@ check)
 Install hints:
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"   (Homebrew)
   brew install node@22 postgresql@18 openssl@3 cloudflared
+If Homebrew compiles from source (no bottles for this macOS), use official binaries instead:
+  Node 22 darwin tarball from nodejs.org unpacked to ~/ModelUniverseRuntime/tools/node
+  cloudflared-darwin-*.tgz from github.com/cloudflare/cloudflared/releases unpacked to ~/ModelUniverseRuntime/tools
+  PostgreSQL 18: Postgres.app (/Applications/Postgres.app) or the EDB installer (/Library/PostgreSQL/18)
 EOF
     exit 1
   fi
@@ -93,6 +112,8 @@ restore)
   chmod 600 "$HOME/.cloudflared/"*
 
   # Database: a "postgres" role with the old host's password, the same database name, restored from the dump.
+  # A cluster like Homebrew's (superuser = this Mac user, UTF8, locale C, listens on localhost only).
+  [ -f "$PGDATA/PG_VERSION" ] || "$PG_BIN/initdb" -D "$PGDATA" -U "$(id -un)" -E UTF8 --locale=C --auth=trust >/dev/null
   pg_running || "$PG_BIN/pg_ctl" -D "$PGDATA" -l "$RUNTIME/postgres.log" -w start
   DB_USER=$(envget DB_USERNAME); DB_PASS=$(envget DB_PASSWORD); DB_NAME=$(envget DB_NAME)
   "$PG_BIN/psql" -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -d postgres -v user="$DB_USER" -v pass="$DB_PASS" -v db="$DB_NAME" <<'SQL'
