@@ -1027,22 +1027,26 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       );
     }
     // Delivery does not prove remittance. Preserve the old semantics only for retained orders.
+    // A COD balance (requiresCollectionConfirmation) stays PENDING until recordCollection books the verified
+    // remittance; that step then finalizes the voucher, promotions and loyalty points like the branch below.
     const delivered = nextStatus === 'DELIVERED';
+    const settledOnDelivery = delivered && !order.requiresCollectionConfirmation;
     await order.update(
       {
         status: nextStatus,
         ...(delivered
-          ? { paymentStatus: 'PAID', deliveredAt: order.deliveredAt || new Date() }
+          ? {
+              ...(settledOnDelivery ? { paymentStatus: 'PAID' } : {}),
+              deliveredAt: order.deliveredAt || new Date(),
+            }
           : {}),
       },
       { transaction },
     );
     order.status = nextStatus;
-    if (delivered) {
-      order.paymentStatus = 'PAID';
-      order.deliveredAt = order.deliveredAt || new Date();
-    }
-    if (delivered) {
+    if (delivered) order.deliveredAt = order.deliveredAt || new Date();
+    if (settledOnDelivery) order.paymentStatus = 'PAID';
+    if (delivered && order.paymentStatus === 'PAID') {
       if (order.couponCode)
         await CouponModel.update(
           { usedAt: new Date(), usageCount: 1, reservedOrderId: null },
@@ -1050,7 +1054,8 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
         );
       await new PromotionService().finalize(order, transaction);
       await new LoyaltyService().reconcileOrder(order, actorUserId || order.userId, transaction);
-
+    }
+    if (delivered) {
       try {
         const emailHtml = renderServiceNoticeEmail({
           badge: 'Giao hàng thành công',
