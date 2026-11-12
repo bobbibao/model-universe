@@ -21,7 +21,14 @@ type Counts = {
   newMessages?: number;
   openAlerts?: number;
   outOfStock?: number;
+  // Refunds: waiting for a reviewer / approved but not yet confirmed by the bank (Finance scope only).
+  refunds?: number;
+  refundsToReview?: number;
+  refundsToSend?: number;
+  refundsVnd?: number;
 };
+
+type RefundQueue = { operations?: { status: string; amountVnd: number | string }[] };
 
 type Tile = {
   key: keyof Counts;
@@ -42,12 +49,22 @@ export default function AttentionBoard({ en }: { en: boolean }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [orders, messages, alerts, stock] = await Promise.all([
+    const [orders, messages, alerts, stock, refunds] = await Promise.all([
       settled(OrderApi.overview()),
       settled(ContactApi.getMessages({ status: 'NEW', page: 1, per_page: 1 })),
       settled(Api.get('/admin/pricing/alerts', { params: { status: 'open' } }).then((response) => response.data)),
       settled(ProductApi.getInventoryStats()),
+      // Without the Finance scope this answers 403: the tile then shows "—", never a made-up zero. Plain fetch, not
+      // Api: the shared client toasts every error, and staff without Finance must not see one on each visit.
+      settled(
+        fetch('/api/admin/commerce/money-operations', { credentials: 'same-origin' }).then((response) =>
+          response.ok ? (response.json() as Promise<RefundQueue>) : undefined,
+        ),
+      ),
     ]);
+    const open = Array.isArray(refunds?.operations)
+      ? refunds.operations.filter((row) => ['requested', 'approved', 'reconciliation'].includes(row.status))
+      : undefined;
     setCounts({
       processing: orders?.processing,
       shipping: orders?.shipping,
@@ -57,6 +74,10 @@ export default function AttentionBoard({ en }: { en: boolean }) {
       newMessages: messages?.pagination?.total,
       openAlerts: Array.isArray(alerts) ? alerts.length : undefined,
       outOfStock: stock?.totals?.unitsOutOfStock,
+      refunds: open?.length,
+      refundsToReview: open?.filter((row) => row.status === 'requested').length,
+      refundsToSend: open?.filter((row) => row.status !== 'requested').length,
+      refundsVnd: open?.reduce((sum, row) => sum + Number(row.amountVnd), 0),
     });
     setUpdatedAt(new Date());
     setLoading(false);
@@ -94,6 +115,25 @@ export default function AttentionBoard({ en }: { en: boolean }) {
       label: en ? 'Cancellation requests' : 'Yêu cầu huỷ đơn',
       hint: () => (en ? 'Customers waiting for an answer' : 'Khách đang chờ phản hồi'),
       href: '/admin/orders?attention=cancellation',
+      urgent: true,
+    },
+    {
+      key: 'refunds',
+      icon: 'exchange',
+      label: en ? 'Refunds to handle' : 'Hoàn tiền cần xử lý',
+      hint: (c) =>
+        c.refunds === undefined
+          ? en
+            ? 'Needs the Finance scope'
+            : 'Cần quyền Finance để xem'
+          : c.refunds === 0
+            ? en
+              ? 'No refund is waiting'
+              : 'Không có khoản hoàn nào đang chờ'
+            : en
+              ? `${c.refundsToReview} to review · ${c.refundsToSend} to send · ${formatVND(c.refundsVnd ?? 0)}`
+              : `${c.refundsToReview} chờ duyệt · ${c.refundsToSend} chờ chuyển · ${formatVND(c.refundsVnd ?? 0)}`,
+      href: '/admin/finance?tab=payments',
       urgent: true,
     },
     {
@@ -183,7 +223,7 @@ export default function AttentionBoard({ en }: { en: boolean }) {
                 : 'calm';
           return (
             <li key={tile.key}>
-              <Link href={tile.href} className="attention-tile" data-tone={tone}>
+              <Link href={tile.href} className="attention-tile" data-tone={tone} data-empty={value === 0 || undefined}>
                 <span className="attention-icon">
                   <AdminIcon name={tile.icon} size={18} />
                 </span>

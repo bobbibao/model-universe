@@ -428,6 +428,8 @@ export default class MoneyOperationsService {
         (k) => !!process.env[`PAYOS_PAYOUT_${k}`]?.trim(),
       ),
       bankConfirmationConfigured: Number(process.env.BANK_EVENT_SIGNING_SECRET?.length || 0) >= 32,
+      // Whether refunds to source within the owner's limits are sent without a reviewer (REFUND_TO_SOURCE_AUTO).
+      automaticRefunds: automaticRefundsOn(),
       operations: await MoneyOperationModel.findAll({ order: [['id', 'DESC']], limit: 100 }),
     };
   }

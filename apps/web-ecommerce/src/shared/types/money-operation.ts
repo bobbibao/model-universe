@@ -7,6 +7,8 @@ export interface MoneyOperation {
   requestedBy: number;
   status: 'requested' | 'approved' | 'completed' | 'rejected' | 'reconciliation';
   providerReference?: string;
+  approvedBy?: number | null;
+  completedAt?: string | null;
   createdAt: string;
   details: {
     payout?: { providerId?: string; referenceId: string; transactionId?: string; state: string; checkedAt?: string };

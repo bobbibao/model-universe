@@ -44,8 +44,20 @@
 }
 .attention-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+/* Nothing to do here: quieter, so the tiles with work stand out. */
+.attention-tile[data-empty] {
+  background: transparent;
+  border-style: dashed;
+}
+.attention-tile[data-empty] .attention-icon {
+  background: color-mix(in srgb, var(--finance-muted) 12%, transparent);
+  color: var(--finance-muted);
+}
+.attention-tile[data-empty]:hover {
+  border-style: solid;
 }
 .attention-tile {
   display: grid;
@@ -153,11 +165,6 @@
   color: var(--finance-accent);
 }
 
-@media (max-width: 1400px) {
-  .attention-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
 @media (max-width: 760px) {
   .attention-board {
     padding: 14px;

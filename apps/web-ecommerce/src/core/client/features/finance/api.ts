@@ -63,7 +63,7 @@ export const amount = (value: number | string | null | undefined, en = false) =>
         style: 'currency',
         currency: 'VND',
         maximumFractionDigits: 0,
-      }).format(Number(value));
+      }).format(Number(value) || 0); // `|| 0` turns -0 (a negated zero row) into 0: never "-0 ₫"
 export const categoryLabels: Record<FinanceCategory, string> = {
   PACKAGING: 'Vật tư đóng gói',
   SHIPPING: 'Vận chuyển',
