@@ -10,6 +10,7 @@ function harness(tunnelAlive = true, mode = 'run') {
   const files = new Map<string, string>([
     [path.join(home, 'release.json'), JSON.stringify({ commit: 'abc123', nextDist: 'dist/.next-live-abc123-1' })],
     [path.join(home, 'tunnel-state.json'), JSON.stringify({ pid: 500, publicUrl: 'https://same.trycloudflare.com', temporaryUrl: true })],
+    [path.join(app, '.env'), ''], // read at every web start for the credentials that can be rotated live
   ]);
   const children: Array<EventEmitter & { pid: number; kill: jest.Mock }> = [];
   const errors: string[] = [];

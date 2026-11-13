@@ -77,15 +77,6 @@ export const parseDate = (date: string): Date | undefined => {
   return isNaN(parsedDate.getTime()) ? undefined : parsedDate;
 };
 
-// Calculate percentage change between two values, handling edge cases for division by zero
-export const calculatePercentageChange = (previousValue: number, currentValue: number): number => {
-  if (previousValue === 0 && currentValue === 0) return 0; // No change
-  if (previousValue === 0) return 100; // Complete increase from 0
-  if (currentValue === 0) return -100; // Complete decrease to 0
-
-  return ((currentValue - previousValue) / previousValue) * 100;
-};
-
 export const getMonthNames = (previousMonth: number, currentMonth: number): string[] | null => {
   const monthNames = [months[previousMonth], months[currentMonth]];
   return monthNames[0] && monthNames[1] ? monthNames : null;

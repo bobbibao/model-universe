@@ -1,6 +1,5 @@
 import { QueryTypes } from 'sequelize';
 import DatabaseProvider from '../database/Database.Provider';
-import { calculatePercentageChange } from '../../../shared/server/utils/utils';
 
 // Months are grouped in the shop's time zone. Revenue excludes cancelled orders.
 const TIME_ZONE = 'Asia/Ho_Chi_Minh';
@@ -65,73 +64,6 @@ export default class DashboardService {
       discount: Number(orderRows.get(month)?.discount || 0),
       newCustomers: Number(customerRows.get(month)?.customers || 0),
       importCost: Number(importRows.get(month)?.cost || 0),
-    }));
-  }
-
-  // KPI cards: all-time totals, plus this month compared with last month.
-  async getSummary() {
-    const [previous, current] = await this.getMonthlySeries(2);
-    const [totals] = await this.query(
-      `SELECT
-         (SELECT COALESCE(SUM(total), 0) FROM "order" WHERE status <> 'CANCELLED') AS revenue,
-         (SELECT COUNT(*) FROM "order" WHERE status <> 'CANCELLED') AS orders,
-         (SELECT COUNT(*) FROM "user" WHERE role = 'USER') AS customers,
-         (SELECT COUNT(*) FROM product WHERE "isArchived" = false) AS products,
-         (SELECT COUNT(*) FROM product WHERE "isArchived" = false AND stock = 0) AS "outOfStock",
-         (SELECT COUNT(*) FROM "order" WHERE status = 'PROCESSING') AS "pendingOrders"`,
-    );
-    const metric = (total: unknown, currentValue: number, previousValue: number) => ({
-      total: Number(total || 0),
-      current: currentValue,
-      previous: previousValue,
-      change: Math.round(calculatePercentageChange(previousValue, currentValue) * 10) / 10,
-    });
-    return {
-      revenue: metric(totals.revenue, current.revenue, previous.revenue),
-      orders: metric(totals.orders, current.orders, previous.orders),
-      customers: metric(totals.customers, current.newCustomers, previous.newCustomers),
-      products: { total: Number(totals.products || 0), outOfStock: Number(totals.outOfStock || 0) },
-      pendingOrders: Number(totals.pendingOrders || 0),
-    };
-  }
-
-  // Stock left vs units sold per category (visible products).
-  async getInventoryByCategory() {
-    const rows = await this.query(
-      `SELECT c.id, c.name, COALESCE(SUM(p.stock), 0) AS stock, COALESCE(SUM(p.sold), 0) AS sold
-         FROM category c
-         LEFT JOIN product p ON p."categoryId" = c.id AND p."isArchived" = false
-        GROUP BY c.id, c.name
-        ORDER BY COALESCE(SUM(p.stock), 0) + COALESCE(SUM(p.sold), 0) DESC, c.name`,
-    );
-    return rows.map((row) => ({
-      id: Number(row.id),
-      name: String(row.name),
-      stock: Number(row.stock),
-      sold: Number(row.sold),
-    }));
-  }
-
-  async getGenderRatio() {
-    const rows = await this.query(`SELECT gender, COUNT(*) AS total FROM "user" WHERE role = 'USER' GROUP BY gender`);
-    const count = (gender: string | null) => Number(rows.find((row) => row.gender === gender)?.total || 0);
-    return { male: count('M'), female: count('F'), unknown: count(null) };
-  }
-
-  async getRecentOrders(limit?: number) {
-    const rows = await this.query(
-      `SELECT o.id, o."recipientName", o.total, o.status, o."createdAt", COALESCE(SUM(oi.quantity), 0) AS quantity
-         FROM "order" o LEFT JOIN order_item oi ON oi."orderId" = o.id
-        GROUP BY o.id ORDER BY o."createdAt" DESC LIMIT :limit`,
-      { limit: clamp(limit, 5, MAX_LIMIT) },
-    );
-    return rows.map((row) => ({
-      id: Number(row.id),
-      recipientName: String(row.recipientName),
-      total: Number(row.total),
-      status: String(row.status),
-      createdAt: row.createdAt,
-      quantity: Number(row.quantity),
     }));
   }
 

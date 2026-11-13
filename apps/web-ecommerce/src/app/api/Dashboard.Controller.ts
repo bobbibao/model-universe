@@ -10,16 +10,6 @@ import { toInteger } from '../../shared/server/utils/ValidationUtils';
 @Controller('/admin/dashboard')
 @ControllerModel('DashboardModel')
 export default class DashboardController extends ApiBaseController {
-  @Get('/summary')
-  async getSummary(_: Request, res: Response) {
-    try {
-      const service = await this.requireService<DashboardService>();
-      return res.json(await service.getSummary());
-    } catch (error) {
-      return this.handleError(res, error, "DashboardController's getSummary");
-    }
-  }
-
   @Get('/monthly')
   async getMonthlySeries(req: Request, res: Response) {
     try {
@@ -27,36 +17,6 @@ export default class DashboardController extends ApiBaseController {
       return res.json(await service.getMonthlySeries(toInteger(req.query.months)));
     } catch (error) {
       return this.handleError(res, error, "DashboardController's getMonthlySeries");
-    }
-  }
-
-  @Get('/inventory-by-category')
-  async getInventoryByCategory(_: Request, res: Response) {
-    try {
-      const service = await this.requireService<DashboardService>();
-      return res.json(await service.getInventoryByCategory());
-    } catch (error) {
-      return this.handleError(res, error, "DashboardController's getInventoryByCategory");
-    }
-  }
-
-  @Get('/gender-ratio')
-  async getGenderRatio(_: Request, res: Response) {
-    try {
-      const service = await this.requireService<DashboardService>();
-      return res.json(await service.getGenderRatio());
-    } catch (error) {
-      return this.handleError(res, error, "DashboardController's getGenderRatio");
-    }
-  }
-
-  @Get('/recent-orders')
-  async getRecentOrders(req: Request, res: Response) {
-    try {
-      const service = await this.requireService<DashboardService>();
-      return res.json(await service.getRecentOrders(toInteger(req.query.limit)));
-    } catch (error) {
-      return this.handleError(res, error, "DashboardController's getRecentOrders");
     }
   }
 

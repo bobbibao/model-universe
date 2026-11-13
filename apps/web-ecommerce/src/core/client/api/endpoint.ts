@@ -108,11 +108,7 @@ export const ADMIN_STOCK_IMPORT_API = {
 };
 
 export const DASHBOARD_API = {
-  GET_SUMMARY: '/admin/dashboard/summary',
   GET_MONTHLY: '/admin/dashboard/monthly',
-  GET_INVENTORY_BY_CATEGORY: '/admin/dashboard/inventory-by-category',
-  GET_GENDER_RATIO: '/admin/dashboard/gender-ratio',
-  GET_RECENT_ORDERS: '/admin/dashboard/recent-orders',
   GET_TOP_PRODUCTS: '/admin/dashboard/top-products',
   GET_TOP_CUSTOMERS: '/admin/dashboard/top-customers',
   GET_DISTRIBUTIONS: '/admin/dashboard/distributions',

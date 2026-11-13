@@ -61,6 +61,7 @@ jest.mock('react-toastify', () => {
 
   return {
     toast: baseToastMock,
+    cssTransition: jest.fn(() => 'transition'),
   };
 });
 
