@@ -1,11 +1,9 @@
 import { Suspense } from 'react';
-import { Metadata } from 'next';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import ThankYou from '@/core/client/features/cart/pages/ThankYou';
+import { privatePageMetadata } from '@/shared/seo';
 
-export const metadata: Metadata = {
-  title: 'Đặt hàng thành công - Model Universe',
-};
+export const metadata = privatePageMetadata('Đặt hàng thành công');
 
 const ThankYouPage = () => {
   return (

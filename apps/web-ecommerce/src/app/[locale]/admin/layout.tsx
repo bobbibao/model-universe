@@ -10,6 +10,9 @@ import '@/css/condition-tree.css';
 
 // Keep the navigation mounted across admin routes (scroll position, dropdowns and header).
 // Admin portal is strictly Vietnamese-only.
+// The console is behind sign-in and blocked in robots.txt; no page of it is ever a search result.
+export const metadata = { robots: { index: false, follow: false } };
+
 export default async function AdminLayout({
   children,
   params,

@@ -11,6 +11,7 @@ if (isolatedBuildDir && !/^dist\/\.next-[a-z0-9-]+$/.test(isolatedBuildDir)) {
 }
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    poweredByHeader: false,
     // Keep Turbopack's dev artifacts separate from Webpack and production builds.
     distDir: isolatedBuildDir || (process.env.NODE_ENV === 'development' && process.env.TURBOPACK ? 'dist/.next-turbo' : 'dist/.next'),
     turbopack: { root: workspaceRoot },
@@ -32,6 +33,8 @@ const nextConfig = {
             // SEO paths in Vietnamese (2026-10-18): the catalog lives at /cua-hang; query filters are kept.
             { source: '/:locale(vi|en)/shop', destination: '/:locale/cua-hang', permanent: true },
             { source: '/shop', destination: '/vi/cua-hang', permanent: true },
+            // Shared search and kit-finder links open the catalog with their filters (the query string is kept).
+            { source: '/:locale(vi|en)/:legacy(search|kit-finder)', destination: '/:locale/cua-hang', permanent: true },
             { source: '/:locale(vi|en)/admin', destination: '/:locale/admin/dashboard', permanent: false },
             { source: '/:locale(vi|en)/admin/agent', destination: '/:locale/admin/agent/inbox', permanent: false },
             { source: '/:locale(vi|en)/login', destination: '/:locale/auth/signin', permanent: false },

@@ -1,10 +1,8 @@
-import { Metadata } from 'next';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import OrderHistory from '@/core/client/features/account/pages/OrderHistory';
+import { privatePageMetadata } from '@/shared/seo';
 
-export const metadata: Metadata = {
-  title: 'Lịch sử đơn hàng - Model Universe',
-};
+export const metadata = privatePageMetadata('Lịch sử đơn hàng');
 
 const OrderHistoryPage = () => {
   return (

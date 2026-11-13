@@ -1,10 +1,8 @@
-import { Metadata } from 'next';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import Cart from '@/core/client/features/cart/pages/Cart';
+import { privatePageMetadata } from '@/shared/seo';
 
-export const metadata: Metadata = {
-  title: 'Giỏ hàng - Model Universe',
-};
+export const metadata = privatePageMetadata('Giỏ hàng');
 
 const CartPage = () => {
   return (

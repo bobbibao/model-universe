@@ -1,6 +1,7 @@
 import DirectSale from '@/core/client/features/order-management/pages/DirectSale';
+import { privatePageMetadata } from '@/shared/seo';
 
-export const metadata = { title: 'Bán trực tiếp - Model Universe' };
+export const metadata = privatePageMetadata('Bán trực tiếp');
 export default function DirectSalePage() {
   return <DirectSale />;
 }

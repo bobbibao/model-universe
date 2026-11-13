@@ -1,11 +1,9 @@
 import { Suspense } from 'react';
-import { Metadata } from 'next';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import SignIn from '@/core/client/features/auth/pages/SignIn';
+import { privatePageMetadata } from '@/shared/seo';
 
-export const metadata: Metadata = {
-  title: 'Đăng nhập - Model Universe',
-};
+export const metadata = privatePageMetadata('Đăng nhập');
 
 const SignInPage = () => {
   return (

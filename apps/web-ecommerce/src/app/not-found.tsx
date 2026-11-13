@@ -15,7 +15,7 @@ export default function NotFound() {
             Về trang chủ
           </Link>
           <Link
-            href="/shop"
+            href="/cua-hang"
             className="rounded-md bg-gray px-6 py-3 font-semibold text-black hover:opacity-90 dark:bg-store-card dark:text-store-text"
           >
             Xem sản phẩm

@@ -1,10 +1,8 @@
-import { Metadata } from 'next';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import SignUp from '@/core/client/features/auth/pages/SignUp';
+import { privatePageMetadata } from '@/shared/seo';
 
-export const metadata: Metadata = {
-  title: 'Đăng ký - Model Universe',
-};
+export const metadata = privatePageMetadata('Đăng ký');
 
 const SignUpPage = () => {
   return (

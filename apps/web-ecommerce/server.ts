@@ -14,6 +14,8 @@ import { LoginRateLimitMiddleware } from './src/core/server/middleware/LoginRate
 import { AuthRequestRateLimitMiddleware } from './src/core/server/middleware/AuthRequestRateLimit.Middleware';
 import { VoucherRateLimitMiddleware } from './src/core/server/middleware/VoucherRateLimit.Middleware';
 import { AgentServiceAuthMiddleware } from './src/core/server/middleware/AgentServiceAuth.Middleware';
+import { SecurityHeadersMiddleware } from './src/core/server/middleware/SecurityHeaders.Middleware';
+import { CanonicalHostMiddleware } from './src/core/server/middleware/CanonicalHost.Middleware';
 import FileStorageService, { PUBLIC_UPLOAD_PREFIX } from './src/core/server/services/FileStorageService';
 import ApiResponse from './src/shared/server/utils/ApiResponseUtils';
 import ReservationReminderService from './src/core/server/services/ReservationReminderService';
@@ -59,6 +61,9 @@ app
     const server = e();
     // Behind a reverse proxy (Nginx, Docker bridge, Cloudflare); trust local and private subnets so req.ip and req.protocol reflect the real visitor.
     server.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+    server.disable('x-powered-by');
+    server.use(SecurityHeadersMiddleware);
+    server.use(CanonicalHostMiddleware);
 
     server.use(bodyParser.json());
     server.use(bodyParser.urlencoded({ extended: true }));

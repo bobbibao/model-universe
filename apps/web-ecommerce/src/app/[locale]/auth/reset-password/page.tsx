@@ -4,7 +4,7 @@ import StoreLayout from '@/components/Layouts/StoreLayout';
 import ResetPassword from '@/core/client/features/auth/pages/ResetPassword';
 
 export const metadata: Metadata = {
-  title: 'Đặt lại mật khẩu - Model Universe',
+  title: 'Đặt lại mật khẩu',
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
 };

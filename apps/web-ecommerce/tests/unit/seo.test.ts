@@ -5,6 +5,10 @@ import {
   familyCanonicals,
   jsonLd,
   pageMetadata,
+  privatePageMetadata,
+  searchDescription,
+  sitemapXmlUrl,
+  SEARCH_DESCRIPTION_CHARS,
   productConditionLabel,
   productSeoDescription,
   productSeoTitle,
@@ -45,6 +49,48 @@ describe('storefront SEO', () => {
       index: false,
       follow: true,
     });
+  });
+
+  it('fits what a search result shows: a whole description and a title that is not cut', () => {
+    const long = 'Mua mô hình lắp ráp Gunpla, Gundam, Mecha, Robot và kit Trung Quốc New & 2hand. '.repeat(4);
+    const short = pageMetadata(base, { locale: 'vi', path: '/x', title: 'Shop', description: 'Mua mô hình.' });
+    expect(short.description).toBe('Mua mô hình.');
+    expect(short.title).toBe('Shop'); // the layout template adds " | Model Universe"
+    const metadata = pageMetadata(base, {
+      locale: 'vi',
+      path: '/x',
+      title: 'Cửa Hàng Mô Hình Lắp Ráp: Gunpla, Mecha, Kit Trung Quốc',
+      description: long,
+    });
+    expect(String(metadata.description).length).toBeLessThanOrEqual(SEARCH_DESCRIPTION_CHARS);
+    expect(metadata.description).toMatch(/[^\s,.]…$/); // cut at a word, never mid-word or after punctuation
+    expect(long.startsWith(String(metadata.description).slice(0, -1))).toBe(true);
+    // With the brand suffix the title would be cut in a search result, so the page title stands alone...
+    expect(metadata.title).toEqual({ absolute: 'Cửa Hàng Mô Hình Lắp Ráp: Gunpla, Mecha, Kit Trung Quốc' });
+    // ...while social cards, which have the room, keep the brand and the full description.
+    expect(metadata.openGraph?.title).toBe('Cửa Hàng Mô Hình Lắp Ráp: Gunpla, Mecha, Kit Trung Quốc | Model Universe');
+    expect(metadata.openGraph?.description).toBe(long);
+    expect(searchDescription('một   hai\nba')).toBe('một hai ba');
+  });
+
+  it('keeps a product description within a search result for a typical listing', () => {
+    expect(productSeoDescription(kit, 'vi', '611.111 ₫').length).toBeLessThanOrEqual(SEARCH_DESCRIPTION_CHARS);
+    expect(productSeoDescription(kit, 'en', '611,111 VND').length).toBeLessThanOrEqual(SEARCH_DESCRIPTION_CHARS + 20);
+  });
+
+  it('writes sitemap image URLs as valid XML text', () => {
+    expect(sitemapXmlUrl('https://cdn.example/a.jpg?v=1786930688&width=1445')).toBe(
+      'https://cdn.example/a.jpg?v=1786930688&amp;width=1445',
+    );
+    expect(sitemapXmlUrl('https://cdn.example/a.jpg?v=1&amp;w=2')).toBe('https://cdn.example/a.jpg?v=1&amp;w=2');
+    expect(sitemapXmlUrl(`https://cdn.example/a<b>"c'.jpg`)).toBe('https://cdn.example/a&lt;b&gt;&quot;c&apos;.jpg');
+    expect(sitemapXmlUrl('https://modeluniverse.vn/uploads/products/a.webp')).toBe(
+      'https://modeluniverse.vn/uploads/products/a.webp',
+    );
+  });
+
+  it('marks private pages as not for search engines', () => {
+    expect(privatePageMetadata('Giỏ hàng')).toEqual({ title: 'Giỏ hàng', robots: { index: false, follow: false } });
   });
 
   it('starts breadcrumbs at the localized home page and escapes JSON-LD', () => {

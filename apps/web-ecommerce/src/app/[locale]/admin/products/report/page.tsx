@@ -1,7 +1,8 @@
 import InventoryStats from '@/core/client/features/product-management/components/InventoryStats';
 import Link from '@/i18n/navigation';
+import { privatePageMetadata } from '@/shared/seo';
 
-export const metadata = { title: 'Phân tích tồn kho - Model Universe' };
+export const metadata = privatePageMetadata('Phân tích tồn kho');
 
 export default function InventoryReport() {
   return (

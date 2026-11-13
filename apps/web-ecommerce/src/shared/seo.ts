@@ -52,6 +52,16 @@ export const isEnglish = (locale: string) => locale === 'en';
 export const organizationId = (base: string) => `${base}/#organization`;
 export const websiteId = (base: string) => `${base}/#website`;
 
+// A URL as sitemap XML text. Next.js writes sitemap image URLs as given, and one unescaped `&` (a CDN image with
+// `?v=1&width=2`) makes the whole sitemap unreadable to search engines.
+export const sitemapXmlUrl = (url: string) =>
+  url
+    .replace(/&(?!(?:amp|lt|gt|quot|apos);)/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
 // JSON-LD for a <script type="application/ld+json">: `<` is escaped so text from the catalog cannot close the tag.
 export const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, '\\u003c');
 
@@ -68,14 +78,33 @@ export interface PageSeo {
   noindex?: boolean;
 }
 
+// What a search result shows before it cuts the text off: about 60 characters of title and 160 of description.
+export const SEARCH_TITLE_CHARS = 65;
+export const SEARCH_DESCRIPTION_CHARS = 160;
+
+// The description as a search result shows it: whole when it fits, otherwise cut at a word with an ellipsis, so the
+// result never ends in half a word.
+export const searchDescription = (text: string, max = SEARCH_DESCRIPTION_CHARS) => {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(' '), max - 40)).replace(/[\s,.;:–-]+$/, '')}…`;
+};
+
+// Pages no search engine should list: the account, the cart, sign-in, the admin console.
+export const privatePageMetadata = (title: string): Metadata => ({ title, robots: { index: false, follow: false } });
+
 // Metadata of an indexable storefront page: self canonical in its locale, vi/en alternates with vi as x-default.
+// The brand suffix is dropped from a title that would not fit a search result with it; social cards keep it.
 export function pageMetadata(base: string, page: PageSeo): Metadata {
   const url = `${base}/${page.locale}${page.path}`;
-  const socialTitle = page.absoluteTitle ? page.title : `${page.title} | ${SITE_NAME}`;
+  const branded = `${page.title} | ${SITE_NAME}`;
+  const socialTitle = page.absoluteTitle ? page.title : branded;
+  const fits = branded.length <= SEARCH_TITLE_CHARS;
   const image = page.image ?? { url: `${base}${OG_IMAGE.path}`, width: OG_IMAGE.width, height: OG_IMAGE.height };
   return {
-    title: page.absoluteTitle ? { absolute: page.title } : page.title,
-    description: page.description,
+    title: page.absoluteTitle || !fits ? { absolute: page.title } : page.title,
+    description: searchDescription(page.description),
     ...(page.keywords?.length ? { keywords: page.keywords } : {}),
     alternates: {
       canonical: url,
@@ -307,8 +336,8 @@ export function productSeoDescription(product: ProductSeoInput, locale: string, 
   const brand = product.brandName && !includesText(product.name, product.brandName) ? ` ${product.brandName}` : '';
   const scale = product.scale && !includesText(product.name, product.scale) ? ` ${product.scale}` : '';
   if (isEnglish(locale)) {
-    return `Buy ${product.name}${brand}${scale} (${condition}) for ${priceText}. Clear condition notes, careful packing and cash on delivery across Vietnam from Model Universe, Ho Chi Minh City.`;
+    return `Buy ${product.name}${brand}${scale} (${condition}) for ${priceText}. Clear condition notes, careful packing, cash on delivery across Vietnam. Model Universe, Ho Chi Minh City.`;
   }
   const name = includesText(product.name, 'mô hình') ? product.name : `mô hình ${product.name}`;
-  return `Mua ${name}${brand}${scale} (${condition}) giá ${priceText}. Tình trạng mô tả rõ ràng, đóng gói kỹ, ship COD toàn quốc. Shop mô hình Model Universe – Gò Vấp, TP.HCM.`;
+  return `Mua ${name}${brand}${scale} (${condition}) giá ${priceText}. Tình trạng ghi rõ, đóng gói kỹ, ship COD toàn quốc. Model Universe – Gò Vấp, TP.HCM.`;
 }

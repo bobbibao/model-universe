@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getPublicCategories, getPublicProductSlugs, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
-import { familyCanonicals } from '@/shared/seo';
+import { familyCanonicals, sitemapXmlUrl } from '@/shared/seo';
 
 // Rendered per request: the catalog changes all the time.
 export const dynamic = 'force-dynamic';
@@ -42,13 +42,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/uu-dai', 0.7, 'daily'),
     entry('/contact', 0.7, 'monthly'),
     entry('/about', 0.6, 'monthly'),
+    entry('/assistant', 0.6, 'monthly'),
     entry('/services/loyalty', 0.5, 'monthly'),
     entry('/services/partner', 0.5, 'monthly'),
     ...categories.filter(isIndexableCategory).map((category) => entry(`/cua-hang/${category.slug}`, 0.85, 'daily')),
     ...familyCanonicals(products).map((product) =>
       entry(`/san-pham/${product.slug}`, 0.8, 'daily', {
         lastModified: product.updatedAt,
-        images: product.imageUrl ? [absolute(product.imageUrl)] : [],
+        images: product.imageUrl ? [sitemapXmlUrl(absolute(product.imageUrl))] : [],
       }),
     ),
   ];
