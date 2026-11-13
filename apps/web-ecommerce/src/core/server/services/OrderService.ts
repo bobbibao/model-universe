@@ -41,7 +41,12 @@ import {
   isMeetingSlotOpen,
 } from '../../../shared/fulfillment';
 import NotificationDispatchService from './NotificationDispatchService';
-import { renderOrderConfirmationEmail, renderOrderCancelledEmail, renderServiceNoticeEmail, renderShipmentEmail } from './mail/EmailTemplate';
+import {
+  renderOrderConfirmationEmail,
+  renderOrderCancelledEmail,
+  renderServiceNoticeEmail,
+  renderShipmentEmail,
+} from './mail/EmailTemplate';
 import { shopPublicUrl } from './marketing/platforms';
 import ShippingService from './ShippingService';
 import PackagePlanService, { planItems } from './PackagePlanService';
@@ -532,7 +537,8 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
       const shippingAddress = order.address
         ? `${order.address}, ${order.ward || ''}, ${order.district || ''}, ${order.city || ''}`
         : 'Nhận trực tiếp tại Showroom';
-      const paymentMethod = order.fulfillmentMethod === 'DIRECT_MEETING' ? 'Giao dịch trực tiếp tại showroom' : 'Giao hàng tận nơi (COD)';
+      const paymentMethod =
+        order.fulfillmentMethod === 'DIRECT_MEETING' ? 'Giao dịch trực tiếp tại showroom' : 'Giao hàng tận nơi (COD)';
       const rawItems = (order.getDataValue('items') || []) as OrderItemModel[];
       const items = rawItems.map((it: OrderItemModel) => ({
         name: it.productName || `Mô hình #${it.productId}`,
@@ -656,14 +662,17 @@ export default class OrderService implements BaseServiceInterface<OrderModel> {
     if (refund) {
       // Refund to source: when payOS reported the single account that paid, the background job refunds it there.
       // Staff must not also transfer by hand.
-      const { default: MoneyOperationsService } =
+      const { default: MoneyOperationsService, sendsAutomatically } =
         require('./MoneyOperationsService') as typeof import('./MoneyOperationsService');
       const toSource =
         feeVnd === 0 &&
         (await new MoneyOperationsService().sourceFor('purchase_refund', order.id, refundVnd, transaction)).ok;
-      const next = toSource
-        ? 'Hệ thống tự hoàn về đúng tài khoản đã thanh toán trong khoảng 1 phút (tự gửi nếu ≤ 2.000.000 VND/lệnh và trong hạn mức ngày; lớn hơn thì chờ duyệt ở Tài chính → Hoàn tiền).\nKHÔNG chuyển khoản tay.'
-        : 'Hoàn tiền rồi ghi nhận ở mục Thanh toán trước.';
+      // Say what the system will really do with this refund: the same switch, payout channel and limit decide it.
+      const next = !toSource
+        ? 'Hoàn tiền rồi ghi nhận ở mục Thanh toán trước.'
+        : sendsAutomatically(refundVnd)
+          ? 'Hệ thống tự hoàn về đúng tài khoản đã thanh toán trong khoảng 1 phút nếu còn hạn mức tự động trong ngày; hết hạn mức thì lệnh chờ duyệt ở Tài chính → Hoàn tiền.\nKHÔNG chuyển khoản tay.'
+          : 'Hệ thống tạo lệnh hoàn về đúng tài khoản đã thanh toán nhưng KHÔNG tự gửi (vượt hạn mức mỗi lệnh, hoàn tự động đang tắt, hoặc chưa có payOS Chi hộ).\nVào Tài chính → Hoàn tiền để duyệt và gửi. KHÔNG chuyển khoản tay ngoài hệ thống.';
       await new NotificationDispatchService().alertAdmins(
         {
           kind: 'refund_due',

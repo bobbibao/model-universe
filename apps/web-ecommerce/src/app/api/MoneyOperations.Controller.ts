@@ -52,11 +52,18 @@ export class MoneyOperationsController extends ApiBaseController {
         { staffId: req.user.id },
       );
       if (!result.operation) throw HttpError.conflict(`REFUND_TO_SOURCE_UNAVAILABLE: ${result.reason}`);
-      if (result.auto) await new PayOSPayoutService().submitAutoApproved();
+      // Send this refund only, and say what really happened to it.
+      const payout = result.auto
+        ? await new PayOSPayoutService().sendAutoApproved(result.operation.id, result.operation.version)
+        : null;
       return this.sendSuccess(
         res,
-        { operationId: result.operation.id, automatic: result.auto },
-        result.auto ? 'Đã gửi lệnh hoàn về tài khoản đã thanh toán.' : 'Đã tạo yêu cầu hoàn, chờ người khác duyệt.',
+        { operationId: result.operation.id, automatic: result.auto, sent: !!payout?.sent, payoutState: payout?.state },
+        !payout
+          ? 'Đã tạo yêu cầu hoàn, chờ người khác duyệt.'
+          : payout.sent
+            ? 'Đã gửi lệnh hoàn về tài khoản đã thanh toán.'
+            : `Đã tạo lệnh hoàn nhưng CHƯA gửi được: ${payout.error} Xem ở Tài chính → Hoàn tiền.`,
       );
     } catch (error) {
       return this.handleError(res, error, 'Refund to source');

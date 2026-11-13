@@ -17,6 +17,7 @@ import {
   maskAccount,
   resolveSource,
   shopDayStart,
+  type SourceAccount,
   type SourceResolution,
 } from '../../../shared/refund-to-source';
 import { transferMemo } from '../../../shared/payment';
@@ -42,9 +43,17 @@ const integer = (value: unknown) => {
   return Number(value);
 };
 type Purpose = 'hold_refund' | 'pawn_credit_refund' | 'purchase_refund' | 'pawn_disposal_surplus';
-// Only these are paid through payOS links, so only they have a signed paying account to refund to.
 // Kill switch: REFUND_TO_SOURCE_AUTO=off sends nothing automatically; every refund to source then waits for review.
 export const automaticRefundsOn = () => process.env.REFUND_TO_SOURCE_AUTO?.trim().toLowerCase() !== 'off';
+export const payoutConfigured = () =>
+  ['CLIENT_ID', 'API_KEY', 'CHECKSUM_KEY'].every((k) => !!process.env[`PAYOS_PAYOUT_${k}`]?.trim());
+// Whether a refund of this amount is sent without a reviewer when it is created now: the switch is on, the payout
+// channel exists and the amount is within the per-refund limit. The daily allowance is decided when it is created.
+export const sendsAutomatically = (refundVnd: number, payoutReady = payoutConfigured()) =>
+  automaticRefundsOn() && payoutReady && autoApproves(refundVnd, 0);
+// Keys the server derives from public ids (`refund-to-source:<purpose>:<entity>:<n>`); a client may not claim one.
+const SOURCE_KEY_PREFIX = 'refund-to-source:';
+// Only these are paid through payOS links, so only they have a signed paying account to refund to.
 export type SourcePurpose = 'purchase_refund' | 'hold_refund';
 export type SourceSkip =
   | Exclude<SourceResolution, { ok: true }>['reason']
@@ -88,7 +97,11 @@ export default class MoneyOperationsService {
             details: [
               { label: 'Mã yêu cầu', value: `#${row.id}`, isHighlight: true },
               { label: 'Trạng thái', value: status },
-              { label: 'Số tiền xử lý', value: `${Number(row.amountVnd).toLocaleString('vi-VN')} ₫`, isHighlight: true },
+              {
+                label: 'Số tiền xử lý',
+                value: `${Number(row.amountVnd).toLocaleString('vi-VN')} ₫`,
+                isHighlight: true,
+              },
               ...(row.details.source
                 ? [
                     {
@@ -176,7 +189,12 @@ export default class MoneyOperationsService {
     const amountVnd = integer(data.amountVnd),
       requestKey = text(data.requestKey),
       reason = text(data.reason);
-    if (requestKey.length > 128 || !Number.isSafeInteger(entityId) || entityId < 1)
+    if (
+      requestKey.length > 128 ||
+      requestKey.toLowerCase().startsWith(SOURCE_KEY_PREFIX) ||
+      !Number.isSafeInteger(entityId) ||
+      entityId < 1
+    )
       throw HttpError.badRequest('Invalid refund request key or entity.');
     const account = { bank: text(data.bankName), number: text(data.accountNumber), holder: text(data.accountHolder) };
     const accountHash = crypto.createHash('sha256').update(JSON.stringify(account)).digest('hex');
@@ -272,16 +290,56 @@ export default class MoneyOperationsService {
     );
   }
 
+  // Whether this cancelled order or hold can be refunded to its source now, and with what: one rule for the refund,
+  // its preview and nothing else. Throws (like `liability`) while the entity is not refundable at all.
+  private async sourceEligibility(
+    purpose: SourcePurpose,
+    entityId: number,
+    transaction: Transaction,
+  ): Promise<
+    | { ok: true; owner: number; balance: number; account: SourceAccount }
+    | { ok: false; reason: SourceSkip; balance: number }
+  > {
+    const { owner, balance } = await this.liability(purpose, entityId, transaction);
+    if (!owner) return { ok: false, reason: 'no_customer', balance };
+    if (balance < 1) return { ok: false, reason: 'nothing_owed', balance: 0 };
+    if (purpose === 'purchase_refund') {
+      const order = await OrderModel.findByPk(entityId, { transaction });
+      // A deduction the shop keeps is a decision for a person, never for the refund to source.
+      if (!order || Number(order.cancellationFeeVnd || 0) > 0)
+        return { ok: false, reason: 'cancellation_fee', balance };
+    }
+    const source = await this.sourceFor(purpose, entityId, balance, transaction);
+    if (!source.ok) return { ok: false, reason: source.reason, balance };
+    return { ok: true, owner, balance, account: source.account };
+  }
+
+  // Today's automatic refunds so far (the shop's day), which the daily limit counts.
+  private async autoRefundedToday(now: Date, transaction: Transaction) {
+    return Number(
+      (await MoneyOperationModel.sum('amountVnd', {
+        where: {
+          createdAt: { [Op.gte]: shopDayStart(now) },
+          status: { [Op.ne]: 'rejected' },
+          'details.autoApproval.policy': REFUND_TO_SOURCE_POLICY.version,
+        },
+        transaction,
+      })) || 0,
+    );
+  }
+
   // Creates the refund of what is still owed on a cancelled order or hold, to the single account that paid it. Within
-  // the owner's limits it is approved by policy (no reviewer) and the caller sends it; otherwise it waits for review.
-  // Without `staffId` (the background sweep) it never acts on an entity that already has a refund record, since a
-  // person decided that one; staff may ask again after a rejected or failed refund.
+  // the owner's limits, with the switch on and a payout channel to send it through (`payoutReady`), it is approved by
+  // policy (no reviewer) and the caller sends it; otherwise it waits for review. Without `staffId` (the background
+  // sweep) it never acts on an entity that already has a refund record, since a person decided that one; staff may
+  // ask again after a rejected or failed refund.
   async refundToSource(
     purpose: SourcePurpose,
     entityId: number,
-    options: { staffId?: number; now?: Date } = {},
+    options: { staffId?: number; now?: Date; payoutReady?: boolean } = {},
   ): Promise<{ operation?: MoneyOperationModel; auto: boolean; reason?: SourceSkip }> {
     const now = options.now ?? new Date();
+    const payoutReady = options.payoutReady ?? payoutConfigured();
     return DatabaseProvider.getInstance().transaction(async (transaction) => {
       if (options.staffId !== undefined) await CommerceAccessService.require(options.staffId, 'finance', transaction);
       // One refund-to-source decision at a time: the daily cap is read and used under this lock.
@@ -291,28 +349,11 @@ export default class MoneyOperationsService {
       const previous = await MoneyOperationModel.findAll({ where: { purpose, entityId }, transaction });
       if (options.staffId === undefined ? previous.length : previous.some((row) => row.status !== 'rejected'))
         return { auto: false, reason: 'existing_refund' };
-      const { owner, balance } = await this.liability(purpose, entityId, transaction);
-      if (!owner) return { auto: false, reason: 'no_customer' };
-      if (balance < 1) return { auto: false, reason: 'nothing_owed' };
-      if (purpose === 'purchase_refund') {
-        const order = await OrderModel.findByPk(entityId, { transaction });
-        // A deduction the shop keeps is a decision for a person, never for the automatic refund.
-        if (!order || Number(order.cancellationFeeVnd || 0) > 0) return { auto: false, reason: 'cancellation_fee' };
-      }
-      const source = await this.sourceFor(purpose, entityId, balance, transaction);
-      if (!source.ok) return { auto: false, reason: source.reason };
-      const autoTodayBeforeVnd = Number(
-        (await MoneyOperationModel.sum('amountVnd', {
-          where: {
-            createdAt: { [Op.gte]: shopDayStart(now) },
-            status: { [Op.ne]: 'rejected' },
-            'details.autoApproval.policy': REFUND_TO_SOURCE_POLICY.version,
-          },
-          transaction,
-        })) || 0,
-      );
-      const auto = automaticRefundsOn() && autoApproves(balance, autoTodayBeforeVnd);
-      const { account: paid } = source;
+      const eligible = await this.sourceEligibility(purpose, entityId, transaction);
+      if (!eligible.ok) return { auto: false, reason: eligible.reason };
+      const { owner, balance, account: paid } = eligible;
+      const autoTodayBeforeVnd = await this.autoRefundedToday(now, transaction);
+      const auto = automaticRefundsOn() && payoutReady && autoApproves(balance, autoTodayBeforeVnd);
       const account = {
         bank: paid.bankBin,
         number: paid.accountNumber,
@@ -329,11 +370,13 @@ export default class MoneyOperationsService {
           purpose,
           entityId,
           amountVnd: balance,
-          requestKey: `refund-to-source:${purpose}:${entityId}:${previous.length + 1}`,
+          requestKey: `${SOURCE_KEY_PREFIX}${purpose}:${entityId}:${previous.length + 1}`,
           requestDigest: crypto
             .createHash('sha256')
             .update(JSON.stringify({ purpose, entityId, amountVnd: balance, accountHash, reason }))
             .digest('hex'),
+          // The customer the money belongs to. The staff member who started it is in the history, and may not
+          // approve it (`decide`).
           requestedBy: owner,
           status: auto ? 'approved' : 'requested',
           approvedBy: null,
@@ -370,8 +413,46 @@ export default class MoneyOperationsService {
       return { operation, auto };
     });
   }
+
+  // An automatically approved refund the system will not send after all (the switch went off, or the amount owed
+  // changed before it was submitted) goes back to review: it leaves the automatic queue, stops counting against the
+  // daily limit, and a person decides it. Never touches a refund that was already submitted to payOS.
+  async returnToReview(id: number, reason: string) {
+    return DatabaseProvider.getInstance().transaction(async (transaction) => {
+      const row = await MoneyOperationModel.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
+      if (!row || row.status !== 'approved' || row.approvedBy || !row.details.autoApproval || row.details.payout)
+        return null;
+      const { autoApproval: _withdrawn, ...details } = row.details;
+      await row.update(
+        {
+          status: 'requested',
+          version: row.version + 1,
+          details: {
+            ...details,
+            history: [
+              ...row.details.history,
+              { action: 'returned_to_review', reason: reason.slice(0, 300), at: new Date().toISOString() },
+            ],
+          },
+        },
+        { transaction },
+      );
+      await new NotificationDispatchService().alertAdmins(
+        {
+          kind: 'refund_due',
+          orderId: row.purpose === 'purchase_refund' ? row.entityId : null,
+          dedupeKey: `money:${row.id}:returned-to-review:${row.version}`,
+          title: 'MODEL universe – LỆNH HOÀN TỰ ĐỘNG CẦN DUYỆT TAY',
+          content: `Lệnh hoàn #${row.id} (${Number(row.amountVnd).toLocaleString('vi-VN')} ₫) không được gửi tự động: ${reason.slice(0, 300)}\nVào Tài chính → Hoàn tiền để duyệt và gửi.`,
+        },
+        transaction,
+      );
+      return row;
+    });
+  }
+
   // What a refund to source would do now, for the admin panel: the account, the amount and whether it is sent
-  // automatically. Finance only; changes nothing.
+  // automatically. Finance only; changes nothing. The same eligibility rule as the refund itself.
   async sourcePreview(purpose: SourcePurpose, entityId: number, staffId: number, now = new Date()) {
     return DatabaseProvider.getInstance().transaction(async (transaction) => {
       await CommerceAccessService.require(staffId, 'finance', transaction);
@@ -379,33 +460,22 @@ export default class MoneyOperationsService {
         where: { purpose, entityId, status: ['requested', 'approved', 'completed', 'reconciliation'] },
         transaction,
       });
-      let balance = 0;
+      let eligible: Awaited<ReturnType<MoneyOperationsService['sourceEligibility']>>;
       try {
-        balance = (await this.liability(purpose, entityId, transaction)).balance;
+        eligible = await this.sourceEligibility(purpose, entityId, transaction);
       } catch (error) {
         return { ok: false as const, reason: (error as Error).message, amountVnd: 0 };
       }
-      if (active) return { ok: false as const, reason: 'existing_refund', amountVnd: balance };
-      if (balance < 1) return { ok: false as const, reason: 'nothing_owed', amountVnd: 0 };
-      const source = await this.sourceFor(purpose, entityId, balance, transaction);
-      if (!source.ok) return { ok: false as const, reason: source.reason, amountVnd: balance };
-      const autoTodayVnd = Number(
-        (await MoneyOperationModel.sum('amountVnd', {
-          where: {
-            createdAt: { [Op.gte]: shopDayStart(now) },
-            status: { [Op.ne]: 'rejected' },
-            'details.autoApproval.policy': REFUND_TO_SOURCE_POLICY.version,
-          },
-          transaction,
-        })) || 0,
-      );
+      if (active) return { ok: false as const, reason: 'existing_refund', amountVnd: eligible.balance };
+      if (!eligible.ok) return { ok: false as const, reason: eligible.reason, amountVnd: eligible.balance };
+      const autoTodayVnd = await this.autoRefundedToday(now, transaction);
       return {
         ok: true as const,
-        amountVnd: balance,
-        bankName: source.account.bankName,
-        maskedAccount: maskAccount(source.account.accountNumber),
-        accountName: source.account.accountName,
-        automatic: automaticRefundsOn() && autoApproves(balance, autoTodayVnd),
+        amountVnd: eligible.balance,
+        bankName: eligible.account.bankName,
+        maskedAccount: maskAccount(eligible.account.accountNumber),
+        accountName: eligible.account.accountName,
+        automatic: automaticRefundsOn() && payoutConfigured() && autoApproves(eligible.balance, autoTodayVnd),
         perRefundCapVnd: REFUND_TO_SOURCE_POLICY.perRefundCapVnd,
         dailyLeftVnd: Math.max(0, REFUND_TO_SOURCE_POLICY.dailyCapVnd - autoTodayVnd),
       };
@@ -424,9 +494,7 @@ export default class MoneyOperationsService {
   async list(actorId: number) {
     await CommerceAccessService.require(actorId, 'finance');
     return {
-      payosPayoutConfigured: ['CLIENT_ID', 'API_KEY', 'CHECKSUM_KEY'].every(
-        (k) => !!process.env[`PAYOS_PAYOUT_${k}`]?.trim(),
-      ),
+      payosPayoutConfigured: payoutConfigured(),
       bankConfirmationConfigured: Number(process.env.BANK_EVENT_SIGNING_SECRET?.length || 0) >= 32,
       // Whether refunds to source within the owner's limits are sent without a reviewer (REFUND_TO_SOURCE_AUTO).
       automaticRefunds: automaticRefundsOn(),
@@ -440,7 +508,9 @@ export default class MoneyOperationsService {
       if (!row) throw HttpError.notFound();
       if (row.version !== data.expectedVersion || row.status !== 'requested' || typeof data.approved !== 'boolean')
         throw HttpError.conflict('Review the latest refund request.');
-      if (row.requestedBy === actorId)
+      // Two people: neither the requester nor the staff member who started a refund to source may decide it.
+      const startedBy = row.details.history.filter((entry) => entry.action.startsWith('requested')).map((e) => e.by);
+      if (row.requestedBy === actorId || startedBy.includes(actorId))
         throw HttpError.forbidden('Another authorized reviewer must approve the refund.');
       const reason = text(data.reason);
       await row.update(

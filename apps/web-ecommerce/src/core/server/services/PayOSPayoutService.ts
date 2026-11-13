@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import DatabaseProvider from '../database/Database.Provider';
 import MoneyOperationModel from '../database/client/models/MoneyOperation.Model';
 import CommerceAccessService from './CommerceAccessService';
-import MoneyOperationsService from './MoneyOperationsService';
+import MoneyOperationsService, { automaticRefundsOn, payoutConfigured } from './MoneyOperationsService';
 import HttpError from '../../../shared/server/utils/HttpError';
 import Logger from '../../../shared/server/utils/logger';
 
@@ -16,8 +16,7 @@ export interface PayoutClient {
     list(filter: { referenceId: string; limit: number }): Promise<{ data: Payout[] }>;
   };
 }
-export const payoutConfigured = () =>
-  ['CLIENT_ID', 'API_KEY', 'CHECKSUM_KEY'].every((k) => !!process.env[`PAYOS_PAYOUT_${k}`]?.trim());
+export { payoutConfigured };
 export const requirePayoutSignature = async (response: Response) => {
   if (response.ok) {
     const body = await response.clone().json();
@@ -103,26 +102,51 @@ export default class PayOSPayoutService {
     return checked;
   }
 
-  // Sends the refunds approved under the automatic refund-to-source policy that were not submitted yet (a crash or a
-  // missing payout key between approval and sending). Each keeps its own stable payOS reference.
+  // Sends the refunds approved under the automatic refund-to-source policy that were not submitted yet (a crash
+  // between approval and sending). Each keeps its own stable payOS reference. Only refunds that still need sending
+  // are read, so one that is stuck after submission (reconcilePending and Finance handle those) cannot hold up the
+  // ones behind it. With REFUND_TO_SOURCE_AUTO=off nothing is sent: what was waiting goes back to review.
   async submitAutoApproved() {
-    if (!this.injected && !payoutConfigured()) return 0;
-    const rows = await MoneyOperationModel.findAll({
-      where: { status: 'approved', approvedBy: null, 'details.autoApproval.policy': { [Op.ne]: null } },
-      order: [['id', 'ASC']],
-      limit: 25,
-    });
-    let sent = 0;
-    for (const row of rows) {
-      if (row.details.payout) continue; // reconcilePending checks submitted ones; never send twice.
-      try {
-        await this.execute(row.id, null, row.version, true);
-        sent++;
-      } catch (error) {
-        Logger.WARN(`Automatic refund #${row.id} not sent: ${(error as Error).message}`);
-      }
+    const waiting = () =>
+      MoneyOperationModel.findAll({
+        where: {
+          status: 'approved',
+          approvedBy: null,
+          'details.autoApproval.policy': { [Op.ne]: null },
+          'details.payout.referenceId': null,
+        },
+        order: [['id', 'ASC']],
+        limit: 25,
+      });
+    if (!automaticRefundsOn()) {
+      const money = new MoneyOperationsService();
+      for (const row of await waiting())
+        await money.returnToReview(row.id, 'Hoàn tự động đang tắt (REFUND_TO_SOURCE_AUTO=off).');
+      return 0;
     }
+    if (!this.injected && !payoutConfigured()) return 0;
+    let sent = 0;
+    for (const row of await waiting()) if ((await this.sendAutoApproved(row.id, row.version)).sent) sent++;
     return sent;
+  }
+
+  // Sends one refund the automatic policy approved and reports what happened to it. A refund that fails before
+  // anything was submitted to payOS (the amount owed changed, an unusable account) goes back to review; after
+  // submission the outcome is unknown or the provider's, and it stays for reconciliation.
+  async sendAutoApproved(
+    id: number,
+    expectedVersion: number,
+  ): Promise<{ sent: boolean; state?: string; error?: string }> {
+    try {
+      const row = await this.execute(id, null, expectedVersion, true);
+      return { sent: true, state: row?.details.payout?.state };
+    } catch (error) {
+      const message = (error as Error).message;
+      Logger.WARN(`Automatic refund #${id} not sent: ${message}`);
+      const current = await MoneyOperationModel.findByPk(id);
+      if (current && !current.details.payout) await new MoneyOperationsService().returnToReview(id, message);
+      return { sent: false, state: current?.details.payout?.state, error: message };
+    }
   }
 
   // `actorId` null: the system sends a refund that the automatic refund-to-source policy approved (no reviewer).

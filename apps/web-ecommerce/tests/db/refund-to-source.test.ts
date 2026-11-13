@@ -188,6 +188,7 @@ describe('refund to source: back to the account that paid, automatic within the 
     await db.query(`ALTER TABLE money_operation DISABLE TRIGGER money_operation_protected`);
     await db.query(`UPDATE money_operation SET "createdAt" = "createdAt" - INTERVAL '3 days'`);
     await db.query(`ALTER TABLE money_operation ENABLE TRIGGER money_operation_protected`);
+    RefundToSourceService.forgetSkipped();
   });
 
   it('keeps the paying account payOS signed, append-only', async () => {
@@ -345,5 +346,173 @@ describe('refund to source: back to the account that paid, automatic within the 
     expect(op).toMatchObject({ status: 'completed', amountVnd: String(deposit) });
     expect(payouts.sent.at(-1)).toMatchObject({ amount: deposit, toAccountNumber: '0071000123456' });
     expect(await ReservationPaymentModel.count({ where: { reservationId: row.id, kind: 'refund' } })).toBe(1);
+  });
+
+  // --- Review findings of 2026-11-13 (two-person rule, key namespace, payout channel, queue starvation, kill switch). ---
+
+  const requestBody = (requestKey: string, amountVnd: number) => ({
+    amountVnd,
+    requestKey,
+    reason: 'Customer asked for the refund',
+    bankName: 'Vietcombank',
+    accountNumber: '0071000123456',
+    accountHolder: 'NGUYEN VAN A',
+  });
+
+  it('the staff member who starts a refund to source cannot also approve it', async () => {
+    const order = await paidOrder(3, 'full');
+    await cancel(order.id);
+    const { operation, auto } = await money.refundToSource('purchase_refund', order.id, {
+      staffId: finance,
+      payoutReady: true,
+    });
+    expect(auto).toBe(false); // 3,000,000 VND is above the automatic limit
+    expect(operation).toMatchObject({ status: 'requested', requestedBy: customer });
+    const decision = { expectedVersion: operation!.version, approved: true, reason: 'Checked' };
+    await expect(money.decide(operation!.id, finance, decision)).rejects.toMatchObject({ statusCode: 403 });
+    expect((await money.decide(operation!.id, owner, decision)).status).toBe('approved');
+  });
+
+  it('a client cannot claim a key the server derives for a refund to source', async () => {
+    const victim = await paidOrder(2, 'deposit');
+    const attacker = await paidOrder(1, 'deposit');
+    await cancel(victim.id);
+    await cancel(attacker.id);
+    const key = `refund-to-source:purchase_refund:${victim.id}:1`;
+    for (const requestKey of [key, key.toUpperCase()])
+      await expect(
+        money.request('purchase_refund', attacker.id, customer, requestBody(requestKey, 100_000)),
+      ).rejects.toMatchObject({ statusCode: 400 });
+    const payouts = fakePayouts();
+    await new RefundToSourceService(payouts.client).sweep();
+    const op = await MoneyOperationModel.findOne({ where: { purpose: 'purchase_refund', entityId: victim.id } });
+    expect(op).toMatchObject({ status: 'completed', requestKey: key });
+  });
+
+  it('without a payout channel nothing is approved automatically, and staff are told to review', async () => {
+    const order = await paidOrder(2, 'deposit');
+    await cancel(order.id);
+    // The test environment has no PAYOS_PAYOUT_* keys: the cancellation alert must not promise an automatic refund.
+    const alert = await AdminAlertModel.findOne({ where: { kind: 'refund_due', orderId: order.id } });
+    expect(String(alert?.content)).toContain('KHÔNG tự gửi');
+    expect(String(alert?.content)).not.toContain('tự hoàn về đúng tài khoản đã thanh toán trong khoảng 1 phút');
+    expect(await money.sourcePreview('purchase_refund', order.id, finance)).toMatchObject({
+      ok: true,
+      automatic: false,
+    });
+    const { operation, auto } = await money.refundToSource('purchase_refund', order.id); // payoutReady: from the keys
+    expect(auto).toBe(false);
+    expect(operation).toMatchObject({ status: 'requested', approvedBy: null });
+    expect(operation!.details.autoApproval).toBeUndefined();
+  });
+
+  it('a refund stuck after submission does not hold up the automatic refunds behind it', async () => {
+    const stuck = await paidOrder(1, 'deposit');
+    const next = await paidOrder(2, 'deposit');
+    await cancel(stuck.id);
+    await cancel(next.id);
+    const payouts = fakePayouts();
+    payouts.state.failNext = true; // the first create is lost: that refund stays approved, state SUBMITTING
+    expect((await new RefundToSourceService(payouts.client).sweep()).sent).toBe(1);
+    const [first, second] = await MoneyOperationModel.findAll({
+      where: { purpose: 'purchase_refund', entityId: [stuck.id, next.id] },
+      order: [['entityId', 'ASC']],
+    });
+    expect(first).toMatchObject({ status: 'approved' });
+    expect(first.details.payout?.state).toBe('SUBMITTING');
+    expect(second.status).toBe('completed');
+    // The submitted one is not part of the "still to send" queue any more.
+    expect(await new PayOSPayoutService(payouts.client).submitAutoApproved()).toBe(0);
+    await new PayOSPayoutService(payouts.client).reconcilePending();
+    expect((await MoneyOperationModel.findByPk(first.id))!.status).toBe('completed');
+  });
+
+  it('REFUND_TO_SOURCE_AUTO=off also stops sending what was approved before: it goes back to review', async () => {
+    const order = await paidOrder(2, 'deposit');
+    await cancel(order.id);
+    const created = await money.refundToSource('purchase_refund', order.id, { payoutReady: true });
+    expect(created).toMatchObject({ auto: true });
+    const payouts = fakePayouts();
+    process.env.REFUND_TO_SOURCE_AUTO = 'off';
+    try {
+      expect(await new PayOSPayoutService(payouts.client).submitAutoApproved()).toBe(0);
+    } finally {
+      delete process.env.REFUND_TO_SOURCE_AUTO;
+    }
+    expect(payouts.sent).toHaveLength(0);
+    const op = (await MoneyOperationModel.findByPk(created.operation!.id))!;
+    expect(op).toMatchObject({ status: 'requested', approvedBy: null });
+    expect(op.details.autoApproval).toBeUndefined();
+    expect(op.details.history.at(-1)).toMatchObject({ action: 'returned_to_review' });
+    // Switching it back on sends nothing by itself either: a person decides it now.
+    expect(await new PayOSPayoutService(payouts.client).submitAutoApproved()).toBe(0);
+    const approved = await money.decide(op.id, finance, { expectedVersion: op.version, approved: true, reason: 'OK' });
+    await new PayOSPayoutService(payouts.client).execute(op.id, finance, approved.version, true);
+    expect((await MoneyOperationModel.findByPk(op.id))!.status).toBe('completed');
+    expect(payouts.sent).toHaveLength(1);
+  });
+
+  it('an automatic refund that cannot be submitted goes back to review and is reported as not sent', async () => {
+    const order = await paidOrder(2, 'deposit');
+    await cancel(order.id);
+    const created = await money.refundToSource('purchase_refund', order.id, { payoutReady: true });
+    const payouts = fakePayouts();
+    const outcome = await new PayOSPayoutService(payouts.client).sendAutoApproved(
+      created.operation!.id,
+      created.operation!.version + 1, // the record changed since it was read
+    );
+    expect(outcome).toMatchObject({ sent: false });
+    expect(outcome.error).toBeTruthy();
+    expect(payouts.sent).toHaveLength(0);
+    const op = (await MoneyOperationModel.findByPk(created.operation!.id))!;
+    expect(op.status).toBe('requested');
+    expect(
+      await AdminAlertModel.count({ where: { dedupeKey: { [Op.like]: `money:${op.id}:returned-to-review:%` } } }),
+    ).toBe(1);
+    // A refund that was sent reports its real state.
+    const other = await paidOrder(1, 'deposit');
+    await cancel(other.id);
+    const ready = await money.refundToSource('purchase_refund', other.id, { payoutReady: true });
+    expect(
+      await new PayOSPayoutService(payouts.client).sendAutoApproved(ready.operation!.id, ready.operation!.version),
+    ).toEqual({ sent: true, state: 'SUCCEEDED' });
+  });
+
+  it('an order the refund skips is not read again every minute, so it cannot fill the batch', async () => {
+    const order = await paidOrder(2, 'deposit');
+    await cancel(order.id);
+    const refund = jest.spyOn(MoneyOperationsService.prototype, 'refundToSource');
+    refund.mockRejectedValueOnce(new Error('Reconcile first'));
+    try {
+      const sweep = new RefundToSourceService(fakePayouts().client);
+      await sweep.sweep();
+      const calls = () => refund.mock.calls.filter(([purpose, id]) => purpose === 'purchase_refund' && id === order.id);
+      expect(calls()).toHaveLength(1);
+      await sweep.sweep(); // the next minute
+      expect(calls()).toHaveLength(1);
+      await sweep.sweep(Date.now() + 61 * 60_000); // an hour later it is looked at again
+      expect(calls()).toHaveLength(2);
+    } finally {
+      refund.mockRestore();
+    }
+    expect((await MoneyOperationModel.findOne({ where: { entityId: order.id } }))!.status).toBe('completed');
+  });
+
+  it('an order refunded by hand, or with a cancellation fee, is not a candidate and has no ready-made refund', async () => {
+    const order = await paidOrder(2, 'deposit');
+    await cancel(order.id);
+    await OrderModel.update({ cancellationFeeVnd: 50_000 }, { where: { id: order.id } });
+    expect(await money.sourcePreview('purchase_refund', order.id, finance)).toMatchObject({
+      ok: false,
+      reason: 'cancellation_fee',
+    });
+    const refund = jest.spyOn(MoneyOperationsService.prototype, 'refundToSource');
+    try {
+      await new RefundToSourceService(fakePayouts().client).sweep();
+      expect(refund.mock.calls.some(([, id]) => id === order.id)).toBe(false);
+    } finally {
+      refund.mockRestore();
+    }
+    expect(await MoneyOperationModel.count({ where: { purpose: 'purchase_refund', entityId: order.id } })).toBe(0);
   });
 });

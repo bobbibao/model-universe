@@ -17,6 +17,7 @@ import '@/components/Contact/contact.css';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_MESSAGE_LENGTH = 10;
+const MAX_MESSAGE_LENGTH = 2000; // the server's limit (ContactMessageService), topic prefix included
 const emptyForm: ContactMessageInput = { name: '', email: '', phone: '', company: '', message: '' };
 const TOPICS = ['topicAdviceTitle', 'topicOrderTitle', 'topicServiceTitle', 'topicPartnerTitle', 'topicOther'] as const;
 type Topic = (typeof TOPICS)[number];
@@ -65,6 +66,8 @@ const Contact = () => {
     }
   };
 
+  const topicPrefix = `[${c(topic)}] `;
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const nextErrors: ContactErrors = {};
@@ -78,7 +81,7 @@ const Contact = () => {
 
     setSending(true);
     // The topic travels as the first line of the message, so the admin inbox shows it without a schema change.
-    const ok = await ContactApi.sendMessage({ ...form, message: `[${c(topic)}] ${form.message.trim()}` });
+    const ok = await ContactApi.sendMessage({ ...form, message: `${topicPrefix}${form.message.trim()}` });
     setSending(false);
     if (ok) {
       setSent(true);
@@ -372,7 +375,7 @@ const Contact = () => {
                 <textarea
                   id="message"
                   rows={5}
-                  maxLength={2000}
+                  maxLength={MAX_MESSAGE_LENGTH - topicPrefix.length}
                   className={`${inputClassName} ${errors.message ? 'border-danger' : ''} text-sm leading-relaxed`}
                   placeholder={c('messagePlaceholder')}
                   value={form.message}
