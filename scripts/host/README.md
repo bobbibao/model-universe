@@ -35,7 +35,7 @@ the old host must not start the site again: nothing starts it automatically ther
 
 `setup-host-macos.sh` does the same with Homebrew (node@22, postgresql@18, openssl@3, cloudflared) and three launchd
 boot daemons (`vn.modeluniverse.postgres`, `.web`, `.tunnel`: start at boot without login, restarted when they die).
-Steps: `bash scripts/host/setup-host-macos.sh check | build | restore <file> | service`; later `redeploy` (pull, build,
+Steps: `bash scripts/host/setup-host-macos.sh check | build | restore <file> | service`; later `deploy` (build and switch the web with no downtime, no sudo) or `redeploy` (pull, build,
 restart the web: about 20 s of downtime) and `status`. Runtime folder: `~/ModelUniverseRuntime`, logs in its `host/`.
 A MacBook sleeps when its lid is closed (unless an external display is attached): keep it open and on power.
 
@@ -86,3 +86,20 @@ Follow scripts/host/README.md. Work carefully: it is a live shop with real custo
 Never commit, upload or print the bundle, the key, .env files, uploads or ~/.cloudflared. Do not change the shop's
 code or data unless I ask.
 ```
+
+## The AI Agent Server on the Mac host
+
+The web shop runs without it (the assistant and the admin agent console answer "unavailable"). To run it as a fourth
+boot daemon on `127.0.0.1:2026`:
+
+1. Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`.
+2. In `apps/agent-service/.env` set `LLM_PROFILE=google`, `GOOGLE_API_KEY=<key>` and a daily cap for the merchant
+   agents (`LLM_DAILY_BUDGET_USD`, e.g. `0.3` for about 10 USD a month). The key needs a funded Gemini API project.
+3. `./scripts/host/setup-host-macos.sh agent` (asks for the Mac password). It installs the dependencies, creates the
+   agent's database and its read-only role on the shop's analytics views (rotating both passwords), writes the
+   connection settings into the two `.env` files, installs the daemon and restarts the web with the agent's URL.
+4. In `apps/agent-service`: `uv run shop-agent doctor --profile google --live`, then `uv run shop-agent ingest`, then
+   `uv run shop-agent sync-crons` when the scheduled merchant agents should start spending model budget.
+
+`status` and `redeploy` include the agent once it is installed. Its log is `~/ModelUniverseRuntime/host/agent.log`.
+It runs as one process without Redis: a run interrupted by a crash is resent with the same idempotency keys.
