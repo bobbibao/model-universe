@@ -36,9 +36,9 @@ x-agent-env: &agent-env
   ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
   OPENAI_API_KEY: ${OPENAI_API_KEY:-}
   GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
-  # Decision model (TypeSafe Jev) that routes customer turns; no key: routing off, every turn goes to the planner.
-  # OpenRouter (default) reuses OPENAI_API_KEY for openrouter profiles; DECISION_MODEL empty = the provider's default.
-  DECISION_PROVIDER: ${DECISION_PROVIDER:-openrouter}
+  # Decision model that routes customer turns; no key: routing off, every turn goes to the planner. Empty
+  # provider: Gemini Decision with a google profile, otherwise Jev through OpenRouter (docs/CUSTOMER_AGENT.md).
+  DECISION_PROVIDER: ${DECISION_PROVIDER:-}
   OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
   TYPESAFE_API_KEY: ${TYPESAFE_API_KEY:-}
   DECISION_MODEL: ${DECISION_MODEL:-}

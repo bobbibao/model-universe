@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from shop_agent import llm
+from shop_agent.adapters.growth_files import POST_TEMPLATE
 from shop_agent.graphs import marketing_copy
 
 
@@ -143,7 +144,7 @@ async def test_owner_template_is_loaded_in_full_and_unformatted_copy_is_rejected
     with pytest.raises(ValueError, match="post template"):
         await marketing_copy.graph.ainvoke({"request": {"channel": "facebook", "brief": "Giới thiệu"}})
     system = "\n".join(str(message.content) for message in invoke.call_args.args[0][:-1])
-    assert marketing_copy.POST_TEMPLATE in system
+    assert POST_TEMPLATE in system
     assert "hotline" in system and "unconfirmed" in system
 
 

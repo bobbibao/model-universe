@@ -9,7 +9,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project --extra server --extra runtime --extra market \
     && playwright install --with-deps chromium  # the competitor_sites collector's browser
-COPY langgraph.json aegra.json ./
+COPY langgraph.json aegra.json aegra.hosted.json ./
 COPY config ./config
 COPY data ./data
 COPY skills ./skills

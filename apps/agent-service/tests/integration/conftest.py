@@ -9,10 +9,11 @@ from collections.abc import Callable
 
 import pytest
 
-
-def pytest_asyncio_loop_factories() -> dict[str, Callable[[], asyncio.AbstractEventLoop]] | None:
-    """Psycopg async connections require a selector loop on Windows."""
-    return {"psycopg": asyncio.SelectorEventLoop} if sys.platform == "win32" else None
+if sys.platform == "win32":
+    # Psycopg async connections require a selector loop on Windows. The hook must not exist elsewhere: pytest-asyncio
+    # rejects a hook that returns no factories.
+    def pytest_asyncio_loop_factories() -> dict[str, Callable[[], asyncio.AbstractEventLoop]]:
+        return {"psycopg": asyncio.SelectorEventLoop}
 
 
 def require_env(name: str) -> str:

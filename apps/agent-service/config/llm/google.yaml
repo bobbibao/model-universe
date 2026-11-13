@@ -1,16 +1,32 @@
-# Google Gemini profile. Model ids: set LLM_MODEL_<ROLE> to the provider's current flagship and small models, e.g.
-# `google_genai:<model>`; `shop-agent doctor --profile google --live` validates them. Prices must match the ids.
-description: Google Gemini (set the model ids with LLM_MODEL_<ROLE>)
+# Google Gemini: this shop's production profile, chosen for speed and cost (docs/CUSTOMER_AGENT.md). One GOOGLE_API_KEY
+# serves the chat models, the embeddings and the decision model that routes customer turns (gemini-decision-1,
+# shop_agent.decision). `shop-agent doctor --profile google --live` checks every role.
+description: Gemini 3.5 Flash-Lite (shopper, worker), Gemini 3.8 Flash (planner, writer, judge), Gemini embeddings
 roles:
-  planner: &google
+  # Shoppers wait for this one: the small model, a short timeout and one retry.
+  shopper:
     provider: google_genai
-    model: gemini-2.5-pro
-    params: {timeout: 180, max_retries: 2}
-  writer: *google
-  judge: *google
+    model: gemini-3.5-flash-lite
+    params: {timeout: 30, max_retries: 1, max_output_tokens: 8192}
+  planner: &flash
+    provider: google_genai
+    model: gemini-3.8-flash
+    params: {timeout: 120, max_retries: 2}
+  writer: *flash
+  judge: *flash
   worker:
     provider: google_genai
-    model: gemini-2.5-flash
-    params: {timeout: 120, max_retries: 2}
-embeddings: {provider: ollama, model: bge-m3, dims: 1024}
-prices_usd_per_mtok: {}
+    model: gemini-3.5-flash-lite
+    params: {timeout: 90, max_retries: 2}
+# 1024 dimensions, like every other profile, so the knowledge index keeps its shape; switching the embedding model
+# still means re-embedding (`shop-agent ingest`).
+embeddings:
+  provider: google_genai
+  model: gemini-embedding-2
+  dims: 1024
+  params: {output_dimensionality: 1024}
+# Standard paid tier (input, output) in USD per million tokens, for BudgetMiddleware. Checked 2026-11-13; Gemini 3.8
+# Flash is listed at 1.50 / 7.50 from 2027-01-01.
+prices_usd_per_mtok:
+  gemini-3.5-flash-lite: [0.30, 2.50]
+  gemini-3.8-flash: [0.75, 3.75]

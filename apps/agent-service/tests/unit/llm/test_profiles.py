@@ -35,6 +35,48 @@ def test_every_role_builds_without_network(profile_name: str, monkeypatch: pytes
         assert llm.parse_model_ref(f"x:{profile.roles[role].model}")[1] == profile.roles[role].model
 
 
+def test_a_profile_without_a_shopper_serves_customers_with_its_planner() -> None:
+    for name in ("local", "local-small", "local-large", "scripted", "openrouter-fast"):
+        roles = llm.PROFILES[name].roles
+        assert roles[llm.ModelRole.SHOPPER] == roles[llm.ModelRole.PLANNER]
+
+
+def test_hosted_profiles_serve_customers_with_their_small_model() -> None:
+    for name in ("google", "anthropic", "openai"):
+        roles = llm.PROFILES[name].roles
+        assert roles[llm.ModelRole.SHOPPER].model == roles[llm.ModelRole.WORKER].model
+        assert roles[llm.ModelRole.SHOPPER].model != roles[llm.ModelRole.PLANNER].model
+
+
+def test_every_priced_profile_prices_each_of_its_models() -> None:
+    for profile in llm.PROFILES.values():
+        if profile.prices_usd_per_mtok:
+            assert {spec.model for spec in profile.roles.values()} <= set(profile.prices_usd_per_mtok), profile.name
+
+
+def test_provider_keys_come_from_the_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in HOSTED_KEYS:
+        monkeypatch.delenv(key, raising=False)
+    s = settings(google_api_key="g-key", anthropic_api_key="a-key", openai_api_key="o-key")
+    for profile_name, attribute, expected in (
+        ("google", "google_api_key", "g-key"),
+        ("anthropic", "anthropic_api_key", "a-key"),
+        ("openai", "openai_api_key", "o-key"),
+    ):
+        spec = llm.role_spec(llm.ModelRole.SHOPPER, llm.get_profile(profile_name, s), s)
+        model = llm.build_chat_model(spec, s)
+        assert getattr(model, attribute).get_secret_value() == expected
+
+
+def test_the_google_profile_embeds_with_gemini_at_the_shared_dimensions() -> None:
+    spec = llm.PROFILES["google"].embeddings
+    assert (spec.provider, spec.dims, spec.params) == (
+        "google_genai",
+        llm.EMBEDDING_DIMS,
+        {"output_dimensionality": 1024},
+    )
+
+
 def test_ollama_models_get_the_configured_base_url() -> None:
     s = settings(ollama_base_url="http://ollama:11434")
     model = llm.build_chat_model(llm.role_spec(llm.ModelRole.PLANNER, llm.get_profile("local", s), s), s)

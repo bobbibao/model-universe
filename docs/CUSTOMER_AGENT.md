@@ -23,8 +23,8 @@ sequenceDiagram
   participant B as Browser
   participant W as Web (CustomerAssistantService)
   participant A as Agent Server (customer_assistant)
-  participant J as Decision model (Jev)
-  participant M as Chat model (planner)
+  participant J as Decision model
+  participant M as Chat model (shopper)
   B->>W: POST /api/assistant/chat (Accept: application/x-ndjson)
   W-->>B: progress: thinking
   W->>A: runs/wait {request}
@@ -49,7 +49,8 @@ no tools, Store access, internet or write credentials; private reads always take
 
 | Technique | Where | Effect |
 |---|---|---|
-| Decision-model routing (TypeSafe Jev via OpenRouter, `llm.decide`) | `graphs/customer_assistant.py` | ~100 ms intent choice instead of a planner round for greetings and argument-free reads; information-only intents get a prompt and schema without the action rules |
+| Decision-model routing (Gemini Decision or TypeSafe Jev, `shop_agent.decision`) | `graphs/customer_assistant.py` | ~100 ms intent choice instead of a planner round for greetings and argument-free reads; information-only intents get a prompt and schema without the action rules |
+| A small model for shoppers | the profile's `shopper` role (`config/llm/`) | the customer planner runs on the profile's small, fast model (Gemini 3.5 Flash-Lite in `google`), separate from the merchant agents' planner |
 | Answer written once | planner schemas | read rounds leave `answer` empty; the last round has no `reads` field |
 | Static prompt first | planner prompt | provider prompt caching reuses the shared prefix across shoppers |
 | Facts sent once | `CustomerAssistantService` | observations refer to products by id; the catalog window (12) carries their facts |
@@ -62,19 +63,31 @@ no tools, Store access, internet or write credentials; private reads always take
 Every turn logs one line: rounds, time, intent and tokens (input, cached, output). The caches are per web process; with
 several web instances, move them to a shared store (Redis).
 
-Jev is called through OpenRouter's Decisions API (`POST https://openrouter.ai/api/alpha/decisions`, model
-`~typesafe/jev-latest`) by default, with `OPENROUTER_API_KEY`, or with `OPENAI_API_KEY` when `LLM_PROFILE` is an
-OpenRouter profile (that variable already holds the OpenRouter key). `DECISION_PROVIDER=typesafe` calls TypeSafe directly
-with `TYPESAFE_API_KEY`. Without a key for the chosen provider routing is off and every turn goes to the planner with the full prompt; everything else
-above still applies.
+### The decision model
+
+A decision model answers typed questions (a choice among named options, a yes/no probability) with calibrated
+probabilities and writes no text, so a routing call costs a fraction of a planner round. `shop_agent/decision.py` is
+its client; each provider is one `Backend` entry there:
+
+| `DECISION_PROVIDER` | Model (default) | Endpoint | Key |
+|---|---|---|---|
+| `google` | `gemini-decision-1` | Gemini Decisions API, `POST /v1beta/decisions` | `GOOGLE_API_KEY` |
+| `openrouter` | `~typesafe/jev-latest` | OpenRouter Decisions API, `POST /api/alpha/decisions` | `OPENROUTER_API_KEY`, or `OPENAI_API_KEY` when `LLM_PROFILE` is an OpenRouter profile |
+| `typesafe` | `jev-latest` | TypeSafe, `POST /v1/systemone` | `TYPESAFE_API_KEY` |
+
+Unset, the provider follows the chat profile: Gemini Decision with a `google` profile (the same key as the chat
+models), otherwise Jev through OpenRouter. Without a key for the provider, or on any error or timeout
+(`DECISION_TIMEOUT_SECONDS`, 2 s), routing is off for that turn and it goes to the planner with the full prompt;
+everything else above still applies. A route is used only at 0.8 confidence or more.
 
 ## Configuration
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `LLM_PROFILE` | `local` | planner model profile (`config/llm/<profile>.yaml`); the Docker stack uses `openrouter-fast` |
-| `DECISION_PROVIDER` | `openrouter` | decision-model provider: `openrouter` or `typesafe` |
-| `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY`, `DECISION_MODEL` | unset, unset, provider default | decision-model routing (`~typesafe/jev-latest` on OpenRouter) |
+| `LLM_PROFILE` | `local` | model profile (`config/llm/<profile>.yaml`); production uses `google` |
+| `LLM_MODEL_SHOPPER` | the profile's `shopper` | `provider:model` override of the customer planner |
+| `DECISION_PROVIDER` | follows the profile | decision-model provider: `google`, `openrouter` or `typesafe` |
+| `GOOGLE_API_KEY`, `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY`, `DECISION_MODEL` | unset, provider default | the provider's key and model (table above) |
 | `AGENT_JOBS_PER_WORKER` | 16 | concurrent runs in the Agent Server |
 | `ASSISTANT_MAX_CONCURRENT` | 16 | turns running at once per web process |
 | `ASSISTANT_QUEUE_SECONDS` | 15 | wait for a slot before answering "busy" |
@@ -90,7 +103,8 @@ the `shop` identity, and cannot read admin threads or the Store.
 - Web unit: `tests/unit/customer-assistant.test.ts`, `tests/unit/customer-assistant-actions.test.ts`.
 - Web DB: `tests/db/customer-assistant-checkout.test.ts` (a throwaway database whose name ends in `_test`).
 - Browser: `e2e/customer-assistant.spec.ts` (mocked API; no real orders, messages or reviews).
-- Agent: `tests/graphs/test_customer_assistant.py` (routing, shortcuts, schemas, usage), `tests/unit/llm/test_decision.py`.
+- Agent: `tests/graphs/test_customer_assistant.py` (routing, shortcuts, schemas, usage, the `shopper` role),
+  `tests/unit/test_decision.py` (every provider's request shape, fallbacks, the key never logged).
 
 To try a real model, run both services and ask: "Tìm mô hình dưới 1 triệu", "So sánh hai mẫu này",
 "Chính sách đổi trả thế nào?", "Giúp mình chuẩn bị thanh toán".

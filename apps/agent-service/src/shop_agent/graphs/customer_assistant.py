@@ -3,10 +3,11 @@
 This graph has no shop-operations tools, Store access, external browsing or write credentials.
 The web drives a bounded observe/plan loop and the browser displays editable action proposals.
 
-Cost and latency: the first round of a turn is routed by the decision model (llm.decide, when configured). A greeting
-is answered without a model call, intents with an obvious argument-free read get it without a planner round, and
-information-only intents use a prompt and schema without the action rules. Read rounds leave the answer empty, so the
-model writes the reply once, after the reads. Token usage is returned with each decision for the web's metrics.
+Cost and latency: the first round of a turn is routed by the decision model (shop_agent.decision, when configured). A
+greeting is answered without a model call, intents with an obvious argument-free read get it without a planner round,
+and information-only intents use a prompt and schema without the action rules. Read rounds leave the answer empty, so
+the model writes the reply once, after the reads. The planner is the profile's `shopper` model (small and fast). Token
+usage is returned with each decision for the web's metrics.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field, model_validator
 
+from shop_agent import decision as decision_model
 from shop_agent import llm
 
 
@@ -278,8 +280,8 @@ reads []. IDs in examples are not real records."""
 FULL_PROMPT = CORE_PROMPT + READS_PROMPT + ACTIONS_PROMPT
 INFO_PROMPT = CORE_PROMPT + READS_PROMPT
 
-# --- Routing with the decision model (llm.decide). Information-only intents drop the action rules and schema; a few
-# intents have argument-free reads that run without a planner round; a plain greeting needs no model at all.
+# --- Routing with the decision model (shop_agent.decision). Information-only intents drop the action rules and
+# schema; a few intents have argument-free reads that run without a planner round; a plain greeting needs no model.
 
 INTENTS: dict[str, str] = {
     "greeting": "Only a greeting, thanks or small talk, with no question or request",
@@ -331,9 +333,13 @@ async def route(state: State) -> State:
         return {}
     raw_history = request.get("history")
     history: list[Any] = raw_history if isinstance(raw_history, list) else []
-    answers = await llm.decide(
+    answers = await decision_model.decide(
         {"message": str(request.get("message") or ""), "recentHistory": history[-2:]},
-        {"intent": llm.Choice(instructions="What does the customer want in their latest message?", criteria=INTENTS)},
+        {
+            "intent": decision_model.Choice(
+                instructions="What does the customer want in their latest message?", criteria=INTENTS
+            )
+        },
     )
     answer = (answers or {}).get("intent")
     if not answer or answer.choice not in INTENTS:
@@ -387,8 +393,8 @@ async def plan(state: State) -> State:
         schema = ReadDecision if reads_allowed else FinalReadDecision
     else:
         schema = Decision if reads_allowed else FinalDecision
-    model = llm.chat_model(llm.ModelRole.PLANNER).with_structured_output(
-        schema, method=llm.structured_output_method(llm.ModelRole.PLANNER), include_raw=True
+    model = llm.chat_model(llm.ModelRole.SHOPPER).with_structured_output(
+        schema, method=llm.structured_output_method(llm.ModelRole.SHOPPER), include_raw=True
     )
     result = await model.ainvoke(
         [

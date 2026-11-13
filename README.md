@@ -13,6 +13,19 @@ the result against the revenue goal, and learns from every outcome.
 
 The v2 agent is built phase by phase (`docs/ROADMAP.md`); v1 was removed in Phase 4 (its logs are in `docs/history/`).
 
+## The two agents
+
+| | Shopping agent | Merchant agents |
+|---|---|---|
+| For | shoppers on the storefront (`/assistant`, the launcher, product pages) | the owner and staff (`/admin/agent`) |
+| Graphs | `customer_assistant` | `improvement` (the closed loop), `monitor` and `collect` (scheduled), `assistant` (copilot), `marketing_copy` |
+| Does | finds and compares kits, answers policy and order questions, prepares cart, checkout and return actions as cards the shopper confirms | detects opportunities, investigates with tools, proposes priced actions, acts through the Agent API after an approval or the autonomy policy, measures and learns |
+| Cannot | write anything, read another customer's data, or name a product or price the shop did not return | change the shop without a recorded decision, exceed the layered limits, or invent a number (they are computed in `domain/`) |
+| Speed and cost | a decision model routes each turn (no planner call for greetings and obvious reads), a small `shopper` model, one written answer, cached public reads and replies | deterministic detect, prioritize, validate, act and measure; a model only where judgement is needed; a daily model budget |
+
+One model profile configures every role (`apps/agent-service/config/llm/`); production runs on Gemini with one key
+for the chat models, the embeddings and the decision model. Details: `docs/CUSTOMER_AGENT.md`, `docs/GROWTH_AGENT.md`.
+
 Current commerce implementation, owner decisions and launch gates: [Model Universe handoff](apps/web-ecommerce/docs/model-universe/implementation-handoff.md) and [release verification](apps/web-ecommerce/docs/model-universe/release-verification.md). Implemented features and disposable test approvals do not establish production readiness.
 
 ## Start here
@@ -23,9 +36,10 @@ Current commerce implementation, owner decisions and launch gates: [Model Univer
    measurement.
 3. `docs/adr/` - the decisions (ADR-0009 to 0014 for v2).
 4. `docs/ROADMAP.md` - phase status; the plan is `docs/plans/2026-09-30-agent-v2-refactor-and-growth-agent.md`.
-5. `docs/RUNBOOK.md` - operations: kill switch, pausing ads, reverting, the autonomy ramp, rotating secrets, the
+5. `docs/CUSTOMER_AGENT.md` - the shopping agent: how a turn runs, the decision model, speed and cost.
+6. `docs/RUNBOOK.md` - operations: kill switch, pausing ads, reverting, the autonomy ramp, rotating secrets, the
    production runtime (Aegra).
-6. `CLAUDE.md` - instructions for Claude Code in this repo, including which subagent and model to use.
+7. `CLAUDE.md` - instructions for Claude Code in this repo, including which subagent and model to use.
 
 ## Layout
 

@@ -57,7 +57,7 @@ then shows `Đã hoàn tác`.
 - After changing SOPs, the brand guide or the catalog's text: `cd apps/agent-service && uv run shop-agent ingest`
   (compose: `$CP run --rm agent-runtime shop-agent ingest`). It is idempotent.
 - After changing the embedding model: `uv run shop-agent ingest --reindex`. The agent refuses to search an index built
-  with another model. On Aegra the Store's index is set in `aegra.json` (`ollama:bge-m3`): change both together.
+  with another model. On Aegra the Store's index is set in `aegra.json` (`ollama:bge-m3`): change both together. A profile that embeds with a hosted provider (`google`) runs on `aegra.hosted.json`, which has no Store index.
 
 ## 6. Rotate a secret
 

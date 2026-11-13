@@ -9,7 +9,7 @@ production, switched by configuration. v1 had two hand-written clients and a rul
 
 - `shop_agent/llm.py` is the only module that knows about providers. It maps four roles (planner, writer, judge,
   worker) to `init_chat_model("<provider>:<model>", ...)` specs read from `apps/agent-service/config/llm/<profile>.yaml`,
-  selected by `LLM_PROFILE` and overridable per role (`LLM_MODEL_PLANNER=provider:model`). import-linter forbids
+  selected by `LLM_PROFILE` and overridable per role (`LLM_MODEL_<ROLE>=provider:model`; roles: shopper, planner, writer, judge, worker). import-linter forbids
   provider packages anywhere else.
 - Profiles: `local` (`qwen3.5:9b`), `local-small` (`gemma4:e4b`), `local-large` (`qwen3.6:35b` or `27b`), `anthropic`
   (Claude Sonnet 5.5 for planner/writer/judge, Haiku 4.5 for worker), `openai`, `google`, and `scripted` (tests only).

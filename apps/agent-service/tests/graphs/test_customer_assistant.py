@@ -8,7 +8,7 @@ from langgraph_sdk import Auth
 from pydantic import ValidationError
 
 from shop_agent import auth as customer_auth
-from shop_agent import llm
+from shop_agent import decision, llm
 from shop_agent.graphs import customer_assistant
 
 
@@ -23,11 +23,13 @@ async def test_planner_proposes_customer_actions_without_write_tools(monkeypatch
     )
     model = Mock()
     model.with_structured_output.return_value.ainvoke = invoke
-    monkeypatch.setattr(llm, "chat_model", Mock(return_value=model))
+    chat_model = Mock(return_value=model)
+    monkeypatch.setattr(llm, "chat_model", chat_model)
     result = await customer_assistant.graph.ainvoke(
         {"request": {"message": "Add this Gunpla model", "locale": "en", "readsAllowed": False}}
     )
     assert result["decision"]["actions"][0]["productId"] == 3
+    chat_model.assert_called_once_with(llm.ModelRole.SHOPPER)  # shoppers get the profile's small, fast model
     model.bind_tools.assert_not_called()
     assert "without invented facts or a model-selected star rating" in " ".join(
         invoke.call_args.args[0][0].content.split()
@@ -151,10 +153,12 @@ def _route(monkeypatch: pytest.MonkeyPatch, intent: str | None, confidence: floa
     answers = (
         None
         if intent is None
-        else {"intent": llm.DecisionAnswer(choice=intent, confidence=confidence, probabilities={intent: confidence})}
+        else {
+            "intent": decision.DecisionAnswer(choice=intent, confidence=confidence, probabilities={intent: confidence})
+        }
     )
     decide = AsyncMock(return_value=answers)
-    monkeypatch.setattr(llm, "decide", decide)
+    monkeypatch.setattr(decision, "decide", decide)
     return decide
 
 

@@ -17,18 +17,12 @@ MIN_SECRET_BYTES = 32  # HS256 keys (actor tokens, approval grants)
 
 AppEnv = Literal["dev", "test", "production"]
 ShopAdapter = Literal["sql", "fake", "http"]
-DecisionProvider = Literal["openrouter", "typesafe"]
-# provider -> (base URL, path, default model)
-DECISION_DEFAULTS: dict[str, tuple[str, str, str]] = {
-    "openrouter": ("https://openrouter.ai/api/alpha", "/decisions", "~typesafe/jev-latest"),
-    "typesafe": ("https://api.typesafe.ai/v1", "/systemone", "jev-latest"),
-}
+DecisionProvider = Literal["google", "openrouter", "typesafe"]
 
 
 class FeatureFlags(BaseModel):
     """Rollout flags, read from `FF_<NAME>` environment variables (see `Settings.flags`)."""
 
-    growth: bool = True
     market_trends: bool = True
     market_scraping: bool = True  # own-site allowlist only; marketplaces are hard-denylisted in code
 
@@ -43,6 +37,7 @@ class Settings(BaseSettings):
 
     # Models (shop_agent.llm): a profile file in config/llm/, optionally overridden per role.
     llm_profile: str = "local"
+    llm_model_shopper: str | None = None
     llm_model_planner: str | None = None
     llm_model_writer: str | None = None
     llm_model_judge: str | None = None
@@ -51,15 +46,17 @@ class Settings(BaseSettings):
     llm_embedding_profile: str | None = None
     ollama_base_url: str = "http://localhost:11434"
     llm_daily_budget_usd: float = 2.0
-    # Decision model (TypeSafe Jev, a "System 1" model: typed choices with calibrated probabilities, no generated text)
-    # routes customer turns before the planner runs. Without a key routing is off and every turn goes to the planner.
-    # `openrouter` calls Jev through OpenRouter's Decisions API with OPENROUTER_API_KEY (or, when LLM_PROFILE is an
-    # OpenRouter profile, the OPENAI_API_KEY that already holds the OpenRouter key); `typesafe` calls TypeSafe directly.
-    decision_provider: DecisionProvider = "openrouter"
+    # Provider keys. Chat and embedding clients read them from here, so a key in `.env` works without exporting it.
+    anthropic_api_key: str | None = None
+    openai_api_key: str | None = None  # also the OpenRouter key for the `openrouter-*` profiles
+    google_api_key: str | None = None
+    # Decision model (shop_agent.decision): routes customer turns before the planner runs. Unset provider: the one that
+    # shares the chat profile's key (google profiles: Gemini Decision; otherwise Jev through OpenRouter). Without a key
+    # for the provider, routing is off and every turn goes to the planner.
+    decision_provider: DecisionProvider | None = None
     openrouter_api_key: str | None = None
-    openai_api_key: str | None = None
     typesafe_api_key: str | None = None
-    decision_model: str | None = None  # default per provider: DECISION_DEFAULTS
+    decision_model: str | None = None  # default: the provider's (shop_agent.decision.BACKENDS)
     decision_base_url: str | None = None
     decision_timeout_seconds: float = 2.0
 
@@ -93,7 +90,6 @@ class Settings(BaseSettings):
     fault_kill_after_step: int | None = None
 
     # Market data (Phase 5)
-    google_trends_credentials: str | None = None  # the official Trends API (alpha): not used yet, see GROWTH_AGENT.md
     # A Chromium for the competitor_sites collector instead of Playwright's download (`playwright install chromium`).
     market_chromium_path: str | None = None
 
@@ -104,7 +100,6 @@ class Settings(BaseSettings):
     langfuse_host: str | None = None
 
     # Rollout flags (FF_*)
-    ff_growth: bool = True
     ff_market_trends: bool = True
     ff_market_scraping: bool = True
 
@@ -126,7 +121,7 @@ class Settings(BaseSettings):
                 )
             if self.llm_embedding_profile == "scripted":
                 raise ValueError("LLM_EMBEDDING_PROFILE cannot use a development provider in production")
-            for role in ("planner", "writer", "judge", "worker"):
+            for role in ("shopper", "planner", "writer", "judge", "worker"):
                 if (getattr(self, f"llm_model_{role}") or "").split(":", 1)[0] == "scripted":
                     raise ValueError(f"LLM_MODEL_{role.upper()} cannot use a development provider in production")
             if self.shop_adapter != "sql":
@@ -148,25 +143,8 @@ class Settings(BaseSettings):
         return self
 
     @property
-    def decision_api_key(self) -> str | None:
-        """The key for the decision provider; the OpenAI key is reused only when it is an OpenRouter key."""
-        if self.decision_provider == "typesafe":
-            return self.typesafe_api_key
-        if self.openrouter_api_key:
-            return self.openrouter_api_key
-        return self.openai_api_key if self.llm_profile.startswith("openrouter") else None
-
-    @property
-    def decision_endpoint(self) -> tuple[str, str, str]:
-        """(base URL, path, model) of the decision provider, with DECISION_BASE_URL / DECISION_MODEL overrides."""
-        base_url, path, model = DECISION_DEFAULTS[self.decision_provider]
-        return self.decision_base_url or base_url, path, self.decision_model or model
-
-    @property
     def flags(self) -> FeatureFlags:
-        return FeatureFlags(
-            growth=self.ff_growth, market_trends=self.ff_market_trends, market_scraping=self.ff_market_scraping
-        )
+        return FeatureFlags(market_trends=self.ff_market_trends, market_scraping=self.ff_market_scraping)
 
 
 @lru_cache

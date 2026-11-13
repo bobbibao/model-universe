@@ -39,6 +39,21 @@ def test_static_checks_flag_a_missing_key(monkeypatch: pytest.MonkeyPatch) -> No
     assert any("ANTHROPIC_API_KEY unset" in detail for _, _, detail in report.rows)
 
 
+def test_static_checks_read_keys_from_the_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A key in `.env` (settings) is enough: nothing has to be exported to the process environment."""
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    report = doctor.Report()
+    doctor.static_checks("google", Settings(_env_file=None, google_api_key="g-key"), report)
+    assert report.ok, report.render()
+    assert ("decision model", True, "google:gemini-decision-1") in report.rows
+
+
+def test_static_checks_report_routing_off_without_failing() -> None:
+    report = doctor.Report()
+    doctor.static_checks("local", Settings(_env_file=None), report)
+    assert ("decision model", True, "off (no key for openrouter)") in report.rows
+
+
 def test_static_checks_pass_for_local() -> None:
     report = doctor.Report()
     doctor.static_checks("local", Settings(_env_file=None), report)

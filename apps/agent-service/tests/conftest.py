@@ -19,10 +19,10 @@ import pytest  # noqa: E402
 @pytest.fixture(autouse=True)
 def _offline_decision_model(monkeypatch: pytest.MonkeyPatch) -> None:
     """The decision model answers 503 unless a test installs its own transport: tests never call the real API."""
-    from shop_agent import llm
+    from shop_agent import decision
 
-    def offline(settings: object) -> httpx.AsyncClient:
+    def offline(route: object, settings: object) -> httpx.AsyncClient:
         transport = httpx.MockTransport(lambda request: httpx.Response(503))
         return httpx.AsyncClient(base_url="https://decision.offline/v1", transport=transport)
 
-    monkeypatch.setattr(llm, "_decision_http", offline)
+    monkeypatch.setattr(decision, "_http", offline)

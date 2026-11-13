@@ -105,7 +105,7 @@ this machine (Appendix A).
 | Vector database | pgvector 0.8 on Postgres 18 (`pgvector/pgvector:pg18`), `langchain-postgres` `PGVectorStore` | one engine for shop, agent state and vectors |
 | Embeddings | `init_embeddings`; default `bge-m3` through Ollama (multilingual, local, 1024 dims) | a hosted model is a config change, but changing it means re-embedding |
 | Chat model | `init_chat_model("anthropic:claude-sonnet-5-5")`, `claude-haiku-4-5-20251001` for subagents and `learn` | any tool-calling model LangChain supports; one `llm.py` maps roles to models per profile (ADR-0010) |
-| LLM profiles | `apps/agent-service/config/llm/<profile>.yaml`: `local` (Ollama `qwen3.5:9b`), `local-small`, `local-large`, `anthropic`, `openai`, `google`, `scripted` (tests) | selected by `LLM_PROFILE`; `shop-agent doctor --suggest-profile` |
+| LLM profiles | `apps/agent-service/config/llm/<profile>.yaml`: `local` (Ollama `qwen3.5:9b`), `local-small`, `local-large`, `anthropic`, `openai`, `google` (this shop's production profile: Gemini chat, embeddings and decision model on one key), `scripted` (tests) | selected by `LLM_PROFILE`; `shop-agent doctor --suggest-profile` |
 | External tools | MCP through `langchain[mcp]` (beta in 1.4) | for third-party systems; the shop itself stays on the Agent API |
 | Tracing, evals | LangSmith, `agentevals` | Studio works against the local server |
 | Skills format | Agent Skills spec (agentskills.io) | the same `SKILL.md` format Claude Code uses |
@@ -571,7 +571,7 @@ history, and its logs are in `docs/history/`.
 19. The page collector is `adapters/market/competitor_sites.py`, source name `competitor_sites`, not `marketplace`: it
     reads competitors' own storefronts, and marketplaces are exactly what it must never read (ADR-0014).
 20. Google Trends reads through `pytrends` only. The official Trends API (alpha) has no public client to build on yet,
-    so `GOOGLE_TRENDS_CREDENTIALS` is reserved and unused (docs/GROWTH_AGENT.md section 2).
+    so no credentials variable is reserved for it (docs/GROWTH_AGENT.md section 2).
 21. `ShopWriter.ingest(endpoint, body, idempotency_key)` is the port for the ingestion write class (no grant, nothing
     to revert): collector observations now, metrics sync and outcomes in Phase 6. Ingestion bodies are not
     `ActionSpec`s, because nobody approves them.

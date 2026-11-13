@@ -16,7 +16,7 @@ def test_defaults_are_valid_for_dev() -> None:
     settings = make()
     assert settings.app_env == "dev"
     assert settings.agent_language == "vi"
-    assert settings.flags.growth is True
+    assert settings.flags.market_trends is True and settings.flags.market_scraping is True
 
 
 def test_production_refuses_placeholder_secrets() -> None:

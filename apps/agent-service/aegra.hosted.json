@@ -1,0 +1,14 @@
+{
+  "$comment": "Aegra for a profile that embeds with a hosted provider (google: gemini-embedding-2 at 1024 dimensions). Aegra loads the Store index's `embed` only as a bare `provider:model` string, which cannot carry the model's parameters (the output dimensions), so this manifest has no Store index: cases in the Store are listed, not ranked by similarity. The knowledge base (`shop-agent ingest`, searched by the tools) embeds through shop_agent.llm and is unaffected. Graphs and auth are the same as aegra.json and langgraph.json (tests/unit/test_manifests.py).",
+  "graphs": {
+    "customer_assistant": "./src/shop_agent/graphs/customer_assistant.py:graph",
+    "marketing_copy": "./src/shop_agent/graphs/marketing_copy.py:graph",
+    "improvement": "./src/shop_agent/graphs/improvement.py:graph",
+    "monitor": "./src/shop_agent/graphs/monitor.py:graph",
+    "collect": "./src/shop_agent/graphs/collect.py:graph",
+    "assistant": "./src/shop_agent/graphs/assistant.py:graph"
+  },
+  "auth": {
+    "path": "./src/shop_agent/auth.py:auth"
+  }
+}

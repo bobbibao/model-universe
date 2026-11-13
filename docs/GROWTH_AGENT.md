@@ -96,7 +96,7 @@ with the key `collect:{source}:{date}`: one post per source per Vietnam day.
   bodies and posts nothing.
 - **Google Trends** (decision Q4; `adapters/market/google_trends.py`)
   - The owner may apply for the official Trends API alpha (free). It has no public client yet, so
-    `GOOGLE_TRENDS_CREDENTIALS` is reserved and the adapter uses `pytrends` (unofficial, unmaintained since 2023) via
+    the adapter uses `pytrends` (unofficial, unmaintained since 2023) via
     `asyncio.to_thread`.
   - One run per day, at most 20 keywords (settings `market.trend_keywords`, edited on the Settings page), one keyword
     per request (each series is scaled 0-100 on its own), requests at least 10 s apart. It posts the last 21 complete

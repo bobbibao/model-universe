@@ -3,15 +3,16 @@
 # Phase 9 bake-off compares providers. Prices below must match the ids you choose.
 description: OpenAI (set the model ids with LLM_MODEL_<ROLE>)
 roles:
+  shopper: &mini
+    provider: openai
+    model: gpt-5-mini
+    params: {timeout: 120, max_retries: 2}
   planner: &openai
     provider: openai
     model: gpt-5
     params: {timeout: 180, max_retries: 2}
   writer: *openai
   judge: *openai
-  worker:
-    provider: openai
-    model: gpt-5-mini
-    params: {timeout: 120, max_retries: 2}
+  worker: *mini
 embeddings: {provider: ollama, model: bge-m3, dims: 1024}
 prices_usd_per_mtok: {}

@@ -1,12 +1,14 @@
 """`shop-agent doctor`: checks that the configured models can drive the agents (ADR-0010).
 
 Static checks need nothing running. `--live` sends one tool-call and one structured-output probe per role, asks Ollama
-for each local model's capabilities and context length, and embeds a sentence. `--suggest-profile` measures the machine
-(VRAM, RAM, tokens per second) and recommends a local profile. It never changes configuration.
+for each local model's capabilities and context length, embeds a sentence and asks the decision model one question.
+`--suggest-profile` measures the machine (VRAM, RAM, tokens per second) and recommends a local profile. It never changes
+configuration.
 """
 
 from __future__ import annotations
 
+import asyncio
 import os
 import shutil
 import subprocess
@@ -21,12 +23,11 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from pydantic import BaseModel
 
-from shop_agent import llm
+from shop_agent import decision, llm
 from shop_agent.config import Settings, get_settings
 
 PROMPT_SHARE_LIMIT = 0.70  # a rendered prompt may use at most 70% of num_ctx
 CHARS_PER_TOKEN = 3.0  # conservative for Vietnamese text
-PROVIDER_KEYS = {"anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY", "google_genai": "GOOGLE_API_KEY"}
 PROMPT_DIRS = (Path(__file__).resolve().parent / "agents" / "prompts", Path(__file__).resolve().parents[2] / "skills")
 BENCHMARK_MODEL = "qwen3.5:9b"
 
@@ -73,11 +74,10 @@ def static_checks(profile_name: str | None, settings: Settings, report: Report) 
     report.add("profile", True, f"{profile.name}: {profile.description}")
     for role in llm.ModelRole:
         spec = llm.role_spec(role, profile, settings)
-        env = PROVIDER_KEYS.get(spec.provider)
-        has_key = env is None or bool(os.environ.get(env))
-        report.add(
-            f"role {role.value}", has_key, f"{spec.provider}:{spec.model}" + ("" if has_key else f" ({env} unset)")
-        )
+        key_field = llm.PROVIDER_KEY_FIELDS.get(spec.provider)
+        has_key = key_field is None or bool(getattr(settings, key_field))
+        missing = "" if has_key or key_field is None else f" ({key_field.upper()} unset)"
+        report.add(f"role {role.value}", has_key, f"{spec.provider}:{spec.model}{missing}")
         num_ctx = spec.params.get("num_ctx")
         if spec.provider == "ollama":
             prompt_tokens = largest_prompt_tokens()
@@ -88,6 +88,11 @@ def static_checks(profile_name: str | None, settings: Settings, report: Report) 
         profile.embeddings.dims == llm.EMBEDDING_DIMS,
         f"{profile.embeddings.provider}:{profile.embeddings.model} ({profile.embeddings.dims} dims)",
     )
+    # Routing is optional: without a key every customer turn goes to the planner, which is slower, not wrong.
+    effective = settings.model_copy(update={"llm_profile": profile.name})
+    route = decision.resolve(effective)
+    provider = decision.provider_for(effective)
+    report.add("decision model", True, f"{provider}:{route.model}" if route else f"off (no key for {provider})")
 
 
 def ollama_show(base_url: str, model: str) -> dict[str, Any]:
@@ -153,6 +158,12 @@ def live_checks(profile_name: str | None, settings: Settings, report: Report) ->
         report.add("embedding probe", len(vector) == llm.EMBEDDING_DIMS, f"{len(vector)} dims")
     except Exception as exc:
         report.add("embedding probe", False, repr(exc)[:200])
+    effective = settings.model_copy(update={"llm_profile": profile.name})
+    if decision.resolve(effective) is not None:
+        question = decision.Choice(instructions="What is this message?", criteria={"greeting": None, "question": None})
+        answers = asyncio.run(decision.decide("xin chào shop", {"kind": question}, settings=effective))
+        answer = (answers or {}).get("kind")
+        report.add("decision probe", answer is not None and answer.choice == "greeting", repr(answer)[:120])
 
 
 # ------------------------------------------------------------------------------------------------ profile suggestion

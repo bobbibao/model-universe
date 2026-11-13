@@ -4,28 +4,24 @@ Roles (planner, writer, judge, worker) map to `init_chat_model` specs read from 
 with `LLM_PROFILE` and overridable per role with `LLM_MODEL_<ROLE>=provider:model`. Every profile file is loaded when
 this module is imported, so nothing reads a file inside the server's event loop.
 
-`decide` calls the decision model (TypeSafe Jev, through OpenRouter's Decisions API or TypeSafe directly): it answers
-typed questions (a choice among named options, or a yes/no probability) with calibrated probabilities and writes no
-text, at a fraction of a chat model's cost and latency. Callers use it to route work and must treat None (no key,
-timeout, error) as "unknown".
+Provider keys come from `Settings` (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY), so one `.env` configures the
+server, the CLI and the tests alike. The decision model that routes customer turns is `shop_agent.decision`.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-import httpx
 import yaml
 from langchain.agents.middleware import ModelFallbackMiddleware
 from langchain.chat_models import init_chat_model
 from langchain.embeddings import init_embeddings
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, model_validator
 
 from shop_agent.config import Settings, get_settings
 from shop_agent.logging import get_logger
@@ -37,7 +33,12 @@ SCRIPTED = "scripted"
 EMBEDDING_DIMS = 1024
 
 
+# provider -> the `Settings` field that holds its key (passed to the client as `api_key`)
+PROVIDER_KEY_FIELDS = {"anthropic": "anthropic_api_key", "openai": "openai_api_key", "google_genai": "google_api_key"}
+
+
 class ModelRole(StrEnum):
+    SHOPPER = "shopper"  # the customer assistant: latency and cost first
     PLANNER = "planner"  # investigate, growth planning, copilot
     WRITER = "writer"  # customer-facing copy
     JUDGE = "judge"  # brand rubric, eval judge
@@ -56,6 +57,7 @@ class EmbeddingSpec(BaseModel):
     provider: str
     model: str
     dims: int = EMBEDDING_DIMS
+    params: dict[str, Any] = Field(default_factory=dict)
 
 
 class Profile(BaseModel):
@@ -64,6 +66,16 @@ class Profile(BaseModel):
     roles: dict[ModelRole, ModelSpec]
     embeddings: EmbeddingSpec
     prices_usd_per_mtok: dict[str, tuple[float, float]] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _shopper_defaults_to_planner(cls, data: Any) -> Any:
+        """A profile without a `shopper` role serves customers with its planner."""
+        if isinstance(data, dict) and isinstance(data.get("roles"), dict):
+            roles = data["roles"]
+            if ModelRole.SHOPPER.value not in roles and ModelRole.PLANNER.value in roles:
+                data = {**data, "roles": {**roles, ModelRole.SHOPPER.value: roles[ModelRole.PLANNER.value]}}
+        return data
 
     def price(self, model: str) -> tuple[float, float]:
         """(input, output) USD per million tokens; 0 for models without a price (local models)."""
@@ -115,13 +127,19 @@ def role_spec(role: ModelRole, profile: Profile, settings: Settings) -> ModelSpe
     return spec
 
 
+def _credentials(provider: str, settings: Settings) -> dict[str, Any]:
+    """`api_key` for a hosted provider when the settings hold one; otherwise the client reads its own environment."""
+    key = getattr(settings, PROVIDER_KEY_FIELDS.get(provider, ""), None)
+    return {"api_key": key} if key else {}
+
+
 def build_chat_model(spec: ModelSpec, settings: Settings) -> BaseChatModel:
     if spec.provider == SCRIPTED:
         from shop_agent.testing.scripted import ScriptedChatModel
 
         return ScriptedChatModel.from_directories()
 
-    kwargs = dict(spec.params)
+    kwargs = {**_credentials(spec.provider, settings), **spec.params}
     if spec.provider == "ollama":
         kwargs.setdefault("base_url", settings.ollama_base_url)
     model = init_chat_model(spec.model, model_provider=spec.provider, **kwargs)
@@ -194,7 +212,7 @@ def _cached_embeddings(profile_name: str) -> Embeddings:
         from shop_agent.testing.embeddings import HashingEmbedding
 
         return HashingEmbedding(size=spec.dims)
-    kwargs: dict[str, Any] = {}
+    kwargs = {**_credentials(spec.provider, settings), **spec.params}
     if spec.provider == "ollama":
         kwargs["base_url"] = settings.ollama_base_url
     return init_embeddings(spec.model, provider=spec.provider, **kwargs)
@@ -206,81 +224,6 @@ def embeddings(profile: str | None = None) -> Embeddings:
 
 def embedding_spec(profile: str | None = None) -> EmbeddingSpec:
     return get_profile(get_settings().llm_embedding_profile or profile).embeddings
-
-
-class Choice(BaseModel):
-    """Pick one named option; `criteria` maps each option to a description (or None)."""
-
-    type: Literal["choice"] = "choice"
-    instructions: str
-    criteria: dict[str, str | None]
-
-
-class YesNo(BaseModel):
-    """The probability that the answer is yes (the API's `noul` question type)."""
-
-    type: Literal["noul"] = "noul"
-    instructions: str
-    criteria: str | None = None
-
-
-class DecisionAnswer(BaseModel):
-    choice: str | None = None
-    probabilities: dict[str, float] = Field(default_factory=dict)
-    confidence: float | None = None
-    noul: float | None = None
-
-
-_decision_client: httpx.AsyncClient | None = None
-
-
-def _decision_http(settings: Settings) -> httpx.AsyncClient:
-    """One pooled client per process: connection reuse saves a TLS handshake on every routed turn."""
-    global _decision_client  # a process-wide connection pool
-    if _decision_client is None or _decision_client.is_closed:
-        _decision_client = httpx.AsyncClient(
-            base_url=settings.decision_endpoint[0],
-            timeout=settings.decision_timeout_seconds,
-            limits=httpx.Limits(max_connections=32, max_keepalive_connections=16),
-        )
-    return _decision_client
-
-
-def _question_body(question: Choice | YesNo, provider: str) -> dict[str, Any]:
-    """The question as the provider expects it. OpenRouter requires text for every option and true/false criteria."""
-    body = question.model_dump(exclude_none=True)
-    if provider != "openrouter":
-        return body
-    if isinstance(question, Choice):
-        body["criteria"] = {option: text or option for option, text in question.criteria.items()}
-    elif question.criteria:
-        body["criteria"] = {"true": question.criteria, "false": f"Not the case: {question.criteria}"}
-    return body
-
-
-async def decide(
-    state: str | Mapping[str, Any], questions: Mapping[str, Choice | YesNo]
-) -> dict[str, DecisionAnswer] | None:
-    """Answer typed questions about `state` with the decision model; None when it is not configured or fails."""
-    settings = get_settings()
-    api_key = settings.decision_api_key
-    if not api_key:
-        return None
-    _, path, model = settings.decision_endpoint
-    body = {
-        "model": model,
-        "state": state,
-        "questions": {key: _question_body(question, settings.decision_provider) for key, question in questions.items()},
-    }
-    try:
-        response = await _decision_http(settings).post(path, json=body, headers={"Authorization": f"Bearer {api_key}"})
-        response.raise_for_status()
-        answers = response.json().get("answers") or {}
-        return {key: DecisionAnswer.model_validate(answers[key]) for key in questions if key in answers}
-    except (httpx.HTTPError, ValueError, ValidationError) as exc:
-        # Routing is an optimisation: the caller falls back to the planner.
-        logger.warning("decision model unavailable", error=type(exc).__name__)
-        return None
 
 
 def reset_caches() -> None:
