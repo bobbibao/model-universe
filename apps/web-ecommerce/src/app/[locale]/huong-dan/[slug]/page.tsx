@@ -2,15 +2,11 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import Link from '@/i18n/navigation';
-import { GUIDES, findGuide } from '@/shared/guides';
+import { findGuide } from '@/shared/guides';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { articleSchema, breadcrumbSchema, faqSchema, jsonLd, pageMetadata } from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
-
-export function generateStaticParams() {
-  return GUIDES.map((guide) => ({ slug: guide.slug }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
@@ -24,6 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
+// Rendered per request like every storefront page (the layout reads the visitor's session).
 // One guide: the direct answer first (what a search or AI answer quotes), then the sections, its questions and the
 // shop pages it leads to. Article, FAQPage and BreadcrumbList data describe the same visible text.
 export default async function GuidePage({ params }: Props) {
