@@ -76,6 +76,9 @@ export function generateMetadata(): Metadata {
     },
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+      ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+        ? { other: { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } }
+        : {}),
     },
     // Google shows the site icon next to the result only when it is a square of at least 48px.
     icons: {

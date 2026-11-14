@@ -15,6 +15,7 @@ import {
   organizationId,
   pageMetadata,
   productSeoDescription,
+  productSpecifications,
   productSeoTitle,
   SITE_NAME,
 } from '@/shared/seo';
@@ -86,9 +87,7 @@ export default async function Page({ params }: Props) {
     (en ? product.descriptionEn : product.descriptionVi) ||
     product.description ||
     productSeoDescription(product, locale, formatVND(product.salePrice || product.price, locale));
-  const validFromDate = product.createdAt
-    ? new Date(product.createdAt).toISOString().split('T')[0]
-    : '2026-01-01';
+  const validFromDate = product.createdAt ? new Date(product.createdAt).toISOString().split('T')[0] : '2026-01-01';
 
   const productSchema = {
     '@context': 'https://schema.org',
@@ -97,6 +96,7 @@ export default async function Page({ params }: Props) {
     productID: product.uuid,
     sku: formatSku(product.sku, product.id),
     mpn: formatSku(product.modelCode || product.sku, product.id),
+    additionalProperty: productSpecifications(product, locale),
     image: [...new Set([product.imageUrl, ...(product.images || [])].filter((img): img is string => Boolean(img)))].map(
       (img) => absoluteUrl(base, img),
     ),
@@ -105,7 +105,8 @@ export default async function Page({ params }: Props) {
       '@type': 'Brand',
       name: product.brandName,
     },
-    category: product.category?.name || (product.scale ? `Mô hình lắp ráp tỷ lệ ${product.scale}` : 'Mô hình lắp ráp'),    ...(product.reviewCount > 0
+    category: product.category?.name || (product.scale ? `Mô hình lắp ráp tỷ lệ ${product.scale}` : 'Mô hình lắp ráp'),
+    ...(product.reviewCount > 0
       ? {
           aggregateRating: {
             '@type': 'AggregateRating',
@@ -154,9 +155,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <StoreLayout>
-      {product.imageUrl && (
-        <link rel="preload" as="image" href={product.imageUrl} fetchPriority="high" />
-      )}
+      {product.imageUrl && <link rel="preload" as="image" href={product.imageUrl} fetchPriority="high" />}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

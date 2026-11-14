@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getPublicCategories, getPublicProductSlugs, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { familyCanonicals, sitemapXmlUrl } from '@/shared/seo';
+import { GUIDES } from '@/shared/guides';
 
 // Rendered per request: the catalog changes all the time.
 export const dynamic = 'force-dynamic';
@@ -43,6 +44,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry('/contact', 0.7, 'monthly'),
     entry('/about', 0.6, 'monthly'),
     entry('/assistant', 0.6, 'monthly'),
+    entry('/huong-dan', 0.7, 'weekly'),
+    ...GUIDES.map((guide) => entry(`/huong-dan/${guide.slug}`, 0.7, 'monthly', { lastModified: guide.updated })),
     entry('/services/loyalty', 0.5, 'monthly'),
     entry('/services/partner', 0.5, 'monthly'),
     ...categories.filter(isIndexableCategory).map((category) => entry(`/cua-hang/${category.slug}`, 0.85, 'daily')),

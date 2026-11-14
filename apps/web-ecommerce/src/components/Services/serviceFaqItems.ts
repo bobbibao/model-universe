@@ -9,6 +9,16 @@ export interface FaqItem {
   badge: string;
 }
 
+// The questions each service page shows under its form (by id, in reading order).
+const SERVICE_QUESTIONS = {
+  sell: ['buyback-flow', 'valuation-criteria', 'imperfect-models', 'payout-speed', 'cancel-policy', 'remote-shipping'],
+  trade: ['valuation-criteria', 'imperfect-models', 'remote-shipping'],
+  pawn: ['pawn-safety', 'remote-shipping'],
+} as const;
+export type ServiceWithQuestions = keyof typeof SERVICE_QUESTIONS;
+export const faqForService = (service: ServiceWithQuestions): FaqItem[] =>
+  SERVICE_QUESTIONS[service].map((id) => FAQ_LIST.find((item) => item.id === id)!);
+
 export const FAQ_LIST: FaqItem[] = [
   {
     id: 'buyback-flow',

@@ -1,5 +1,7 @@
 import { getPublicCategories, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
+import { GUIDES } from '@/shared/guides';
+import { CONTACT } from '@/shared/contact-channels';
 import { BUSINESS, SHOP_SERVICES, SITE_ALTERNATE_NAMES, SITE_NAME, SITE_SLOGAN, shippingOfferText } from '@/shared/seo';
 
 export const dynamic = 'force-dynamic';
@@ -19,6 +21,7 @@ export async function GET() {
     '## Liên hệ / Contact',
     `- Địa chỉ: ${BUSINESS.streetAddress}, ${BUSINESS.locality}, ${BUSINESS.region}`,
     `- Hotline / Zalo: ${BUSINESS.phoneDisplay}`,
+    `- Giờ mở cửa / Opening hours: ${CONTACT.hours} (hằng ngày / every day)`,
     `- Email: ${BUSINESS.email}`,
     ...BUSINESS.socials.map((url) => `- ${url}`),
     '',
@@ -32,7 +35,11 @@ export async function GET() {
     `- [Ưu đãi](${base}/vi/uu-dai)`,
     `- [Giới thiệu](${base}/vi/about)`,
     `- [Liên hệ](${base}/vi/contact)`,
+    `- [Trợ lý AI tư vấn mô hình](${base}/vi/assistant)`,
     `- [Sitemap](${base}/sitemap.xml)`,
+    '',
+    '## Hướng dẫn / Guides',
+    ...GUIDES.map((guide) => `- [${guide.title}](${base}/vi/huong-dan/${guide.slug}): ${guide.answer}`),
     '',
   ];
   return new Response(lines.join('\n'), {

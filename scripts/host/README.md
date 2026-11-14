@@ -101,5 +101,8 @@ boot daemon on `127.0.0.1:2026`:
 4. In `apps/agent-service`: `uv run shop-agent doctor --profile google --live`, then `uv run shop-agent ingest`, then
    `uv run shop-agent sync-crons` when the scheduled merchant agents should start spending model budget.
 
+After a deploy that adds or changes pages, `node apps/web-ecommerce/scripts/indexnow.cjs` tells Bing and the other
+IndexNow engines about every URL in the sitemap (no account needed; the key file is in `public/`).
+
 `status` and `redeploy` include the agent once it is installed. Its log is `~/ModelUniverseRuntime/host/agent.log`.
 It runs as one process without Redis: a run interrupted by a crash is resent with the same idempotency keys.

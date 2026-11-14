@@ -7,7 +7,12 @@ import { CONTACT } from './contact-channels';
 // One source keeps the name, address and phone identical everywhere, which is what Google matches a business on.
 
 export const SITE_NAME = 'Model Universe';
-export const SITE_ALTERNATE_NAMES = ['Vũ Trụ Mô Hình', 'Vũ Trụ Mô Hình | Model Universe', 'Model Universe Việt Nam', 'modeluniverse.vn'];
+export const SITE_ALTERNATE_NAMES = [
+  'Vũ Trụ Mô Hình',
+  'Vũ Trụ Mô Hình | Model Universe',
+  'Model Universe Việt Nam',
+  'modeluniverse.vn',
+];
 export const SITE_SLOGAN = 'Kết nối đam mê – Mở rộng bộ sưu tập';
 export const OG_IMAGE = { path: '/images/store/og-cover.jpg', width: 1200, height: 630 };
 export const LOGO_IMAGE = { path: '/icons/logo.png', width: 512, height: 512 };
@@ -16,7 +21,8 @@ export const LOGO_IMAGE = { path: '/icons/logo.png', width: 512, height: 512 };
 // product page for search engines. The family's first listing (lowest id, the first condition option) is canonical;
 // the others are its options (?tinh-trang=<id>), left out of the sitemap so they do not compete as duplicates.
 type FamilyMember = { id: number; modelFamilyId?: number | null; partnerId?: number | null };
-const familyKey = (row: FamilyMember) => (row.modelFamilyId ? `${row.modelFamilyId}:${row.partnerId ?? ''}` : `#${row.id}`);
+const familyKey = (row: FamilyMember) =>
+  row.modelFamilyId ? `${row.modelFamilyId}:${row.partnerId ?? ''}` : `#${row.id}`;
 export const familyCanonicals = <T extends FamilyMember>(rows: readonly T[]): T[] => {
   const first = new Map<string, T>();
   for (const row of rows) {
@@ -144,6 +150,17 @@ export const SHOP_SERVICES = [
   { path: '/contact', vi: 'Tư vấn chọn mô hình theo nhu cầu và ngân sách', en: 'Kit advice for your budget' },
 ] as const;
 
+// "08:00 – 22:00" (the hours shown on the contact page, every day) as schema.org opening hours.
+export function openingHours(hours: string) {
+  const [opens, closes] = hours.split(/\s*[–-]\s*/);
+  return {
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    opens,
+    closes,
+  };
+}
+
 export function organizationSchema(base: string, locale: string) {
   const en = isEnglish(locale);
   return {
@@ -153,7 +170,12 @@ export function organizationSchema(base: string, locale: string) {
     name: SITE_NAME,
     alternateName: SITE_ALTERNATE_NAMES,
     url: `${base}/`,
-    logo: { '@type': 'ImageObject', url: `${base}${LOGO_IMAGE.path}`, width: LOGO_IMAGE.width, height: LOGO_IMAGE.height },
+    logo: {
+      '@type': 'ImageObject',
+      url: `${base}${LOGO_IMAGE.path}`,
+      width: LOGO_IMAGE.width,
+      height: LOGO_IMAGE.height,
+    },
     image: `${base}${OG_IMAGE.path}`,
     description: en
       ? 'Model Universe (Vũ Trụ Mô Hình) buys and sells model kits in Ho Chi Minh City: Gunpla, mecha and robot kits, Chinese model kits (Motor Nuclear, CangDao and more), new and pre-owned. Buyback, trade, pawn loans and assembly help, with cash-on-delivery shipping across Vietnam.'
@@ -173,6 +195,8 @@ export function organizationSchema(base: string, locale: string) {
       { '@type': 'Country', name: 'Vietnam' },
     ],
     priceRange: '100.000đ - 45.000.000đ',
+    hasMap: CONTACT.mapsUrl,
+    openingHoursSpecification: openingHours(CONTACT.hours),
     currenciesAccepted: 'VND',
     paymentAccepted: 'Cash, Bank Transfer, QR Code, Cash on Delivery',
     sameAs: BUSINESS.socials,
@@ -281,6 +305,45 @@ export function faqSchema(items: { question: string; answer: string }[]) {
   };
 }
 
+// A guide (src/shared/guides.ts) as an Article published by the shop.
+export function articleSchema(
+  base: string,
+  locale: string,
+  guide: { slug: string; title: string; description: string; answer: string; updated: string },
+) {
+  const url = `${base}/${locale}/huong-dan/${guide.slug}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: guide.title,
+    description: guide.description,
+    abstract: guide.answer,
+    inLanguage: 'vi',
+    dateModified: guide.updated,
+    datePublished: guide.updated,
+    mainEntityOfPage: url,
+    url,
+    image: `${base}${OG_IMAGE.path}`,
+    author: { '@type': 'Organization', '@id': organizationId(base), name: SITE_NAME, url: `${base}/` },
+    publisher: { '@id': organizationId(base) },
+  };
+}
+
+// The specifications a product states, as schema.org name/value pairs (only the populated ones): answer engines
+// quote these when asked about scale, maker or condition.
+export function productSpecifications(product: ProductSeoInput & { modelCode?: string | null }, locale: string) {
+  const en = isEnglish(locale);
+  const rows: [string, string | null | undefined][] = [
+    [en ? 'Brand' : 'Hãng', product.brandName],
+    [en ? 'Model code' : 'Mã sản phẩm', product.modelCode],
+    [en ? 'Scale' : 'Tỷ lệ', product.scale],
+    [en ? 'Condition' : 'Tình trạng', productConditionLabel(product, locale)],
+  ];
+  return rows
+    .filter((row): row is [string, string] => Boolean(row[1]))
+    .map(([name, value]) => ({ '@type': 'PropertyValue', name, value }));
+}
+
 export interface ProductSeoInput {
   name: string;
   brandName?: string | null;
@@ -315,9 +378,13 @@ export function productConditionLabel(product: ProductSeoInput, locale: string):
   const assembly = product.assemblyState ? ASSEMBLY_LABELS[product.assemblyState] : undefined;
   const flaw =
     product.condition === 'incomplete'
-      ? en ? 'missing parts' : 'thiếu phụ kiện'
+      ? en
+        ? 'missing parts'
+        : 'thiếu phụ kiện'
       : product.condition === 'defective'
-        ? en ? 'has defects' : 'có lỗi'
+        ? en
+          ? 'has defects'
+          : 'có lỗi'
         : '';
   return [`${en ? 'Pre-owned' : '2hand'}${percent}`, assembly?.[en ? 'en' : 'vi'], flaw].filter(Boolean).join(', ');
 }

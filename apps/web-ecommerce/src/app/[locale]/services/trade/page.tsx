@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import BuybackWorkspace from '@/core/client/features/buyback/BuybackWorkspace';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
-import { breadcrumbSchema, isEnglish, jsonLd, pageMetadata, serviceSchema } from '@/shared/seo';
+import { breadcrumbSchema, faqSchema, isEnglish, jsonLd, pageMetadata, serviceSchema } from '@/shared/seo';
+import ServiceQuestions from '@/components/Services/ServiceQuestions';
+import { faqForService } from '@/components/Services/serviceFaqItems';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -12,11 +14,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return pageMetadata(siteUrl(), {
     locale,
     path: '/services/trade',
-    title: en ? 'Trade Model Kits – Swap and Trade-in Gunpla and Mecha' : 'Trade Mô Hình – Trao Đổi, Thu Cũ Đổi Mới Gunpla & Mecha',
+    title: en
+      ? 'Trade Model Kits – Swap and Trade-in Gunpla and Mecha'
+      : 'Trade Mô Hình – Trao Đổi, Thu Cũ Đổi Mới Gunpla & Mecha',
     description: en
       ? 'Trade your model kits at Model Universe: we value your Gunpla, mecha or Chinese kit and you top up the difference for the kit you want. Ho Chi Minh City and nationwide.'
       : 'Trade (trao đổi) mô hình lắp ráp Gunpla, Mecha, kit Trung Quốc tại Model Universe: định giá mô hình cũ của bạn, bù chênh lệch linh hoạt để lên đời bộ sưu tập. Gò Vấp, TP.HCM và toàn quốc.',
-    keywords: en ? undefined : ['trade mô hình', 'trao đổi mô hình', 'đổi gundam', 'thu cũ đổi mới mô hình', 'trade gunpla', 'đổi mô hình cũ lấy mới'],
+    keywords: en
+      ? undefined
+      : [
+          'trade mô hình',
+          'trao đổi mô hình',
+          'đổi gundam',
+          'thu cũ đổi mới mô hình',
+          'trade gunpla',
+          'đổi mô hình cũ lấy mới',
+        ],
   });
 }
 
@@ -24,6 +37,7 @@ export default async function TradeModelsPage({ params }: Props) {
   const { locale } = await params;
   const en = isEnglish(locale);
   const base = siteUrl();
+  const questions = faqForService('trade');
 
   return (
     <StoreLayout>
@@ -43,10 +57,15 @@ export default async function TradeModelsPage({ params }: Props) {
               [en ? 'Services' : 'Dịch vụ', '/services'],
               [en ? 'Trade' : 'Trade mô hình', '/services/trade'],
             ]),
+            faqSchema(questions),
           ]),
         }}
       />
       <BuybackWorkspace mode="trade" />
+      <ServiceQuestions
+        title={en ? 'Questions about trading kits' : 'Câu hỏi thường gặp về trade mô hình'}
+        items={questions}
+      />
     </StoreLayout>
   );
 }
