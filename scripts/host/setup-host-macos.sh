@@ -15,6 +15,10 @@
 #                         that arrive during the restart wait behind a holding proxy instead of failing. No sudo.
 #   redeploy              pull, then deploy (and restart the agent, when it is installed: that part asks for sudo)
 #   status                state of the daemons and of the public site
+#   export [file]         move the shop off this Mac (like export-host.ps1): stop and disable the web, tunnel and agent
+#                         daemons, then pack the database, uploads, env files and tunnel credentials into one encrypted
+#                         file (default ~/Desktop/model-universe-host.enc) for setup-host.ps1 -Step restore.
+#                         DRY_RUN=1 builds and verifies the file without stopping anything. Asks for your password (sudo).
 # The bundle key comes from MU_BUNDLE_KEY or ~/.model-universe-bundle-key (copied from the old host).
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -339,7 +343,51 @@ status)
   public_up && echo 'public: 200' || echo 'public: DOWN'
   if agent_installed; then curl -fsS -m 5 -o /dev/null "$AGENT_URL/health" && echo 'agent: 200' || echo 'agent: DOWN'; fi
   ;;
+export)
+  OUT="${2:-$HOME/Desktop/model-universe-host.enc}"
+  [ -n "${MU_BUNDLE_KEY:-}" ] || [ -f "$HOME/.model-universe-bundle-key" ] || die 'no bundle key (MU_BUNDLE_KEY or ~/.model-universe-bundle-key)'
+  export MU_BUNDLE_KEY="${MU_BUNDLE_KEY:-$(tr -d '\r\n' < "$HOME/.model-universe-bundle-key")}"
+  pg_running || die 'PostgreSQL is not running (it is needed for the dump)'
+  if [ "${DRY_RUN:-0}" != 1 ]; then
+    # No more writes here: the daemons leave launchd (no restart, not at boot) and stray connectors stop.
+    log 'Stopping the web, tunnel and agent daemons (sudo asks for your Mac password). The site is down until the new host starts.'
+    mkdir -p "$HOSTDIR/disabled"
+    for name in tunnel web agent; do
+      sudo launchctl bootout "system/$LABEL.$name" 2>/dev/null || true
+      if [ -f "/Library/LaunchDaemons/$LABEL.$name.plist" ]; then
+        sudo mv "/Library/LaunchDaemons/$LABEL.$name.plist" "$HOSTDIR/disabled/"
+        sudo chown "$(id -un)" "$HOSTDIR/disabled/$LABEL.$name.plist"
+      fi
+    done
+    pkill -f 'tunnel run model-universe' 2>/dev/null || true
+    for _ in $(seq 1 30); do lsof -nP -iTCP:6050 -sTCP:LISTEN -t >/dev/null 2>&1 || break; sleep 1; done
+    lsof -nP -iTCP:6050 -sTCP:LISTEN -t >/dev/null 2>&1 && die 'something still listens on 6050'
+  fi
+  STAGE=$(mktemp -d); trap 'rm -rf "$STAGE"' EXIT
+  B="$STAGE/bundle"; mkdir -p "$B/env/web" "$B/env/agent" "$B/env/infra" "$B/cloudflared"
+  log 'Dumping the database.'
+  PGPASSWORD="$(envget DB_PASSWORD)" "$PG_BIN/pg_dump" -h 127.0.0.1 -p "$(envget DB_PORT | grep . || echo 5432)" -U "$(envget DB_USERNAME)" \
+    -d "$(envget DB_NAME)" --no-owner --no-privileges --encoding=UTF8 -f "$B/db.sql"
+  cp "$APP/.env" "$APP/.env.production.local" "$B/env/web/"
+  [ -f "$AGENT/.env" ] && cp "$AGENT/.env" "$B/env/agent/"
+  [ -f "$ROOT/infra/.env" ] && cp "$ROOT/infra/.env" "$B/env/infra/"
+  cp "$HOME/.cloudflared/config.yml" "$HOME/.cloudflared/"*.json "$B/cloudflared/"
+  [ -f "$HOME/.cloudflared/cert.pem" ] && cp "$HOME/.cloudflared/cert.pem" "$B/cloudflared/"
+  cp -R "$APP/uploads" "$B/uploads"
+  printf '{"createdAt":"%s","commit":"%s","source":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    "$(git -C "$ROOT" rev-parse --short HEAD)" "$(scutil --get ComputerName 2>/dev/null || hostname)" > "$B/meta.json"
+  log 'Packing and encrypting.'
+  # COPYFILE_DISABLE: no macOS ._* resource files in the archive.
+  COPYFILE_DISABLE=1 tar -czf "$STAGE/bundle.tar.gz" -C "$B" .
+  "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass env:MU_BUNDLE_KEY -in "$STAGE/bundle.tar.gz" -out "$STAGE/bundle.enc"
+  "$OPENSSL" enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:MU_BUNDLE_KEY -in "$STAGE/bundle.enc" | cmp -s - "$STAGE/bundle.tar.gz" ||
+    die 'decryption check failed'
+  size="$(du -h "$STAGE/bundle.enc" | cut -f1)"
+  if [ "${DRY_RUN:-0}" = 1 ]; then log "Dry run: bundle verified ($size); nothing stopped or written."; exit 0; fi
+  cp "$STAGE/bundle.enc" "$OUT"
+  log "Wrote $OUT ($size). Copy it to the new host and run setup-host.ps1 -Step restore -Bundle <file> there."
+  ;;
 *)
-  sed -n '2,23p' "$0"; exit 1
+  sed -n '2,22p' "$0"; exit 1
   ;;
 esac
