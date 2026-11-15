@@ -122,7 +122,8 @@ Install hints (winget, in an Administrator shell):
     New-Item -ItemType Directory -Path $hostDir -Force | Out-Null
     @{ node = (Get-Command node).Source; cloudflared = (Find-Cloudflared); tunnelConfig = "$machineTunnel\config.yml" } |
       ConvertTo-Json | Set-Content (Join-Path $hostDir 'host.json')
-    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$root\scripts\host\run-host.ps1`""
+    # The full path: started as SYSTEM, a bare 'powershell.exe' failed with 0x80070002 (file not found).
+    $action = New-ScheduledTaskAction -Execute "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$root\scripts\host\run-host.ps1`""
     $trigger = New-ScheduledTaskTrigger -AtStartup
     $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
