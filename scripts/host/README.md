@@ -87,6 +87,15 @@ Never commit, upload or print the bundle, the key, .env files, uploads or ~/.clo
 code or data unless I ask.
 ```
 
+### Moving from the Mac to a Windows host
+
+1. Windows: `setup-host.ps1 -Step build` (the Mac keeps serving).
+2. Mac: `bash scripts/host/setup-host-macos.sh export` (asks for the Mac password). It stops and disables the web,
+   tunnel and agent daemons (PostgreSQL keeps running) and writes `~/Desktop/model-universe-host.enc` with the same key.
+3. Copy the file to Windows, then `setup-host.ps1 -Step restore -Bundle <file>` and, in an Administrator shell,
+   `-Step service`. The Agent Server stays off on Windows (`START_AGENT_RUNTIME=false`): the assistant answers
+   "unavailable" until it is set up there.
+
 ## The AI Agent Server on the Mac host
 
 The web shop runs without it (the assistant and the admin agent console answer "unavailable"). To run it as a fourth
