@@ -450,12 +450,12 @@
 /* Quick-contact button (every storefront page). */
 .ch-fab {
   position: fixed;
-  left: 24px;
+  right: 24px;
   bottom: 24px;
   z-index: 52;
   display: flex;
   flex-direction: column-reverse;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 10px;
 }
 .ch-fab-toggle {
@@ -536,12 +536,10 @@
   color: #fff;
 }
 @media (max-width: 640px) {
-  /* Above the bottom navigation, on the right; collapsed to a round button. */
+  /* Above the bottom navigation; collapsed to a round button. */
   .ch-fab {
-    left: auto;
     right: 14px;
     bottom: calc(84px + env(safe-area-inset-bottom));
-    align-items: flex-end;
   }
   .ch-fab-toggle {
     width: 54px;

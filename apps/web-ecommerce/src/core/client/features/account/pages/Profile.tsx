@@ -13,6 +13,7 @@ import AdminIcon from '@/components/Admin/AdminIcon';
 import SignOutButton from '@/components/StoreHeader/SignOutButton';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCustomerAssistant } from '@/shared/client/providers/CustomerAssistantProvider';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import type { User } from '@/shared/types/user';
 import type { LoyaltyOverview } from '@/shared/types/loyalty';
 import FieldModal from '../components/FieldModal';
@@ -465,17 +466,19 @@ function AccountWorkspace({ user }: { user: User }) {
           )}
           {(visited.includes('support') || section === 'support') && (
             <section hidden={section !== 'support'} aria-labelledby="account-nav-support" className="account-panel">
-              <article className="account-support-hero">
-                <span className="account-icon">
-                  <AdminIcon name="spark" size={28} />
-                </span>
-                <p className="studio-kicker">{t('supportEyebrow')}</p>
-                <h2>{t('supportTitle')}</h2>
-                <p>{t('supportIntro')}</p>
-                <button className="mu-button" onClick={() => assistant.open()}>
-                  {t('openAssistant')} <AdminIcon name="arrow" size={18} />
-                </button>
-              </article>
+              {CUSTOMER_ASSISTANT_ENABLED && (
+                <article className="account-support-hero">
+                  <span className="account-icon">
+                    <AdminIcon name="spark" size={28} />
+                  </span>
+                  <p className="studio-kicker">{t('supportEyebrow')}</p>
+                  <h2>{t('supportTitle')}</h2>
+                  <p>{t('supportIntro')}</p>
+                  <button className="mu-button" onClick={() => assistant.open()}>
+                    {t('openAssistant')} <AdminIcon name="arrow" size={18} />
+                  </button>
+                </article>
+              )}
               <div className="account-quick-grid account-support-links">
                 <Link href={href('orders')} scroll={false} className="account-card">
                   <AdminIcon name="orders" />

@@ -18,6 +18,7 @@ import WishlistApi from '@/core/client/api/Wishlist';
 import { useCart } from '@/shared/client/providers/CartProvider';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCustomerAssistant } from '@/shared/client/providers/CustomerAssistantProvider';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import { formatVND } from '@/shared/server/utils/utils';
 import type { WishlistItem } from '@/shared/types/cart';
 import OfferPanel from '../components/OfferPanel';
@@ -471,16 +472,18 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             ))}
           </ul>
 
-          <div className="product-secondary-actions">
-            <button
-              type="button"
-              onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
-              className="product-secondary-action"
-            >
-              <PromoIcon name="star" size={16} />
-              {t('askAssistant')}
-            </button>
-          </div>
+          {CUSTOMER_ASSISTANT_ENABLED && (
+            <div className="product-secondary-actions">
+              <button
+                type="button"
+                onClick={() => agent.open(t('assistantPrompt', { id: product.id, name: product.name }))}
+                className="product-secondary-action"
+              >
+                <PromoIcon name="star" size={16} />
+                {t('askAssistant')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

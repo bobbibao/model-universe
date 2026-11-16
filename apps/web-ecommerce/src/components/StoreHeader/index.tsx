@@ -9,6 +9,7 @@ import CartDropdown from './CartDropdown';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCustomerAssistant } from '@/shared/client/providers/CustomerAssistantProvider';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import ContactIcon from '@/components/Contact/ContactIcon';
 import { CONTACT } from '@/shared/contact-channels';
 import './store-header.css';
@@ -46,7 +47,7 @@ export default function StoreHeader() {
     { key: 'catalogShort', href: '/cua-hang' },
     { key: 'offers', href: '/uu-dai' },
     { key: 'servicesShort', href: '/services' },
-    { key: 'assistantShort', href: '/assistant' },
+    ...(CUSTOMER_ASSISTANT_ENABLED ? [{ key: 'assistantShort', href: '/assistant' }] : []),
   ];
   const active = (href: string) =>
     pathname === href ||
@@ -189,10 +190,12 @@ export default function StoreHeader() {
           <AdminIcon name="calendar" size={20} />
           {t('holds')}
         </Link>
-        <button aria-label={t('assistant')} onClick={() => assistant.open()}>
-          <AdminIcon name="spark" size={20} />
-          {t('mobileAssistant')}
-        </button>
+        {CUSTOMER_ASSISTANT_ENABLED && (
+          <button aria-label={t('assistant')} onClick={() => assistant.open()}>
+            <AdminIcon name="spark" size={20} />
+            {t('mobileAssistant')}
+          </button>
+        )}
         <a href={accountHref}>
           <AdminIcon name="users" size={20} />
           {t('account')}

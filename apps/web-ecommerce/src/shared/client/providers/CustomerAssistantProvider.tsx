@@ -7,6 +7,7 @@ import { usePathname } from '@/i18n/navigation';
 
 import { useCart } from './CartProvider';
 import { useCurrentUser } from './CurrentUserProvider';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import type {
   AssistantMessage,
   AssistantProgress,
@@ -190,7 +191,7 @@ export function CustomerAssistantProvider({ children }: { children: ReactNode })
   return (
     <Context.Provider value={value}>
       {children}
-      {visible && pathname !== '/assistant' && (
+      {CUSTOMER_ASSISTANT_ENABLED && visible && pathname !== '/assistant' && (
         <>
           {opened ? (
             <AssistantPanel key={epoch} />
