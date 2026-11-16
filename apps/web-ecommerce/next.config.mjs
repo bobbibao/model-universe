@@ -12,6 +12,10 @@ if (isolatedBuildDir && !/^dist\/\.next-[a-z0-9-]+$/.test(isolatedBuildDir)) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     poweredByHeader: false,
+    // Metadata (title, canonical, hreflang) is rendered into <head> for every visitor instead of streamed into <body>:
+    // Google ignores a canonical in <body> (Search Console listed pages as duplicates "without a user-selected
+    // canonical"), and AI crawlers do not run the script that moves it.
+    htmlLimitedBots: /.*/,
     // Keep Turbopack's dev artifacts separate from Webpack and production builds.
     distDir: isolatedBuildDir || (process.env.NODE_ENV === 'development' && process.env.TURBOPACK ? 'dist/.next-turbo' : 'dist/.next'),
     turbopack: { root: workspaceRoot },

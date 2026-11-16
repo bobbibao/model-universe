@@ -72,6 +72,27 @@ type PublicProductSlug = {
   imageUrl?: string;
 };
 
+// The published products of the store or of one category (every page of the public listing), for the crawlable
+// product list on the catalog pages.
+export async function getCatalogProducts(category?: string): Promise<ProductSummary[]> {
+  const port = Number(process.env.PORT || 6050);
+  const rows: ProductSummary[] = [];
+  try {
+    for (let page = 1; page <= 20; page++) {
+      const query = new URLSearchParams({ per_page: '100', page: String(page), ...(category ? { category } : {}) });
+      const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(4000) };
+      const response = await fetch(`http://127.0.0.1:${port}/api/products?${query}`, options);
+      if (!response.ok) break;
+      const result = await response.json() as { payload?: { data?: ProductSummary[]; pagination?: { total_pages?: number } } };
+      rows.push(...(result.payload?.data || []));
+      if (page >= (result.payload?.pagination?.total_pages || 1)) break;
+    }
+  } catch {
+    /* A partial list is still useful. */
+  }
+  return rows;
+}
+
 // Every published product's slug for the sitemap (paged through the public listing), with its main photo and model
 // family (condition variants share one canonical page).
 export async function getPublicProductSlugs(): Promise<PublicProductSlug[]> {

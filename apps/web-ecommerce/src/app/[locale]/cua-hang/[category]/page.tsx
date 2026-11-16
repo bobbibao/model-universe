@@ -1,20 +1,21 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 import StoreLayout from '@/components/Layouts/StoreLayout';
+import CatalogSeoContent from '@/components/Seo/CatalogSeoContent';
 import Shop from '@/core/client/features/shop/pages/Shop';
-import { getPublicCategories, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
+import { getCatalogProducts, getPublicCategories, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { breadcrumbSchema, categoryKitName, isEnglish, jsonLd, organizationId, pageMetadata } from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string; category: string }> };
 
 // A category landing page (/vi/cua-hang/<category>): its own title, description and canonical URL. An empty or
-// internal category stays reachable but is kept out of the index (thin page).
+// internal category stays reachable but is kept out of the index (thin page); a removed one moves to the store.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, category } = await params;
   const found = (await getPublicCategories()).find((row) => row.slug === category);
-  if (!found) notFound();
+  if (!found) permanentRedirect(`/${locale}/cua-hang`);
   const en = isEnglish(locale);
   const kit = categoryKitName(found.name, locale);
 
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoryPage({ params }: Props) {
   const { locale, category } = await params;
   const found = (await getPublicCategories()).find((row) => row.slug === category);
-  if (!found) notFound();
+  if (!found) permanentRedirect(`/${locale}/cua-hang`);
   const en = isEnglish(locale);
   const base = siteUrl();
 
@@ -64,6 +65,7 @@ export default async function CategoryPage({ params }: Props) {
       <Suspense>
         <Shop categorySlug={category} categoryName={found.name} />
       </Suspense>
+      <CatalogSeoContent locale={locale} products={await getCatalogProducts(found.slug)} category={found} />
     </StoreLayout>
   );
 }

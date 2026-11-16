@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     absoluteTitle: true,
     title: en
       ? 'Model Universe – Model Kits, Gunpla & Mecha, New and Pre-owned'
-      : 'Model Universe – Mô Hình Lắp Ráp, Gunpla, Mecha New & 2hand',
+      : 'Vũ Trụ Mô Hình (Model Universe) – Mô Hình Lắp Ráp New & 2hand',
     description: en
       ? 'Model Universe (Vũ Trụ Mô Hình): new and pre-owned model kits – Gunpla, mecha, robot and Chinese kits. Buyback, trade, pawn loans and assembly help. Ho Chi Minh City, COD across Vietnam.'
       : 'Vũ Trụ Mô Hình – Model Universe: mua bán mô hình lắp ráp Gunpla, Mecha, Robot, kit Trung Quốc New & 2hand. Thu mua, trade, cầm cố, hỗ trợ lắp ráp. Gò Vấp, TP.HCM, COD toàn quốc.',
