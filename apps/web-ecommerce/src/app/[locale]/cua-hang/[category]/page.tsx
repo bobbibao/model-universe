@@ -2,9 +2,8 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { permanentRedirect } from 'next/navigation';
 import StoreLayout from '@/components/Layouts/StoreLayout';
-import CatalogSeoContent from '@/components/Seo/CatalogSeoContent';
 import Shop from '@/core/client/features/shop/pages/Shop';
-import { getCatalogProducts, getPublicCategories, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
+import { getPublicCategories, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { breadcrumbSchema, categoryKitName, isEnglish, jsonLd, organizationId, pageMetadata } from '@/shared/seo';
 
@@ -65,7 +64,6 @@ export default async function CategoryPage({ params }: Props) {
       <Suspense>
         <Shop categorySlug={category} categoryName={found.name} />
       </Suspense>
-      <CatalogSeoContent locale={locale} products={await getCatalogProducts(found.slug)} category={found} />
     </StoreLayout>
   );
 }
