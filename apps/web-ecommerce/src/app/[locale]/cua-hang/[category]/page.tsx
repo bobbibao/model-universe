@@ -3,9 +3,17 @@ import type { Metadata } from 'next';
 import { permanentRedirect } from 'next/navigation';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import Shop from '@/core/client/features/shop/pages/Shop';
-import { getPublicCategories, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
+import { getCatalogFirstPage, getPublicCategories, isIndexableCategory } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
-import { breadcrumbSchema, categoryKitName, isEnglish, jsonLd, organizationId, pageMetadata } from '@/shared/seo';
+import {
+  breadcrumbSchema,
+  categoryKitName,
+  isEnglish,
+  jsonLd,
+  organizationId,
+  pageMetadata,
+  productItemList,
+} from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string; category: string }> };
 
@@ -40,6 +48,7 @@ export default async function CategoryPage({ params }: Props) {
   if (!found) permanentRedirect(`/${locale}/cua-hang`);
   const en = isEnglish(locale);
   const base = siteUrl();
+  const initial = await getCatalogFirstPage(found.slug);
 
   return (
     <StoreLayout>
@@ -53,6 +62,7 @@ export default async function CategoryPage({ params }: Props) {
               name: en ? `${categoryKitName(found.name, locale)} model kits` : categoryKitName(found.name, locale),
               url: `${base}/${locale}/cua-hang/${found.slug}`,
               provider: { '@id': organizationId(base) },
+              ...(initial?.data.length ? { mainEntity: productItemList(base, locale, initial.data) } : {}),
             },
             breadcrumbSchema(base, locale, [
               [en ? 'Store' : 'Cửa hàng', '/cua-hang'],
@@ -62,7 +72,7 @@ export default async function CategoryPage({ params }: Props) {
         }}
       />
       <Suspense>
-        <Shop categorySlug={category} categoryName={found.name} />
+        <Shop categorySlug={category} categoryName={found.name} initial={initial} />
       </Suspense>
     </StoreLayout>
   );

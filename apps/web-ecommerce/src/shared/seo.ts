@@ -252,9 +252,24 @@ export function websiteSchema(base: string, locale: string) {
     publisher: { '@id': organizationId(base) },
     potentialAction: {
       '@type': 'SearchAction',
-      target: { '@type': 'EntryPoint', urlTemplate: `${base}/${locale}/cua-hang?search={search_term_string}` },
+      target: { '@type': 'EntryPoint', urlTemplate: `${base}/${locale}/cua-hang?q={search_term_string}` },
       'query-input': 'required name=search_term_string',
     },
+  };
+}
+
+// The models a catalog page shows (its server-rendered first page), in order, as the CollectionPage's main entity.
+export function productItemList(base: string, locale: string, products: readonly { name: string; slug?: string }[]) {
+  return {
+    '@type': 'ItemList',
+    itemListElement: products
+      .filter((product) => product.slug)
+      .map((product, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: product.name,
+        url: `${base}/${locale}/san-pham/${product.slug}`,
+      })),
   };
 }
 

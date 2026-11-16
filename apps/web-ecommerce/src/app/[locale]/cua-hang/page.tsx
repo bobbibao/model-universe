@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import Shop from '@/core/client/features/shop/pages/Shop';
+import { getCatalogFirstPage } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
-import { breadcrumbSchema, isEnglish, jsonLd, organizationId, pageMetadata, websiteId } from '@/shared/seo';
+import { breadcrumbSchema, isEnglish, jsonLd, organizationId, pageMetadata, productItemList, websiteId } from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -26,6 +27,7 @@ export default async function ShopPage({ params }: Props) {
   const { locale } = await params;
   const en = isEnglish(locale);
   const base = siteUrl();
+  const initial = await getCatalogFirstPage();
 
   return (
     <StoreLayout>
@@ -40,6 +42,7 @@ export default async function ShopPage({ params }: Props) {
               url: `${base}/${locale}/cua-hang`,
               isPartOf: { '@id': websiteId(base) },
               provider: { '@id': organizationId(base) },
+              ...(initial?.data.length ? { mainEntity: productItemList(base, locale, initial.data) } : {}),
             },
             breadcrumbSchema(base, locale, [
               [en ? 'Store' : 'Cửa hàng', '/cua-hang'],
@@ -48,7 +51,7 @@ export default async function ShopPage({ params }: Props) {
         }}
       />
       <Suspense>
-        <Shop />
+        <Shop initial={initial} />
       </Suspense>
     </StoreLayout>
   );
