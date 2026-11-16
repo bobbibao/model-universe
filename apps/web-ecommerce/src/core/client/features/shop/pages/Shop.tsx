@@ -6,7 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
 import ProductApi from '@/core/client/api/Product';
 import CategoryApi from '@/core/client/api/Category';
-import type { Pagination } from '@/shared/types/pagination';
+import type { PaginatedResult, Pagination } from '@/shared/types/pagination';
 import type { Category, ProductFilterOptions, ProductSort, ProductSummary } from '@/shared/types/product';
 import ProductFilters, { ProductFilterValues, SORT_OPTIONS } from '../components/ProductFilters';
 import ProductGrid from '../components/ProductGrid';
@@ -29,8 +29,13 @@ const getResponsivePageSize = (): number => {
 
 // The catalog. On a category landing page (/cua-hang/<category>) the category comes from the path; filters stay in
 // the query string and choosing another category moves to its own path (one canonical URL per category).
-// categoryName comes from the server so a category page's H1 is in its HTML before the category list loads.
-const Shop = ({ categorySlug = '', categoryName }: { categorySlug?: string; categoryName?: string } = {}) => {
+// categoryName comes from the server so a category page's H1 is in its HTML before the category list loads; initial is
+// the unfiltered first page (getCatalogFirstPage), so the grid is server-rendered and the first load needs no request.
+const Shop = ({
+  categorySlug = '',
+  categoryName,
+  initial,
+}: { categorySlug?: string; categoryName?: string; initial?: PaginatedResult<ProductSummary> } = {}) => {
   const t = useTranslations('catalog');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,9 +45,11 @@ const Shop = ({ categorySlug = '', categoryName }: { categorySlug?: string; cate
     scales: [],
     priceRange: { min: 0, max: 0 },
   });
-  const [products, setProducts] = useState<ProductSummary[]>([]);
-  const [pagination, setPagination] = useState<Pagination>();
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<ProductSummary[]>(initial?.data ?? []);
+  const [pagination, setPagination] = useState<Pagination | undefined>(initial?.pagination);
+  const [loading, setLoading] = useState(!initial);
+  // The server's first page stands for the first load only when the URL has no filters.
+  const useInitial = useRef(Boolean(initial) && !searchParams.toString());
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
   const [pageSize, setPageSize] = useState<number>(() => getResponsivePageSize());
@@ -139,6 +146,14 @@ const Shop = ({ categorySlug = '', categoryName }: { categorySlug?: string; cate
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      if (useInitial.current) {
+        useInitial.current = false;
+        if (pageSize === DEFAULT_PAGE_SIZE) {
+          if (applied.category)
+            trackRecommendationEvent({ eventType: 'category_view', categorySlug: applied.category, surface: 'catalog' });
+          return;
+        }
+      }
       setLoading(true);
       setFailed(false);
       const result = await ProductApi.getProducts({

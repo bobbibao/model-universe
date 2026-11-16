@@ -1,3 +1,4 @@
+import type { PaginatedResult } from '../../types/pagination';
 import type { ProductDetail, ProductSummary } from '../../types/product';
 
 // Public catalog only. The custom Express server owns database initialization and the existing product endpoint.
@@ -71,6 +72,22 @@ type PublicProductSlug = {
   updatedAt?: string;
   imageUrl?: string;
 };
+
+// The catalog's first page as the store opens it without filters (newest first, 12 per page), rendered on the server
+// so the product grid is in the HTML for crawlers that do not run JavaScript. Undefined when the listing fails.
+export async function getCatalogFirstPage(category?: string): Promise<PaginatedResult<ProductSummary> | undefined> {
+  try {
+    const port = Number(process.env.PORT || 6050);
+    const query = new URLSearchParams({ page: '1', per_page: '12', sort: 'newest', ...(category ? { category } : {}) });
+    const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(2500) };
+    const response = await fetch(`http://127.0.0.1:${port}/api/products?${query}`, options);
+    if (!response.ok) return undefined;
+    const result = (await response.json()) as { payload?: PaginatedResult<ProductSummary> };
+    return Array.isArray(result.payload?.data) ? result.payload : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 // Every published product's slug for the sitemap (paged through the public listing), with its main photo and model
 // family (condition variants share one canonical page).
