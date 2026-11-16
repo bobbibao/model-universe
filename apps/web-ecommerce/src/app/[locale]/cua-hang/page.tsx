@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import StoreLayout from '@/components/Layouts/StoreLayout';
-import CatalogSeoContent from '@/components/Seo/CatalogSeoContent';
 import Shop from '@/core/client/features/shop/pages/Shop';
-import { getCatalogProducts } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { breadcrumbSchema, isEnglish, jsonLd, organizationId, pageMetadata, websiteId } from '@/shared/seo';
 
@@ -52,7 +50,6 @@ export default async function ShopPage({ params }: Props) {
       <Suspense>
         <Shop />
       </Suspense>
-      <CatalogSeoContent locale={locale} products={await getCatalogProducts()} />
     </StoreLayout>
   );
 }

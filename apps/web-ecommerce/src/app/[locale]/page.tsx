@@ -4,8 +4,7 @@ import StoreLayout from '@/components/Layouts/StoreLayout';
 import Home from '@/core/client/features/home/pages/Home';
 import { getFeaturedProducts } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
-import HomeSeoContent, { homeFaq } from '@/components/Seo/HomeSeoContent';
-import { faqSchema, isEnglish, jsonLd, organizationSchema, pageMetadata, websiteSchema } from '@/shared/seo';
+import { isEnglish, jsonLd, organizationSchema, pageMetadata, websiteSchema } from '@/shared/seo';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -54,11 +53,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLd([websiteSchema(base, locale), organizationSchema(base, locale), faqSchema(homeFaq(locale))]),
+          __html: jsonLd([websiteSchema(base, locale), organizationSchema(base, locale)]),
         }}
       />
       <Home initialProducts={initialProducts} />
-      <HomeSeoContent locale={locale} />
     </StoreLayout>
   );
 }
