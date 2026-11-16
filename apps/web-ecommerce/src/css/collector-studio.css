@@ -2071,6 +2071,35 @@ a.channel-value:hover {
     display: none;
   }
 }
+/* Catalog pages: the models as plain links and the page's FAQ (CatalogSeoContent). */
+.catalog-seo {
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--studio-line);
+}
+.catalog-seo .mu-heading {
+  font-size: clamp(22px, 2vw, 30px);
+}
+.catalog-seo > p {
+  color: var(--studio-muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+.catalog-seo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 6px 24px;
+  color: var(--studio-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.catalog-seo a {
+  color: var(--studio-ink);
+  font-weight: 600;
+}
+.catalog-seo a:hover {
+  color: var(--studio-purple);
+}
 /* Home: the shop in plain words and its FAQ (HomeSeoContent). */
 .home-about {
   display: grid;

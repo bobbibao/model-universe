@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 
 export function generateMetadata(): Metadata {
   const base = siteUrl();
-  const title = 'Model Universe – Mô Hình Lắp Ráp, Gunpla, Mecha New & 2hand';
+  const title = 'Vũ Trụ Mô Hình (Model Universe) – Mô Hình Lắp Ráp New & 2hand';
   const description =
     'Model Universe – Vũ Trụ Mô Hình: mua bán mô hình lắp ráp Gunpla, Mecha, kit Trung Quốc New & 2hand. Thu mua, trade, cầm cố. Gò Vấp, TP.HCM, COD toàn quốc.';
   return {

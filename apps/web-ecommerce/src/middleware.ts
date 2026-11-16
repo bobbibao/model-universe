@@ -4,7 +4,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_COOKIE_NAME, verifySessionToken } from '@/shared/server/utils/JwtUtils';
 
 // Page-level guard for navigation only; the Express API enforces authorization on every data request.
-const localize = createMiddleware({ locales, defaultLocale: 'vi', localePrefix: 'always', localeDetection: false });
+// No hreflang Link header: the pages declare their own alternates (x-default = /vi), and next-intl's header pointed
+// x-default at the unprefixed URL, which Google then chose as canonical.
+const localize = createMiddleware({
+  locales,
+  defaultLocale: 'vi',
+  localePrefix: 'always',
+  localeDetection: false,
+  alternateLinks: false,
+});
 const ACCOUNT_PATHS = ['/user-profile', '/order-history', '/wishlist', '/thank-you', '/account', '/partner'];
 const GUEST_ONLY_PATHS = ['/auth/signin', '/auth/signup'];
 
@@ -64,7 +72,11 @@ export async function middleware(request: NextRequest) {
   if (session && GUEST_ONLY_PATHS.includes(pathname)) {
     return NextResponse.redirect(new URL(`/${session.role === 'ADMIN' ? 'vi/admin/dashboard' : locale}`, request.url));
   }
-  return localize(request);
+  const response = localize(request);
+  // An unprefixed path (/san-pham/x) moves permanently to /vi/...: a 308, not next-intl's temporary 307.
+  const location = response.headers.get('location');
+  if (response.status === 307 && location) return NextResponse.redirect(new URL(location, request.url), 308);
+  return response;
 }
 
 export const config = { matcher: ['/((?!api|uploads|images|fonts|_next|.*\\..*).*)'] };

@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
 import { preload } from 'react-dom';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import ProductDetail from '@/core/client/features/shop/pages/ProductDetail';
-import { getPublicProduct } from '@/shared/server/utils/StorefrontData';
+import { getPublicProduct, getPublicProductSlugs } from '@/shared/server/utils/StorefrontData';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { formatVND } from '@/shared/server/utils/utils';
 import {
@@ -18,6 +18,7 @@ import {
   productSpecifications,
   productSeoTitle,
   SITE_NAME,
+  successorSlug,
 } from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -30,13 +31,24 @@ const ITEM_CONDITIONS: Record<string, string> = {
   defective: 'https://schema.org/DamagedCondition',
 };
 
+// A slug that no longer exists moves permanently to the product's current page (renamed by a catalog cleanup), so
+// links and rankings carry over; a slug with no successor is a real 404.
+async function productOrSuccessor(locale: string, slug: string) {
+  const product = await getPublicProduct(slug);
+  if (product) return product;
+  if (product === null) {
+    const next = successorSlug(slug, (await getPublicProductSlugs()).map((row) => row.slug));
+    if (next) permanentRedirect(`/${locale}/san-pham/${next}`);
+  }
+  notFound();
+}
+
 // The product page at its SEO path (/vi/san-pham/<slug>): canonical URL, hreflang, Open Graph and schema.org Product
 // data so search engines show the name, price and availability. Title and description state only the listing's real
 // condition (no default percentage, no "complete" claim).
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params,
-    product = await getPublicProduct(slug);
-  if (!product) notFound();
+    product = await productOrSuccessor(locale, slug);
   const base = siteUrl();
   const title = productSeoTitle(product, locale);
   const imageUrl = product.imageUrl ? absoluteUrl(base, product.imageUrl) : undefined;
@@ -72,8 +84,7 @@ const formatSku = (raw?: string | null, fallback?: string | number): string => {
 
 export default async function Page({ params }: Props) {
   const { locale, slug } = await params,
-    product = await getPublicProduct(slug);
-  if (!product) notFound();
+    product = await productOrSuccessor(locale, slug);
 
   if (product.imageUrl) {
     preload(product.imageUrl, { as: 'image', fetchPriority: 'high' });

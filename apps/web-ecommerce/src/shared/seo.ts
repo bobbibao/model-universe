@@ -362,6 +362,26 @@ const ASSEMBLY_LABELS: Record<string, { vi: string; en: string }> = {
 
 const includesText = (text: string, part: string) => text.toLowerCase().includes(part.toLowerCase());
 
+// The current page of a product whose slug changed (catalog cleanups renamed "mnp-xh21-huo-qubing-hoac-khu-benh" to
+// "motor-nuclear-mnp-xh21-huo-qubing-hoac-khu-benh"): the slug that contains the old one, else the one with the same
+// model code ("mnp-xh21", "cd-08") sharing the most words with it. Undefined when no slug has that model code.
+export function successorSlug(oldSlug: string, slugs: readonly string[]): string | undefined {
+  const old = oldSlug.toLowerCase();
+  const containing = slugs.filter((slug) => slug !== old && `-${slug}-`.includes(`-${old}-`));
+  if (containing.length) return containing.reduce((a, b) => (b.length < a.length ? b : a));
+  const words = old.split('-');
+  const codeAt = words.findIndex((word, index) => index > 0 && /\d/.test(word) && /^[a-z]{2,4}$/.test(words[index - 1]));
+  if (codeAt < 0) return undefined;
+  const code = `-${words[codeAt - 1]}-${words[codeAt]}-`;
+  const score = (slug: string) => {
+    const own = new Set(slug.split('-'));
+    return words.filter((word) => own.has(word)).length * 1000 - slug.length;
+  };
+  return slugs
+    .filter((slug) => `-${slug}-`.includes(code))
+    .reduce<string | undefined>((best, slug) => (best === undefined || score(slug) > score(best) ? slug : best), undefined);
+}
+
 // A category as a kit line: "Mô hình Motor Nuclear" (Vietnamese, without doubling a "Mô hình" the name already has) or
 // "Motor Nuclear" (English, the Vietnamese prefix dropped).
 export function categoryKitName(name: string, locale: string): string {

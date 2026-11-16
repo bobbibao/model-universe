@@ -13,6 +13,7 @@ import {
   productSeoDescription,
   productSeoTitle,
   shippingOfferText,
+  successorSlug,
 } from '../../src/shared/seo';
 
 const base = 'https://modeluniverse.vn';
@@ -121,5 +122,25 @@ describe('storefront SEO', () => {
     expect(categoryKitName('Mô hình Motor Nuclear', 'vi')).toBe('Mô hình Motor Nuclear');
     expect(categoryKitName('Mecha Trung Quốc', 'vi')).toBe('Mô hình Mecha Trung Quốc');
     expect(categoryKitName('Mô hình SNAA', 'en')).toBe('SNAA');
+  });
+
+  it('moves a renamed product slug to its current page', () => {
+    const slugs = [
+      'motor-nuclear-mnp-xh21-huo-qubing-hoac-khu-benh',
+      'motor-nuclear-mnp-xh19a-yue-fei-nhac-phi-ban-a',
+      'motor-nuclear-mnq-xh01-bai-qi-bach-khoi-metal-build',
+      'motor-nuclear-mnp-xh01-bai-qi-bach-khoi',
+      'cangdao-cd-08-scorpion-musha',
+      'cangdao-cd-08-scorpion-musha-special-color-limited',
+      'in-era-rt-002-nemesis',
+      'in-era-rt-002-nemesis-mechanical-clear-version',
+    ];
+    expect(successorSlug('mnp-xh21-huo-qubing-hoac-khu-benh', slugs)).toBe('motor-nuclear-mnp-xh21-huo-qubing-hoac-khu-benh');
+    expect(successorSlug('mnq-xh01-bai-qi-bach-khoi-metal-build', slugs)).toBe('motor-nuclear-mnq-xh01-bai-qi-bach-khoi-metal-build');
+    expect(successorSlug('mnp-xh19a-yue-fei-nhac-phi', slugs)).toBe('motor-nuclear-mnp-xh19a-yue-fei-nhac-phi-ban-a');
+    expect(successorSlug('cd-08-scorpion-musha-do-den', slugs)).toBe('cangdao-cd-08-scorpion-musha');
+    expect(successorSlug('rt-002-nemesis-mechanical-clear-color', slugs)).toBe('in-era-rt-002-nemesis-mechanical-clear-version');
+    expect(successorSlug('nbd-009-lone-shadow-over-zero', slugs)).toBeUndefined();
+    expect(successorSlug('tools', slugs)).toBeUndefined();
   });
 });
