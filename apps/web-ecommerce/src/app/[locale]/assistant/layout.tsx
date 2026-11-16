@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { isEnglish, pageMetadata } from '@/shared/seo';
 
@@ -27,6 +29,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   );
 }
 
-export default function AssistantLayout({ children }: { children: ReactNode }) {
+// While the storefront assistant is off, its page sends visitors to the store (a temporary redirect).
+export default async function AssistantLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  if (!CUSTOMER_ASSISTANT_ENABLED) redirect(`/${(await params).locale}/cua-hang`);
   return children;
 }

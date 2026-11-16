@@ -4,6 +4,7 @@ import Link from '@/i18n/navigation';
 import BrandLogo from '@/components/BrandLogo';
 import ContactIcon from '@/components/Contact/ContactIcon';
 import { CONTACT } from '@/shared/contact-channels';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import { hasTrackingTags, openConsentSettings } from '@/shared/client/utils/consent';
 import './store-footer.css';
 
@@ -17,27 +18,6 @@ export default function StoreFooter() {
   return (
     <footer className="mu-footer sf">
       <div className="mu-wrap">
-        <section className="sf-cta" aria-labelledby="footer-cta">
-          <div>
-            <h2 id="footer-cta">{c('footerCtaTitle')}</h2>
-            <p>{c('footerCtaText')}</p>
-          </div>
-          <div className="sf-cta-actions">
-            <a className="sf-cta-button is-primary" href={CONTACT.tel}>
-              <ContactIcon name="phone" size={17} />
-              {CONTACT.phoneDisplay}
-            </a>
-            <a className="sf-cta-button" href={CONTACT.zalo} {...external}>
-              <ContactIcon name="zalo" size={24} />
-              {c('chatZalo')}
-            </a>
-            <a className="sf-cta-button" href={CONTACT.messenger} {...external}>
-              <ContactIcon name="messenger" size={24} />
-              {c('messenger')}
-            </a>
-          </div>
-        </section>
-
         <div className="sf-grid">
           <div className="sf-about">
             <BrandLogo className="sf-brand" />
@@ -69,7 +49,7 @@ export default function StoreFooter() {
             <Link href="/cua-hang">{nav('shop')}</Link>
             <Link href="/uu-dai">{c('footerOffers')}</Link>
             <Link href="/huong-dan">{c('footerGuides')}</Link>
-            <Link href="/assistant">{nav('assistant')}</Link>
+            {CUSTOMER_ASSISTANT_ENABLED && <Link href="/assistant">{nav('assistant')}</Link>}
             <Link href="/sellers">{c('footerSellers')}</Link>
             <Link href="/wishlist">{nav('saved')}</Link>
           </nav>

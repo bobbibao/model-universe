@@ -3,6 +3,7 @@ import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { GUIDES } from '@/shared/guides';
 import { CONTACT } from '@/shared/contact-channels';
 import { BUSINESS, SHOP_SERVICES, SITE_ALTERNATE_NAMES, SITE_NAME, SITE_SLOGAN, shippingOfferText } from '@/shared/seo';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,7 @@ export async function GET() {
     `- [Ưu đãi](${base}/vi/uu-dai)`,
     `- [Giới thiệu](${base}/vi/about)`,
     `- [Liên hệ](${base}/vi/contact)`,
-    `- [Trợ lý AI tư vấn mô hình](${base}/vi/assistant)`,
+    ...(CUSTOMER_ASSISTANT_ENABLED ? [`- [Trợ lý AI tư vấn mô hình](${base}/vi/assistant)`] : []),
     `- [Sitemap](${base}/sitemap.xml)`,
     '',
     '## Hướng dẫn / Guides',

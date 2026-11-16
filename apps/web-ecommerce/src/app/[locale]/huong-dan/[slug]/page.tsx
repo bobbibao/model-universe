@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import Link from '@/i18n/navigation';
+import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import { findGuide } from '@/shared/guides';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { articleSchema, breadcrumbSchema, faqSchema, jsonLd, pageMetadata } from '@/shared/seo';
@@ -93,7 +94,7 @@ export default async function GuidePage({ params }: Props) {
         <section className="mt-10 rounded-xl border border-slate-200 p-5">
           <h2 className="text-lg font-semibold text-slate-900">Xem tiếp</h2>
           <ul className="mt-3 space-y-2">
-            {guide.related.map((link) => (
+            {guide.related.filter((link) => CUSTOMER_ASSISTANT_ENABLED || link.path !== '/assistant').map((link) => (
               <li key={link.path}>
                 <Link href={link.path} className="font-medium text-primary hover:underline">
                   {link.label} →

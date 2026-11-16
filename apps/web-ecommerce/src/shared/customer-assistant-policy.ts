@@ -1,6 +1,10 @@
 import { CUSTOMER_ACTIONS, type CustomerAction } from './types/customer-assistant';
 import { RETURN_REASONS } from './return-rules';
 
+// The shopping assistant on the storefront (launcher, /assistant, header, footer, product and account entry points,
+// sitemap and llms.txt). Off for now: the Agent Server does not run on the current host. Admin tools are unaffected.
+export const CUSTOMER_ASSISTANT_ENABLED = false;
+
 const ROUTES = new Set([
   '/',
   '/shop',
