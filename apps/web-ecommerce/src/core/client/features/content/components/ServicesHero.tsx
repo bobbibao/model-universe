@@ -4,62 +4,80 @@ import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import ContactIcon from '@/components/Contact/ContactIcon';
+import ProductImage from '@/components/ProductImage';
+import { SERVICE_FACTS } from '@/components/Services/serviceFacts';
 import { CONTACT } from '@/shared/contact-channels';
+import type { ShowcasePhoto } from '@/shared/types/showcase';
 
-// The top of /services: what the shop does, the two fastest ways in (a buyback quote, or a question on Zalo), where
-// and when to bring a kit, and the four steps every request follows.
-export default function ServicesHero() {
+// The top of /services, on the dark showroom band: what the shop does, the two fastest ways in (a buyback quote, or a
+// question on Zalo), the three numbers people ask first, photos of real kits in the shop, and where and when to come.
+export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
   const g = useTranslations('serviceGuide');
+  const stats = [
+    { value: `${SERVICE_FACTS.sellMaxPercent}%`, label: g('statSell') },
+    { value: `${SERVICE_FACTS.pawnPercent}%`, label: g('statPawn') },
+    { value: `${SERVICE_FACTS.holdMinDays}–${SERVICE_FACTS.holdMaxDays}`, label: g('statHold') },
+  ];
   return (
-    <section className="sv-hero" aria-labelledby="services-title">
-      <div className="mu-wrap">
-        <div className="sv-hero-grid">
-          <div>
-            <h1 id="services-title">{g('heroTitle')}</h1>
-            <p className="sv-lead">{g('heroIntro')}</p>
-            <div className="sv-actions">
-              <Link className="sg-button is-primary is-large" href="/services/sell">
-                {g('heroPrimary')}
-                <AdminIcon name="arrow" size={18} />
-              </Link>
-              <a className="sg-button is-large" href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
-                <ContactIcon name="zalo" size={22} />
-                {g('heroSecondary')}
-              </a>
-            </div>
+    <section className="svx-hero" aria-labelledby="services-title">
+      <div className="mu-wrap svx-hero-grid">
+        <div className="svx-hero-copy">
+          <p className="svx-where">{g('heroWhere')}</p>
+          <h1 id="services-title">{g('heroTitle')}</h1>
+          <p className="svx-lead">{g('heroIntro')}</p>
+          <div className="svx-actions">
+            <Link className="svx-button is-lime" href="/services/sell">
+              {g('heroPrimary')}
+              <AdminIcon name="arrow" size={18} />
+            </Link>
+            <a className="svx-button is-outline" href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
+              <ContactIcon name="zalo" size={22} />
+              {g('heroSecondary')}
+            </a>
           </div>
-          <dl className="sv-visit">
-            <div>
-              <dt>{g('visitShowroom')}</dt>
-              <dd>
-                <a href={CONTACT.mapsUrl} target="_blank" rel="noopener noreferrer">
-                  {CONTACT.addressLine}
-                </a>
-              </dd>
-            </div>
-            <div>
-              <dt>{g('visitHours')}</dt>
-              <dd>{g('visitHoursValue', { hours: CONTACT.hours })}</dd>
-            </div>
-            <div>
-              <dt>{g('visitPhone')}</dt>
-              <dd>
-                <a href={CONTACT.tel}>{CONTACT.phoneDisplay}</a>
-              </dd>
-            </div>
+          <dl className="svx-stats">
+            {stats.map((stat) => (
+              <div key={stat.label}>
+                <dt>{stat.label}</dt>
+                <dd>{stat.value}</dd>
+              </div>
+            ))}
           </dl>
         </div>
-        <div className="sv-process" aria-labelledby="services-process">
-          <h2 id="services-process">{g('processTitle')}</h2>
-          <ol>
-            {([1, 2, 3, 4] as const).map((step) => (
-              <li key={step}>
-                <span className="sv-step">{String(step).padStart(2, '0')}</span>
-                {g(`processStep${step}`)}
-              </li>
+        {photos.length >= 3 && (
+          <div className="svx-gallery">
+            {photos.slice(0, 3).map((photo, index) => (
+              <Link key={photo.src} href={photo.href} className={`svx-shot is-${index}`} title={photo.alt}>
+                <ProductImage
+                  src={photo.src}
+                  alt={photo.alt}
+                  priority={index === 0}
+                  sizes="(min-width: 1024px) 24vw, 50vw"
+                  className="object-cover"
+                />
+                <span className="svx-shot-name">{photo.alt}</span>
+              </Link>
             ))}
-          </ol>
-        </div>
+          </div>
+        )}
+      </div>
+      <div className="mu-wrap">
+        <ul className="svx-visit">
+          <li>
+            <ContactIcon name="pin" size={16} />
+            <a href={CONTACT.mapsUrl} target="_blank" rel="noopener noreferrer">
+              {CONTACT.addressLine}
+            </a>
+          </li>
+          <li>
+            <ContactIcon name="clock" size={16} />
+            {g('visitHoursValue', { hours: CONTACT.hours })}
+          </li>
+          <li>
+            <ContactIcon name="phone" size={16} />
+            <a href={CONTACT.tel}>{CONTACT.phoneDisplay}</a>
+          </li>
+        </ul>
       </div>
     </section>
   );

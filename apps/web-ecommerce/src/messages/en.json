@@ -4470,9 +4470,10 @@
     "faqHelpTitle": "Didn't find your answer?",
     "faqHelpText": "Message us on Zalo or call, we reply during opening hours {hours}.",
     "faqContact": "Contact page",
-    "visitShowroom": "Showroom",
-    "visitHours": "Open",
     "visitHoursValue": "{hours}, weekends included",
-    "visitPhone": "Zalo / call"
+    "heroWhere": "At the Gò Vấp showroom, or by post from anywhere in Vietnam",
+    "statSell": "top buyback price, of the real selling price",
+    "statPawn": "pawn amount, of the real selling price",
+    "statHold": "days a deposit holds a kit"
   }
 }
