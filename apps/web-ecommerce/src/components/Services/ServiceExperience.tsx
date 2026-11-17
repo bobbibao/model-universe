@@ -32,28 +32,66 @@ export function ServiceHeader({
 }) {
   const t = useTranslations('experience');
   const item = services.find((item) => item.key === service)!;
+  if (admin)
+    return (
+      <header className={`service-experience-header service-${service} is-operations`}>
+        <div className="service-header-copy">
+          <h1>
+            <span className="store-heading-icon" aria-hidden="true">
+              <AdminIcon name={item.icon} size={22} />
+            </span>
+            {title}
+          </h1>
+          <p>{t(`serviceSummary.${service}`)}</p>
+        </div>
+      </header>
+    );
+  // Storefront: a plain page head (back to all services, the title, one line on what it does) and the other services
+  // as text tabs.
   return (
-    <header className={`service-experience-header service-${service} ${admin ? 'is-operations' : ''}`}>
-      <div className="service-header-copy">
-        <h1>
-          <span className="store-heading-icon" aria-hidden="true">
-            <AdminIcon name={item.icon} size={22} />
-          </span>
-          {title}
-        </h1>
-        <p>{t(`serviceSummary.${service}`)}</p>
-        {!admin && (
-          <nav className="service-switcher" aria-label={t('collectorServices')}>
-            {collectorServices.map((item) => (
-              <Link key={item.key} href={item.route} aria-current={item.key === service ? 'page' : undefined}>
-                <AdminIcon name={item.icon} size={15} />
-                {t(`serviceNames.${item.key}`)}
-              </Link>
-            ))}
-          </nav>
-        )}
-      </div>
+    <header className="sv-page-head">
+      <Link href="/services" className="sv-back">
+        ← {t('collectorServices')}
+      </Link>
+      <h1>{title}</h1>
+      <p>{t(`serviceSummary.${service}`)}</p>
+      <nav className="sv-switcher" aria-label={t('collectorServices')}>
+        {collectorServices.map((item) => (
+          <Link key={item.key} href={item.route} aria-current={item.key === service ? 'page' : undefined}>
+            {t(`serviceNames.${item.key}`)}
+          </Link>
+        ))}
+      </nav>
     </header>
+  );
+}
+
+// Every collector service as one ruled row: number, name and what it does, its key fact, and the way in.
+export function ServiceIndex({ items = collectorServices }: { items?: typeof collectorServices }) {
+  const t = useTranslations('experience');
+  const g = useTranslations('serviceGuide');
+  const fact = useServiceFact();
+  return (
+    <ul className="sv-index">
+      {items.map((service, index) => (
+        <li key={service.key}>
+          <Link href={service.route} className="sv-row">
+            <span className="sv-num" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <span className="sv-name">
+              <strong>{t(`serviceNames.${service.key}`)}</strong>
+              <span>{t(`serviceSummary.${service.key}`)}</span>
+            </span>
+            <span className="sv-fact">{fact(service.key as GuideService)}</span>
+            <span className="sv-go">
+              {g('start')}
+              <AdminIcon name="arrow" size={16} />
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -62,10 +100,7 @@ export function ServiceTerms({ children, title }: { children: ReactNode; title?:
   return (
     <details className="service-terms">
       <summary>
-        <span>
-          <AdminIcon name="shield" size={17} />
-          {title || t('serviceTerms')}
-        </span>
+        <span>{title || t('serviceTerms')}</span>
         <span className="service-terms-toggle" aria-hidden="true">
           +
         </span>
@@ -133,7 +168,7 @@ export function ServiceGuestPanel({
         <ol className="sg-steps">
           {[1, 2, 3, 4].map((step) => (
             <li key={step}>
-              <span className="sg-step-number">{step}</span>
+              <span className="sv-step">{String(step).padStart(2, '0')}</span>
               <span>{g(`${service}Step${step}`, numbers)}</span>
             </li>
           ))}
@@ -141,14 +176,8 @@ export function ServiceGuestPanel({
       </div>
       <aside className="sg-guest-side">
         <ul className="sg-facts">
-          <li>
-            <AdminIcon name="check" size={16} />
-            {fact(service)}
-          </li>
-          <li>
-            <AdminIcon name="check" size={16} />
-            {g(`${service}Fact2`)}
-          </li>
+          <li>{fact(service)}</li>
+          <li>{g(`${service}Fact2`)}</li>
         </ul>
         <p>{g('guestIntro')}</p>
         <div className="sg-guest-actions">

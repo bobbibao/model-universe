@@ -248,7 +248,7 @@
   },
   "services": {
     "title": "Dịch vụ sưu tầm",
-    "subtitle": "Một nơi cho chương tiếp theo của bộ sưu tập.",
+    "subtitle": "Giá dự kiến tính theo bảng giá công khai của shop cho từng mẫu và tình trạng.",
     "reservations": "Giữ hàng",
     "buyback": "Thu mua",
     "pawn": "Cầm cố",
@@ -277,7 +277,7 @@
     "startTitle": "Muốn giữ một mô hình?",
     "startHint": "Chọn sản phẩm → bấm “Đặt cọc giữ hàng” → xem điều khoản và thanh toán. Giữ hàng bắt đầu khi tiền và tồn kho được xác nhận.",
     "startAction": "Chọn mô hình để giữ",
-    "title": "Giữ chỗ cho mô hình bạn yêu thích.",
+    "title": "Giữ hàng (đặt cọc)",
     "adminTitle": "Quản lý giữ hàng",
     "adminEmpty": "Chưa có yêu cầu giữ hàng cần quản lý.",
     "intro": "Giữ mô hình bằng cọc từ 20% tiền hàng sau ưu đãi, không gồm phí giao hàng chưa chốt.",
@@ -775,7 +775,7 @@
     "savedShort": "Tiết kiệm {percent}%"
   },
   "loyalty": {
-    "title": "Tích lũy bộ sưu tập. Nhận thêm ưu đãi.",
+    "title": "Thành viên và điểm thưởng",
     "intro": "Theo dõi điểm thành viên, quà thưởng và lịch sử giao dịch đã xác minh.",
     "earning": "Mỗi 40.000đ tiền hàng thực trả (sau mã giảm, đơn đã hoàn tất, không tranh chấp) được 1 điểm. Điểm không quy đổi thành tiền mặt; dùng để đổi voucher hoặc quà.",
     "benefits": "Mỗi đơn dùng 1 mã giảm giá (kể cả voucher đổi điểm) và có thể được giảm thêm theo hạng: Đồng 0,5% · Bạc 0,75% · Vàng 1% · Bạch kim 1,25% · Lục bảo 1,5% · Kim cương 2%, có mức tối đa, khi giỏ hàng đủ điều kiện. Thêm 1 mã freeship nếu có.",
@@ -1130,7 +1130,7 @@
     "addressRequired": "Chọn tỉnh/thành, quận/huyện, phường/xã và nhập số nhà, tên đường để tính phí vận chuyển."
   },
   "buyback": {
-    "title": "Để mô hình tiếp tục một hành trình mới.",
+    "title": "Thu mua mô hình",
     "adminTitle": "Thẩm định và tiếp nhận thu mua",
     "intro": "Chọn đúng mẫu shop đang bán để xem ngay giá thu, giá cầm và chênh lệch đổi hàng cho hàng mới, không lỗi. Hàng đã qua sử dụng, thiếu phụ kiện, có lỗi hoặc mẫu khác: gửi ảnh thật để shop báo giá. Giá chỉ chốt sau khi shop kiểm tra hiện vật và bạn đồng ý.",
     "process": "Quy trình thu mua",
@@ -1234,13 +1234,13 @@
     "paidByCustomer": "Đã nhận khoản chênh lệch",
     "tradeSettlementNote": "Ghi nhận khoản chênh lệch D đúng số đã chấp nhận (0 nếu ngang giá) và bàn giao món đổi; món đổi được trừ khỏi kho.",
     "backToValuation": "Quay lại định giá nhanh",
-    "tradeTitle": "Đổi mô hình, nhận ngay món bạn muốn.",
+    "tradeTitle": "Trade (đổi mô hình)",
     "tradeEmpty": "Các yêu cầu đổi hàng của bạn sẽ xuất hiện tại đây.",
     "requestTitle": "Thông tin mô hình gửi shop",
     "requestClose": "Đóng"
   },
   "pawn": {
-    "title": "Giữ bộ sưu tập. Mở giá trị mô hình.",
+    "title": "Cầm cố mô hình",
     "adminTitle": "Hợp đồng cầm cố và lưu giữ tài sản",
     "intro": "Chọn mẫu và tình trạng để xem giá cầm dự kiến bằng 50% giá bán thực được duyệt. Shop kiểm tra hiện vật, giấy tờ và xác nhận khoản cầm trước khi giải ngân. Lãi kép 0,3%/ngày; tổng lãi không vượt gốc ban đầu.",
     "custodyNote": "Mô hình cầm cố được lưu giữ riêng và không thuộc tồn kho có thể bán.",
@@ -1348,7 +1348,7 @@
     "webQuoteNote": "Khoản cầm chính thức được xác nhận sau kiểm hàng; chỉ ghi nhận giải ngân khi tiền thực tế đã chuyển."
   },
   "partner": {
-    "title": "Gian hàng của bạn, trong vũ trụ mô hình",
+    "title": "Bán mô hình trên Model Universe",
     "adminTitle": "Xác minh đối tác",
     "intro": "Đăng ký bằng danh tính và tài khoản ngân hàng thật. Model Universe kiểm tra hồ sơ, hình ảnh và hạn mức trước khi kích hoạt giao dịch marketplace.",
     "queueCount": "{count} hồ sơ",
@@ -2311,7 +2311,7 @@
     "ribbonRehome": "Trao mô hình một hành trình mới",
     "ribbonAssist": "Tìm đúng gu cùng AI",
     "beyondTheBox": "Không chỉ là mô hình",
-    "servicesTitle": "Bộ sưu tập của bạn. Nhiều khả năng hơn.",
+    "servicesTitle": "Thu mua, trade và cầm cố mô hình",
     "allServices": "Tất cả dịch vụ",
     "collectorServices": "Dịch vụ cho nhà sưu tập",
     "operations": "Điều hành dịch vụ",
@@ -2324,14 +2324,14 @@
       "trade": "Trade"
     },
     "serviceSummary": {
-      "reserve": "Chọn mô hình. Theo dõi tiền đã xác nhận. Hẹn giao hoặc nhận hàng.",
-      "sell": "Chọn mẫu bạn có, xem ngay giá shop thu cho hàng mới.",
-      "pawn": "Chọn mẫu, xem giá cầm dự kiến bằng 50% giá bán thực.",
-      "loyalty": "Bộ sưu tập, điểm thưởng của bạn. Khám phá những phần quà đủ điều kiện.",
-      "partner": "Đưa mô hình của bạn lên marketplace. Bắt đầu với hồ sơ được xác minh.",
-      "trade": "Đổi mô hình của bạn lấy món đang bán, xem ngay phần chênh lệch theo giá thành viên."
+      "reserve": "Đặt cọc để shop giữ riêng mẫu bạn chọn, thanh toán phần còn lại khi nhận hàng.",
+      "sell": "Báo giá ngay theo mẫu và tình trạng, nhận tiền sau khi kiểm định và chốt giá.",
+      "pawn": "Cầm mô hình lấy tiền, trả đủ là chuộc lại. Mô hình được niêm phong và cất riêng.",
+      "loyalty": "Điểm thưởng, hạng thành viên và voucher đổi bằng điểm.",
+      "partner": "Đăng bán mô hình của bạn trên Model Universe sau khi shop xác minh hồ sơ.",
+      "trade": "Đổi mô hình bạn có lấy mẫu shop đang bán, bù hoặc nhận lại phần chênh lệch."
     },
-    "serviceTerms": "Cách hoạt động · điều kiện & lưu ý quan trọng",
+    "serviceTerms": "Điều kiện và lưu ý",
     "emptyTitle": "Sẵn sàng cho hành trình mới?",
     "actualPhotos": "Ảnh chụp sản phẩm thực tế",
     "depthView": "Góc nhìn chiều sâu",
@@ -2350,8 +2350,8 @@
     "back": "Quay lại",
     "continue": "Tiếp tục",
     "moreFilters": "Tinh chỉnh tìm kiếm",
-    "hubTitle": "Hơn cả một góc trưng bày.",
-    "hubIntro": "Giữ lại. Trao đi. Mở rộng đam mê. Chọn hành trình tiếp theo cho bộ sưu tập.",
+    "hubTitle": "Chọn dịch vụ",
+    "hubIntro": "Giá dự kiến hiện ngay trên trang của từng dịch vụ. Giá cuối chỉ chốt sau khi shop kiểm tra hiện vật và bạn đồng ý.",
     "hubBadge": "MỘT BỘ SƯU TẬP. NHIỀU KHẢ NĂNG.",
     "formTools": "Chọn thao tác",
     "photoOnly": "Chiều sâu là hiệu ứng trên ảnh, không phải mô hình 3D có thể xoay tự do."
@@ -4406,14 +4406,14 @@
   },
   "serviceGuide": {
     "heroEyebrow": "Dịch vụ cho người sưu tầm",
-    "heroTitle": "Bán, đổi, cầm hay giữ mô hình: rõ giá, rõ từng bước.",
-    "heroIntro": "Xem giá dự kiến ngay theo mẫu và tình trạng, gửi yêu cầu kèm ảnh, rồi theo dõi mọi bước trong tài khoản của bạn.",
+    "heroTitle": "Thu mua, trade, cầm cố và giữ mô hình",
+    "heroIntro": "Chọn mẫu và tình trạng để xem giá dự kiến ngay, gửi yêu cầu kèm ảnh thật, rồi mang mô hình tới showroom hoặc gửi bưu điện để kiểm định. Mọi yêu cầu đều theo dõi được trong tài khoản.",
     "heroPrimary": "Định giá thu mua",
     "heroSecondary": "Hỏi nhanh qua Zalo",
     "trustRules": "Giá tính theo quy tắc công khai",
     "trustTracking": "Theo dõi từng yêu cầu trong tài khoản",
     "trustMoney": "Tiền chỉ ghi nhận khi ngân hàng xác nhận",
-    "processTitle": "Quy trình 4 bước",
+    "processTitle": "Quy trình chung",
     "processStep1": "Chọn mẫu và tình trạng, xem giá dự kiến ngay",
     "processStep2": "Gửi yêu cầu kèm ảnh thật của mô hình",
     "processStep3": "Mang tới showroom hoặc gửi bưu điện để kiểm định",
@@ -4469,6 +4469,10 @@
     "faqCount": "{count} câu hỏi",
     "faqHelpTitle": "Chưa thấy câu trả lời?",
     "faqHelpText": "Nhắn Zalo hoặc gọi shop, trả lời trong giờ mở cửa {hours}.",
-    "faqContact": "Trang liên hệ"
+    "faqContact": "Trang liên hệ",
+    "visitShowroom": "Showroom",
+    "visitHours": "Mở cửa",
+    "visitHoursValue": "{hours}, cả cuối tuần",
+    "visitPhone": "Zalo / gọi"
   }
 }
