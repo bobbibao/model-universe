@@ -8,8 +8,7 @@ import AnnouncementTicker from '../components/AnnouncementTicker';
 import ProductRail from '../components/ProductRail';
 import Link from '@/i18n/navigation';
 import type { ProductSummary } from '@/shared/types/product';
-import { collectorServices } from '@/components/Services/ServiceExperience';
-import AdminIcon from '@/components/Admin/AdminIcon';
+import { collectorServices, ServiceIndex } from '@/components/Services/ServiceExperience';
 import { readRecentlyViewed } from '@/shared/client/recentlyViewed';
 import ProductApi from '@/core/client/api/Product';
 import SmartRecommendationRail from '@/core/client/features/recommendations/components/SmartRecommendationRail';
@@ -83,30 +82,14 @@ const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
           products={recent}
         />
       )}
-      <section className="mu-wrap mu-section studio-services-section">
-        <div className="mu-section-head">
-          <div>
-            <p className="studio-kicker">{experience('beyondTheBox')}</p>
-            <h2 className="mu-heading">{experience('servicesTitle')}</h2>
-          </div>
-          <Link href="/services" className="studio-text-link">
-            {experience('allServices')} ↗
+      <section className="mu-wrap mu-section sv-home" aria-labelledby="home-services-title">
+        <header className="sv-section-head">
+          <h2 id="home-services-title">{experience('servicesTitle')}</h2>
+          <Link href="/services" className="sv-more">
+            {experience('allServices')} →
           </Link>
-        </div>
-        <div className="studio-service-grid">
-          {collectorServices.slice(0, 3).map((service) => (
-            <Link href={service.route} className={`studio-service-card service-${service.key}`} key={service.key}>
-              <div className="studio-service-symbol">
-                <AdminIcon name={service.icon} size={32} />
-              </div>
-              <h3>{experience(`serviceNames.${service.key}`)}</h3>
-              <p>{experience(`serviceSummary.${service.key}`)}</p>
-              <span className="studio-service-arrow">
-                <AdminIcon name="arrow" size={20} />
-              </span>
-            </Link>
-          ))}
-        </div>
+        </header>
+        <ServiceIndex items={collectorServices.slice(0, 3)} />
       </section>
     </>
   );

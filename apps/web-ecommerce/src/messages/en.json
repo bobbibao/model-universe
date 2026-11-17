@@ -248,7 +248,7 @@
   },
   "services": {
     "title": "Collector services",
-    "subtitle": "One place for the next chapter of your collection.",
+    "subtitle": "Expected prices follow the shop's published price list for each model and condition.",
     "reservations": "Reservations",
     "buyback": "Buyback",
     "pawn": "Pawn",
@@ -277,7 +277,7 @@
     "startTitle": "Want to hold a model?",
     "startHint": "Choose a product → select “Place a hold deposit” → review the terms and pay. Your hold starts after payment and inventory are confirmed.",
     "startAction": "Find a model to hold",
-    "title": "Keep your next build within reach.",
+    "title": "Hold a kit with a deposit",
     "adminTitle": "Reservation operations",
     "adminEmpty": "No reservations to manage yet.",
     "intro": "Hold an eligible model with at least 20% of net merchandise. Unconfirmed shipping is separate.",
@@ -775,7 +775,7 @@
     "savedShort": "Saved {percent}%"
   },
   "loyalty": {
-    "title": "Build your collection. Grow your rewards.",
+    "title": "Membership and points",
     "intro": "Keep your member points, rewards and verified purchase history in one place.",
     "earning": "Every 40,000 VND of goods actually paid (after the voucher, on a completed and undisputed order) earns 1 point. Points have no cash value; trade them for vouchers or gifts.",
     "benefits": "Each order takes 1 voucher (point vouchers included) and may take the rank benefit on top: Bronze 0.5% · Silver 0.75% · Gold 1% · Platinum 1.25% · Emerald 1.5% · Diamond 2%, each capped, when the cart qualifies. Plus 1 free-shipping code when available.",
@@ -1130,7 +1130,7 @@
     "addressRequired": "Choose the province/city, district, ward and enter the street to quote the shipping."
   },
   "buyback": {
-    "title": "Give your next model a new home.",
+    "title": "Sell your model kits",
     "adminTitle": "Buyback appraisal and custody",
     "intro": "Choose the same model the shop sells to see the buyback price, the pawn amount and a trade difference for a new unit without defects. Used, incomplete or faulty units, and other models: send real photos and the shop will quote them. The price is final only after the shop inspects the unit and you accept.",
     "process": "Buyback process",
@@ -1234,13 +1234,13 @@
     "paidByCustomer": "Difference received",
     "tradeSettlementNote": "Record the accepted difference D exactly (0 when even) and the handover of the traded item; the item leaves stock.",
     "backToValuation": "Back to the quick valuation",
-    "tradeTitle": "Trade your model for the one you want.",
+    "tradeTitle": "Trade a model kit",
     "tradeEmpty": "Your trade requests will appear here.",
     "requestTitle": "Your model for the shop",
     "requestClose": "Close"
   },
   "pawn": {
-    "title": "Keep your collection. Unlock its value.",
+    "title": "Pawn a model kit",
     "adminTitle": "Pawn contracts and asset custody",
     "intro": "Choose the model and condition for an estimate of 50% of its approved selling price. The shop inspects the item and documents before confirming and disbursing. Compound 0.3% daily; total interest is capped at original principal.",
     "custodyNote": "Pledged models stay in private custody and are excluded from sellable stock.",
@@ -1348,7 +1348,7 @@
     "webQuoteNote": "The final amount is confirmed after inspection; disbursement is recorded only after the actual transfer."
   },
   "partner": {
-    "title": "Your shop, in our universe",
+    "title": "Sell on Model Universe",
     "adminTitle": "Partner verification",
     "intro": "Apply with your real seller identity and bank account. Model Universe reviews your evidence and selling limits before marketplace trading can be activated.",
     "queueCount": "{count} applications",
@@ -2311,7 +2311,7 @@
     "ribbonRehome": "Give a kit its next chapter",
     "ribbonAssist": "Find your fit with AI",
     "beyondTheBox": "Beyond the box",
-    "servicesTitle": "Your collection. More possibilities.",
+    "servicesTitle": "Buyback, trade and pawn",
     "allServices": "All collector services",
     "collectorServices": "Collector services",
     "operations": "Service operations",
@@ -2324,14 +2324,14 @@
       "trade": "Trade"
     },
     "serviceSummary": {
-      "reserve": "Pick your model. Follow confirmed payments. Arrange your handover.",
-      "sell": "Choose your model and see what the shop pays for a new unit right away.",
-      "pawn": "Choose your model and see the pawn amount: 50% of the real selling price.",
-      "loyalty": "Your collection, your points. See eligible rewards in one place.",
-      "partner": "Bring your models to our marketplace. Start with a verified profile.",
-      "trade": "Trade your model for an item on sale and see the difference at member price right away."
+      "reserve": "Pay a deposit and the shop holds the kit for you; pay the rest on pickup or delivery.",
+      "sell": "Instant quote by model and condition; paid once the kit is inspected and the price agreed.",
+      "pawn": "Borrow against a kit and take it back when you repay. Kits are sealed and stored separately.",
+      "loyalty": "Points, member tiers and vouchers you buy with points.",
+      "partner": "List your own kits on Model Universe once the shop verifies your profile.",
+      "trade": "Swap a kit you own for one the shop sells and settle the difference either way."
     },
-    "serviceTerms": "How it works · terms & important details",
+    "serviceTerms": "Terms and conditions",
     "emptyTitle": "Ready for your next chapter?",
     "actualPhotos": "Actual product photographs",
     "depthView": "Depth view",
@@ -2350,8 +2350,8 @@
     "back": "Back",
     "continue": "Continue",
     "moreFilters": "Fine-tune your search",
-    "hubTitle": "More than a shelf.",
-    "hubIntro": "Keep it. Rehome it. Build something bigger. Choose the next chapter for your collection.",
+    "hubTitle": "Choose a service",
+    "hubIntro": "Each service page shows the expected price right away. The final price is agreed only after the shop inspects the kit and you accept.",
     "hubBadge": "ONE COLLECTION. MANY POSSIBILITIES.",
     "formTools": "Choose an operation",
     "photoOnly": "Depth is an effect applied to the photograph; this is not a rotatable 3D model."
@@ -4406,14 +4406,14 @@
   },
   "serviceGuide": {
     "heroEyebrow": "Services for collectors",
-    "heroTitle": "Sell, trade, pawn or hold a kit: clear prices, clear steps.",
-    "heroIntro": "See the expected price for your model and its condition right away, send a request with photos, then follow every step in your account.",
+    "heroTitle": "Buyback, trade, pawn and holds for model kits",
+    "heroIntro": "Pick the model and its condition to see the expected price right away, send a request with real photos, then bring the kit to the showroom or post it for inspection. Every request is tracked in your account.",
     "heroPrimary": "Get a buyback quote",
     "heroSecondary": "Ask on Zalo",
     "trustRules": "Prices follow published rules",
     "trustTracking": "Every request tracked in your account",
     "trustMoney": "Money counts only once the bank confirms it",
-    "processTitle": "Four steps",
+    "processTitle": "How every request works",
     "processStep1": "Pick the model and its condition, see the expected price",
     "processStep2": "Send the request with real photos of the kit",
     "processStep3": "Bring it to the showroom or post it for inspection",
@@ -4469,6 +4469,10 @@
     "faqCount": "{count} questions",
     "faqHelpTitle": "Didn't find your answer?",
     "faqHelpText": "Message us on Zalo or call, we reply during opening hours {hours}.",
-    "faqContact": "Contact page"
+    "faqContact": "Contact page",
+    "visitShowroom": "Showroom",
+    "visitHours": "Open",
+    "visitHoursValue": "{hours}, weekends included",
+    "visitPhone": "Zalo / call"
   }
 }

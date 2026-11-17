@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { showToast } from '@/shared/client/utils/toast';
 import Link from '@/i18n/navigation';
-import PromoIcon, { type PromoIconName } from '@/components/PromoIcon';
+import PromoIcon from '@/components/PromoIcon';
 import PromotionApi, { type PromotionsHub as Hub, type VoucherDrop } from '@/core/client/api/Promotion';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { CHECKIN_POINTS, TIER_ORDER } from '@/shared/promotions';
@@ -15,12 +15,6 @@ import VoucherTicket from './VoucherTicket';
 import LuckyWheel from './LuckyWheel';
 import MemberCard from './MemberCard';
 
-const MISSION_ICONS: Record<string, PromoIconName> = {
-  complete_profile: 'user',
-  first_order: 'bag',
-  review: 'star',
-  share: 'share',
-};
 const SECTIONS = ['vouchers', 'daily', 'missions', 'tiers'] as const;
 
 // The offers page: the member's standing first, then everything that saves money today, each in its own section that
@@ -64,7 +58,6 @@ export default function PromotionsHub() {
   const head = (
     <header className="promo-head">
       <div>
-        <p className="promo-kicker">{t('kicker')}</p>
         <h1>{t('title')}</h1>
         <p>{t('intro')}</p>
       </div>
@@ -100,50 +93,44 @@ export default function PromotionsHub() {
     <div className="promo-page">
       {head}
 
-      <section className="promo-overview">
+      <section className={`promo-overview${member ? '' : ' is-guest'}`}>
         {member ? (
           <MemberCard member={member} />
         ) : (
-          <article className="member-card is-guest">
-            <span className="member-medal" aria-hidden="true">
-              <PromoIcon name="crown" size={22} />
-            </span>
+          <div className="promo-join">
             <h2>{t('joinTitle')}</h2>
             <p>{t('joinText')}</p>
             <Link href="/auth/signin?redirect=/uu-dai" className="promo-button">
               {t('signIn')}
             </Link>
-          </article>
+          </div>
         )}
         <div className="promo-today">
           <h2>{t('todayTitle')}</h2>
-          <a href="#daily" className={`today-tile${hub.checkin.doneToday ? ' is-done' : ''}`}>
-            <PromoIcon name="calendar" />
-            <span>
-              <strong>{t('checkinTitle')}</strong>
-              <small>
-                {hub.checkin.doneToday
-                  ? t('checkedInStreak', { streak: hub.checkin.streak })
-                  : t('checkinNow', { points: hub.checkin.nextReward.points })}
-              </small>
-            </span>
-            {hub.checkin.doneToday && <PromoIcon name="check" className="today-check" />}
-          </a>
-          <a href="#daily" className={`today-tile${hub.wheel.spunToday ? ' is-done' : ''}`}>
-            <PromoIcon name="wheel" />
-            <span>
-              <strong>{t('wheelTitle')}</strong>
-              <small>{hub.wheel.spunToday ? t('spunToday') : t('wheelReady')}</small>
-            </span>
-            {hub.wheel.spunToday && <PromoIcon name="check" className="today-check" />}
-          </a>
-          <a href="#vouchers" className="today-tile">
-            <PromoIcon name="ticket" />
-            <span>
-              <strong>{t('openVouchers', { count: openDrops.length })}</strong>
-              <small>{t('dropsTitle')}</small>
-            </span>
-          </a>
+          <ul>
+            <li className={hub.checkin.doneToday ? 'is-done' : ''}>
+              <a href="#daily">
+                <strong>{t('checkinTitle')}</strong>
+                <span>
+                  {hub.checkin.doneToday
+                    ? t('checkedInStreak', { streak: hub.checkin.streak })
+                    : t('checkinNow', { points: hub.checkin.nextReward.points })}
+                </span>
+              </a>
+            </li>
+            <li className={hub.wheel.spunToday ? 'is-done' : ''}>
+              <a href="#daily">
+                <strong>{t('wheelTitle')}</strong>
+                <span>{hub.wheel.spunToday ? t('spunToday') : t('wheelReady')}</span>
+              </a>
+            </li>
+            <li>
+              <a href="#vouchers">
+                <strong>{t('dropsTitle')}</strong>
+                <span>{t('openVouchers', { count: openDrops.length })}</span>
+              </a>
+            </li>
+          </ul>
         </div>
       </section>
 
@@ -184,13 +171,8 @@ export default function PromotionsHub() {
       <section id="daily" className="promo-section promo-daily">
         <article className="promo-card">
           <header>
-            <span className="promo-card-icon">
-              <PromoIcon name="calendar" />
-            </span>
-            <div>
-              <h2>{t('checkinTitle')}</h2>
-              <p>{t('checkinText')}</p>
-            </div>
+            <h2>{t('checkinTitle')}</h2>
+            <p>{t('checkinText')}</p>
           </header>
           <ol className="checkin-days">
             {CHECKIN_POINTS.map((points, index) => {
@@ -240,13 +222,8 @@ export default function PromotionsHub() {
 
         <article className="promo-card promo-wheel">
           <header>
-            <span className="promo-card-icon">
-              <PromoIcon name="wheel" />
-            </span>
-            <div>
-              <h2>{t('wheelTitle')}</h2>
-              <p>{t('wheelText')}</p>
-            </div>
+            <h2>{t('wheelTitle')}</h2>
+            <p>{t('wheelText')}</p>
           </header>
           <LuckyWheel
             prizes={hub.wheel.prizes}
@@ -285,9 +262,6 @@ export default function PromotionsHub() {
             const ready = mission.ready || mission.key === 'share';
             return (
               <li key={mission.key} className={mission.claimed ? 'is-done' : ready ? 'is-ready' : ''}>
-                <span className="mission-icon">
-                  <PromoIcon name={mission.claimed ? 'check' : (MISSION_ICONS[mission.key] ?? 'star')} />
-                </span>
                 <span className="mission-copy">
                   <strong>{t(`missions.${mission.key}.title`)}</strong>
                   <small>{t(`missions.${mission.key}.text`)}</small>
@@ -375,10 +349,7 @@ export default function PromotionsHub() {
             </tbody>
           </table>
         </div>
-        <p className="promo-footnote">
-          <PromoIcon name="info" size={16} />
-          {t('rules')}
-        </p>
+        <p className="promo-footnote">{t('rules')}</p>
       </section>
     </div>
   );
