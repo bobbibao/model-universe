@@ -50,7 +50,6 @@ export default function StoreFooter() {
             <Link href="/uu-dai">{c('footerOffers')}</Link>
             <Link href="/huong-dan">{c('footerGuides')}</Link>
             {CUSTOMER_ASSISTANT_ENABLED && <Link href="/assistant">{nav('assistant')}</Link>}
-            <Link href="/sellers">{c('footerSellers')}</Link>
             <Link href="/wishlist">{nav('saved')}</Link>
           </nav>
 
