@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-// Three calm tones alternating (ink, violet, paper) with one lime highlight; text colour follows the fill.
+// Four calm tones alternating (ink, violet, paper, pale violet); text colour follows the fill.
 const SEGMENTS = [
   { fill: '#22212b', text: '#f8f8f3' },
   { fill: '#7956d8', text: '#ffffff' },
   { fill: '#f1efe7', text: '#22212b' },
-  { fill: '#dcf56a', text: '#22212b' },
+  { fill: '#e6defa', text: '#22212b' },
 ];
 
 // The daily lucky wheel: segments drawn in SVG, a spin that lands on the prize the server drew (the wheel never decides).
