@@ -4470,9 +4470,10 @@
     "faqHelpTitle": "Chưa thấy câu trả lời?",
     "faqHelpText": "Nhắn Zalo hoặc gọi shop, trả lời trong giờ mở cửa {hours}.",
     "faqContact": "Trang liên hệ",
-    "visitShowroom": "Showroom",
-    "visitHours": "Mở cửa",
     "visitHoursValue": "{hours}, cả cuối tuần",
-    "visitPhone": "Zalo / gọi"
+    "heroWhere": "Tại showroom Gò Vấp hoặc gửi bưu điện từ mọi tỉnh thành",
+    "statSell": "giá thu tối đa, tính trên giá bán thực",
+    "statPawn": "số tiền cầm, tính trên giá bán thực",
+    "statHold": "ngày giữ hàng khi đặt cọc"
   }
 }

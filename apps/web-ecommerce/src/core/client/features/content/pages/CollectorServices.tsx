@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { ServiceIndex, ServiceTerms } from '@/components/Services/ServiceExperience';
+import { ServiceTerms } from '@/components/Services/ServiceExperience';
+import ServiceCards from '@/components/Services/ServiceCards';
+import type { ShowcasePhoto } from '@/shared/types/showcase';
 import ServiceHistoryHub from '@/components/Services/ServiceHistoryHub';
 import ServiceFaq from '@/components/Services/ServiceFaq';
 import ServicesHero from '../components/ServicesHero';
@@ -14,7 +16,7 @@ const TABS: { key: Tab; label: 'tabServices' | 'tabHistory' | 'tabFaq' }[] = [
   { key: 'faq', label: 'tabFaq' },
 ];
 
-export default function CollectorServices() {
+export default function CollectorServices({ photos = [] }: { photos?: ShowcasePhoto[] }) {
   const t = useTranslations('services');
   const experience = useTranslations('experience');
   const g = useTranslations('serviceGuide');
@@ -28,7 +30,7 @@ export default function CollectorServices() {
 
   return (
     <>
-      <ServicesHero />
+      <ServicesHero photos={photos} />
       <div className="mu-wrap store-workspace sv-body">
         <nav className="sg-tabs" aria-label={t('title')}>
           {TABS.map((tab) => (
@@ -50,7 +52,18 @@ export default function CollectorServices() {
                 <h2 id="services-hub-title">{experience('hubTitle')}</h2>
                 <p>{experience('hubIntro')}</p>
               </header>
-              <ServiceIndex />
+              <ServiceCards photos={photos.slice(3)} />
+            </section>
+            <section className="svx-process" aria-labelledby="services-process">
+              <h2 id="services-process">{g('processTitle')}</h2>
+              <ol>
+                {([1, 2, 3, 4] as const).map((step) => (
+                  <li key={step}>
+                    <span className="svx-step">{step}</span>
+                    <span>{g(`processStep${step}`)}</span>
+                  </li>
+                ))}
+              </ol>
             </section>
             <ServiceTerms>
               <p>{t('subtitle')}</p>

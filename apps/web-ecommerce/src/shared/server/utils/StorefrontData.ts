@@ -1,5 +1,7 @@
 import type { PaginatedResult } from '../../types/pagination';
 import type { ProductDetail, ProductSummary } from '../../types/product';
+import type { ShowcasePhoto } from '../../types/showcase';
+import { productPath } from '../../slug';
 
 // Public catalog only. The custom Express server owns database initialization and the existing product endpoint.
 // Never derive this origin from an incoming Host header or forward account cookies to it.
@@ -25,6 +27,31 @@ export async function getFeaturedProducts(): Promise<ProductSummary[] | undefine
   } catch {
     return undefined;
   }
+}
+
+// Photos the shop took itself (uploads, not supplier or placeholder images) of in-stock models, one per model, for the
+// services page. Empty when the catalog cannot be read; the page then shows its plain fallback.
+export async function getShowcasePhotos(limit = 8): Promise<ShowcasePhoto[]> {
+  const products = (await getFeaturedProducts()) ?? [];
+  const port = Number(process.env.PORT || 6050);
+  try {
+    const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(2500) };
+    const response = await fetch(`http://127.0.0.1:${port}/api/products?inStock=true&sort=best_selling&per_page=60`, options);
+    if (response.ok) {
+      const result = await response.json() as { payload?: { data?: ProductSummary[] } };
+      products.push(...(result.payload?.data ?? []));
+    }
+  } catch { /* the featured list alone is enough */ }
+  const seen = new Set<string>();
+  const photos: ShowcasePhoto[] = [];
+  for (const product of products) {
+    if (!product.imageUrl?.startsWith('/uploads/') || seen.has(product.imageUrl)) continue;
+    if ((product.groupStock ?? product.stock) <= 0) continue;
+    seen.add(product.imageUrl);
+    photos.push({ src: product.imageUrl, alt: product.name, href: productPath(product) });
+    if (photos.length >= limit) break;
+  }
+  return photos;
 }
 
 // Reuse the actual public endpoint; never send credentials or import database models into route bundles.

@@ -3,6 +3,7 @@ import StoreLayout from '@/components/Layouts/StoreLayout';
 import CollectorServices from '@/core/client/features/content/pages/CollectorServices';
 import { FAQ_LIST } from '@/components/Services/serviceFaqItems';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
+import { getShowcasePhotos } from '@/shared/server/utils/StorefrontData';
 import { breadcrumbSchema, faqSchema, isEnglish, jsonLd, pageMetadata, serviceSchema } from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string }> };
@@ -36,6 +37,7 @@ export default async function ServicesPage({ params }: Props) {
   const { locale } = await params;
   const en = isEnglish(locale);
   const base = siteUrl();
+  const photos = await getShowcasePhotos(8);
 
   return (
     <StoreLayout>
@@ -58,7 +60,7 @@ export default async function ServicesPage({ params }: Props) {
           ]),
         }}
       />
-      <CollectorServices />
+      <CollectorServices photos={photos} />
     </StoreLayout>
   );
 }
