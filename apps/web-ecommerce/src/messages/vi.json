@@ -3514,6 +3514,7 @@
     "joinText": "Lưu mã, điểm danh, quay thưởng và tích điểm cho mỗi đơn hàng.",
     "signIn": "Đăng nhập",
     "signInFirst": "Vui lòng đăng nhập để nhận ưu đãi.",
+    "streakLabel": "Chuỗi hiện tại: {streak}/{total} ngày",
     "checkinTitle": "Điểm danh hằng ngày",
     "checkinText": "Điểm danh 7 ngày liên tiếp để nhận mã freeship 30.000₫.",
     "day": "Ngày {day}",
@@ -4407,7 +4408,7 @@
   "serviceGuide": {
     "heroEyebrow": "Dịch vụ cho người sưu tầm",
     "heroTitle": "Thu mua, trade, cầm cố và giữ mô hình",
-    "heroIntro": "Chọn mẫu và tình trạng để xem giá dự kiến ngay, gửi yêu cầu kèm ảnh thật, rồi mang mô hình tới showroom hoặc gửi bưu điện để kiểm định. Mọi yêu cầu đều theo dõi được trong tài khoản.",
+    "heroIntro": "Xem giá dự kiến ngay trên web, mang mô hình tới showroom hoặc gửi bưu điện để kiểm định, rồi theo dõi yêu cầu trong tài khoản.",
     "heroPrimary": "Định giá thu mua",
     "heroSecondary": "Hỏi nhanh qua Zalo",
     "trustRules": "Giá tính theo quy tắc công khai",

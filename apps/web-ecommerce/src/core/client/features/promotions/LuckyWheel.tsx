@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-// Four calm tones alternating (ink, violet, paper, pale violet); text colour follows the fill.
+// The logo's four tones alternating (navy, emerald, ivory, gold); text colour follows the fill.
 const SEGMENTS = [
-  { fill: '#22212b', text: '#f8f8f3' },
-  { fill: '#7956d8', text: '#ffffff' },
-  { fill: '#f1efe7', text: '#22212b' },
-  { fill: '#e6defa', text: '#22212b' },
+  { fill: '#101c31', text: '#ecd08a' },
+  { fill: '#0b6e52', text: '#fffaf0' },
+  { fill: '#f8f4ea', text: '#101c31' },
+  { fill: '#d1aa52', text: '#101c31' },
 ];
 
 // The daily lucky wheel: segments drawn in SVG, a spin that lands on the prize the server drew (the wheel never decides).
@@ -69,8 +69,8 @@ export default function LuckyWheel({
               </g>
             );
           })}
-          <circle cx="100" cy="100" r="98" fill="none" stroke="#22212b" strokeWidth="3" />
-          <circle cx="100" cy="100" r="17" fill="#fff" stroke="#22212b" strokeWidth="2" />
+          <circle cx="100" cy="100" r="97.5" fill="none" stroke="#d1aa52" strokeWidth="4" />
+          <circle cx="100" cy="100" r="17" fill="#101c31" stroke="#d1aa52" strokeWidth="2.5" />
         </svg>
       </div>
       <button type="button" className="lucky-wheel-button" disabled={disabled || spinning} onClick={() => void spin()}>

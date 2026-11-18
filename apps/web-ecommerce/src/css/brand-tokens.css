@@ -1,0 +1,22 @@
+/* Brand palette, taken from the ram-head logo: deep navy, emerald gems, gold frame, ivory face.
+   Text on gold and emerald fills is navy; the "-deep" tones are the ones dark enough for text on light grounds. */
+:root {
+  --mu-navy-950: #0a1322;
+  --mu-navy-900: #101c31;
+  --mu-navy-800: #182844;
+  --mu-navy-700: #243759;
+  --mu-navy-300: #9aa6bc;
+  --mu-emerald: #14a87e;
+  --mu-emerald-glow: #3ad9a8;
+  --mu-emerald-deep: #0b6e52;
+  --mu-emerald-soft: #e2f3ec;
+  --mu-gold: #d1aa52;
+  --mu-gold-light: #ecd08a;
+  --mu-gold-deep: #7d5f19;
+  --mu-gold-soft: #f6edd6;
+  --mu-ivory: #f8f4ea;
+  --mu-ivory-card: #fffdf8;
+  --mu-ivory-line: #e9e1cf;
+  --mu-ink: #121c2e;
+  --mu-ink-muted: #4f5869;
+}

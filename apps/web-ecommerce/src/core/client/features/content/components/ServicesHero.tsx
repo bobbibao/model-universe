@@ -9,7 +9,7 @@ import { SERVICE_FACTS } from '@/components/Services/serviceFacts';
 import { CONTACT } from '@/shared/contact-channels';
 import type { ShowcasePhoto } from '@/shared/types/showcase';
 
-// The top of /services, on the dark showroom band: what the shop does, the two fastest ways in (a buyback quote, or a
+// The top of /services, on the navy showroom band: what the shop does, the two fastest ways in (a buyback quote, or a
 // question on Zalo), the three numbers people ask first, photos of real kits in the shop, and where and when to come.
 export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
   const g = useTranslations('serviceGuide');
@@ -26,7 +26,7 @@ export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
           <h1 id="services-title">{g('heroTitle')}</h1>
           <p className="svx-lead">{g('heroIntro')}</p>
           <div className="svx-actions">
-            <Link className="svx-button is-lime" href="/services/sell">
+            <Link className="svx-button is-gold" href="/services/sell">
               {g('heroPrimary')}
               <AdminIcon name="arrow" size={18} />
             </Link>

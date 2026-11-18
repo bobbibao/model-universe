@@ -1,7 +1,7 @@
 /* Storefront footer. Selectors start with `.mu-shell .mu-footer.sf` to win over the older light-footer rules. */
 .mu-shell .mu-footer.sf {
-  background: #1c1b25;
-  color: #c9c3d6;
+  background: var(--mu-navy-950);
+  color: #c3cad8;
   border-top: 0;
   padding-top: 48px;
 }
@@ -13,7 +13,7 @@
 }
 .mu-shell .mu-footer.sf a:hover,
 .mu-shell .mu-footer.sf button:hover {
-  color: #dcf56a;
+  color: var(--mu-gold-light);
 }
 .mu-shell .mu-footer.sf h2 {
   margin-bottom: 16px;
@@ -78,7 +78,7 @@
 .mu-shell .mu-footer.sf .sf-contact svg {
   flex-shrink: 0;
   margin-top: 18px;
-  color: #dcf56a;
+  color: var(--mu-gold-light);
 }
 .mu-shell .mu-footer.sf .sf-contact small {
   display: block;
@@ -86,7 +86,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8e86a3;
+  color: var(--mu-navy-300);
 }
 
 /* Bottom bar */
@@ -109,7 +109,7 @@
 }
 .mu-shell .mu-footer.sf .sf-payments-label {
   margin-right: 4px;
-  color: #8e86a3;
+  color: var(--mu-navy-300);
 }
 .mu-shell .mu-footer.sf .sf-chip {
   padding: 5px 12px;
@@ -117,14 +117,14 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: #e9e4f2;
+  color: #e6eaf2;
 }
 .mu-shell .mu-footer.sf .sf-legal {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 20px;
-  color: #8e86a3;
+  color: var(--mu-navy-300);
 }
 
 @media (max-width: 1100px) {

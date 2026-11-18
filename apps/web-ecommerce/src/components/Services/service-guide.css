@@ -1,12 +1,12 @@
 /* Collector services on the storefront: the /services hero, the service index (also on the home page), the page head
    and signed-out guide of each service, and the FAQ. Editorial and quiet: ink on paper, hairline rules instead of
-   cards, numbers instead of icon tiles, one violet accent for links and focus. */
+   cards, numbers instead of icon tiles, in the logo's colours (brand-tokens.css): navy ink, emerald links and focus. */
 :root {
-  --sv-ink: #1f1e24;
-  --sv-muted: #64616c;
-  --sv-faint: #8a8792;
-  --sv-line: #e3e0d8;
-  --sv-accent: #6a48c4;
+  --sv-ink: var(--mu-ink);
+  --sv-muted: var(--mu-ink-muted);
+  --sv-faint: #7d8494;
+  --sv-line: var(--mu-ivory-line);
+  --sv-accent: var(--mu-emerald-deep);
   --sv-hover: #ffffff;
 }
 
@@ -632,11 +632,15 @@
   }
 }
 
-/* --- Services hub (/services): the dark showroom band, photo cards and the shared steps --------------------- */
+/* --- Services hub (/services): the navy showroom band, photo cards and the four steps, in the logo's colours ---- */
 .svx-hero {
+  position: relative;
   padding-top: 56px;
-  color: #f5f4f0;
-  background: #17161c;
+  color: var(--mu-ivory);
+  background:
+    radial-gradient(60% 90% at 92% 0%, rgb(20 168 126 / 0.2), transparent 62%),
+    radial-gradient(45% 70% at 0% 100%, rgb(209 170 82 / 0.12), transparent 60%), var(--mu-navy-950);
+  border-bottom: 1px solid rgb(209 170 82 / 0.35);
 }
 .svx-hero-grid {
   display: grid;
@@ -645,25 +649,36 @@
   align-items: center;
 }
 .svx-where {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 14px;
-  font-weight: 600;
-  color: #b9b6c4;
+  font-weight: 650;
+  color: var(--mu-gold-light);
+}
+.svx-where::before {
+  content: '';
+  flex: none;
+  width: 28px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--mu-gold);
 }
 .svx-hero h1 {
   max-width: 15ch;
-  margin-top: 14px;
+  margin-top: 16px;
   font-size: clamp(34px, 4.4vw, 58px);
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.035em;
-  color: #fff;
+  color: #fffaf0;
 }
 .svx-lead {
-  max-width: 54ch;
+  max-width: 50ch;
   margin-top: 18px;
   font-size: 16.5px;
   line-height: 1.65;
-  color: #c4c1cc;
+  color: #b9c2d3;
 }
 .svx-actions {
   display: flex;
@@ -689,24 +704,25 @@
 .svx-button:hover {
   transform: translateY(-1px);
 }
-.svx-button.is-lime {
-  color: #17161c;
-  background: #dcf56a;
+.svx-button.is-gold {
+  color: var(--mu-navy-950);
+  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
+  box-shadow: 0 10px 24px -14px rgb(209 170 82 / 0.9);
 }
-.svx-button.is-lime:hover {
-  background: #e8fb95;
+.svx-button.is-gold:hover {
+  background: var(--mu-gold-light);
 }
 .svx-button.is-outline {
-  border: 1px solid rgb(255 255 255 / 0.3);
-  color: #fff;
+  border: 1px solid rgb(236 208 138 / 0.4);
+  color: #fffaf0;
 }
 .svx-button.is-outline:hover {
-  border-color: #fff;
+  border-color: var(--mu-gold-light);
 }
 .svx-button:focus-visible,
 .svx-card:focus-visible,
 .svx-shot:focus-visible {
-  outline: 2px solid #dcf56a;
+  outline: 2px solid var(--mu-gold-light);
   outline-offset: 3px;
 }
 .svx-stats {
@@ -714,7 +730,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 40px;
   padding-top: 22px;
-  border-top: 1px solid rgb(255 255 255 / 0.14);
+  border-top: 1px solid rgb(255 255 255 / 0.12);
 }
 .svx-stats > div {
   display: flex;
@@ -725,7 +741,7 @@
 }
 .svx-stats > div + div {
   padding-left: 20px;
-  border-left: 1px solid rgb(255 255 255 / 0.14);
+  border-left: 1px solid rgb(255 255 255 / 0.12);
 }
 .svx-stats dd {
   font-size: clamp(28px, 3vw, 40px);
@@ -733,12 +749,12 @@
   line-height: 1;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  color: #dcf56a;
+  color: var(--mu-gold-light);
 }
 .svx-stats dt {
   font-size: 13px;
   line-height: 1.45;
-  color: #b9b6c4;
+  color: var(--mu-navy-300);
 }
 .svx-gallery {
   display: grid;
@@ -750,29 +766,34 @@
 .svx-shot {
   position: relative;
   overflow: hidden;
+  border: 1px solid rgb(209 170 82 / 0.4);
   border-radius: 18px;
-  background: #0f0e13;
+  background: var(--mu-navy-900);
 }
 .svx-shot.is-0 {
   grid-row: span 2;
 }
-.svx-shot img {
+/* Shop photos carry the watermark plate at the bottom right; a slight zoom from the top keeps it out of frame. */
+.svx-shot img,
+.svx-card-photo img {
+  transform: scale(1.12);
+  transform-origin: 50% 0;
   transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .svx-shot:hover img {
-  transform: scale(1.04);
+  transform: scale(1.17);
 }
 .svx-shot-name {
   position: absolute;
   inset: auto 0 0;
   overflow: hidden;
-  padding: 32px 14px 12px;
+  padding: 36px 14px 12px;
   font-size: 12.5px;
   font-weight: 600;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: #fff;
-  background: linear-gradient(to top, rgb(10 9 14 / 0.85), transparent);
+  color: #fffaf0;
+  background: linear-gradient(to top, rgb(10 19 34 / 0.92), transparent);
 }
 .svx-visit {
   display: flex;
@@ -780,9 +801,9 @@
   gap: 10px 32px;
   margin-top: 48px;
   padding-block: 18px;
-  border-top: 1px solid rgb(255 255 255 / 0.12);
+  border-top: 1px solid rgb(255 255 255 / 0.1);
   font-size: 14px;
-  color: #c4c1cc;
+  color: #c3cad8;
 }
 .svx-visit li {
   display: inline-flex;
@@ -790,10 +811,10 @@
   gap: 8px;
 }
 .svx-visit svg {
-  color: #dcf56a;
+  color: var(--mu-gold);
 }
 .svx-visit a:hover {
-  color: #fff;
+  color: var(--mu-gold-light);
 }
 
 /* Service cards */
@@ -806,13 +827,14 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #e6e3dc;
+  border: 1px solid var(--mu-ivory-line);
   border-radius: 18px;
-  color: var(--sv-ink);
-  background: #fff;
+  color: var(--mu-ink);
+  background: var(--mu-ivory-card);
   transition:
     transform 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    border-color 0.2s;
 }
 .svx-card.is-main {
   grid-column: span 2;
@@ -822,8 +844,9 @@
   flex-direction: row;
 }
 .svx-card:hover {
+  border-color: var(--mu-gold);
   transform: translateY(-3px);
-  box-shadow: 0 22px 44px -28px rgb(20 18 30 / 0.45);
+  box-shadow: 0 24px 44px -26px rgb(16 28 49 / 0.5);
 }
 .svx-card-photo {
   position: relative;
@@ -831,31 +854,38 @@
   flex: none;
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  background: #1b1a21;
+  background: var(--mu-navy-900);
+}
+/* A navy wash at the foot of every photo ties the different kit colours to the page. */
+.svx-card-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(10 19 34 / 0.55), transparent 45%);
 }
 .svx-card.is-wide .svx-card-photo {
   width: 38%;
   aspect-ratio: auto;
   min-height: 210px;
 }
-.svx-card-photo img {
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
 .svx-card:hover .svx-card-photo img {
-  transform: scale(1.05);
+  transform: scale(1.17);
 }
 .svx-card-num {
   position: absolute;
   top: 14px;
   left: 14px;
-  z-index: 1;
+  z-index: 2;
   padding: 4px 9px;
+  border: 1px solid rgb(236 208 138 / 0.5);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #fff;
-  background: rgb(23 22 28 / 0.62);
+  color: var(--mu-gold-light);
+  background: rgb(10 19 34 / 0.72);
   backdrop-filter: blur(6px);
 }
 .svx-card-body {
@@ -870,11 +900,12 @@
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--mu-navy-900);
 }
 .svx-card-text {
   font-size: 14.5px;
   line-height: 1.55;
-  color: var(--sv-muted);
+  color: var(--mu-ink-muted);
 }
 .svx-card-foot {
   display: flex;
@@ -883,12 +914,24 @@
   gap: 12px;
   margin-top: auto;
   padding-top: 16px;
-  border-top: 1px solid #eeebe4;
+  border-top: 1px solid var(--mu-ivory-line);
 }
 .svx-card-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 750;
   line-height: 1.4;
+  color: var(--mu-emerald-deep);
+}
+.svx-card-fact::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: var(--mu-gold);
+  transform: rotate(45deg);
 }
 .svx-card-go {
   display: grid;
@@ -897,64 +940,67 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  color: #fff;
-  background: var(--sv-ink);
+  color: var(--mu-gold-light);
+  background: var(--mu-navy-900);
   transition:
     background 0.15s,
     color 0.15s;
 }
 .svx-card:hover .svx-card-go {
-  color: var(--sv-ink);
-  background: #dcf56a;
+  color: var(--mu-navy-950);
+  background: var(--mu-gold);
 }
 
-/* The four steps every request follows */
+/* The four steps every request follows, on a navy panel */
 .svx-process {
+  position: relative;
+  overflow: hidden;
   margin: 40px 0 8px;
-  padding: 28px 32px 30px;
-  border: 1px solid #e6e3dc;
-  border-radius: 18px;
-  background: #fff;
-  color: var(--sv-ink);
+  padding: 30px 34px 32px;
+  border-radius: 20px;
+  color: #c3cad8;
+  background: radial-gradient(50% 120% at 100% 0%, rgb(20 168 126 / 0.22), transparent 60%), var(--mu-navy-900);
 }
 .svx-process h2 {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.01em;
+  color: #fffaf0;
 }
 .svx-process ol {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
-  margin-top: 22px;
+  margin-top: 24px;
 }
 .svx-process li {
   position: relative;
   display: grid;
   align-content: start;
-  gap: 12px;
+  gap: 14px;
   font-size: 14.5px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .svx-process li:not(:last-child)::after {
   content: '';
   position: absolute;
-  top: 18px;
-  left: 50px;
+  top: 20px;
+  left: 54px;
   right: -12px;
   height: 1px;
-  background: #dedad2;
+  background: linear-gradient(90deg, rgb(209 170 82 / 0.7), rgb(209 170 82 / 0.15));
 }
 .svx-step {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--sv-ink);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--mu-navy-950);
+  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
+  box-shadow: 0 0 0 5px rgb(209 170 82 / 0.15);
 }
 
 @media (max-width: 1100px) {
@@ -1036,14 +1082,14 @@
     aspect-ratio: 4 / 3;
   }
   .svx-process {
-    padding: 22px 20px;
+    padding: 24px 20px;
   }
   .svx-process ol {
     grid-template-columns: 1fr;
     gap: 14px;
   }
   .svx-process li {
-    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr);
     align-items: center;
   }
 }
