@@ -7,7 +7,7 @@ import path from 'path';
 const cache = new Map<string, boolean>();
 const SIZE = 24;
 const BAND = 2;
-const LIGHT_LUMA = 230;
+const LIGHT_LUMA = 200;
 
 export async function hasLightEdge(src: string): Promise<boolean> {
   const cached = cache.get(src);
