@@ -1,4 +1,5 @@
 import '@/css/satoshi.css';
+import '@/css/brand-tokens.css';
 import '@/css/style.css';
 import 'react-toastify/dist/ReactToastify.css';
 import '@/css/toast-custom.css';

@@ -3514,6 +3514,7 @@
     "joinText": "Save vouchers, check in, spin and earn points on every order.",
     "signIn": "Sign in",
     "signInFirst": "Please sign in to get offers.",
+    "streakLabel": "Current streak: {streak}/{total} days",
     "checkinTitle": "Daily check-in",
     "checkinText": "Check in 7 days in a row for a 30,000 VND free-shipping code.",
     "day": "Day {day}",
@@ -4407,7 +4408,7 @@
   "serviceGuide": {
     "heroEyebrow": "Services for collectors",
     "heroTitle": "Buyback, trade, pawn and holds for model kits",
-    "heroIntro": "Pick the model and its condition to see the expected price right away, send a request with real photos, then bring the kit to the showroom or post it for inspection. Every request is tracked in your account.",
+    "heroIntro": "See the expected price on the site right away, bring the kit to the showroom or post it for inspection, and track the request in your account.",
     "heroPrimary": "Get a buyback quote",
     "heroSecondary": "Ask on Zalo",
     "trustRules": "Prices follow published rules",
