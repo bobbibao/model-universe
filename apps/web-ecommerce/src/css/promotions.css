@@ -1133,6 +1133,7 @@
   animation: promo-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .promo-hero-copy h1 {
+  text-wrap: balance;
   font-size: clamp(40px, 4.6vw, 66px);
   font-weight: 700;
   line-height: 1.02;
@@ -1402,6 +1403,7 @@
   gap: 8px;
 }
 .checkin-days li {
+  position: relative;
   display: grid;
   justify-items: center;
   gap: 8px;
@@ -1781,6 +1783,16 @@
   }
   .checkin-days {
     gap: 6px;
+  }
+  /* Seven columns are too narrow for "Ngày N" under each mark; the order already says the day, so the labels stay
+     for screen readers only. */
+  .checkin-days small {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .promo-card.promo-wheel {
     grid-template-columns: 1fr;

@@ -669,7 +669,8 @@
   color: var(--mu-emerald-deep);
 }
 .svx-hero h1 {
-  max-width: 14ch;
+  max-width: 15ch;
+  text-wrap: balance;
   margin-top: 20px;
   font-size: clamp(40px, 4.6vw, 66px);
   font-weight: 700;
