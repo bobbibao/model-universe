@@ -774,8 +774,7 @@
   grid-row: span 2;
 }
 /* Shop photos carry the watermark plate at the bottom right; a slight zoom from the top keeps it out of frame. */
-.svx-shot img,
-.svx-card-photo img {
+.svx-shot img {
   transform: scale(1.12);
   transform-origin: 50% 0;
   transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -848,45 +847,78 @@
   transform: translateY(-3px);
   box-shadow: 0 24px 44px -26px rgb(16 28 49 / 0.5);
 }
-.svx-card-photo {
+/* The navy panel at the top of each card: the service's icon inside two gold rings, its number as an outline. */
+.svx-card-art {
   position: relative;
-  display: block;
+  display: grid;
+  place-items: center;
   flex: none;
   overflow: hidden;
-  aspect-ratio: 4 / 3;
-  background: var(--mu-navy-900);
+  aspect-ratio: 16 / 9;
+  background:
+    radial-gradient(70% 90% at 15% 0%, rgb(20 168 126 / 0.32), transparent 60%),
+    radial-gradient(60% 80% at 100% 100%, rgb(209 170 82 / 0.16), transparent 60%), var(--mu-navy-900);
 }
-/* A navy wash at the foot of every photo ties the different kit colours to the page. */
-.svx-card-photo::after {
+.svx-card-art::before,
+.svx-card-art::after {
   content: '';
   position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(to top, rgb(10 19 34 / 0.55), transparent 45%);
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.svx-card.is-wide .svx-card-photo {
-  width: 38%;
+.svx-card-art::before {
+  width: 132px;
+  height: 132px;
+  border: 1px solid rgb(209 170 82 / 0.3);
+}
+.svx-card-art::after {
+  width: 216px;
+  height: 216px;
+  border: 1px solid rgb(209 170 82 / 0.13);
+}
+.svx-card:hover .svx-card-art::before,
+.svx-card:hover .svx-card-art::after {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+.svx-card.is-wide .svx-card-art {
+  width: 34%;
   aspect-ratio: auto;
-  min-height: 210px;
+  min-height: 190px;
 }
-.svx-card:hover .svx-card-photo img {
-  transform: scale(1.17);
+.svx-card-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 1px solid rgb(236 208 138 / 0.55);
+  border-radius: 50%;
+  color: var(--mu-gold-light);
+  background: rgb(255 255 255 / 0.04);
+  box-shadow: 0 0 40px -6px rgb(20 168 126 / 0.45);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.svx-card:hover .svx-card-icon {
+  color: var(--mu-navy-950);
+  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
 }
 .svx-card-num {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 2;
-  padding: 4px 9px;
-  border: 1px solid rgb(236 208 138 / 0.5);
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
+  right: 18px;
+  bottom: 4px;
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
-  color: var(--mu-gold-light);
-  background: rgb(10 19 34 / 0.72);
-  backdrop-filter: blur(6px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(236 208 138 / 0.4);
 }
 .svx-card-body {
   display: flex;
@@ -1021,17 +1053,17 @@
   .svx-card.is-wide {
     flex-direction: column;
   }
-  .svx-card.is-wide .svx-card-photo {
+  .svx-card.is-wide .svx-card-art {
     width: auto;
     min-height: 0;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
   }
   .svx-card:last-child {
     grid-column: 1 / -1;
     flex-direction: row;
   }
-  .svx-card:last-child .svx-card-photo {
-    width: 40%;
+  .svx-card:last-child .svx-card-art {
+    width: 36%;
     aspect-ratio: auto;
   }
   .svx-process ol {
@@ -1077,9 +1109,9 @@
   .svx-card:last-child {
     flex-direction: column;
   }
-  .svx-card:last-child .svx-card-photo {
+  .svx-card:last-child .svx-card-art {
     width: auto;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
   }
   .svx-process {
     padding: 24px 20px;
@@ -1096,7 +1128,9 @@
 @media (prefers-reduced-motion: reduce) {
   .svx-button,
   .svx-card,
-  .svx-card-photo img,
+  .svx-card-art::before,
+  .svx-card-art::after,
+  .svx-card-icon,
   .svx-shot img {
     transition: none;
   }
