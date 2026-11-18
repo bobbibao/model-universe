@@ -1,4 +1,6 @@
+import Image from 'next/image';
 import Link from '@/i18n/navigation';
+import './brand-logo.css';
 
 export const BRAND_NAME = 'Model Universe';
 
@@ -8,18 +10,14 @@ interface BrandLogoProps {
   showName?: boolean;
 }
 
+// The colour ram-head mark and the "MODEL UNIVERSE" wordmark (public/brand, built by
+// assets/brand/build_brand_assets.py). The wordmark is an alpha mask painted in currentColor, so each place sets its
+// colour (dark on light, white on dark) and both sizes with plain CSS.
 const BrandLogo = ({ href = '/', className = '', showName = true }: BrandLogoProps) => {
   return (
-    <Link
-      href={href}
-      aria-label={BRAND_NAME}
-      className={`flex items-center gap-2 text-2xl font-bold text-brand ${className}`}
-    >
-      <svg className="h-8 w-8 shrink-0" fill="none" viewBox="0 0 32 32" aria-hidden="true">
-        <path d="M16 2 29 9v14l-13 7L3 23V9Z" stroke="currentColor" strokeWidth="1.5" />
-        <path d="m8 11 8 5 8-5M8 11v10l8 5 8-5V11M16 16v10M8 11l8-5 8 5" stroke="currentColor" strokeWidth="1.5" />
-      </svg>
-      {showName && <span>{BRAND_NAME}</span>}
+    <Link href={href} aria-label={BRAND_NAME} className={`brand-logo ${className}`}>
+      <Image className="brand-logo-mark" src="/brand/mark.webp" alt="" width={245} height={256} unoptimized priority />
+      {showName && <span className="brand-logo-word" aria-hidden="true" />}
     </Link>
   );
 };

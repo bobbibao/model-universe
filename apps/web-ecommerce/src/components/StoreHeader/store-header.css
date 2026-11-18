@@ -12,18 +12,10 @@
   min-height: 64px;
   gap: 20px;
 }
-.store-brand {
-  flex-shrink: 0;
-  gap: 9px;
-  font-size: 17px;
-  letter-spacing: -0.04em;
-}
-.store-brand svg {
-  width: 30px;
-  height: 30px;
-}
-.mu-shell .store-header .store-brand span {
-  color: #6f4db1;
+.mu-shell .store-header .store-brand {
+  --brand-mark: 42px;
+  --brand-word: 28px;
+  color: #1f1e24;
 }
 .store-primary-nav {
   display: flex;
@@ -193,13 +185,9 @@
     min-height: 60px;
     gap: 6px;
   }
-  .store-brand {
-    font-size: 15px;
-    gap: 7px;
-  }
-  .store-brand svg {
-    width: 27px;
-    height: 27px;
+  .mu-shell .store-header .store-brand {
+    --brand-mark: 36px;
+    --brand-word: 23px;
   }
   .store-header-tools {
     gap: 1px;
@@ -228,13 +216,9 @@
 }
 
 @media (max-width: 360px) {
-  .store-brand {
-    font-size: 14px;
-    gap: 6px;
-  }
-  .store-brand svg {
-    width: 24px;
-    height: 24px;
+  .mu-shell .store-header .store-brand {
+    --brand-mark: 32px;
+    --brand-word: 20px;
   }
 }
 

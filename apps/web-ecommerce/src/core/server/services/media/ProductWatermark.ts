@@ -2,8 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 
-// The shop's logo (BrandLogo: the cube mark and "MODEL UNIVERSE") stamped on every photo of a shop product, bottom
-// right, about a third of the photo's width, white on a translucent dark plate so it reads on dark and light photos.
+// The shop's original logo (the cube mark and "MODEL UNIVERSE", from before the ram-head BrandLogo) stamped on every
+// photo of a shop product, bottom right, about a third of the photo's width, white on a translucent dark plate so it
+// reads on dark and light photos.
 // The clean original of each photo is kept in private storage (never served), so the mark can be redrawn from it.
 
 const MARK = `
