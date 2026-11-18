@@ -1376,7 +1376,6 @@
   color: var(--mu-ink-muted);
 }
 .promo-card.promo-checkin {
-  justify-content: space-between;
   border-color: transparent;
   color: #c3cad8;
   background: radial-gradient(60% 80% at 100% 0%, rgb(20 168 126 / 0.22), transparent 60%), var(--mu-navy-900);
@@ -1421,7 +1420,7 @@
   display: grid;
   place-items: center;
   width: 100%;
-  max-width: 60px;
+  max-width: 64px;
   aspect-ratio: 1;
   border: 1px solid rgb(255 255 255 / 0.14);
   border-radius: 14px;
@@ -1456,6 +1455,7 @@
 }
 .promo-checkin > .promo-button {
   width: 100%;
+  margin-top: auto;
   color: var(--mu-navy-950);
   background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
 }
@@ -1466,9 +1466,31 @@
   color: var(--mu-navy-300);
   background: rgb(255 255 255 / 0.08);
 }
-.promo-wheel .lucky-wheel {
-  flex: 1;
+/* The wheel sits beside its heading and button, so the card is as tall as the check-in, not twice as tall. */
+.promo-card.promo-wheel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'dial header'
+    'dial button';
   align-content: center;
+  gap: 18px 32px;
+}
+.promo-wheel > header {
+  grid-area: header;
+  align-self: end;
+}
+.promo-wheel .lucky-wheel {
+  display: contents;
+}
+.promo-wheel .lucky-wheel-dial {
+  grid-area: dial;
+  width: 250px;
+}
+.promo-wheel .lucky-wheel-button {
+  grid-area: button;
+  align-self: start;
+  justify-self: start;
 }
 .lucky-wheel {
   display: grid;
@@ -1775,6 +1797,20 @@
   }
   .checkin-days {
     gap: 5px;
+  }
+  .promo-card.promo-wheel {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'dial'
+      'button';
+  }
+  .promo-wheel .lucky-wheel-dial {
+    justify-self: center;
+    width: min(100%, 270px);
+  }
+  .promo-wheel .lucky-wheel-button {
+    justify-self: center;
   }
   .mission-grid {
     grid-template-columns: 1fr;
