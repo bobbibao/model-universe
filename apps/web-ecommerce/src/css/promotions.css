@@ -69,17 +69,19 @@
   min-height: 44px;
   padding: 0 20px;
   border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   color: #fff;
-  background: var(--p-ink);
+  background: var(--mu-navy-900);
   transition:
     background 0.18s,
     transform 0.18s;
 }
 .promo-button:hover:not(:disabled) {
-  background: #3a3846;
-  transform: translateY(-1px);
+  background: var(--mu-navy-700);
+}
+.promo-button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 .promo-button:disabled {
   cursor: not-allowed;
@@ -708,20 +710,20 @@
 /* --- Voucher ticket ------------------------------------------------------------------------------------------ */
 .voucher-ticket {
   --tone: var(--mu-navy-800);
-  --tone-soft: var(--mu-gold-soft);
-  --stub-bg: var(--mu-navy-900);
-  --stub-text: var(--mu-gold-light);
+  --tone-soft: #eef1f6;
+  --stub-bg: #eef1f6;
+  --stub-text: var(--mu-navy-900);
   position: relative;
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr) auto;
   align-items: stretch;
   height: 100%;
-  min-height: 112px;
-  border: 1px solid var(--mu-ivory-line);
-  border-radius: 14px;
-  background: var(--mu-ivory-card);
+  min-height: 116px;
+  border: 1px solid var(--mu-line);
+  border-radius: 16px;
+  background: var(--mu-surface);
   transition:
-    box-shadow 0.2s,
+    border-color 0.2s,
     transform 0.2s;
 }
 /* Two punched notches where the stub tears off. */
@@ -733,9 +735,9 @@
   z-index: 1;
   width: 18px;
   height: 18px;
-  border: 1px solid var(--mu-ivory-line);
+  border: 1px solid var(--mu-line);
   border-radius: 50%;
-  background: var(--mu-ivory);
+  background: var(--mu-paper);
 }
 .voucher-ticket::before {
   top: -10px;
@@ -744,14 +746,14 @@
   bottom: -10px;
 }
 .voucher-ticket:hover {
+  border-color: var(--mu-line-strong);
   transform: translateY(-2px);
-  box-shadow: var(--p-shadow-hover);
 }
 .voucher-ticket.is-ship {
   --tone: var(--mu-emerald-deep);
   --tone-soft: var(--mu-emerald-soft);
-  --stub-bg: var(--mu-emerald-deep);
-  --stub-text: #fffaf0;
+  --stub-bg: var(--mu-emerald-soft);
+  --stub-text: var(--mu-emerald-deep);
 }
 .voucher-stub {
   position: relative;
@@ -759,7 +761,7 @@
   place-content: center;
   justify-items: center;
   gap: 2px;
-  border-radius: 13px 0 0 13px;
+  border-radius: 15px 0 0 15px;
   color: var(--stub-text);
   background: var(--stub-bg);
 }
@@ -769,7 +771,7 @@
   top: 12px;
   right: -1px;
   bottom: 12px;
-  border-right: 2px dashed rgb(255 255 255 / 0.35);
+  border-right: 1px dashed var(--mu-line-strong);
 }
 .voucher-stub strong {
   font-size: 24px;
@@ -778,10 +780,8 @@
   line-height: 1.05;
 }
 .voucher-stub small {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
 }
 .voucher-body {
   display: grid;
@@ -795,21 +795,21 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--p-ink);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mu-navy-950);
 }
 .voucher-tier {
-  padding: 1px 6px;
-  border-radius: 6px;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--mu-gold-deep);
-  background: var(--mu-gold-soft);
+  padding: 1px 8px;
+  border: 1px solid var(--mu-line);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mu-muted);
 }
 .voucher-terms {
-  font-size: 12.5px;
-  color: var(--p-muted);
+  font-size: 14px;
+  color: var(--mu-muted);
 }
 .voucher-meter {
   display: block;
@@ -830,8 +830,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 10px;
-  font-size: 11.5px;
-  color: var(--p-faint);
+  font-size: 13px;
+  color: var(--mu-muted);
 }
 .voucher-foot .is-hot {
   font-weight: 700;
@@ -846,12 +846,14 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 8px 14px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--mu-navy-900);
   border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
-  color: #fffaf0;
+  color: #fff;
   background: var(--mu-navy-900);
   transition: background 0.2s;
 }
@@ -859,8 +861,13 @@
   background: var(--mu-navy-700);
 }
 .voucher-action button.is-ghost {
-  color: var(--tone);
-  background: var(--tone-soft);
+  border-color: var(--mu-line);
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+}
+.voucher-action button.is-ghost:hover:not(:disabled) {
+  border-color: var(--mu-line-strong);
+  background: var(--mu-surface);
 }
 .voucher-action button.is-ghost .promo-icon {
   animation: promo-pop 0.35s ease;
@@ -887,8 +894,8 @@
 /* auto-fit: two or three tickets share the row instead of leaving an empty column. */
 .voucher-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 24px;
 }
 
 /* --- Member card --------------------------------------------------------------------------------------------- */
@@ -901,11 +908,7 @@
   padding: 24px;
   border-radius: 22px;
   color: #f4f3ee;
-  border: 1px solid rgb(209 170 82 / 0.4);
-  background:
-    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--tier) 34%, transparent) 0%, transparent 55%),
-    linear-gradient(160deg, var(--mu-navy-800) 0%, var(--mu-navy-900) 100%);
-  box-shadow: 0 30px 60px -36px rgb(0 0 0 / 0.8);
+  background: var(--mu-navy-900);
 }
 .member-card.tier-bronze {
   --tier: #c0804a;
@@ -965,7 +968,7 @@
 .member-points em {
   font-size: 12px;
   font-style: normal;
-  color: var(--mu-gold-light);
+  color: var(--mu-emerald-glow);
 }
 .member-track {
   position: relative;
@@ -981,7 +984,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--mu-gold), var(--mu-gold-light));
+  background: var(--mu-emerald-glow);
   transition: width 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .member-track ol {
@@ -1012,10 +1015,10 @@
   background: #3a4a68;
 }
 .member-track li.is-reached .member-track-dot {
-  background: var(--mu-gold-light);
+  background: var(--mu-emerald-glow);
 }
 .member-track li.is-current .member-track-dot {
-  box-shadow: 0 0 0 4px rgb(209 170 82 / 0.3);
+  box-shadow: 0 0 0 4px rgb(58 217 168 / 0.25);
 }
 .member-track li small {
   font-size: 10.5px;
@@ -1050,7 +1053,7 @@
 }
 .member-pending .promo-icon {
   margin-top: 1px;
-  color: var(--mu-gold-light);
+  color: var(--mu-emerald-glow);
 }
 .member-perks {
   display: flex;
@@ -1067,9 +1070,11 @@
   font-size: 12.5px;
   color: #e5e3ec;
 }
-/* --- Offers page (/uu-dai): a navy band, then ivory sections, in the logo's colours (brand-tokens.css) ---------- */
+/* --- Offers page (/uu-dai): quiet and roomy. Paper ground, white surfaces with hairlines, navy ink and buttons,
+   emerald as the one accent (progress, done marks, focus). Tier colours appear only as small dots. ---------------- */
 .promo-screen {
-  background: var(--mu-ivory);
+  color: var(--mu-ink);
+  background: var(--mu-paper);
 }
 .promo-page,
 .promo-hero-inner {
@@ -1077,8 +1082,7 @@
   margin: 0 auto;
 }
 .promo-page {
-  padding: 52px 0 24px;
-  color: var(--mu-ink);
+  padding: 0 0 48px;
 }
 @media (min-width: 1600px) {
   .promo-page,
@@ -1103,149 +1107,149 @@
   .promo-hero-inner {
     width: calc(100% - 32px);
   }
-  .promo-page {
-    padding-top: 36px;
-  }
 }
 
-/* The band */
+/* The hero: the heading and today's three quick wins, the sign-in panel or member card beside them. */
+@keyframes promo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 .promo-hero {
-  padding-top: 52px;
-  color: var(--mu-ivory);
-  background:
-    radial-gradient(55% 90% at 95% 0%, rgb(20 168 126 / 0.22), transparent 62%),
-    radial-gradient(40% 70% at 0% 100%, rgb(209 170 82 / 0.13), transparent 60%), var(--mu-navy-950);
-  border-bottom: 1px solid rgb(209 170 82 / 0.35);
+  padding-top: 72px;
 }
 .promo-hero-inner:first-child {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: 48px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 72px;
+  align-items: end;
+}
+.promo-hero-copy {
+  animation: promo-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .promo-hero-copy h1 {
-  font-size: clamp(34px, 4.2vw, 56px);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.035em;
-  color: #fffaf0;
+  font-size: clamp(40px, 4.6vw, 66px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--mu-navy-950);
 }
 .promo-hero-copy > p {
-  max-width: 52ch;
-  margin-top: 14px;
-  font-size: 16.5px;
+  max-width: 48ch;
+  margin-top: 20px;
+  font-size: 18px;
   line-height: 1.6;
-  color: #b9c2d3;
+  color: var(--mu-muted);
 }
 .promo-today {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 30px;
+  gap: 16px;
+  margin-top: 48px;
 }
 .promo-today a {
   display: grid;
-  align-content: start;
   gap: 4px;
   height: 100%;
-  padding: 16px;
-  border: 1px solid rgb(209 170 82 / 0.28);
+  padding: 20px;
+  border: 1px solid var(--mu-line);
   border-radius: 16px;
-  background: rgb(255 255 255 / 0.04);
+  background: var(--mu-surface);
   transition:
     border-color 0.15s,
-    background 0.15s,
     transform 0.15s;
 }
 .promo-today a:hover {
-  border-color: var(--mu-gold-light);
-  background: rgb(255 255 255 / 0.07);
+  border-color: var(--mu-line-strong);
   transform: translateY(-2px);
 }
 .promo-today-icon {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  margin-bottom: 8px;
-  border-radius: 12px;
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  color: var(--mu-ink);
+  background: var(--mu-fill);
 }
 .promo-today li.is-done .promo-today-icon {
-  color: #fff;
-  background: var(--mu-emerald);
+  color: var(--mu-emerald-deep);
+  background: var(--mu-emerald-soft);
 }
 .promo-today strong {
-  font-size: 15px;
-  color: #fffaf0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mu-navy-950);
 }
 .promo-today small {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
-  color: var(--mu-navy-300);
+  color: var(--mu-muted);
 }
 .promo-today li.is-done small {
-  color: var(--mu-emerald-glow);
+  color: var(--mu-emerald-deep);
 }
 .promo-hero-aside {
   min-width: 0;
 }
 .promo-hero-aside.promo-skeleton {
-  height: 300px;
+  height: 320px;
   border-radius: 20px;
-}
-.promo-skeleton.is-dark {
-  background: linear-gradient(90deg, #15233c 0%, #1d2f50 50%, #15233c 100%) 0 0 / 200% 100%;
 }
 .promo-join {
   display: grid;
   justify-items: start;
   gap: 12px;
-  padding: 30px;
-  border: 1px solid rgb(209 170 82 / 0.4);
-  border-radius: 22px;
-  background: linear-gradient(160deg, var(--mu-navy-800), var(--mu-navy-900));
-  box-shadow: 0 30px 60px -36px rgb(0 0 0 / 0.8);
+  padding: 32px;
+  border: 1px solid var(--mu-line);
+  border-radius: 20px;
+  background: var(--mu-surface);
 }
 .promo-join-icon {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  color: var(--mu-emerald-deep);
+  background: var(--mu-emerald-soft);
 }
 .promo-join h2 {
-  margin-top: 4px;
   font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #fffaf0;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--mu-navy-950);
 }
 .promo-join p {
   max-width: 44ch;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
-  color: var(--mu-navy-300);
+  color: var(--mu-muted);
 }
 .promo-join-tiers {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 6px 0 8px;
+  margin: 8px 0 12px;
 }
 .promo-join-tiers li {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  border: 1px solid rgb(255 255 255 / 0.14);
+  border: 1px solid var(--mu-line);
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 650;
-  color: #e6eaf2;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mu-ink);
 }
 .promo-join-tiers li::before {
   content: '';
@@ -1254,157 +1258,143 @@
   border-radius: 50%;
   background: var(--chip, #9aa6bc);
 }
+.promo-join .promo-button {
+  width: 100%;
+}
 .promo-anchors {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 28px;
-  margin-top: 40px;
-  border-top: 1px solid rgb(255 255 255 / 0.1);
+  gap: 4px 32px;
+  margin-top: 72px;
+  border-bottom: 1px solid var(--mu-line);
 }
 .promo-anchors a {
-  padding: 14px 0 12px;
+  margin-bottom: -1px;
+  padding: 16px 0 14px;
   border-bottom: 2px solid transparent;
-  font-size: 14.5px;
-  font-weight: 650;
-  color: #c3cad8;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mu-muted);
   transition:
     border-color 0.15s,
     color 0.15s;
 }
 .promo-anchors a:hover {
-  border-bottom-color: var(--mu-gold);
-  color: var(--mu-gold-light);
-}
-.promo-button.is-gold {
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
-}
-.promo-button.is-gold:hover:not(:disabled) {
-  background: var(--mu-gold-light);
+  border-bottom-color: var(--mu-navy-900);
+  color: var(--mu-ink);
 }
 
-/* Sections */
+/* Sections: the heading first, wide air between them. */
 .promo-page .promo-section {
   scroll-margin-top: 96px;
-  margin-bottom: 64px;
+  padding-top: 96px;
 }
 .promo-section-head {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 22px;
+  gap: 16px 24px;
+  margin-bottom: 40px;
 }
 .promo-section-head h2 {
-  font-size: clamp(24px, 2.4vw, 30px);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  color: var(--mu-navy-900);
-}
-.promo-section-head h2::before {
-  content: '';
-  display: block;
-  width: 32px;
-  height: 3px;
-  margin-bottom: 12px;
-  border-radius: 3px;
-  background: var(--mu-gold);
+  font-size: clamp(28px, 2.6vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--mu-navy-950);
 }
 .promo-section-head p {
-  margin-top: 6px;
-  font-size: 14.5px;
-  color: var(--mu-ink-muted);
+  max-width: 62ch;
+  margin-top: 8px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--mu-muted);
 }
 .promo-segments {
   display: inline-flex;
-  gap: 2px;
+  gap: 4px;
   padding: 4px;
-  border: 1px solid var(--mu-ivory-line);
-  border-radius: 999px;
-  background: var(--mu-ivory-card);
+  border: 1px solid var(--mu-line);
+  border-radius: 12px;
+  background: var(--mu-surface);
 }
 .promo-segments button {
-  padding: 7px 16px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 650;
-  color: var(--mu-ink-muted);
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mu-muted);
   transition:
     background 0.15s,
     color 0.15s;
 }
 .promo-segments button:hover {
-  color: var(--mu-navy-900);
+  color: var(--mu-ink);
 }
 .promo-segments button.is-active {
-  color: #fffaf0;
+  color: #fff;
   background: var(--mu-navy-900);
 }
 .promo-empty {
-  padding: 28px 0;
-  font-size: 14.5px;
-  color: var(--mu-ink-muted);
+  padding: 40px;
+  border: 1px dashed var(--mu-line-strong);
+  border-radius: 16px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--mu-muted);
 }
 
-/* Daily: the check-in on a navy card, the wheel on an ivory one, the same height */
+/* Daily: the check-in and the wheel, two white cards of one height. */
 .promo-daily {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
   align-items: stretch;
-  gap: 20px;
 }
 .promo-card {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  padding: 28px;
-  border: 1px solid var(--mu-ivory-line);
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  padding: 32px;
+  border: 1px solid var(--mu-line);
   border-radius: 20px;
-  background: var(--mu-ivory-card);
+  background: var(--mu-surface);
 }
 .promo-card h2 {
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: -0.015em;
-  color: var(--mu-navy-900);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--mu-navy-950);
 }
 .promo-card header p {
-  margin-top: 6px;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--mu-ink-muted);
-}
-.promo-card.promo-checkin {
-  border-color: transparent;
-  color: #c3cad8;
-  background: radial-gradient(60% 80% at 100% 0%, rgb(20 168 126 / 0.22), transparent 60%), var(--mu-navy-900);
-}
-.promo-checkin h2 {
-  color: #fffaf0;
-}
-.promo-checkin header p {
-  color: var(--mu-navy-300);
+  max-width: 48ch;
+  margin-top: 8px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--mu-muted);
 }
 .checkin-streak {
   display: grid;
   gap: 10px;
-  font-size: 13.5px;
-  font-weight: 650;
-  color: var(--mu-gold-light);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mu-ink);
 }
 .checkin-streak i {
   overflow: hidden;
   height: 6px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 0.12);
+  background: var(--mu-fill);
 }
 .checkin-streak em {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--mu-gold), var(--mu-gold-light));
-  transition: width 0.8s ease;
+  background: var(--mu-emerald);
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .checkin-days {
   display: grid;
@@ -1422,59 +1412,48 @@
   width: 100%;
   max-width: 64px;
   aspect-ratio: 1;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 14px;
+  border: 1px solid var(--mu-line);
+  border-radius: 12px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #fffaf0;
-  background: rgb(255 255 255 / 0.05);
-  transition:
-    background 0.3s,
-    color 0.3s;
+  color: var(--mu-ink);
+  background: var(--mu-paper);
 }
 .checkin-days li.is-done .checkin-mark {
-  border-color: transparent;
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
-}
-.checkin-days li.is-done .promo-icon {
-  animation: promo-pop 0.4s ease;
+  border-color: var(--mu-emerald-deep);
+  color: #fff;
+  background: var(--mu-emerald-deep);
 }
 .checkin-days li.is-today .checkin-mark {
-  border: 2px solid var(--mu-gold-light);
-  box-shadow: 0 0 0 5px rgb(209 170 82 / 0.16);
+  border: 2px solid var(--mu-navy-900);
+  background: var(--mu-surface);
 }
 .checkin-days li.is-gift:not(.is-done) .checkin-mark {
-  border: 1px dashed var(--mu-emerald-glow);
-  color: var(--mu-emerald-glow);
+  border-style: dashed;
+  border-color: var(--mu-line-strong);
+  color: var(--mu-emerald-deep);
 }
 .checkin-days small {
-  font-size: 11.5px;
-  color: var(--mu-navy-300);
+  font-size: 13px;
+  color: var(--mu-muted);
 }
 .promo-checkin > .promo-button {
   width: 100%;
   margin-top: auto;
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
 }
-.promo-checkin > .promo-button:hover:not(:disabled) {
-  background: var(--mu-gold-light);
-}
-.promo-checkin > .promo-button:disabled {
-  color: var(--mu-navy-300);
-  background: rgb(255 255 255 / 0.08);
+.promo-card.promo-checkin {
+  align-content: stretch;
 }
 /* The wheel sits beside its heading and button, so the card is as tall as the check-in, not twice as tall. */
 .promo-card.promo-wheel {
-  display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
     'dial header'
     'dial button';
+  align-items: center;
   align-content: center;
-  gap: 18px 32px;
+  column-gap: 40px;
 }
 .promo-wheel > header {
   grid-area: header;
@@ -1485,7 +1464,7 @@
 }
 .promo-wheel .lucky-wheel-dial {
   grid-area: dial;
-  width: 250px;
+  width: 260px;
 }
 .promo-wheel .lucky-wheel-button {
   grid-area: button;
@@ -1495,14 +1474,13 @@
 .lucky-wheel {
   display: grid;
   justify-items: center;
-  gap: 18px;
+  gap: 24px;
 }
 .lucky-wheel-dial {
   position: relative;
   width: min(100%, 300px);
   aspect-ratio: 1;
   border-radius: 50%;
-  box-shadow: 0 24px 50px -28px rgb(16 28 49 / 0.6);
 }
 .lucky-wheel-dial svg {
   width: 100%;
@@ -1511,221 +1489,217 @@
 }
 .lucky-wheel-dial text {
   font-size: 8px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .lucky-wheel-pointer {
   position: absolute;
-  top: -8px;
+  top: -6px;
   left: 50%;
   z-index: 2;
   width: 0;
   height: 0;
-  border-right: 12px solid transparent;
-  border-left: 12px solid transparent;
-  border-top: 22px solid var(--mu-emerald);
+  border-right: 10px solid transparent;
+  border-left: 10px solid transparent;
+  border-top: 18px solid var(--mu-emerald-deep);
   transform: translateX(-50%);
-  filter: drop-shadow(0 3px 3px rgb(0 0 0 / 0.25));
 }
 .lucky-wheel-button {
   min-width: 180px;
-  min-height: 46px;
+  min-height: 48px;
   padding: 0 24px;
-  border-radius: 12px;
-  font-size: 14.5px;
-  font-weight: 700;
-  color: #fffaf0;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
   background: var(--mu-navy-900);
-  transition: background 0.15s;
+  transition:
+    background 0.15s,
+    transform 0.15s;
 }
 .lucky-wheel-button:hover:not(:disabled) {
   background: var(--mu-navy-700);
 }
+.lucky-wheel-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
 .lucky-wheel-button:disabled {
-  color: var(--mu-ink-muted);
-  background: var(--mu-ivory-line);
+  cursor: not-allowed;
+  color: var(--mu-muted);
+  background: var(--mu-fill);
 }
 
-/* Missions: four tiles with an icon, the points and one action */
+/* Missions: four white cards, each with its icon, points and one action. */
 .mission-progress {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--mu-navy-900);
+  color: var(--mu-ink);
 }
 .mission-progress i {
   overflow: hidden;
   width: 160px;
   height: 6px;
   border-radius: 999px;
-  background: var(--mu-ivory-line);
+  background: var(--mu-fill);
 }
 .mission-progress em {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--mu-emerald-deep), var(--mu-emerald));
-  transition: width 0.8s ease;
+  background: var(--mu-emerald);
 }
 .mission-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 24px;
 }
 .mission-grid li {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
-  gap: 16px 12px;
-  padding: 22px;
-  border: 1px solid var(--mu-ivory-line);
-  border-radius: 18px;
-  background: var(--mu-ivory-card);
-  transition:
-    border-color 0.15s,
-    transform 0.15s;
-}
-.mission-grid li.is-ready {
-  border-color: var(--mu-gold);
+  align-items: start;
+  gap: 20px 12px;
+  padding: 24px;
+  border: 1px solid var(--mu-line);
+  border-radius: 20px;
+  background: var(--mu-surface);
+  transition: border-color 0.15s;
 }
 .mission-grid li:hover {
-  transform: translateY(-2px);
+  border-color: var(--mu-line-strong);
 }
 .mission-icon {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  color: var(--mu-gold-light);
-  background: var(--mu-navy-900);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: var(--mu-ink);
+  background: var(--mu-fill);
 }
 .mission-grid li.is-done .mission-icon {
-  color: #fff;
-  background: var(--mu-emerald);
+  color: var(--mu-emerald-deep);
+  background: var(--mu-emerald-soft);
 }
 .mission-points {
   justify-self: end;
-  align-self: start;
-  padding: 4px 10px;
-  border-radius: 999px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--mu-gold-deep);
-  background: var(--mu-gold-soft);
+  color: var(--mu-emerald-deep);
 }
 .mission-copy {
-  grid-column: 1 / -1;
   display: grid;
-  align-content: start;
-  gap: 4px;
+  grid-column: 1 / -1;
+  gap: 6px;
 }
 .mission-copy strong {
-  font-size: 16px;
-  color: var(--mu-navy-900);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--mu-navy-950);
 }
 .mission-copy small {
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.5;
-  color: var(--mu-ink-muted);
+  color: var(--mu-muted);
 }
 .mission-grid button {
   grid-column: 1 / -1;
-  min-height: 42px;
-  border-radius: 12px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #fffaf0;
-  background: var(--mu-navy-900);
-  transition: background 0.15s;
+  min-height: 44px;
+  border: 1px solid var(--mu-line);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
-.mission-grid button:hover:not(:disabled) {
+.mission-grid li.is-ready button:not(:disabled) {
+  border-color: var(--mu-navy-900);
+  color: #fff;
+  background: var(--mu-navy-900);
+}
+.mission-grid li.is-ready button:hover:not(:disabled) {
   background: var(--mu-navy-700);
 }
 .mission-grid button:disabled {
-  border: 1px solid var(--mu-ivory-line);
-  color: var(--mu-ink-muted);
-  background: transparent;
-  cursor: default;
+  cursor: not-allowed;
+  color: var(--mu-muted);
+  background: var(--mu-paper);
 }
 .mission-grid li.is-done {
-  opacity: 0.75;
+  background: var(--mu-paper);
 }
 
-/* Tier table */
+/* Tier table: white, hairlines, the member's own column tinted. */
 .tier-table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--mu-ivory-line);
-  border-radius: 18px;
-  background: var(--mu-ivory-card);
+  border: 1px solid var(--mu-line);
+  border-radius: 20px;
+  background: var(--mu-surface);
 }
 .tier-table {
   width: 100%;
-  min-width: 860px;
+  min-width: 880px;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .tier-table th,
 .tier-table td {
-  padding: 14px;
-  border-bottom: 1px solid var(--mu-ivory-line);
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--mu-line);
   text-align: center;
-  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .tier-table tbody tr:last-child > * {
   border-bottom: 0;
 }
 .tier-table th[scope='row'] {
-  position: sticky;
-  left: 0;
-  z-index: 1;
   text-align: left;
-  font-weight: 650;
-  color: var(--mu-ink-muted);
-  background: var(--mu-ivory-card);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--mu-muted);
 }
 .tier-table thead th {
-  vertical-align: top;
-  border-bottom: 0;
-  color: #fffaf0;
-  background: var(--mu-navy-900);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--mu-navy-950);
 }
 .tier-table thead th:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
   text-align: left;
-  font-weight: 650;
-  color: var(--mu-navy-300);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mu-muted);
 }
 .tier-table thead th small {
   display: block;
-  margin-top: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--mu-gold-light);
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mu-emerald-deep);
 }
-.tier-table thead th.is-current {
-  background: var(--mu-navy-700);
-}
+.tier-table th.is-current,
 .tier-table td.is-current {
-  font-weight: 800;
-  background: var(--mu-gold-soft);
+  background: var(--mu-emerald-soft);
 }
 .tier-chip {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-weight: 800;
+  gap: 8px;
   color: inherit;
 }
 .tier-chip::before {
   content: '';
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--chip, #9aa6bc);
 }
@@ -1749,16 +1723,16 @@
 }
 .promo-footnote {
   max-width: 96ch;
-  margin-top: 14px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--mu-ink-muted);
+  margin-top: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--mu-muted);
 }
 
 @media (max-width: 1100px) {
   .promo-hero-inner:first-child {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 40px;
   }
   .promo-daily {
     grid-template-columns: 1fr;
@@ -1769,34 +1743,44 @@
 }
 @media (max-width: 640px) {
   .promo-hero {
-    padding-top: 32px;
+    padding-top: 40px;
+  }
+  .promo-hero-copy > p {
+    font-size: 16px;
   }
   .promo-today {
     grid-template-columns: 1fr;
     gap: 8px;
+    margin-top: 32px;
   }
   .promo-today a {
-    grid-template-columns: 42px minmax(0, 1fr);
-    column-gap: 14px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 16px;
     align-items: center;
-    padding: 12px 14px;
+    padding: 14px 16px;
   }
   .promo-today-icon {
     grid-row: span 2;
     margin-bottom: 0;
   }
   .promo-join {
-    padding: 22px;
+    padding: 24px;
   }
   .promo-anchors {
-    gap: 4px 20px;
-    margin-top: 28px;
+    gap: 4px 24px;
+    margin-top: 48px;
+  }
+  .promo-page .promo-section {
+    padding-top: 64px;
+  }
+  .promo-section-head {
+    margin-bottom: 24px;
   }
   .promo-card {
-    padding: 22px 18px;
+    padding: 24px 20px;
   }
   .checkin-days {
-    gap: 5px;
+    gap: 6px;
   }
   .promo-card.promo-wheel {
     grid-template-columns: 1fr;
@@ -1807,18 +1791,23 @@
   }
   .promo-wheel .lucky-wheel-dial {
     justify-self: center;
-    width: min(100%, 270px);
+    width: min(100%, 260px);
   }
   .promo-wheel .lucky-wheel-button {
-    justify-self: center;
+    justify-self: stretch;
   }
   .mission-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .promo-hero-copy {
+    animation: none;
+  }
   .promo-today a,
-  .mission-grid li {
+  .mission-grid li,
+  .checkin-streak em {
     transition: none;
   }
 }

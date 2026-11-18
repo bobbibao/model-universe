@@ -59,7 +59,7 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
               <ol>
                 {([1, 2, 3, 4] as const).map((step) => (
                   <li key={step}>
-                    <span className="svx-step">{step}</span>
+                    <span className="svx-step">{String(step).padStart(2, '0')}</span>
                     <span>{g(`processStep${step}`)}</span>
                   </li>
                 ))}

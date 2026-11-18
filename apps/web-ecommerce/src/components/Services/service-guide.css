@@ -3,9 +3,9 @@
    cards, numbers instead of icon tiles, in the logo's colours (brand-tokens.css): navy ink, emerald links and focus. */
 :root {
   --sv-ink: var(--mu-ink);
-  --sv-muted: var(--mu-ink-muted);
+  --sv-muted: var(--mu-muted);
   --sv-faint: #7d8494;
-  --sv-line: var(--mu-ivory-line);
+  --sv-line: var(--mu-line);
   --sv-accent: var(--mu-emerald-deep);
   --sv-hover: #ffffff;
 }
@@ -632,143 +632,149 @@
   }
 }
 
-/* --- Services hub (/services): the navy showroom band, photo cards and the four steps, in the logo's colours ---- */
+/* --- Services hub (/services): quiet and roomy. Paper ground, white surfaces with hairlines, navy ink, emerald as the
+   one accent; the kit photos are the only colour in the hero. ------------------------------------------------------- */
+@keyframes svx-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 .svx-hero {
-  position: relative;
-  padding-top: 56px;
-  color: var(--mu-ivory);
-  background:
-    radial-gradient(60% 90% at 92% 0%, rgb(20 168 126 / 0.2), transparent 62%),
-    radial-gradient(45% 70% at 0% 100%, rgb(209 170 82 / 0.12), transparent 60%), var(--mu-navy-950);
-  border-bottom: 1px solid rgb(209 170 82 / 0.35);
+  padding-top: 72px;
+  color: var(--mu-ink);
 }
 .svx-hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: 56px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 72px;
   align-items: center;
+}
+.svx-hero-copy {
+  animation: svx-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .svx-where {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   font-size: 14px;
-  font-weight: 650;
-  color: var(--mu-gold-light);
+  font-weight: 500;
+  color: var(--mu-muted);
 }
-.svx-where::before {
-  content: '';
-  flex: none;
-  width: 28px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--mu-gold);
+.svx-where svg {
+  color: var(--mu-emerald-deep);
 }
 .svx-hero h1 {
-  max-width: 15ch;
-  margin-top: 16px;
-  font-size: clamp(34px, 4.4vw, 58px);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.035em;
-  color: #fffaf0;
+  max-width: 14ch;
+  margin-top: 20px;
+  font-size: clamp(40px, 4.6vw, 66px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--mu-navy-950);
 }
 .svx-lead {
-  max-width: 50ch;
-  margin-top: 18px;
-  font-size: 16.5px;
-  line-height: 1.65;
-  color: #b9c2d3;
+  max-width: 46ch;
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--mu-muted);
 }
 .svx-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 28px;
+  margin-top: 36px;
 }
 .svx-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  min-height: 52px;
-  padding: 0 22px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 24px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
   transition:
     background 0.15s,
     border-color 0.15s,
     transform 0.15s;
 }
-.svx-button:hover {
-  transform: translateY(-1px);
+.svx-button:active {
+  transform: scale(0.98);
 }
-.svx-button.is-gold {
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
-  box-shadow: 0 10px 24px -14px rgb(209 170 82 / 0.9);
+.svx-button.is-primary {
+  color: #fff;
+  background: var(--mu-navy-900);
 }
-.svx-button.is-gold:hover {
-  background: var(--mu-gold-light);
+.svx-button.is-primary:hover {
+  background: var(--mu-navy-700);
+}
+.svx-button.is-primary svg {
+  transition: transform 0.15s;
+}
+.svx-button.is-primary:hover svg {
+  transform: translateX(3px);
 }
 .svx-button.is-outline {
-  border: 1px solid rgb(236 208 138 / 0.4);
-  color: #fffaf0;
+  border-color: var(--mu-line);
+  color: var(--mu-ink);
+  background: var(--mu-surface);
 }
 .svx-button.is-outline:hover {
-  border-color: var(--mu-gold-light);
+  border-color: var(--mu-line-strong);
 }
 .svx-button:focus-visible,
 .svx-card:focus-visible,
 .svx-shot:focus-visible {
-  outline: 2px solid var(--mu-gold-light);
+  outline: 2px solid var(--mu-emerald);
   outline-offset: 3px;
 }
 .svx-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 40px;
-  padding-top: 22px;
-  border-top: 1px solid rgb(255 255 255 / 0.12);
+  gap: 24px;
+  margin-top: 56px;
 }
 .svx-stats > div {
   display: flex;
   flex-direction: column-reverse;
   justify-content: flex-end;
-  gap: 6px;
-  padding-right: 16px;
-}
-.svx-stats > div + div {
-  padding-left: 20px;
-  border-left: 1px solid rgb(255 255 255 / 0.12);
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--mu-line);
 }
 .svx-stats dd {
-  font-size: clamp(28px, 3vw, 40px);
-  font-weight: 800;
+  font-size: clamp(30px, 2.8vw, 40px);
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
-  color: var(--mu-gold-light);
+  color: var(--mu-navy-950);
 }
 .svx-stats dt {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
-  color: var(--mu-navy-300);
+  color: var(--mu-muted);
 }
 .svx-gallery {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
+  grid-template-columns: 1.2fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: 12px;
-  height: 480px;
+  gap: 16px;
+  height: 560px;
 }
 .svx-shot {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgb(209 170 82 / 0.4);
-  border-radius: 18px;
-  background: var(--mu-navy-900);
+  border-radius: 20px;
+  background: var(--mu-navy-950);
 }
 .svx-shot.is-0 {
   grid-row: span 2;
@@ -777,32 +783,20 @@
 .svx-shot img {
   transform: scale(1.12);
   transform-origin: 50% 0;
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .svx-shot:hover img {
-  transform: scale(1.17);
-}
-.svx-shot-name {
-  position: absolute;
-  inset: auto 0 0;
-  overflow: hidden;
-  padding: 36px 14px 12px;
-  font-size: 12.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: #fffaf0;
-  background: linear-gradient(to top, rgb(10 19 34 / 0.92), transparent);
+  transform: scale(1.15);
 }
 .svx-visit {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 32px;
-  margin-top: 48px;
-  padding-block: 18px;
-  border-top: 1px solid rgb(255 255 255 / 0.1);
+  gap: 12px 40px;
+  margin-top: 72px;
+  padding-block: 20px;
+  border-block: 1px solid var(--mu-line);
   font-size: 14px;
-  color: #c3cad8;
+  color: var(--mu-muted);
 }
 .svx-visit li {
   display: inline-flex;
@@ -810,160 +804,113 @@
   gap: 8px;
 }
 .svx-visit svg {
-  color: var(--mu-gold);
+  color: var(--mu-emerald-deep);
 }
 .svx-visit a:hover {
-  color: var(--mu-gold-light);
+  color: var(--mu-ink);
 }
 
-/* Service cards */
+/* Sections under the tabs: generous air, the heading first. */
+.sv-body .sv-hub {
+  margin: 24px 0 0;
+}
+.sv-body .sv-hub > .sv-section-head {
+  margin-bottom: 40px;
+}
+.sv-body .sv-section-head h2,
+.svx-process h2 {
+  font-size: clamp(28px, 2.6vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--mu-navy-950);
+}
+.sv-body .sv-section-head p {
+  max-width: 62ch;
+  margin-top: 8px;
+  font-size: 16px;
+  color: var(--mu-muted);
+}
+
+/* Service cards: one card style, white on paper with a hairline; three across, then two. */
 .svx-cards {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 18px;
+  gap: 24px;
 }
 .svx-card {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--mu-ivory-line);
-  border-radius: 18px;
+  gap: 12px;
+  min-height: 300px;
+  padding: 32px;
+  border: 1px solid var(--mu-line);
+  border-radius: 20px;
   color: var(--mu-ink);
-  background: var(--mu-ivory-card);
+  background: var(--mu-surface);
   transition:
-    transform 0.2s,
-    box-shadow 0.2s,
-    border-color 0.2s;
+    border-color 0.2s,
+    transform 0.2s;
 }
 .svx-card.is-main {
   grid-column: span 2;
 }
 .svx-card.is-wide {
   grid-column: span 3;
-  flex-direction: row;
+  min-height: 260px;
 }
 .svx-card:hover {
-  border-color: var(--mu-gold);
-  transform: translateY(-3px);
-  box-shadow: 0 24px 44px -26px rgb(16 28 49 / 0.5);
+  border-color: var(--mu-line-strong);
+  transform: translateY(-2px);
 }
-/* The navy panel at the top of each card: the service's icon inside two gold rings, its number as an outline. */
-.svx-card-art {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex: none;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-  background:
-    radial-gradient(70% 90% at 15% 0%, rgb(20 168 126 / 0.32), transparent 60%),
-    radial-gradient(60% 80% at 100% 100%, rgb(209 170 82 / 0.16), transparent 60%), var(--mu-navy-900);
-}
-.svx-card-art::before,
-.svx-card-art::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.svx-card-art::before {
-  width: 132px;
-  height: 132px;
-  border: 1px solid rgb(209 170 82 / 0.3);
-}
-.svx-card-art::after {
-  width: 216px;
-  height: 216px;
-  border: 1px solid rgb(209 170 82 / 0.13);
-}
-.svx-card:hover .svx-card-art::before,
-.svx-card:hover .svx-card-art::after {
-  transform: translate(-50%, -50%) scale(1.08);
-}
-.svx-card.is-wide .svx-card-art {
-  width: 34%;
-  aspect-ratio: auto;
-  min-height: 190px;
+.svx-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
 .svx-card-icon {
-  position: relative;
-  z-index: 1;
   display: grid;
   place-items: center;
-  width: 76px;
-  height: 76px;
-  border: 1px solid rgb(236 208 138 / 0.55);
-  border-radius: 50%;
-  color: var(--mu-gold-light);
-  background: rgb(255 255 255 / 0.04);
-  box-shadow: 0 0 40px -6px rgb(20 168 126 / 0.45);
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-.svx-card:hover .svx-card-icon {
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  color: var(--mu-emerald-deep);
+  background: var(--mu-emerald-soft);
 }
 .svx-card-num {
-  position: absolute;
-  right: 18px;
-  bottom: 4px;
-  font-size: 64px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
+  font-size: 14px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: transparent;
-  -webkit-text-stroke: 1px rgb(236 208 138 / 0.4);
-}
-.svx-card-body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  padding: 20px 22px 22px;
+  color: var(--mu-muted);
 }
 .svx-card-title {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--mu-navy-900);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--mu-navy-950);
 }
 .svx-card-text {
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: var(--mu-ink-muted);
+  max-width: 44ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--mu-muted);
 }
 .svx-card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--mu-ivory-line);
+  padding-top: 20px;
+  border-top: 1px solid var(--mu-line);
 }
 .svx-card-fact {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 750;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.4;
-  color: var(--mu-emerald-deep);
-}
-.svx-card-fact::before {
-  content: '';
-  flex: none;
-  width: 7px;
-  height: 7px;
-  background: var(--mu-gold);
-  transform: rotate(45deg);
+  color: var(--mu-ink);
 }
 .svx-card-go {
   display: grid;
@@ -971,77 +918,57 @@
   flex: none;
   width: 40px;
   height: 40px;
+  border: 1px solid var(--mu-line);
   border-radius: 50%;
-  color: var(--mu-gold-light);
-  background: var(--mu-navy-900);
+  color: var(--mu-ink);
   transition:
     background 0.15s,
+    border-color 0.15s,
     color 0.15s;
 }
 .svx-card:hover .svx-card-go {
-  color: var(--mu-navy-950);
-  background: var(--mu-gold);
+  border-color: var(--mu-navy-900);
+  color: #fff;
+  background: var(--mu-navy-900);
 }
 
-/* The four steps every request follows, on a navy panel */
+/* The four steps every request follows: numbered columns under a hairline, no panel. */
 .svx-process {
-  position: relative;
-  overflow: hidden;
-  margin: 40px 0 8px;
-  padding: 30px 34px 32px;
-  border-radius: 20px;
-  color: #c3cad8;
-  background: radial-gradient(50% 120% at 100% 0%, rgb(20 168 126 / 0.22), transparent 60%), var(--mu-navy-900);
-}
-.svx-process h2 {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: #fffaf0;
+  margin: 120px 0 72px;
 }
 .svx-process ol {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
-  margin-top: 24px;
+  margin-top: 40px;
 }
 .svx-process li {
-  position: relative;
   display: grid;
   align-content: start;
-  gap: 14px;
-  font-size: 14.5px;
-  line-height: 1.55;
-}
-.svx-process li:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 20px;
-  left: 54px;
-  right: -12px;
-  height: 1px;
-  background: linear-gradient(90deg, rgb(209 170 82 / 0.7), rgb(209 170 82 / 0.15));
-}
-.svx-step {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--mu-line);
   font-size: 16px;
-  font-weight: 800;
-  color: var(--mu-navy-950);
-  background: linear-gradient(180deg, var(--mu-gold-light), var(--mu-gold));
-  box-shadow: 0 0 0 5px rgb(209 170 82 / 0.15);
+  line-height: 1.55;
+  color: var(--mu-ink);
+}
+.svx-process li:first-child {
+  border-top-color: var(--mu-emerald);
+}
+.svx-process .svx-step {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mu-emerald-deep);
 }
 
 @media (max-width: 1100px) {
   .svx-hero-grid {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 48px;
   }
   .svx-gallery {
-    height: 380px;
+    height: 440px;
   }
   .svx-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1049,88 +976,73 @@
   .svx-card.is-main,
   .svx-card.is-wide {
     grid-column: span 1;
-  }
-  .svx-card.is-wide {
-    flex-direction: column;
-  }
-  .svx-card.is-wide .svx-card-art {
-    width: auto;
     min-height: 0;
-    aspect-ratio: 16 / 9;
   }
   .svx-card:last-child {
     grid-column: 1 / -1;
-    flex-direction: row;
-  }
-  .svx-card:last-child .svx-card-art {
-    width: 36%;
-    aspect-ratio: auto;
   }
   .svx-process ol {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .svx-process li::after {
-    display: none;
+    row-gap: 32px;
   }
 }
 @media (max-width: 640px) {
   .svx-hero {
-    padding-top: 32px;
+    padding-top: 40px;
   }
   .svx-lead {
-    font-size: 15px;
+    font-size: 16px;
+  }
+  .svx-actions {
+    margin-top: 28px;
   }
   .svx-button {
     flex: 1 1 100%;
   }
   .svx-stats {
-    margin-top: 30px;
-  }
-  .svx-stats > div {
-    padding-right: 8px;
-  }
-  .svx-stats > div + div {
-    padding-left: 12px;
+    gap: 12px;
+    margin-top: 40px;
   }
   .svx-stats dt {
-    font-size: 12px;
+    font-size: 13px;
   }
   .svx-gallery {
-    height: 280px;
+    height: 300px;
     gap: 8px;
+  }
+  .svx-shot {
+    border-radius: 14px;
   }
   .svx-visit {
     flex-direction: column;
-    margin-top: 32px;
+    margin-top: 40px;
   }
   .svx-cards {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
-  .svx-card:last-child {
-    flex-direction: column;
+  .svx-card {
+    padding: 24px;
   }
-  .svx-card:last-child .svx-card-art {
-    width: auto;
-    aspect-ratio: 16 / 9;
+  .svx-card-title {
+    font-size: 22px;
   }
   .svx-process {
-    padding: 24px 20px;
+    margin: 96px 0 48px;
   }
   .svx-process ol {
     grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  .svx-process li {
-    grid-template-columns: 40px minmax(0, 1fr);
-    align-items: center;
+    gap: 24px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .svx-hero-copy {
+    animation: none;
+  }
   .svx-button,
+  .svx-button svg,
   .svx-card,
-  .svx-card-art::before,
-  .svx-card-art::after,
-  .svx-card-icon,
+  .svx-card-go,
   .svx-shot img {
     transition: none;
   }

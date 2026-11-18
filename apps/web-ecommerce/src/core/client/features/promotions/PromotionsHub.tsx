@@ -23,7 +23,7 @@ const MISSION_ICONS: Record<string, PromoIconName> = {
   share: 'share',
 };
 
-// The offers page: a navy band with today's quick wins and the member's standing (or the sign-in panel), then
+// The offers page: a quiet hero with today's quick wins and the member's standing (or the sign-in panel), then
 // everything that saves money, each in its own section that the band's links jump to — vouchers (codes anyone can use
 // and timed drops to save), the daily check-in and wheel, one-off missions, and a table of what each tier gets.
 export default function PromotionsHub() {
@@ -69,7 +69,7 @@ export default function PromotionsHub() {
       ))}
     </nav>
   );
-  // The navy band: the heading (rendered before the data so the server HTML has the page's H1), today's three quick
+  // The hero: the heading (rendered before the data so the server HTML has the page's H1), today's three quick
   // wins, and the member's card or the sign-in panel beside them.
   const hero = (today: ReactNode, aside: ReactNode) => (
     <section className="promo-hero" aria-labelledby="promo-title">
@@ -87,7 +87,7 @@ export default function PromotionsHub() {
   if (hub === undefined)
     return (
       <div className="promo-screen">
-        {hero(null, <div className="promo-hero-aside promo-skeleton is-dark" aria-hidden="true" />)}
+        {hero(null, <div className="promo-hero-aside promo-skeleton" aria-hidden="true" />)}
         <div className="promo-page">
           <div className="promo-skeleton" aria-busy="true" />
         </div>
@@ -159,7 +159,7 @@ export default function PromotionsHub() {
           </li>
         ))}
       </ol>
-      <Link href="/auth/signin?redirect=/uu-dai" className="promo-button is-gold">
+      <Link href="/auth/signin?redirect=/uu-dai" className="promo-button">
         {t('signIn')}
         <PromoIcon name="arrow" size={18} />
       </Link>

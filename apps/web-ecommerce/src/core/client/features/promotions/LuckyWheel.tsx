@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-// The logo's four tones alternating (navy, emerald, ivory, gold); text colour follows the fill.
+// Calm tones alternating (navy, paper, emerald tint, white); text colour follows the fill.
 const SEGMENTS = [
-  { fill: '#101c31', text: '#ecd08a' },
-  { fill: '#0b6e52', text: '#fffaf0' },
-  { fill: '#f8f4ea', text: '#101c31' },
-  { fill: '#d1aa52', text: '#101c31' },
+  { fill: '#101c31', text: '#ffffff' },
+  { fill: '#f0f0ea', text: '#101c31' },
+  { fill: '#e2f3ec', text: '#0b6e52' },
+  { fill: '#ffffff', text: '#101c31' },
 ];
 
 // The daily lucky wheel: segments drawn in SVG, a spin that lands on the prize the server drew (the wheel never decides).
@@ -54,8 +54,8 @@ export default function LuckyWheel({
                 <path
                   d={`M100 100 L${point(start, 96)} A96 96 0 0 1 ${point(end, 96)} Z`}
                   fill={SEGMENTS[index % SEGMENTS.length].fill}
-                  stroke="#ffffff"
-                  strokeWidth="1.2"
+                  stroke="#dcdcd4"
+                  strokeWidth="0.8"
                 />
                 <text
                   x="100"
@@ -69,8 +69,8 @@ export default function LuckyWheel({
               </g>
             );
           })}
-          <circle cx="100" cy="100" r="97.5" fill="none" stroke="#d1aa52" strokeWidth="4" />
-          <circle cx="100" cy="100" r="17" fill="#101c31" stroke="#d1aa52" strokeWidth="2.5" />
+          <circle cx="100" cy="100" r="98" fill="none" stroke="#101c31" strokeWidth="3" />
+          <circle cx="100" cy="100" r="15" fill="#101c31" stroke="#ffffff" strokeWidth="3" />
         </svg>
       </div>
       <button type="button" className="lucky-wheel-button" disabled={disabled || spinning} onClick={() => void spin()}>
