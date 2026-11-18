@@ -38,13 +38,10 @@
   gap: 12px;
   font-size: 14px;
 }
-.mu-shell .mu-footer.sf .sf-brand,
-.mu-shell .mu-footer.sf .sf-brand span {
+.mu-shell .mu-footer.sf .sf-brand {
+  --brand-mark: 64px;
+  --brand-word: 40px;
   color: #fff;
-  font-size: 22px;
-}
-.mu-shell .mu-footer.sf .sf-brand svg {
-  color: #dcf56a;
 }
 .mu-shell .mu-footer.sf .sf-about p {
   margin-top: 16px;

@@ -115,18 +115,14 @@
   justify-content: space-between;
   border-bottom: 1px solid #ffffff0a;
 }
-.admin-sidebar-brand a {
-  font-size: 18px;
-  letter-spacing: -0.035em;
+.admin-sidebar-brand .brand-logo {
+  --brand-mark: 36px;
+  --brand-word: 24px;
   color: #f0f5ff;
-  gap: 10px;
-}
-.admin-sidebar-brand svg {
-  color: #67e8f9;
 }
 .admin-brand-caption {
   display: block;
-  margin: 5px 0 0 42px;
+  margin: 8px 0 0 45px;
   color: #8496b3;
   font-size: 10px;
   letter-spacing: 0.16em;

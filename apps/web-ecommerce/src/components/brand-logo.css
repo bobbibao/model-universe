@@ -1,0 +1,37 @@
+/* BrandLogo: the colour mark, then the wordmark as an alpha mask filled with currentColor.
+   Size with --brand-mark (the mark's height) and --brand-word (the wordmark's height). */
+.brand-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: calc(var(--brand-mark, 36px) * 0.24);
+  line-height: 0;
+  color: #1f1e24;
+}
+.brand-logo-mark {
+  display: block;
+  flex: none;
+  width: auto;
+  height: var(--brand-mark, 36px);
+}
+.brand-logo-word {
+  display: block;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  height: var(--brand-word, 26px);
+  aspect-ratio: 332 / 80;
+  -webkit-mask-image: url('/brand/wordmark.png');
+  mask-image: url('/brand/wordmark.png');
+}
+@media (forced-colors: active) {
+  .brand-logo-word {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+}
