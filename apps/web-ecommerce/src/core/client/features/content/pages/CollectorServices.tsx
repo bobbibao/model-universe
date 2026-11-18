@@ -52,7 +52,7 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
                 <h2 id="services-hub-title">{experience('hubTitle')}</h2>
                 <p>{experience('hubIntro')}</p>
               </header>
-              <ServiceCards photos={photos.slice(3)} />
+              <ServiceCards />
             </section>
             <section className="svx-process" aria-labelledby="services-process">
               <h2 id="services-process">{g('processTitle')}</h2>
