@@ -19,4 +19,12 @@
   --mu-ivory-line: #e9e1cf;
   --mu-ink: #121c2e;
   --mu-ink-muted: #4f5869;
+  /* Quiet neutrals for content pages: the page ground, white surfaces, hairlines in the ink at 12% (24% on hover),
+     and a soft fill for icon wells and empty states. Emerald is the one accent on them. */
+  --mu-paper: #f8f8f3;
+  --mu-surface: #ffffff;
+  --mu-line: rgb(18 28 46 / 0.12);
+  --mu-line-strong: rgb(18 28 46 / 0.26);
+  --mu-fill: #f0f0ea;
+  --mu-muted: #586071;
 }
