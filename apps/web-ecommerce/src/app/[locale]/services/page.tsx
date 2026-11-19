@@ -37,7 +37,7 @@ export default async function ServicesPage({ params }: Props) {
   const { locale } = await params;
   const en = isEnglish(locale);
   const base = siteUrl();
-  const photos = await getShowcasePhotos(4);
+  const photos = await getShowcasePhotos(9);
 
   return (
     <StoreLayout>

@@ -3499,6 +3499,7 @@
     "saved": "Đã lưu địa chỉ shop."
   },
   "promotions": {
+    "memberCardLabel": "Thẻ thành viên",
     "kicker": "Ưu đãi",
     "title": "Ưu đãi hôm nay",
     "intro": "Mã giảm giá, miễn phí vận chuyển và ưu đãi theo hạng thành viên.",
@@ -4410,6 +4411,11 @@
     "backToTop": "Lên đầu trang"
   },
   "serviceGuide": {
+    "figuresLabel": "Các con số chính",
+    "visitTitle": "Mang mô hình tới showroom",
+    "visitHoursLabel": "Giờ mở cửa",
+    "visitPhoneLabel": "Hotline",
+    "visitDirections": "Chỉ đường",
     "heroEyebrow": "Dịch vụ cho người sưu tầm",
     "heroTitle": "Thu mua, trade, cầm cố và giữ mô hình",
     "heroIntro": "Xem giá dự kiến ngay trên web, mang mô hình tới showroom hoặc gửi bưu điện để kiểm định, rồi theo dõi yêu cầu trong tài khoản.",
