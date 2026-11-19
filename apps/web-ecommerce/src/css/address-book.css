@@ -75,7 +75,7 @@
   flex-shrink: 0;
   border-radius: 9px;
   background: #f6f6f4;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .address-book-contact {
   display: flex;
@@ -108,7 +108,7 @@
   align-items: center;
   gap: 6px;
   min-height: 36px;
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-size: 12px;
   font-weight: 600;
 }
@@ -131,7 +131,7 @@
   font-size: 14px;
 }
 .address-book-empty svg {
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .address-book-policy {
   font-size: 12px;

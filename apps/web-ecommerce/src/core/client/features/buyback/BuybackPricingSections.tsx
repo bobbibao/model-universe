@@ -178,7 +178,7 @@ export default function BuybackPricingSections({
                 ⚖
               </span>
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white">
                   Biên bản đối chiếu & Thẩm định
                 </h3>
                 <p className="text-[11px] text-slate-400 dark:text-slate-500">
@@ -212,7 +212,7 @@ export default function BuybackPricingSections({
             {/* Left: Customer Declaration */}
             <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 dark:border-strokedark dark:bg-meta-4/20">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                   1. Khách khai báo ban đầu
                 </span>
                 <span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-meta-4 dark:text-slate-300">
@@ -231,7 +231,7 @@ export default function BuybackPricingSections({
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   2. Shop kiểm tra hiện vật
                 </span>
                 <span
@@ -287,7 +287,7 @@ export default function BuybackPricingSections({
         /* If no comparison yet (pre-inspection status) */
         <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs dark:border-strokedark dark:bg-boxdark space-y-2.5">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+            <h4 className="text-xs font-bold text-slate-600 dark:text-slate-400">
               Tình trạng khách tự khai báo ({selected.declaredIssues?.length || 0})
             </h4>
           </div>
@@ -490,7 +490,7 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
     <div className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-strokedark dark:bg-boxdark">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <span className="text-xs font-bold text-slate-400">
             {v2('estimate.total')}
           </span>
           <div className="flex items-baseline gap-2 mt-0.5">
@@ -504,7 +504,7 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
 
         <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div>
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase">
+            <span className="text-xs font-semibold text-slate-400 block">
               {v2(legacy ? 'estimate.legacyReference' : 'estimate.reference')}
             </span>
             <span className="font-bold text-slate-800 dark:text-slate-200">
@@ -513,7 +513,7 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
           </div>
           <span className="text-slate-300 dark:text-slate-600">•</span>
           <div>
-            <span className="text-[10px] font-semibold text-slate-400 block uppercase">
+            <span className="text-xs font-semibold text-slate-400 block">
               {v2(estimate.ruleVersion === B17_RULE_VERSION ? 'estimate.b17Rate' : 'estimate.rate')}
             </span>
             <span className="font-bold text-slate-800 dark:text-slate-200">{rate}</span>

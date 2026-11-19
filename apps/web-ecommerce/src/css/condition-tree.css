@@ -88,7 +88,7 @@
 }
 .catalog-tree-definition-row.is-active {
   background: #f5f5f2;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .dark .catalog-tree-definition-row.is-active {
   background: #182844;
@@ -185,7 +185,7 @@
 }
 .condition-tree-row.is-selected {
   background: #f6f6f4;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .dark .condition-tree-row.is-selected {
   background: #182844;
@@ -294,7 +294,7 @@
   white-space: nowrap;
 }
 .catalog-variant-table :is(a, button) {
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-weight: 600;
 }
 .catalog-combination-label {
@@ -362,7 +362,7 @@
   border-radius: 8px;
   padding: 14px;
   background: #fbfbf9;
-  color: #101c31;
+  color: var(--mu-accent-ink);
   font-size: 13px;
   line-height: 1.65;
 }
@@ -425,7 +425,7 @@
   margin-bottom: 16px;
 }
 .service-condition-case > a {
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .catalog-family-list {
   display: grid;
@@ -628,7 +628,7 @@
 }
 .catalog-tree-selection-bar button,
 .catalog-child-action {
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-size: 12px;
   font-weight: 600;
 }
@@ -670,7 +670,7 @@
 }
 .condition-tree-check {
   margin-right: 2px;
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-weight: 600;
 }
 .condition-tree-picker .condition-tree-row {

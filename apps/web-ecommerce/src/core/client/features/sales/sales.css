@@ -90,7 +90,7 @@
 .sale-hero-links a:first-child {
   padding: 11px 16px;
   background: #e7ff8c;
-  color: #101c31;
+  color: var(--mu-accent-ink);
   border-radius: 100px;
 }
 .sale-hero-links a:hover {
@@ -191,7 +191,7 @@
 }
 .sale-photo-badge.is-member {
   background: #f4f4f0;
-  color: #182844;
+  color: var(--mu-accent-ink);
   box-shadow: none;
   font-size: 10px;
   letter-spacing: 0.03em;
@@ -215,7 +215,7 @@
   gap: 2px;
   font-size: 33px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
   letter-spacing: -0.06em;
 }
 .sale-member-icon > span {
@@ -223,7 +223,7 @@
 }
 .sale-member-strip strong {
   font-size: 14px;
-  color: #101c31;
+  color: var(--mu-accent-ink);
 }
 .sale-member-strip p {
   max-width: 740px;
@@ -237,7 +237,7 @@
   margin-left: auto;
   font-size: 12px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .sale-message {
   padding: 24px;
@@ -256,7 +256,7 @@
 }
 .sale-member-price strong {
   font-size: 13px;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .sale-member-price small {
   font-size: 10px;

@@ -12,7 +12,7 @@ const PLATFORMS: Record<string, string> = { meta: 'Facebook/Instagram', google: 
 // How a customer sees the copy: the post or ad text as it will be published.
 const Preview = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <span className="mt-1 block rounded border border-stroke bg-gray-2 p-3 text-sm dark:border-strokedark dark:bg-meta-4">
-    <span className="mb-1 block text-xs font-semibold uppercase text-body">{title}</span>
+    <span className="mb-1 block text-xs font-semibold text-body">{title}</span>
     {children}
   </span>
 );

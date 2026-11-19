@@ -58,7 +58,7 @@
   }
   .mu-shell .product-rail .product-tile:hover .product-tile-action {
     border-color: #d3d3c6;
-    color: #101c31;
+    color: var(--mu-accent-ink);
   }
   .mu-shell .product-rail .product-tile:hover .product-tile-action > span {
     color: #fff;

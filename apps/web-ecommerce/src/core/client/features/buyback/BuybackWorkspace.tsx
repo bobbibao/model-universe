@@ -558,7 +558,7 @@ export default function BuybackWorkspace({
                         if (!offer) return null;
                         return (
                           <div className="text-right">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            <span className="text-xs font-bold text-slate-400 block">
                               {selected.finalOffer ? 'Giá chốt giao dịch' : 'Báo giá sơ bộ'}
                             </span>
                             <span className="font-mono text-2xl font-black text-emerald-600 dark:text-emerald-400">
@@ -681,7 +681,7 @@ export default function BuybackWorkspace({
                   {/* Detail Tab 2: Initial Asset Condition Specifications */}
                   {detailTab === 'specs' && (
                     <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs dark:border-strokedark dark:bg-boxdark">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 dark:text-slate-400">
+                      <h3 className="text-xs font-bold text-slate-500 mb-3 dark:text-slate-400">
                         Thông số khai báo ban đầu
                       </h3>
                       <div className="grid gap-2 sm:grid-cols-2 text-xs">
@@ -747,7 +747,7 @@ export default function BuybackWorkspace({
                               }`}
                             >
                               <div className="flex items-center justify-between">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                                <h3 className="text-xs font-bold text-slate-600 dark:text-slate-400">
                                   {t(key)}
                                 </h3>
                                 <span
@@ -778,7 +778,7 @@ export default function BuybackWorkspace({
                       {/* Payout Details */}
                       {selected.payout && (
                         <div className="rounded-xl border border-teal-200 bg-teal-50/60 p-4 dark:border-teal-800/40 dark:bg-teal-950/30">
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                          <h3 className="text-xs font-bold text-teal-800 dark:text-teal-300">
                             {t(selected.payout.direction === 'customer_pays' ? 'paidByCustomer' : 'paid')}
                           </h3>
                           <p className="mt-2 text-2xl font-black text-teal-900 dark:text-white">
@@ -793,7 +793,7 @@ export default function BuybackWorkspace({
                       {/* Return Terms */}
                       {selected.returnTerms && (
                         <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-4 dark:border-rose-800/40 dark:bg-rose-950/30">
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-rose-800 dark:text-rose-300">
+                          <h3 className="text-xs font-bold text-rose-800 dark:text-rose-300">
                             {t('returnTerms')}
                           </h3>
                           <p className="mt-2 text-xs text-rose-900 leading-relaxed dark:text-rose-200">
@@ -813,7 +813,7 @@ export default function BuybackWorkspace({
                       {/* Action Forms */}
                       {!admin && selected.status === 'quoted' && (
                         <form className="space-y-4 rounded-xl border border-slate-200 p-4" onSubmit={(event) => submitAction(event, 'send_item')}>
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300">
                             Gửi hiện vật về shop
                           </h3>
                           {referenceField}
@@ -824,7 +824,7 @@ export default function BuybackWorkspace({
 
                       {!admin && ['awaiting_acceptance', 'reinspection_requested'].includes(selected.status) && (
                         <div className="space-y-4 rounded-xl border border-slate-200 p-4">
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300">
                             Quyết định giá cuối
                           </h3>
                           <p className="mu-note">{t('acceptNote')}</p>

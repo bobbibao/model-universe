@@ -6,7 +6,7 @@
   border: 1px solid #ecece6;
   border-radius: 18px;
   background: #fff;
-  color: #0a1322;
+  color: var(--mu-accent-ink);
 }
 .service-form-section {
   display: grid;
@@ -55,7 +55,7 @@
 }
 .service-form-agree summary {
   cursor: pointer;
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-weight: 600;
 }
 .service-form-agree details p {
@@ -124,7 +124,7 @@
 .item-condition-chip input:checked + span {
   border-color: #182844;
   background: #f6f6f4;
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-weight: 600;
 }
 .item-condition-chip input:focus-visible + span {
@@ -231,7 +231,7 @@
   border: 1.5px dashed #d5d5ca;
   border-radius: 12px;
   background: #fbfaff;
-  color: #182844;
+  color: var(--mu-accent-ink);
   cursor: pointer;
 }
 .evidence-grid li:has(.evidence-add) {

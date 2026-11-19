@@ -286,7 +286,7 @@ select:not([multiple]) {
   left: 16px;
   top: 50%;
   translate: 0 -50%;
-  color: #182844;
+  color: var(--mu-accent-ink);
   pointer-events: none;
 }
 .catalog-search-input .mu-input {
@@ -345,7 +345,7 @@ select:not([multiple]) {
 .catalog-grade-pills input:checked + span {
   background: #f3f3f0;
   border-color: #e4e4dd;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .catalog-grade-pills input:focus-visible + span {
   outline: 3px solid #182844;
@@ -422,7 +422,7 @@ select:not([multiple]) {
 }
 .catalog-price-range output {
   display: block;
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-size: 15px;
   font-weight: 600;
 }
@@ -614,7 +614,7 @@ select:not([multiple]) {
   font-size: 10px;
   letter-spacing: 0.12em;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .store-cart-count {
   font-size: 24px;

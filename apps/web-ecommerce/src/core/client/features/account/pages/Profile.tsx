@@ -305,7 +305,7 @@ function AccountWorkspace({ user }: { user: User }) {
                         className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
                       >
                         <div>
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('lastName')}</span>
+                          <span className="text-xs font-semibold text-slate-400">{profile('lastName')}</span>
                           <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.lastName || profile('unknown')}</strong>
                         </div>
                         <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>
@@ -319,7 +319,7 @@ function AccountWorkspace({ user }: { user: User }) {
                         className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
                       >
                         <div>
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('firstName')}</span>
+                          <span className="text-xs font-semibold text-slate-400">{profile('firstName')}</span>
                           <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.firstName || profile('unknown')}</strong>
                         </div>
                         <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>
@@ -328,7 +328,7 @@ function AccountWorkspace({ user }: { user: User }) {
                       {/* Gender */}
                       <div className="flex items-center justify-between rounded-xl p-2.5">
                         <div>
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('gender')}</span>
+                          <span className="text-xs font-semibold text-slate-400">{profile('gender')}</span>
                           <strong className="block text-sm font-bold text-slate-800 dark:text-white">
                             {user.gender === 'M' ? profile('male') : user.gender === 'F' ? profile('female') : profile('unknown')}
                           </strong>
@@ -356,7 +356,7 @@ function AccountWorkspace({ user }: { user: User }) {
                       {/* Email */}
                       <div className="flex items-center justify-between rounded-xl p-2.5">
                         <div className="min-w-0 pr-2">
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Email tài khoản</span>
+                          <span className="text-xs font-semibold text-slate-400">Email tài khoản</span>
                           <strong className="block truncate text-sm font-bold text-slate-800 dark:text-white">{user.email}</strong>
                           <span className="text-[11px] text-slate-400">{t('emailNote')}</span>
                         </div>
@@ -373,7 +373,7 @@ function AccountWorkspace({ user }: { user: User }) {
                         className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
                       >
                         <div>
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('phone')}</span>
+                          <span className="text-xs font-semibold text-slate-400">{profile('phone')}</span>
                           <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.phone || profile('unknown')}</strong>
                         </div>
                         <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>
@@ -387,7 +387,7 @@ function AccountWorkspace({ user }: { user: User }) {
                         className="group flex w-full items-center justify-between rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-meta-4"
                       >
                         <div className="min-w-0 pr-2">
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('address')}</span>
+                          <span className="text-xs font-semibold text-slate-400">{profile('address')}</span>
                           <strong className="block truncate text-sm font-bold text-slate-800 dark:text-white">{user.address || profile('unknown')}</strong>
                         </div>
                         <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>

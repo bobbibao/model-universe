@@ -73,7 +73,7 @@
   display: grid;
   place-items: center;
   border-radius: 9px;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f4f4f0;
 }
 .catalog-page-header .catalog-results {
@@ -412,7 +412,7 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    color: #182844;
+    color: var(--mu-accent-ink);
   }
   .catalog-mobile-filters > summary::after {
     content: '+';

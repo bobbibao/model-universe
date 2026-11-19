@@ -93,7 +93,7 @@
 }
 .payment-plan-presets button[aria-pressed='true'] {
   border-color: #182844;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f9f9f8;
 }
 .payment-plan-split {
@@ -168,7 +168,7 @@
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #fff;
 }
 .transfer-instructions p {
@@ -283,7 +283,7 @@
 }
 .fulfillment-switch label.is-selected {
   background: #fff;
-  color: #182844;
+  color: var(--mu-accent-ink);
   box-shadow: 0 1px 3px rgb(10 19 34 / 0.12);
 }
 .fulfillment-switch input {
@@ -337,7 +337,7 @@
   width: 36px;
   height: 36px;
   border-radius: 11px;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f7f7f4;
 }
 .delivery-address-text strong,
@@ -368,7 +368,7 @@
   border-radius: 9px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f7f7f5;
 }
 .delivery-address-change:hover {
@@ -430,7 +430,7 @@
   font-size: 10.5px;
   font-style: normal;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f4f4f2;
 }
 .delivery-address-add {
@@ -443,7 +443,7 @@
   border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .delivery-address-add:hover {
   background: #fbfbf9;
@@ -457,7 +457,7 @@
   font-size: 12.5px;
 }
 .address-map-tools button {
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-weight: 600;
 }
 .address-map-tools button:hover {
@@ -542,7 +542,7 @@
 .carrier-quote summary {
   cursor: pointer;
   font-size: 12px;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .carrier-quote ul {
   display: grid;
@@ -810,7 +810,7 @@
 }
 .purchases-tabs button[aria-selected='true'] {
   border-bottom-color: #182844;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .purchases-tab-count {
   min-width: 20px;
@@ -928,7 +928,7 @@
 }
 .order-card-total strong {
   font-size: 18px;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .order-card-total small {
   font-size: 12px;
@@ -1380,7 +1380,7 @@
   border-color: color-mix(in srgb, currentColor 25%, transparent);
 }
 .carrier-quote-line small.carrier-quote-parcels {
-  color: #182844;
+  color: var(--mu-accent-ink);
   font-weight: 600;
 }
 
@@ -1446,7 +1446,7 @@
 .package-plan-alternatives summary {
   cursor: pointer;
   font-size: 12.5px;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .package-plan-alternatives li {
   display: flex;
@@ -1474,7 +1474,7 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f4f4f2;
 }
 
@@ -1549,7 +1549,7 @@
 .showroom-call {
   font-size: 12.5px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .meeting-steps {
   display: grid;
@@ -1636,7 +1636,7 @@
 }
 .meeting-slots label.is-selected {
   border-color: #182844;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f9f9f8;
 }
 .meeting-slots input {
@@ -1680,7 +1680,7 @@
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 12.5px;
-  color: #182844;
+  color: var(--mu-accent-ink);
   background: #f7f7f5;
 }
 .dark .return-owner-note {
@@ -1730,7 +1730,7 @@
   place-items: center;
   font-size: 12px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .order-confirm-row {
   display: grid;
@@ -1753,7 +1753,7 @@
 }
 .order-confirm-visit {
   font-weight: 600;
-  color: #182844 !important;
+  color: var(--mu-accent-ink) !important;
 }
 .order-confirm-line {
   display: flex !important;
@@ -1775,7 +1775,7 @@
 }
 .order-confirm-money dd {
   font-weight: 600;
-  color: #0a1322;
+  color: var(--mu-accent-ink);
 }
 .order-confirm-money .is-now {
   padding: 8px 0;
@@ -1785,12 +1785,12 @@
 }
 .order-confirm-money .is-now dt {
   font-weight: 600;
-  color: #0a1322;
+  color: var(--mu-accent-ink);
 }
 .order-confirm-money .is-now dd {
   font-size: 22px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .order-confirm-note {
   font-size: 11.5px;
@@ -1891,7 +1891,7 @@
 }
 .thanks-code button {
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .thanks-status {
   display: grid;
@@ -1943,7 +1943,7 @@
   margin-top: 4px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .thanks-items {
   display: grid;
@@ -1990,7 +1990,7 @@
 }
 .thanks-money dd {
   font-weight: 600;
-  color: #0a1322;
+  color: var(--mu-accent-ink);
 }
 .thanks-money .is-total {
   padding-top: 10px;
@@ -2009,11 +2009,11 @@
 }
 .thanks-money .is-upfront dt {
   font-weight: 600;
-  color: #0a1322;
+  color: var(--mu-accent-ink);
 }
 .thanks-money .is-upfront dd {
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .thanks-points {
   margin-top: 12px;
@@ -2032,7 +2032,7 @@
 .thanks-money .is-balance dd {
   font-size: 16px;
   font-weight: 600;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .thanks-actions {
   display: grid;
@@ -2196,7 +2196,7 @@
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 600;
-  color: #0a1322;
+  color: var(--mu-accent-ink);
   background: #d6f36b;
 }
 @media (max-width: 720px) {
@@ -2247,10 +2247,10 @@
   box-shadow: 0 0 0 1px #182844 inset;
 }
 .visit-days button.is-selected small {
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .visit-other strong {
-  color: #182844;
+  color: var(--mu-accent-ink);
   letter-spacing: 0.1em;
 }
 .meeting-slots label.is-disabled {
@@ -2302,7 +2302,7 @@
   white-space: nowrap;
 }
 .visit-call {
-  color: #0a1322;
+  color: var(--mu-accent-ink);
   background: #d6f36b;
 }
 .visit-map {

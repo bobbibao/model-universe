@@ -182,7 +182,7 @@ const CouponModal = ({ open, coupon, onClose, onSaved }: CouponModalProps) => {
           <TextField
             label={t('code')}
             name="code"
-            className="uppercase"
+            className=""
             value={form.code}
             onChange={(event) => update('code', event.target.value.toUpperCase())}
           />
