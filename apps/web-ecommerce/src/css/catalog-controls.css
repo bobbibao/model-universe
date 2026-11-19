@@ -345,7 +345,7 @@ select:not([multiple]) {
 .catalog-grade-pills input:checked + span {
   background: #f3f3f0;
   border-color: #e4e4dd;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .catalog-grade-pills input:focus-visible + span {
   outline: 3px solid #182844;

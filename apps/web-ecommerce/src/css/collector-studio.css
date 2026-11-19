@@ -308,7 +308,7 @@
   padding: 10px 18px;
   border: 1px solid #646f8440;
   border-radius: 100px;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #fafaf8ed;
   font-size: 12px;
   font-weight: 600;
@@ -622,7 +622,7 @@
 }
 .mu-shell .mu-mobile-nav [aria-current='page'] {
   background: #efefea;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .mu-shell .mu-filter {
   border-radius: 20px;
@@ -742,7 +742,7 @@
   width: 125px;
   height: 125px;
   background: #ffffffc0;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   border: 1px solid white;
   border-radius: 32px;
   display: grid;
@@ -780,7 +780,7 @@
 }
 .service-switcher a:hover {
   background: #fff;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .service-terms {
   border: 1px solid #e5e4dc;
@@ -834,7 +834,7 @@
   width: 70px;
   height: 70px;
   background: #f2f2ef;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   border-radius: 24px;
   display: grid;
   place-items: center;
@@ -956,7 +956,7 @@
 .studio-gallery-toolbar > button {
   padding: 8px 12px;
   background: #f0f0ed;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   border-radius: 100px;
   font-weight: 600;
 }
@@ -1872,12 +1872,12 @@ a.channel-value:hover {
 .studio-channel-card.is-messenger .channel-action-btn {
   background: #fafaf8;
   border-color: #edede7;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .studio-channel-card.is-messenger:hover .channel-action-btn {
   background: #f5f5f2;
   border-color: #deded4;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .channel-copy-btn {
   display: inline-flex;

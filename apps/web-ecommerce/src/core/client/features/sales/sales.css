@@ -191,7 +191,7 @@
 }
 .sale-photo-badge.is-member {
   background: #f4f4f0;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   box-shadow: none;
   font-size: 10px;
   letter-spacing: 0.03em;

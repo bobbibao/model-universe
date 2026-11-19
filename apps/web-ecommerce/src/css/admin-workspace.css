@@ -2,6 +2,7 @@
    body, outside .admin-workspace, so they carry the same tokens. */
 .admin-workspace,
 .admin-modal-overlay {
+  --admin-on-accent: #fff;
   --admin-bg: #f6f6f2;
   --admin-surface: #fff;
   --admin-soft: #f8f8f6;
@@ -25,13 +26,14 @@
 }
 .dark .admin-workspace,
 .dark .admin-modal-overlay {
+  --admin-on-accent: #0a1322;
   --admin-bg: #0a1322;
   --admin-surface: #0a1322;
   --admin-soft: #101c31;
   --admin-line: #101c31;
   --admin-ink: #f1f1ed;
   --admin-muted: #a9b1c0;
-  --admin-accent: #deded5;
+  --admin-accent: var(--mu-emerald-glow);
   --admin-warning: #ffd166;
   --admin-success: #6ee7b7;
   --admin-danger: #fda4af;
@@ -373,6 +375,7 @@
 .dark .admin-page .mu-panel .mu-note {
   color: var(--admin-muted);
 }
+.admin-page .text-brand,
 .admin-page .text-brand-hover,
 .admin-page .text-primary,
 .admin-page .mu-eyebrow,
@@ -393,8 +396,8 @@
   color: var(--admin-info);
 }
 .admin-page .mu-eyebrow {
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: 12px;
+  letter-spacing: 0;
 }
 .admin-page h1,
 .admin-page h2,

@@ -93,7 +93,7 @@
 }
 .payment-plan-presets button[aria-pressed='true'] {
   border-color: #182844;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f9f9f8;
 }
 .payment-plan-split {
@@ -168,7 +168,7 @@
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #fff;
 }
 .transfer-instructions p {
@@ -283,7 +283,7 @@
 }
 .fulfillment-switch label.is-selected {
   background: #fff;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   box-shadow: 0 1px 3px rgb(10 19 34 / 0.12);
 }
 .fulfillment-switch input {
@@ -337,7 +337,7 @@
   width: 36px;
   height: 36px;
   border-radius: 11px;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f7f7f4;
 }
 .delivery-address-text strong,
@@ -368,7 +368,7 @@
   border-radius: 9px;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f7f7f5;
 }
 .delivery-address-change:hover {
@@ -430,7 +430,7 @@
   font-size: 10.5px;
   font-style: normal;
   font-weight: 600;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f4f4f2;
 }
 .delivery-address-add {
@@ -1474,7 +1474,7 @@
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f4f4f2;
 }
 
@@ -1636,7 +1636,7 @@
 }
 .meeting-slots label.is-selected {
   border-color: #182844;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f9f9f8;
 }
 .meeting-slots input {
@@ -1680,7 +1680,7 @@
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 12.5px;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f7f7f5;
 }
 .dark .return-owner-note {

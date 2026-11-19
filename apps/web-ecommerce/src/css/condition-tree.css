@@ -88,7 +88,7 @@
 }
 .catalog-tree-definition-row.is-active {
   background: #f5f5f2;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .dark .catalog-tree-definition-row.is-active {
   background: #182844;
@@ -185,7 +185,7 @@
 }
 .condition-tree-row.is-selected {
   background: #f6f6f4;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .dark .condition-tree-row.is-selected {
   background: #182844;
@@ -362,7 +362,7 @@
   border-radius: 8px;
   padding: 14px;
   background: #fbfbf9;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   font-size: 13px;
   line-height: 1.65;
 }
