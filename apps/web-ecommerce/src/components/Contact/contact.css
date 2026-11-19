@@ -581,7 +581,7 @@
 }
 .ch-pill:hover {
   border-color: #182844;
-  color: #182844;
+  color: var(--mu-accent-ink);
 }
 .ch-pill .ch-pill-phone {
   display: grid;

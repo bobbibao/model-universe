@@ -84,7 +84,7 @@ export default function ServiceConditionCasePanel({
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-900 dark:bg-slate-950 dark:text-slate-300">
             🏷
           </span>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
+          <h3 className="text-xs font-bold text-slate-800 dark:text-white">
             {en ? 'Condition combination' : 'Tổ hợp tình trạng định giá'}
           </h3>
         </div>

@@ -277,7 +277,7 @@ export default function HoldRequestDialog({
               <div className="hold-deposit-highlight">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-300">
+                    <div className="text-xs font-bold text-slate-900 dark:text-slate-300">
                       Cọc tối thiểu 20%
                     </div>
                     <div className="text-[11px] text-slate-800/80 dark:text-slate-400/80 mt-0.5">

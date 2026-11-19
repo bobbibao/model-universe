@@ -41,6 +41,11 @@
   /* The interface face: Be Vietnam Pro (next/font, set on <html> as --font-ui) draws every Vietnamese mark;
      Satoshi stays for the wordmark only. */
   --mu-font: var(--font-ui), 'Segoe UI', system-ui, sans-serif;
+  /* Accent text (links, active items, key figures): navy on light grounds, see the admin's dark theme below. */
+  --mu-accent-ink: var(--mu-navy-800);
+}
+.dark .admin-workspace {
+  --mu-accent-ink: #b9c7e2;
 }
 
 /* The one entrance on a page: a hero's words rise 8px and fade in once on load; its photograph settles from 1.03.

@@ -69,7 +69,7 @@ export default function AdminRecommendations() {
     <div className="admin-recommendations-workspace space-y-6 p-4 md:p-6">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-stroke pb-4 dark:border-strokedark">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand">{t('eyebrow')}</p>
+          <p className="text-xs font-semibold text-brand">{t('eyebrow')}</p>
           <h1 className="text-2xl font-bold text-black dark:text-white">{t('title')}</h1>
           <p className="mt-1 text-sm text-body dark:text-bodydark">{t('subtitle')}</p>
         </div>
@@ -139,7 +139,7 @@ export default function AdminRecommendations() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-stroke text-xs uppercase text-body dark:border-strokedark dark:text-bodydark">
+                  <tr className="border-b border-stroke text-xs text-body dark:border-strokedark dark:text-bodydark">
                     <th className="py-2 pr-4">{t('col.strategy')}</th>
                     <th className="py-2 px-3 text-right">{t('col.impressions')}</th>
                     <th className="py-2 px-3 text-right">{t('col.clicks')}</th>
@@ -170,7 +170,7 @@ export default function AdminRecommendations() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="border-b border-stroke text-xs uppercase text-body dark:border-strokedark dark:text-bodydark">
+                    <tr className="border-b border-stroke text-xs text-body dark:border-strokedark dark:text-bodydark">
                       <th className="py-2 pr-4">{t('col.product')}</th>
                       <th className="py-2 px-3 text-right">{t('col.price')}</th>
                       <th className="py-2 px-3 text-right">{t('col.stock')}</th>
@@ -308,7 +308,7 @@ export default function AdminRecommendations() {
             </div>
 
             <div className="border-t border-stroke pt-4 dark:border-strokedark">
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-body dark:text-bodydark">
+              <h3 className="mb-3 text-xs font-semibold text-body dark:text-bodydark">
                 {t('config.weightsTitle')}
               </h3>
               <div className="space-y-3">

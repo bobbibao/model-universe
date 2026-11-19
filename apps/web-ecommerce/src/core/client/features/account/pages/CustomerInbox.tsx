@@ -281,7 +281,7 @@ export default function CustomerInbox({ embedded = false }: { embedded?: boolean
                     {isUnread && (
                       <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-slate-900 dark:bg-white" />
                     )}
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:bg-meta-4 dark:text-slate-300">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-bold text-slate-600 dark:bg-meta-4 dark:text-slate-300">
                       {categoryLabel}
                     </span>
                     <h3 className={`text-xs sm:text-sm ${isUnread ? 'font-bold text-slate-900 dark:text-white' : 'font-medium text-slate-700 dark:text-slate-300'}`}>
