@@ -89,31 +89,34 @@ const Contact = () => {
     }
   };
 
-  const channels = [
+  // The three fastest ways in, first on the page.
+  const quick = [
     {
-      icon: 'phone',
-      label: c('hotline'),
-      value: CONTACT.phoneDisplay,
-      note: c('hotlineNote'),
+      key: 'phone',
       href: CONTACT.tel,
-      copy: CONTACT.phoneDisplay,
+      icon: <ContactIcon name="phone" size={20} />,
+      title: c('callHotline'),
+      note: CONTACT.phoneDisplay,
     },
     {
-      icon: 'zalo',
-      label: c('zalo'),
-      value: CONTACT.phoneDisplay,
-      note: c('zaloNote'),
+      key: 'zalo',
       href: CONTACT.zalo,
+      icon: <ContactIcon name="zalo" size={44} />,
+      title: c('chatZalo'),
+      note: c('fastestReply'),
       external: true,
     },
     {
-      icon: 'messenger',
-      label: c('messenger'),
-      value: 'Model Universe',
-      note: c('messengerNote'),
+      key: 'messenger',
       href: CONTACT.messenger,
+      icon: <ContactIcon name="messenger" size={44} />,
+      title: c('chatMessenger'),
+      note: 'Model Universe',
       external: true,
     },
+  ];
+  // The other channels (the three above are not repeated).
+  const channels = [
     {
       icon: 'tiktok',
       label: c('tiktok'),
@@ -156,31 +159,22 @@ const Contact = () => {
             </span>
           </p>
         </div>
-        <div className="ch-hero-actions">
-          <a className="ch-action is-phone" href={CONTACT.tel}>
-            <span className="ch-action-icon">
-              <ContactIcon name="phone" size={20} />
-            </span>
-            <span>
-              <strong>{c('callHotline')}</strong>
-              <small>{CONTACT.phoneDisplay}</small>
-            </span>
-          </a>
-          <a className="ch-action is-zalo" href={CONTACT.zalo} {...external}>
-            <ContactIcon name="zalo" size={40} />
-            <span>
-              <strong>{c('chatZalo')}</strong>
-              <small>{c('fastestReply')}</small>
-            </span>
-          </a>
-          <a className="ch-action is-messenger" href={CONTACT.messenger} {...external}>
-            <ContactIcon name="messenger" size={40} />
-            <span>
-              <strong>{c('chatMessenger')}</strong>
-              <small>Model Universe</small>
-            </span>
-          </a>
-        </div>
+        <ul className="ch-quick">
+          {quick.map((item) => (
+            <li key={item.key}>
+              <a className={`ch-quick-item is-${item.key}`} href={item.href} {...(item.external ? external : {})}>
+                <span className="ch-quick-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className="ch-quick-text">
+                  <strong>{item.title}</strong>
+                  <small>{item.note}</small>
+                </span>
+                <AdminIcon name="arrow" size={18} />
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="ch-topics" aria-labelledby="contact-topics">
@@ -239,20 +233,37 @@ const Contact = () => {
 
       <div className="ch-columns">
         <div className="ch-stack">
+          <section className="ch-visit" aria-labelledby="contact-showroom">
+            <h2 id="contact-showroom">{c('showroomTitle')}</h2>
+            <a className="ch-visit-address" href={CONTACT.mapsUrl} {...external}>
+              {CONTACT.addressLine}
+            </a>
+            <p className="ch-visit-hours">
+              <ContactIcon name="clock" size={16} />
+              {c('hoursValue', { hours: CONTACT.hours })}
+            </p>
+            <p className="ch-visit-note">{c('visitNote')}</p>
+            <div className="ch-visit-actions">
+              <a className="ch-visit-button is-primary" href={CONTACT.mapsUrl} {...external}>
+                <ContactIcon name="pin" size={18} />
+                {c('directions')}
+              </a>
+              <a className="ch-visit-button" href={CONTACT.tel}>
+                <ContactIcon name="phone" size={18} />
+                {c('call')} {CONTACT.phoneDisplay}
+              </a>
+            </div>
+          </section>
+
           <section className="ch-card" aria-labelledby="contact-channels">
             <h2 id="contact-channels" className="ch-card-title">
-              {c('allChannels')}
+              {c('otherChannels')}
             </h2>
             <ul className="ch-channel-list">
               {channels.map((channel) => (
                 <li key={channel.label} className="ch-channel">
-                  <span
-                    className={`ch-channel-icon ${channel.icon === 'phone' || channel.icon === 'mail' ? 'is-line' : ''}`}
-                  >
-                    <ContactIcon
-                      name={channel.icon}
-                      size={channel.icon === 'phone' || channel.icon === 'mail' ? 18 : 36}
-                    />
+                  <span className={`ch-channel-icon ${channel.icon === 'mail' ? 'is-line' : ''}`}>
+                    <ContactIcon name={channel.icon} size={channel.icon === 'mail' ? 18 : 36} />
                   </span>
                   <a className="ch-channel-body" href={channel.href} {...('external' in channel ? external : {})}>
                     <small>{channel.label}</small>
@@ -273,35 +284,6 @@ const Contact = () => {
                 </li>
               ))}
             </ul>
-          </section>
-
-          <section className="ch-card ch-showroom" aria-labelledby="contact-showroom">
-            <div className="ch-showroom-head">
-              <h2 id="contact-showroom" className="ch-card-title">
-                {c('showroomTitle')}
-              </h2>
-              <a className="ch-directions" href={CONTACT.mapsUrl} {...external}>
-                <ContactIcon name="pin" size={16} />
-                {c('directions')}
-              </a>
-            </div>
-            <dl className="ch-facts">
-              <div>
-                <dt>
-                  <ContactIcon name="pin" size={16} />
-                  {c('address')}
-                </dt>
-                <dd>{CONTACT.addressLine}</dd>
-              </div>
-              <div>
-                <dt>
-                  <ContactIcon name="clock" size={16} />
-                  {c('hours')}
-                </dt>
-                <dd>{c('hoursValue', { hours: CONTACT.hours })}</dd>
-              </div>
-            </dl>
-            <p className="ch-visit-note">{c('visitNote')}</p>
           </section>
         </div>
 
