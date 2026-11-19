@@ -673,7 +673,7 @@
   pointer-events: none;
   background:
     radial-gradient(38% 46% at 76% 34%, rgb(20 168 126 / 0.16), transparent 72%),
-    radial-gradient(30% 40% at 98% 72%, rgb(36 55 89 / 0.12), transparent 72%),
+    radial-gradient(30% 40% at 96% 70%, rgb(36 55 89 / 0.06), transparent 72%),
     radial-gradient(34% 40% at 8% 12%, rgb(58 217 168 / 0.08), transparent 72%);
 }
 .svx-aura::after {
@@ -1182,8 +1182,9 @@
   background: linear-gradient(
     180deg,
     var(--mu-navy-950) 0%,
-    rgb(10 19 34 / 0.5) 32%,
-    rgb(10 19 34 / 0.1) 58%,
+    var(--mu-navy-950) 6%,
+    rgb(10 19 34 / 0.45) 34%,
+    rgb(10 19 34 / 0.05) 60%,
     rgb(10 19 34 / 0.92) 100%
   );
 }
@@ -1385,6 +1386,7 @@
     padding-top: 32px;
   }
   .svx-where {
+    border-radius: 16px;
     font-size: 13px;
   }
   .svx-hero h1 {
