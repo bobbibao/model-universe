@@ -1917,158 +1917,283 @@
 }
 
 /* --- Home page ------------------------------------------------------------------------------------------------
-   The facts strip, the hero (plain words beside one real kit, large), the offer links and today's vouchers, then the
-   shelves as still grids and the brands. Paper ground, white surfaces with one hairline, navy ink and buttons, emerald
-   kept for focus. Only the hero moves on load. */
+   The promise bar scrolling under the header, the banner carousel (what the shop sells, then today's offers), the offer
+   links and today's vouchers, then the product shelves as carousels and the brands. White surfaces with one hairline,
+   navy ink and buttons, real kit photos; emerald only for free shipping and focus. */
 .home-promos > *,
 .membership > *,
 .promo-section {
   min-width: 0;
 }
 
-/* The shop's standing promises, still: one line under the header. */
-.home-facts {
+/* Promise bar: the shop's standing promises scrolling slowly; it stops while hovered and stands still for visitors
+   who reduce motion. */
+@keyframes ticker-run {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.ticker {
+  overflow: hidden;
   border-bottom: 1px solid var(--mu-line);
+  color: var(--mu-ink);
   background: var(--mu-surface);
 }
-.home-facts ul {
+.ticker-track {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 32px;
-  padding-block: 10px;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--mu-muted);
+  width: max-content;
+  animation: ticker-run 48s linear infinite;
 }
-.home-facts li {
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+.ticker-group {
+  display: flex;
+}
+.ticker-item {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  padding: 10px 32px;
+  font-size: 13px;
+  line-height: 20px;
   white-space: nowrap;
+  color: var(--mu-muted);
 }
-.home-facts li:nth-child(n + 4) {
-  display: none;
-}
-.home-facts svg {
+.ticker-item .promo-icon {
   color: var(--mu-navy-300);
 }
 
-/* Hero: the words on the left, centred against one kit photographed in the shop. */
-@keyframes home-settle {
-  from {
-    transform: scale(1.16);
-  }
-}
-.home-hero {
+/* Banner carousel: one slide at a time on a white panel, words on the left, real kits on the right. */
+.home-promos {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
-  gap: 64px;
+  gap: 40px;
+  padding-top: 24px;
+  padding-bottom: 8px;
+}
+.home-banner-carousel {
+  --gap: 0px;
+}
+/* Every slide as tall as the tallest, so the dots never float under a short slide. */
+.home-banner-carousel .carousel-slide > .home-banner {
+  height: 100%;
+}
+.home-banner {
+  --kicker: var(--mu-emerald-deep);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
   align-items: center;
-  padding-block: 56px 80px;
+  gap: 32px;
+  min-height: 420px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid var(--mu-line);
+  border-radius: var(--mu-r-panel);
+  color: var(--mu-ink);
+  background: var(--mu-surface);
 }
-.home-hero-copy {
-  animation: mu-enter 0.5s var(--mu-ease) both;
+.home-banner.is-sale {
+  --kicker: var(--mu-emerald-glow);
+  border-color: var(--mu-navy-950);
+  color: #fff;
+  background: var(--mu-navy-950);
 }
-.home-hero h1 {
-  max-width: 16ch;
-  text-wrap: balance;
-  font-size: clamp(40px, 4.2vw, 60px);
+.banner-copy {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 16px;
+  padding: 24px 0 24px 32px;
+}
+.banner-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 1.06;
+  color: var(--kicker);
+}
+.banner-copy h1,
+.banner-copy h2 {
+  max-width: 17ch;
+  text-wrap: balance;
+  font-size: clamp(32px, 3.4vw, 50px);
+  font-weight: 500;
+  line-height: 1.08;
   letter-spacing: -0.03em;
   color: var(--mu-navy-950);
 }
-.home-hero-lead {
-  max-width: 36rem;
-  margin-top: 20px;
-  font-size: 18px;
+.home-banner.is-sale .banner-copy h2 {
+  color: #fff;
+}
+.banner-copy p {
+  max-width: 44ch;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--mu-muted);
 }
-.home-hero-actions {
+.home-banner.is-sale .banner-copy p {
+  color: rgb(255 255 255 / 0.74);
+}
+.banner-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 32px;
+  margin-top: 8px;
 }
-.home-button {
+.banner-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-height: 48px;
+  margin-top: 8px;
   padding: 0 20px;
-  border: 1px solid transparent;
+  border: 1px solid var(--mu-navy-900);
   border-radius: var(--mu-r-control);
   font-size: 16px;
   font-weight: 500;
+  color: #fff;
+  background: var(--mu-navy-900);
   transition:
     background-color var(--mu-hover) var(--mu-ease),
     border-color var(--mu-hover) var(--mu-ease),
     transform var(--mu-hover) var(--mu-ease);
 }
-.home-button:hover {
-  transform: translateY(-1px);
+.banner-actions .banner-cta {
+  margin-top: 0;
 }
-.home-button:active {
-  transform: translateY(1px) scale(0.985);
-  transition-duration: var(--mu-press);
-}
-.home-button.is-primary {
-  color: #fff;
-  background: var(--mu-navy-900);
-}
-.home-button.is-primary:hover {
-  background: var(--mu-navy-950);
-}
-.home-button.is-secondary {
+.banner-cta.is-secondary {
   border-color: var(--mu-line-strong);
   color: var(--mu-ink);
   background: var(--mu-surface);
 }
-.home-button.is-secondary:hover {
+.banner-cta:hover,
+.home-banner > .banner-copy:hover .banner-cta {
+  transform: translateY(-1px);
+}
+.banner-cta:not(.is-secondary):hover,
+.home-banner > a.banner-copy:hover .banner-cta {
+  background: var(--mu-navy-950);
+}
+.banner-cta.is-secondary:hover {
   border-color: var(--mu-navy-900);
 }
-.home-button svg {
+.banner-cta .promo-icon {
   transition: transform var(--mu-hover) var(--mu-ease);
 }
-.home-button:hover svg {
+.banner-cta:hover .promo-icon,
+.home-banner > a.banner-copy:hover .banner-cta .promo-icon {
   transform: translateX(3px);
 }
-.home-button:focus-visible,
-.home-hero-photo:focus-visible,
+.home-banner.is-sale .banner-cta {
+  border-color: #fff;
+  color: var(--mu-navy-950);
+  background: #fff;
+}
+.home-banner.is-sale > a.banner-copy:hover .banner-cta {
+  background: var(--mu-fill);
+}
+.banner-copy:focus-visible,
+.banner-cta:focus-visible,
+.banner-photo:focus-visible,
 .home-door:focus-visible,
 .home-grade:focus-visible,
 .product-rail-more:focus-visible {
   outline: 2px solid var(--mu-emerald);
   outline-offset: 2px;
 }
-.home-hero-photo {
+.banner-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+.banner-clock small {
+  margin-right: 4px;
+  font-size: 14px;
+  color: rgb(255 255 255 / 0.74);
+}
+.banner-clock b {
+  min-width: 36px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--mu-navy-950);
+  background: #fff;
+}
+.banner-steps {
+  display: grid;
+  min-width: min(100%, 340px);
+  border-top: 1px solid var(--mu-line);
+}
+.banner-steps li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--mu-line);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.banner-steps b {
+  font-weight: 500;
+  color: var(--mu-emerald-deep);
+}
+.banner-tiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.banner-tiers li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--mu-muted);
+}
+.banner-tiers li::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip, #9aa6bc);
+}
+/* Three kits: one large on the left of the collage, two stacked beside it. */
+.banner-collage {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  align-self: stretch;
+  min-height: 372px;
+}
+.banner-photo {
   position: relative;
-  display: block;
   overflow: hidden;
-  aspect-ratio: 5 / 4;
-  border-radius: var(--mu-r-panel);
-  background: var(--mu-navy-950);
+  border-radius: var(--mu-r-card);
+  background: var(--mu-fill);
 }
-/* Shop photos carry the watermark plate at the bottom right; a slight zoom from the top keeps it out of frame. */
-.home-hero-photo img {
-  transform: scale(1.12);
-  transform-origin: 50% 0;
+.banner-photo.is-0 {
+  grid-row: span 2;
+}
+.banner-photo img {
   transition: transform 600ms var(--mu-ease);
-  animation: home-settle 1s var(--mu-ease) backwards;
 }
-.home-hero-photo:hover img {
-  transform: scale(1.145);
+.banner-photo:hover img {
+  transform: scale(1.025);
+}
+.home-banner-carousel .carousel-arrow.is-prev {
+  left: 16px;
+}
+.home-banner-carousel .carousel-arrow.is-next {
+  right: 16px;
 }
 
-/* Today's offers: the offer links as one quiet row, then three vouchers. */
-.home-promos {
-  display: grid;
-  gap: 56px;
-  padding-bottom: 8px;
-}
+/* Today's offers: the offer links as one quiet row, then the vouchers sliding. */
 .home-doors {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2116,6 +2241,10 @@
   letter-spacing: -0.02em;
   color: var(--mu-navy-950);
 }
+.product-rail-head > div {
+  flex: 1;
+  min-width: 0;
+}
 .product-rail-head p {
   margin-top: 8px;
   font-size: 15px;
@@ -2130,6 +2259,7 @@
   min-height: 40px;
   font-size: 15px;
   font-weight: 500;
+  white-space: nowrap;
   color: var(--mu-ink);
   text-decoration: underline 1px transparent;
   text-underline-offset: 4px;
@@ -2147,18 +2277,36 @@
 .product-rail-more:hover svg {
   transform: translateX(3px);
 }
+.voucher-carousel {
+  --slide: min(380px, 86%);
+  --gap: 16px;
+}
 
-/* Shelves: a still grid of five, four on narrower screens, two by two on a phone. */
+/* Product shelves: carousels of tiles that slide by themselves and stop while hovered. */
 .product-rail {
   padding-top: 80px;
 }
-.product-rail-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 20px;
+.product-rail-carousel {
+  --slide: 20%;
+  --gap: 20px;
+}
+@media (min-width: 1720px) {
+  .product-rail-carousel {
+    --slide: 16.6666%;
+  }
+}
+.product-rail-carousel .carousel-viewport {
+  padding-block: 4px 8px;
+}
+.product-rail-carousel .carousel-arrow.is-prev {
+  left: -8px;
+}
+.product-rail-carousel .carousel-arrow.is-next {
+  right: -8px;
 }
 .product-rail-item {
   position: relative;
+  height: 100%;
   min-width: 0;
 }
 .product-rail-item > .product-tile {
@@ -2234,37 +2382,25 @@
 }
 
 @media (max-width: 1199px) {
-  .product-rail-grid,
-  .product-rail-skeleton {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .product-rail-grid > :nth-child(5),
-  .product-rail-skeleton > :nth-child(5) {
-    display: none;
-  }
   .home-doors {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .home-facts li:nth-child(n + 3) {
-    display: none;
-  }
 }
 @media (max-width: 1023px) {
-  .home-hero {
+  .home-banner {
     grid-template-columns: 1fr;
-    gap: 40px;
-    padding-block: 40px 56px;
+    gap: 16px;
+    min-height: 0;
+    padding: 16px;
   }
-  .home-hero-photo {
-    aspect-ratio: 4 / 3;
+  .banner-copy {
+    padding: 16px 8px 8px;
+  }
+  .banner-collage {
+    min-height: 300px;
   }
 }
 @media (max-width: 767px) {
-  .product-rail-grid,
-  .product-rail-skeleton {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
   .product-rail,
   .home-grades,
   .sv-home {
@@ -2272,21 +2408,26 @@
   }
 }
 @media (max-width: 640px) {
-  .home-facts li:nth-child(n + 2) {
-    display: none;
-  }
-  .home-hero {
+  .home-promos {
     gap: 32px;
-    padding-block: 32px 48px;
+    padding-top: 16px;
   }
-  .home-hero h1 {
-    font-size: 36px;
+  .banner-copy h1,
+  .banner-copy h2 {
+    font-size: 30px;
   }
-  .home-hero-lead {
+  .banner-copy p {
     font-size: 16px;
   }
-  .home-button {
+  .banner-actions .banner-cta {
     flex: 1 1 100%;
+  }
+  .banner-collage {
+    min-height: 240px;
+    gap: 8px;
+  }
+  .home-banner-carousel .carousel-arrow {
+    display: none;
   }
   .home-doors {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2295,20 +2436,16 @@
     justify-content: flex-start;
     padding: 0 16px;
   }
-  .home-promos {
-    gap: 48px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-hero-copy,
-  .home-hero-photo img {
+  .ticker-track {
     animation: none;
   }
-  .home-button,
-  .home-button svg,
+  .banner-cta,
+  .banner-cta .promo-icon,
+  .banner-photo img,
   .home-door,
-  .home-grade,
-  .home-hero-photo img {
+  .home-grade {
     transition: none;
   }
 }
@@ -3191,13 +3328,10 @@ button.voucher-row:hover {
 @media (max-width: 600px) {
   .product-rail-carousel {
     --slide: 62%;
-    --gap: 10px;
+    --gap: 12px;
   }
   .product-rail-skeleton {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .product-rail-more {
-    padding: 6px 10px;
   }
   .product-rail-head p {
     display: none;
@@ -3221,16 +3355,6 @@ button.voucher-row:hover {
   }
   .promo-anchors a {
     white-space: nowrap;
-  }
-  .home-banner {
-    grid-template-columns: 1fr;
-    min-height: 0;
-  }
-  .banner-copy {
-    padding: 26px 22px 6px;
-  }
-  .banner-collage {
-    min-height: 200px;
   }
   .carousel-arrow {
     display: none;
