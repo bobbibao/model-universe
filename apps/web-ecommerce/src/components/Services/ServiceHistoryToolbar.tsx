@@ -48,7 +48,7 @@ export default function ServiceHistoryToolbar({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Tìm theo mã TM, tên mô hình, phiên bản..."
-          className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 shadow-2xs transition-all focus:border-purple-600 focus:bg-white focus:ring-2 focus:ring-purple-600/20 focus:outline-none dark:border-strokedark dark:bg-boxdark dark:text-white"
+          className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 shadow-2xs transition-all focus:border-slate-800 focus:bg-white focus:ring-2 focus:ring-slate-800/20 focus:outline-none dark:border-strokedark dark:bg-boxdark dark:text-white"
         />
         {searchQuery && (
           <button
@@ -80,9 +80,9 @@ export default function ServiceHistoryToolbar({
 
           if (isSelected) {
             pillStyle = {
-              backgroundColor: '#1e1b2e',
+              backgroundColor: '#0a1322',
               color: '#ffffff',
-              borderColor: '#1e1b2e',
+              borderColor: '#0a1322',
             };
             badgeStyle = {
               backgroundColor: 'rgba(255, 255, 255, 0.22)',

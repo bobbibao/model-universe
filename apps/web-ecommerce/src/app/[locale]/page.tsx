@@ -3,6 +3,7 @@ import { preload } from 'react-dom';
 import StoreLayout from '@/components/Layouts/StoreLayout';
 import Home from '@/core/client/features/home/pages/Home';
 import { getFeaturedProducts } from '@/shared/server/utils/StorefrontData';
+import { heroProduct } from '@/core/client/features/home/heroProduct';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { isEnglish, jsonLd, organizationSchema, pageMetadata, websiteSchema } from '@/shared/seo';
 
@@ -40,7 +41,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const initialProducts = await getFeaturedProducts();
   const base = siteUrl();
 
-  const lcpImage = initialProducts?.[3]?.imageUrl || initialProducts?.[0]?.imageUrl;
+  const lcpImage = heroProduct(initialProducts ?? [])?.imageUrl;
   if (lcpImage) {
     preload(lcpImage, { as: 'image', fetchPriority: 'high' });
   }

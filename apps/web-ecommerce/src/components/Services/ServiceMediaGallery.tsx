@@ -138,7 +138,7 @@ export default function ServiceMediaGallery({
                       setActiveIndex(idx);
                     }
                   }}
-                  className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-slate-200/90 bg-slate-50 transition-all duration-200 hover:border-purple-500/70 hover:shadow-md focus:ring-2 focus:ring-purple-600 focus:outline-none dark:border-strokedark dark:bg-meta-4/20"
+                  className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl border border-slate-200/90 bg-slate-50 transition-all duration-200 hover:border-slate-600/70 hover:shadow-md focus:ring-2 focus:ring-slate-800 focus:outline-none dark:border-strokedark dark:bg-meta-4/20"
                 >
                   {video ? (
                     <div className="flex h-full w-full flex-col items-center justify-center bg-slate-900 p-2 text-center text-white">
@@ -224,7 +224,7 @@ export default function ServiceMediaGallery({
                   {activeFile.originalName}
                 </span>
                 {badge && (
-                  <span className="hidden sm:inline-block rounded-md bg-purple-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
+                  <span className="hidden sm:inline-block rounded-md bg-slate-800 px-2.5 py-0.5 text-[11px] font-bold text-white">
                     {badge}
                   </span>
                 )}
@@ -311,7 +311,7 @@ export default function ServiceMediaGallery({
                         onClick={() => setActiveIndex(idx)}
                         className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
                           isSelected
-                            ? 'scale-110 border-white ring-2 ring-purple-500 shadow-lg'
+                            ? 'scale-110 border-white ring-2 ring-slate-600 shadow-lg'
                             : 'border-white/20 opacity-60 hover:opacity-100 hover:scale-105'
                         }`}
                       >

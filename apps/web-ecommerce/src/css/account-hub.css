@@ -13,7 +13,7 @@
   font-size: clamp(34px, 4vw, 54px);
   line-height: 1.12;
   letter-spacing: -0.055em;
-  font-weight: 800;
+  font-weight: 600;
   margin: 12px 0;
 }
 .account-heading > div > p:last-child,
@@ -29,7 +29,7 @@
   gap: 10px;
   min-height: 44px;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   white-space: nowrap;
 }
 .account-layout {
@@ -49,7 +49,7 @@
   position: sticky;
   top: 116px;
   background: #fff;
-  border: 1px solid #e8e5ee;
+  border: 1px solid #ecece7;
   border-radius: 24px;
   padding: 20px 12px 12px;
 }
@@ -58,7 +58,7 @@
   gap: 12px;
   align-items: center;
   padding: 0 8px 20px;
-  border-bottom: 1px solid #edeaf2;
+  border-bottom: 1px solid #f0f0ec;
 }
 .account-avatar {
   width: 48px;
@@ -66,9 +66,9 @@
   display: grid;
   place-items: center;
   border-radius: 16px;
-  background: #e8e0fa;
-  color: #6f45c8;
-  font-weight: 800;
+  background: #efefeb;
+  color: #182844;
+  font-weight: 600;
   flex-shrink: 0;
 }
 .account-identity > div {
@@ -109,12 +109,12 @@
   opacity: 0;
 }
 .account-sidebar nav a:hover {
-  background: #f6f2fc;
-  color: #7048ba;
+  background: #f8f8f6;
+  color: #182844;
 }
 .account-sidebar nav a[aria-current='page'] {
-  background: #ece4fc;
-  color: #633ca9;
+  background: #f2f2ee;
+  color: #101c31;
 }
 .account-sidebar nav a[aria-current='page'] > span:last-child {
   opacity: 1;
@@ -124,7 +124,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 14px 12px 4px;
-  border-top: 1px solid #edeaf2;
+  border-top: 1px solid #f0f0ec;
   font-size: 12px;
 }
 .account-session > span {
@@ -153,7 +153,7 @@
 }
 .account-card {
   background: #fff;
-  border: 1px solid #e8e5ee;
+  border: 1px solid #ecece7;
   border-radius: 22px;
   padding: 24px;
   min-width: 0;
@@ -167,7 +167,7 @@
   min-height: 296px;
   padding: 28px;
   border-radius: 24px;
-  background: linear-gradient(130deg, #29203e, #50336f 60%, #71539c);
+  background: linear-gradient(130deg, #101c31, #182844 60%, #182844);
   color: #fff;
 }
 .account-member-card::before,
@@ -199,10 +199,10 @@
   color: #d7ef88;
   font-size: 10px;
   letter-spacing: 0.14em;
-  font-weight: 750;
+  font-weight: 600;
 }
 .account-member-card > p {
-  color: #d1c1e9;
+  color: #dadad0;
   font-size: 11px;
   margin-top: 24px;
   letter-spacing: 0.14em;
@@ -210,7 +210,7 @@
 }
 .account-member-card h2 {
   font-size: clamp(27px, 3vw, 42px);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1.15;
   margin-top: 4px;
@@ -231,10 +231,10 @@
   font-size: 11px;
 }
 .account-card-bottom > span {
-  color: #d1c1e9;
+  color: #dadad0;
 }
 .account-card-bottom a {
-  font-weight: 650;
+  font-weight: 600;
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -245,8 +245,8 @@
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  background: #eee7fb;
-  color: #7950b6;
+  background: #f3f3ef;
+  color: #182844;
   flex-shrink: 0;
 }
 .account-next-build {
@@ -264,7 +264,7 @@
 }
 .account-next-build h2 {
   font-size: 27px;
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.04em;
   margin: 10px 0;
@@ -293,7 +293,7 @@
   display: block;
   margin-top: 10px;
   font-size: 30px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.04em;
   overflow-wrap: anywhere;
 }
@@ -313,7 +313,7 @@
 }
 .account-notice button {
   min-height: 44px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
 }
 .account-progress {
@@ -328,7 +328,7 @@
 .account-signout-card h2,
 .account-help h2 {
   font-size: 21px;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 .account-progress p,
@@ -344,7 +344,7 @@
   width: 100%;
   height: 7px;
   grid-column: 1 / -1;
-  accent-color: #8a5cd0;
+  accent-color: #182844;
   border-radius: 100px;
 }
 .account-progress > a {
@@ -352,7 +352,7 @@
   grid-column: 2;
   align-self: center;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .account-section-heading {
   display: flex;
@@ -385,11 +385,11 @@
     background 0.15s;
 }
 .account-quick-link > svg {
-  color: #7950b6;
+  color: #182844;
 }
 .account-quick-link > strong {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .account-quick-link > span:not(:last-child) {
   color: #756d80;
@@ -399,10 +399,10 @@
 .account-quick-link > span:last-child {
   margin-top: auto;
   align-self: end;
-  color: #7950b6;
+  color: #182844;
 }
 .account-quick-link:hover {
-  border-color: #c2acdf;
+  border-color: #bcc2cf;
   background: #fcfaff;
 }
 .account-service-links {
@@ -416,11 +416,11 @@
   gap: 12px;
   min-height: 110px;
   padding: 18px;
-  background: #f0ebf6;
+  background: #f2f2ef;
   border-radius: 18px;
 }
 .account-service-links > a > svg {
-  color: #7950b6;
+  color: #182844;
   flex-shrink: 0;
 }
 .account-service-links > a > div {
@@ -441,7 +441,7 @@
   margin-left: auto;
 }
 .account-completion {
-  background: #eee7fb;
+  background: #f3f3ef;
   border-radius: 100px;
   padding: 9px 13px;
   white-space: nowrap;
@@ -459,13 +459,13 @@
   text-align: left;
   min-height: 82px;
   padding-block: 20px;
-  border-bottom: 1px solid #edeaf2;
+  border-bottom: 1px solid #f0f0ec;
 }
 .account-fields > :last-child {
   border-bottom: 0;
 }
 .account-fields > button:hover {
-  color: #7950b6;
+  color: #182844;
 }
 .account-fields > * > span {
   color: #756d80;
@@ -473,7 +473,7 @@
 }
 .account-fields > * > strong {
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .account-fields > * > span:last-child:not(:first-child) {
@@ -515,7 +515,7 @@
 }
 .account-embedded > div > div > section {
   border-radius: 20px;
-  border-color: #e8e5ee;
+  border-color: #ecece7;
   background: #fff;
 }
 .account-embedded h2.mu-heading {
@@ -523,7 +523,7 @@
 }
 .account-embedded .mu-panel {
   border-radius: 18px;
-  border-color: #e8e5ee;
+  border-color: #ecece7;
 }
 .account-membership .service-terms {
   margin-bottom: 24px;
@@ -534,7 +534,7 @@
 .account-support-hero {
   padding: 36px;
   border-radius: 24px;
-  background: linear-gradient(120deg, #ebe2fa, #f0ede7);
+  background: linear-gradient(120deg, #f0f0ec, #f0ede7);
 }
 .account-support-hero .account-icon {
   background: #fff;
@@ -543,7 +543,7 @@
 .account-support-hero h2 {
   max-width: 560px;
   font-size: clamp(27px, 3.2vw, 42px);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.045em;
   line-height: 1.15;
   margin: 12px 0;
@@ -561,7 +561,7 @@
 }
 .account-support-links h3 {
   font-size: 19px;
-  font-weight: 700;
+  font-weight: 600;
   margin: 16px 0 8px;
 }
 .account-support-links p,
@@ -574,14 +574,14 @@
   margin-top: 20px;
 }
 .account-help details {
-  border-top: 1px solid #edeaf2;
+  border-top: 1px solid #f0f0ec;
   margin-top: 18px;
   padding-top: 14px;
 }
 .account-help summary {
   cursor: pointer;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   min-height: 44px;
   padding-block: 10px;
 }

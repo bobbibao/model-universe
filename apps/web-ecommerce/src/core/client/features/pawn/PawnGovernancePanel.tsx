@@ -102,7 +102,7 @@ export default function PawnGovernancePanel({
         </dl>
       )}
       {row.extensionRequest && (
-        <div className="space-y-2 rounded-xl border border-violet-200 p-4 text-sm">
+        <div className="space-y-2 rounded-xl border border-slate-200 p-4 text-sm">
           <h3 className="font-bold">Dự kiến gia hạn</h3>
           <p>
             Credit cần xác nhận: <b>{money(row.extensionRequest.creditDueVnd)}</b>

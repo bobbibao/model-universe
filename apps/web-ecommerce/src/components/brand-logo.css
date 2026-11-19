@@ -17,6 +17,7 @@
   mask: url('/brand/mark.png') center / contain no-repeat;
 }
 .brand-logo-word {
+  font-family: 'Satoshi', var(--mu-font);
   font-size: var(--brand-word, 19px);
   font-weight: 700;
   line-height: 1;

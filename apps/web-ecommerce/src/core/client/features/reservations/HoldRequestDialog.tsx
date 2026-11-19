@@ -172,7 +172,7 @@ export default function HoldRequestDialog({
 
         {/* Notice Info Card */}
         <div className="hold-notice-card">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-800 dark:text-slate-400 flex-shrink-0 mt-0.5">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
             <line x1="12" y1="8" x2="12.01" y2="8"/>
@@ -277,15 +277,15 @@ export default function HoldRequestDialog({
               <div className="hold-deposit-highlight">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">
+                    <div className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-300">
                       Cọc tối thiểu 20%
                     </div>
-                    <div className="text-[11px] text-purple-600/80 dark:text-purple-400/80 mt-0.5">
+                    <div className="text-[11px] text-slate-800/80 dark:text-slate-400/80 mt-0.5">
                       Được giữ hàng trong 10 ngày đầu tiên
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-black text-purple-700 dark:text-purple-300">
+                    <div className="text-lg font-black text-slate-900 dark:text-slate-300">
                       {formatVND(quote.minimumInitialVnd, 'vi')}
                     </div>
                   </div>
@@ -330,7 +330,7 @@ export default function HoldRequestDialog({
             <details className="hold-terms-accordion group">
               <summary className="hold-terms-summary">
                 <span className="flex items-center gap-2">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-600 dark:text-purple-400"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-800 dark:text-slate-400"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                   Xem điều khoản giữ hàng & chính sách hoàn cọc
                 </span>
                 <svg className="hold-terms-chevron group-open:rotate-180 transition-transform duration-200" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>

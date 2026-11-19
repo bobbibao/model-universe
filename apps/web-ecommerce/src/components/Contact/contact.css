@@ -2,10 +2,10 @@
 .ch-page {
   --ch-ink: #22212b;
   --ch-muted: #6f657c;
-  --ch-line: #e7e3ee;
-  --ch-soft: #f6f3fb;
-  --ch-accent: #6f4db1;
-  --ch-accent-soft: #ede6f7;
+  --ch-line: #ebebe6;
+  --ch-soft: #f8f8f6;
+  --ch-accent: #182844;
+  --ch-accent-soft: #f0f0ed;
   --ch-lime: #dcf56a;
   --ch-green: #14955a;
   padding-block: 40px 72px;
@@ -20,12 +20,12 @@
   align-items: center;
   padding: 40px;
   border-radius: 24px;
-  background: radial-gradient(120% 140% at 100% 0%, #3a2d5c 0%, #22212b 55%);
-  color: #f7f5fb;
+  background: radial-gradient(120% 140% at 100% 0%, #182844 0%, #22212b 55%);
+  color: #f9f9f7;
 }
 .ch-eyebrow {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ch-lime);
@@ -35,7 +35,7 @@
   font-size: clamp(28px, 3.4vw, 44px);
   line-height: 1.12;
   letter-spacing: -0.035em;
-  font-weight: 800;
+  font-weight: 600;
   color: #fff;
 }
 .ch-hero-intro {
@@ -43,7 +43,7 @@
   max-width: 560px;
   font-size: 15px;
   line-height: 1.7;
-  color: #cfc8dd;
+  color: #d8d8cd;
 }
 .ch-status {
   display: flex;
@@ -74,7 +74,7 @@
   align-items: center;
   gap: 6px;
   font-weight: 500;
-  color: #cfc8dd;
+  color: #d8d8cd;
 }
 .ch-hero-actions {
   display: grid;
@@ -100,7 +100,7 @@
 .ch-action strong {
   display: block;
   font-size: 15px;
-  font-weight: 750;
+  font-weight: 600;
 }
 .ch-action small {
   display: block;
@@ -131,7 +131,7 @@
 }
 .ch-section-head h2 {
   font-size: clamp(22px, 2.2vw, 28px);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 .ch-section-head p {
@@ -165,7 +165,7 @@
 .ch-topic h3 {
   margin-top: 16px;
   font-size: 16px;
-  font-weight: 750;
+  font-weight: 600;
 }
 .ch-topic p {
   margin-top: 6px;
@@ -183,7 +183,7 @@
   display: inline-flex;
   margin-top: 14px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ch-accent);
   word-break: break-all;
 }
@@ -215,7 +215,7 @@
 }
 .ch-card-title {
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .ch-channel-list {
   margin-top: 8px;
@@ -225,7 +225,7 @@
   align-items: center;
   gap: 14px;
   padding: 14px 0;
-  border-bottom: 1px solid #f0edf4;
+  border-bottom: 1px solid #f2f2ef;
 }
 .ch-channel:last-child {
   border-bottom: 0;
@@ -250,7 +250,7 @@
 .ch-channel-body small {
   display: block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #8c839a;
@@ -258,7 +258,7 @@
 .ch-channel-body strong {
   display: block;
   font-size: 16px;
-  font-weight: 750;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -302,7 +302,7 @@
   background: var(--ch-ink);
   color: #fff;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .ch-facts {
   display: grid;
@@ -314,7 +314,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #8c839a;
@@ -339,7 +339,7 @@
 }
 .ch-form-title {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 .ch-form-intro {
@@ -394,10 +394,10 @@
   background: var(--ch-ink);
   color: #fff;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .ch-submit:hover {
-  background: #3a3550;
+  background: #182844;
 }
 .ch-submit:disabled {
   opacity: 0.6;
@@ -468,7 +468,7 @@
   background: var(--ch-green, #14955a);
   color: #fff;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: 0 10px 28px #14955a55;
 }
 .ch-fab-toggle .ch-fab-ring {
@@ -499,7 +499,7 @@
   display: grid;
   gap: 8px;
   padding: 10px;
-  border: 1px solid #e7e3ee;
+  border: 1px solid #ebebe6;
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 18px 48px #22212b30;
@@ -514,12 +514,12 @@
   color: #22212b;
 }
 .ch-fab-menu a:hover {
-  background: #f6f3fb;
+  background: #f8f8f6;
 }
 .ch-fab-menu strong {
   display: block;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .ch-fab-menu small {
   display: block;
@@ -580,16 +580,16 @@
   gap: 8px;
   height: 40px;
   padding: 0 14px 0 6px;
-  border: 1px solid #e7e3ee;
+  border: 1px solid #ebebe6;
   border-radius: 999px;
   background: #fff;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: #22212b;
 }
 .ch-pill:hover {
-  border-color: #6f4db1;
-  color: #6f4db1;
+  border-color: #182844;
+  color: #182844;
 }
 .ch-pill .ch-pill-phone {
   display: grid;
@@ -607,7 +607,7 @@
   gap: 10px;
   margin-top: 14px;
   padding: 14px 16px;
-  border: 1px dashed #d9d2e6;
+  border: 1px dashed #e0e0d8;
   border-radius: 16px;
   font-size: 13px;
   line-height: 1.5;

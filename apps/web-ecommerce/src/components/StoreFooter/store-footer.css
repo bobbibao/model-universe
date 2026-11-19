@@ -1,4 +1,5 @@
-/* Storefront footer. Selectors start with `.mu-shell .mu-footer.sf` to win over the older light-footer rules. */
+/* Storefront footer: the one navy band at the foot of every page. Sentence-case column heads, muted icons, links that
+   brighten and underline. Selectors start with `.mu-shell .mu-footer.sf` to win over the older light-footer rules. */
 .mu-shell .mu-footer.sf {
   background: var(--mu-navy-950);
   color: #c3cad8;
@@ -11,16 +12,23 @@
 .mu-shell .mu-footer.sf button {
   color: inherit;
 }
+.mu-shell .mu-footer.sf a,
+.mu-shell .mu-footer.sf button {
+  text-decoration: underline 1px transparent;
+  text-underline-offset: 4px;
+  transition:
+    color var(--mu-hover) var(--mu-ease),
+    text-decoration-color var(--mu-hover) var(--mu-ease);
+}
 .mu-shell .mu-footer.sf a:hover,
 .mu-shell .mu-footer.sf button:hover {
-  color: var(--mu-gold-light);
+  color: #fff;
+  text-decoration-color: currentColor;
 }
 .mu-shell .mu-footer.sf h2 {
   margin-bottom: 16px;
-  font-size: 13px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 500;
   color: #fff;
 }
 
@@ -57,10 +65,10 @@
 .mu-shell .mu-footer.sf .sf-socials a {
   display: inline-flex;
   border-radius: 50%;
-  transition: transform 0.15s;
+  transition: opacity var(--mu-hover) var(--mu-ease);
 }
 .mu-shell .mu-footer.sf .sf-socials a:hover {
-  transform: translateY(-2px);
+  opacity: 0.8;
 }
 .mu-shell .mu-footer.sf .sf-contact {
   display: grid;
@@ -77,15 +85,13 @@
 }
 .mu-shell .mu-footer.sf .sf-contact svg {
   flex-shrink: 0;
-  margin-top: 18px;
-  color: var(--mu-gold-light);
+  margin-top: 22px;
+  color: var(--mu-navy-300);
 }
 .mu-shell .mu-footer.sf .sf-contact small {
   display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  margin-bottom: 2px;
+  font-size: 13px;
   color: var(--mu-navy-300);
 }
 
@@ -112,10 +118,10 @@
   color: var(--mu-navy-300);
 }
 .mu-shell .mu-footer.sf .sf-chip {
-  padding: 5px 12px;
+  padding: 4px 10px;
   border: 1px solid #ffffff24;
-  border-radius: 999px;
-  font-size: 12px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 600;
   color: #e6eaf2;
 }

@@ -243,8 +243,8 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
                   <button
                     className={`group relative w-full text-left rounded-xl p-2.5 sm:p-3 transition-all duration-150 border ${
                       selected?.id === row.id
-                        ? 'border-2 border-purple-600 bg-purple-50/50 shadow-xs ring-2 ring-purple-600/15 dark:bg-purple-950/30 dark:border-purple-500'
-                        : 'border-slate-200/80 bg-white hover:border-purple-300 hover:shadow-2xs hover:bg-slate-50/50 dark:border-strokedark dark:bg-boxdark dark:hover:border-slate-500'
+                        ? 'border-2 border-slate-800 bg-slate-50/50 shadow-xs ring-2 ring-slate-800/15 dark:bg-slate-950/30 dark:border-slate-600'
+                        : 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-2xs hover:bg-slate-50/50 dark:border-strokedark dark:bg-boxdark dark:hover:border-slate-500'
                     }`}
                     key={row.id}
                     onClick={() => void open(row.id)}
@@ -253,13 +253,13 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
                   >
                     {/* Left active highlight bar */}
                     {selected?.id === row.id && (
-                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-purple-600 dark:bg-purple-400" />
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-slate-800 dark:bg-slate-400" />
                     )}
 
                     {/* Top row: ID badge + Type + Status badge */}
                     <div className="flex items-center justify-between gap-1.5 pl-1">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="font-mono text-[11px] font-black tracking-wide text-purple-900 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 px-1.5 py-0.5 rounded border border-purple-200/80 dark:border-purple-800">
+                        <span className="font-mono text-[11px] font-black tracking-wide text-slate-950 bg-slate-100 dark:bg-slate-950 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-slate-900">
                           #{row.id}
                         </span>
                         <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-meta-4 dark:text-slate-300">
@@ -270,7 +270,7 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
                     </div>
 
                     {/* Middle row: Model Name (single line, truncate) */}
-                    <h4 className="mt-1.5 pl-1 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors truncate dark:text-white">
+                    <h4 className="mt-1.5 pl-1 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-slate-800 transition-colors truncate dark:text-white">
                       {row.asset.name}
                     </h4>
 
@@ -322,7 +322,7 @@ export default function PawnWorkspace({ admin = false }: { admin?: boolean }) {
                               onClick={() => setCurrentPage(page)}
                               className={`min-w-[28px] rounded-lg px-2 py-1 text-xs font-bold transition-all ${
                                 currentPage === page
-                                  ? 'bg-purple-600 text-white shadow-2xs'
+                                  ? 'bg-slate-800 text-white shadow-2xs'
                                   : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4'
                               }`}
                             >

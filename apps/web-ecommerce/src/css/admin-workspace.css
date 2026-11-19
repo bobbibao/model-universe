@@ -4,11 +4,11 @@
 .admin-modal-overlay {
   --admin-bg: #f6f6f2;
   --admin-surface: #fff;
-  --admin-soft: #f6f4fa;
-  --admin-line: #e6e3ed;
-  --admin-ink: #272336;
+  --admin-soft: #f8f8f6;
+  --admin-line: #ebebe5;
+  --admin-ink: #101c31;
   --admin-muted: #71697e;
-  --admin-accent: #6541b7;
+  --admin-accent: #182844;
   --admin-warning: #a45b05;
   --admin-success: #087b56;
   --admin-danger: #bb3552;
@@ -25,13 +25,13 @@
 }
 .dark .admin-workspace,
 .dark .admin-modal-overlay {
-  --admin-bg: #131020;
-  --admin-surface: #201a30;
-  --admin-soft: #282038;
-  --admin-line: #392e49;
-  --admin-ink: #ede7f7;
-  --admin-muted: #b2a5c4;
-  --admin-accent: #c9b8fb;
+  --admin-bg: #0a1322;
+  --admin-surface: #0a1322;
+  --admin-soft: #101c31;
+  --admin-line: #101c31;
+  --admin-ink: #f1f1ed;
+  --admin-muted: #a9b1c0;
+  --admin-accent: #deded5;
   --admin-warning: #ffd166;
   --admin-success: #6ee7b7;
   --admin-danger: #fda4af;
@@ -144,7 +144,7 @@
   margin: 0 12px 10px;
   color: #8a9bb5;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -297,7 +297,7 @@
   border: 1px solid var(--admin-line);
   border-radius: 9px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .admin-theme-toggle:hover {
   background: var(--admin-soft);
@@ -521,7 +521,7 @@
 }
 .admin-table-toolbar h2 {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 }
 .admin-table-actions {
@@ -540,7 +540,7 @@
 .admin-table th {
   font-size: 10px;
   letter-spacing: 0.055em;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-muted) !important;
   white-space: nowrap;
   padding: 15px 18px;
@@ -675,7 +675,7 @@
   color: #fff;
   margin-top: 10px;
   font-size: 32px;
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.2;
 }
 .admin-dashboard-hero p {
@@ -834,7 +834,7 @@
 .admin-copilot-empty h2 {
   font-size: 22px;
   margin-bottom: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .admin-copilot-empty p {
   font-size: 13px;
@@ -1101,7 +1101,7 @@
 .partner-admin-kpi strong {
   font-size: 24px;
   line-height: 1.1;
-  font-weight: 800;
+  font-weight: 600;
 }
 .partner-admin-kpi > span:last-child {
   font-size: 12px;
@@ -1120,7 +1120,7 @@
   font-size: 13px;
 }
 .partner-admin-alert button {
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
 }
 .partner-admin-shop {
@@ -1133,7 +1133,7 @@
 .partner-admin-shop h2 {
   display: block;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-ink);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1158,7 +1158,7 @@
   background: linear-gradient(135deg, var(--admin-accent), var(--admin-info));
   color: var(--admin-surface);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 .partner-admin-avatar.is-large {
@@ -1174,7 +1174,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--tone);
   background: color-mix(in srgb, var(--tone) 12%, transparent);
@@ -1228,7 +1228,7 @@
 }
 .partner-admin-stack strong {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .partner-admin-stack span,
 .partner-admin-muted {
@@ -1247,7 +1247,7 @@
   border: 1px solid var(--admin-line);
   border-radius: 9px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-accent);
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s;
@@ -1350,7 +1350,7 @@
 .partner-admin-facts span {
   display: block;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--admin-muted);
@@ -1371,7 +1371,7 @@
 .partner-admin-section h3 {
   margin-bottom: 14px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .partner-admin-drawer-body > .mu-panel .mu-heading {
   font-size: 13px;
@@ -1442,7 +1442,7 @@
 }
 .partner-admin-timeline strong {
   display: block;
-  font-weight: 700;
+  font-weight: 600;
 }
 .partner-admin-timeline time {
   display: block;
@@ -1463,7 +1463,7 @@
   gap: 6px;
   align-self: flex-start;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-accent);
 }
 @media (max-width: 1100px) {

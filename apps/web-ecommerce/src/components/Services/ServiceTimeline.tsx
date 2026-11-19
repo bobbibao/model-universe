@@ -70,7 +70,7 @@ export default function ServiceTimeline({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 dark:border-strokedark">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-50 text-slate-900 dark:bg-slate-950/50 dark:text-slate-300">
             <AdminIcon name="refresh" size={14} />
           </div>
           <div>
@@ -159,7 +159,7 @@ export default function ServiceTimeline({
             <button
               type="button"
               onClick={() => setShowAllEvents(!showAllEvents)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:underline dark:text-purple-400"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 hover:underline dark:text-slate-400"
             >
               <span>{showAllEvents ? '▼ Thu gọn lịch sử sự kiện' : '▶ Xem chi tiết nhật ký sự kiện'}</span>
               <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] text-slate-600 dark:bg-meta-4 dark:text-slate-300">
@@ -189,7 +189,7 @@ export default function ServiceTimeline({
                 return (
                   <li key={event.id} className="relative text-xs">
                     {/* Event Dot */}
-                    <span className="absolute -left-8 top-1 h-3 w-3 rounded-full border-2 border-white bg-purple-600 dark:border-boxdark" />
+                    <span className="absolute -left-8 top-1 h-3 w-3 rounded-full border-2 border-white bg-slate-800 dark:border-boxdark" />
 
                     <div className="rounded-lg border border-slate-100 bg-slate-50/70 p-2.5 dark:border-strokedark dark:bg-meta-4/30">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">

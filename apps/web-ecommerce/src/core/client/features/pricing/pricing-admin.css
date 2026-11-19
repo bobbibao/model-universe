@@ -14,7 +14,7 @@
 }
 .pa-head h1 {
   font-size: 22px;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 .pa-head p {
@@ -44,7 +44,7 @@
 }
 .pa-stat strong {
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 button.pa-stat {
@@ -77,7 +77,7 @@ button.pa-stat:hover,
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--admin-muted);
 }
 .pa-segment button[aria-pressed='true'] {
@@ -97,7 +97,7 @@ button.pa-stat:hover,
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--admin-muted);
   background: var(--admin-soft);
@@ -129,7 +129,7 @@ button.pa-stat:hover,
 }
 .pa-money {
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: 600;
   white-space: nowrap;
 }
 .pa-actions {
@@ -143,7 +143,7 @@ button.pa-stat:hover,
   border: 1px solid var(--admin-line);
   border-radius: 8px;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   white-space: nowrap;
   color: var(--admin-ink);
   background: var(--admin-surface);
@@ -175,7 +175,7 @@ button.pa-stat:hover,
   display: grid;
   gap: 4px;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .pa-form label small {
   font-weight: 500;
@@ -208,7 +208,7 @@ button.pa-stat:hover,
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 600;
   background: var(--admin-soft);
 }
 @media (max-width: 640px) {

@@ -56,6 +56,11 @@
     "finder": "Model finder"
   },
   "home": {
+    "heroTitle": "Model kits: Gunpla, mecha and Chinese kits, new and pre-owned",
+    "heroLead": "Real photos of the exact kit you receive. Visit the showroom in Gò Vấp or order online with cash on delivery across Vietnam.",
+    "heroPrimary": "Shop models",
+    "heroSecondary": "Today's offers",
+    "heroFact": "Free shipping up to {amount} on orders from {min}",
     "eyebrow": "YOUR NEXT BUILD STARTS HERE",
     "title": "Small parts.",
     "accent": "Infinite possibilities.",

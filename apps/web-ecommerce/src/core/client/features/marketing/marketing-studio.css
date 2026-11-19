@@ -41,7 +41,7 @@
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-warning);
   background: color-mix(in srgb, var(--admin-warning) 12%, transparent);
 }
@@ -75,7 +75,7 @@
   background: var(--admin-surface);
   color: var(--admin-ink);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   transition:
     border-color 0.15s,
@@ -103,7 +103,7 @@
 }
 .mk-link {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-accent);
 }
 .mk-icon-button {
@@ -121,7 +121,7 @@
 .mk-label {
   display: block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-ink);
 }
 .mk-hint {
@@ -153,7 +153,7 @@ textarea.mk-input {
 }
 .mk-input-title {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 12px 14px;
 }
 .mk-counter {
@@ -163,7 +163,7 @@ textarea.mk-input {
 }
 .mk-counter.is-near {
   color: var(--admin-warning);
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-alert {
   display: flex;
@@ -202,7 +202,7 @@ textarea.mk-input {
 }
 .mk-composer-head h2 {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .mk-fieldset {
@@ -302,7 +302,7 @@ textarea.mk-input {
   border-radius: 9px;
   color: #fff;
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1;
 }
 .mk-glyph.is-facebook {
@@ -337,7 +337,7 @@ textarea.mk-input {
   padding: 7px 14px;
   border-radius: 9px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-muted);
   cursor: pointer;
 }
@@ -405,7 +405,7 @@ textarea.mk-input {
   background: var(--admin-accent);
   color: var(--admin-surface);
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 600;
 }
 .mk-thumb-tag {
   position: absolute;
@@ -414,7 +414,7 @@ textarea.mk-input {
   background: #000000a6;
   color: #fff;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
 }
 .mk-thumb.is-upload {
@@ -430,7 +430,7 @@ textarea.mk-input {
 }
 .mk-thumb.is-upload small {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-thumb.is-upload:hover {
   border-color: var(--admin-accent);
@@ -455,7 +455,7 @@ textarea.mk-input {
 }
 .mk-content-head h3 {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .mk-agent {
   position: relative;
@@ -473,7 +473,7 @@ textarea.mk-input {
   );
   color: var(--admin-ink);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   border: 1px solid color-mix(in srgb, #8b5cf6 35%, transparent);
   transition: box-shadow 0.15s;
 }
@@ -658,7 +658,7 @@ textarea.mk-input {
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--tone);
   background: color-mix(in srgb, var(--tone) 13%, transparent);
 }
@@ -714,7 +714,7 @@ textarea.mk-input {
   padding: 12px 18px;
   border-top: 1px solid var(--admin-line);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
 }
 .mk-preview-note {
@@ -730,7 +730,7 @@ textarea.mk-input {
   background: linear-gradient(135deg, #22d3ee, #7c3aed);
   color: #fff;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 .mk-media {
@@ -820,7 +820,7 @@ textarea.mk-input {
   overflow: hidden;
 }
 .mk-fb-text button {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--mk-fb-ink);
 }
 .mk-fb-link {
@@ -850,7 +850,7 @@ textarea.mk-input {
   border-radius: 6px;
   background: color-mix(in srgb, var(--mk-fb-ink) 10%, transparent);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .mk-fb-stats {
@@ -916,7 +916,7 @@ textarea.mk-input {
   box-shadow: 0 1px 6px #2021241f;
 }
 .mk-google-logo {
-  font-weight: 900;
+  font-weight: 600;
   background: conic-gradient(from 200deg, #ea4335 0 25%, #fbbc05 0 45%, #34a853 0 70%, #4285f4 0);
   -webkit-background-clip: text;
   background-clip: text;
@@ -927,7 +927,7 @@ textarea.mk-input {
   display: block;
   margin-bottom: 8px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-google-site {
   display: flex;
@@ -1007,7 +1007,7 @@ textarea.mk-input {
 }
 .mk-tiktok-rail small {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-tiktok-caption {
   position: absolute;
@@ -1040,7 +1040,7 @@ textarea.mk-input {
   border-radius: 4px;
   background: #fe2c55;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Confirm modal */
@@ -1068,7 +1068,7 @@ textarea.mk-input {
 }
 .mk-modal h2 {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .mk-modal-meta {
   display: flex;
@@ -1076,7 +1076,7 @@ textarea.mk-input {
   gap: 10px;
   margin-top: 12px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-modal-body {
   margin-top: 14px;
@@ -1095,7 +1095,7 @@ textarea.mk-input {
 .mk-modal-mode {
   margin-top: 12px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--admin-warning);
 }
 .mk-modal-mode.is-live {

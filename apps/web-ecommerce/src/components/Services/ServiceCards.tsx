@@ -1,6 +1,5 @@
 'use client';
 
-import type { PointerEvent } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
@@ -9,13 +8,6 @@ import type { ShowcasePhoto } from '@/shared/types/showcase';
 import { collectorServices, useServiceFact } from './ServiceExperience';
 
 type GuideService = Exclude<(typeof collectorServices)[number]['key'], 'loyalty'>;
-
-// A soft light follows the pointer across a card (the CSS reads --mx and --my).
-const follow = (event: PointerEvent<HTMLAnchorElement>) => {
-  const box = event.currentTarget.getBoundingClientRect();
-  event.currentTarget.style.setProperty('--mx', `${event.clientX - box.left}px`);
-  event.currentTarget.style.setProperty('--my', `${event.clientY - box.top}px`);
-};
 
 // The services hub as a bento: buyback, the service most people come for, is the tall navy card with a real kit from
 // the shop; the other four sit two by two beside it. Every card: its icon and number, name, what it does, and its key
@@ -32,10 +24,7 @@ export default function ServiceCards({ photo }: { photo?: ShowcasePhoto }) {
           <Link
             key={service.key}
             href={service.route}
-            onPointerMove={follow}
             className={`svx-card service-${service.key}${feature ? ' is-feature' : ''}`}
-            data-reveal
-            style={{ ['--i' as string]: index }}
           >
             {feature && photo && (
               <span className="svx-card-photo" aria-hidden="true">

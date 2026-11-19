@@ -12,7 +12,21 @@ const config: Config = {
   darkMode: "class",
   theme: {
     fontFamily: {
-      satoshi: ["Satoshi", "sans-serif"],
+      // The interface face (Be Vietnam Pro, see src/app/layout.tsx); Satoshi stays for the wordmark.
+      satoshi: ["var(--font-ui)", "Segoe UI", "system-ui", "sans-serif"],
+      wordmark: ["Satoshi", "sans-serif"],
+    },
+    // Be Vietnam Pro is loaded at 400, 500 and 600; heavier classes map to 600 instead of a faked bold.
+    fontWeight: {
+      thin: "400",
+      extralight: "400",
+      light: "400",
+      normal: "400",
+      medium: "500",
+      semibold: "600",
+      bold: "600",
+      extrabold: "600",
+      black: "600",
     },
     screens: {
       "2xsm": "375px",

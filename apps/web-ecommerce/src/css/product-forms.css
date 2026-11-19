@@ -23,7 +23,7 @@
   padding-inline: 6px;
   color: var(--admin-ink);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .product-form-section > legend small {
   display: inline-block;

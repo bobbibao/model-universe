@@ -16,7 +16,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   border-start-start-radius: 11px;
   border-start-end-radius: 11px;
   overflow-x: auto;
-  border-bottom: 1px solid var(--admin-line, #e1ddea);
+  border-bottom: 1px solid var(--admin-line, #e7e7e0);
   scrollbar-width: thin;
 }
 .workspace-tablist > button {
@@ -30,13 +30,13 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   border-bottom: 2px solid transparent;
   color: var(--admin-muted, #6a6877);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   white-space: nowrap;
 }
 .workspace-tablist > button[aria-selected='true'] {
-  color: var(--admin-accent, #6541b7);
+  color: var(--admin-accent, #182844);
   border-bottom-color: currentColor;
-  background: var(--admin-soft, #f2edf9);
+  background: var(--admin-soft, #f4f4f2);
 }
 .workspace-tablist > button:focus-visible {
   outline-offset: -3px;
@@ -244,7 +244,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
     border: 0;
     background: transparent;
     color: var(--commerce-accent);
-    font-weight: 800;
+    font-weight: 600;
   }
   .product-information .workspace-tab-label {
     min-width: 0;
@@ -457,7 +457,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   background: var(--admin-accent);
   color: #fff;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   white-space: nowrap;
 }
 .catalog-create-button:hover {
@@ -483,7 +483,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   margin: 0;
   border-color: var(--admin-accent);
   background: var(--admin-surface);
-  box-shadow: 0 8px 32px #211b3d26;
+  box-shadow: 0 8px 32px #101c3126;
   border-radius: 12px;
   padding: 8px 12px;
   gap: 8px;
@@ -500,7 +500,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
 }
 .catalog-report-heading h1 {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .catalog-report-heading a {
   color: var(--admin-accent);
@@ -616,7 +616,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   margin-top: 4px;
   color: var(--admin-ink);
   font-size: clamp(18px, 1.55vw, 23px);
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -0.025em;
 }
 .catalog-workspace .is-chart .inventory-kpi-value {
@@ -917,7 +917,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   overflow: hidden;
   font-size: 12px;
   line-height: 17px;
-  font-weight: 650;
+  font-weight: 600;
 }
 .list-secondary-text {
   display: block;

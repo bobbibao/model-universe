@@ -252,7 +252,7 @@ export default function BuybackWorkspace({
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
                       activeViewTab === 'requests'
-                        ? 'bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-300'
+                        ? 'bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-slate-300'
                         : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                     }`}
                   >
@@ -277,7 +277,7 @@ export default function BuybackWorkspace({
                 <button
                   type="button"
                   onClick={() => setActiveViewTab('new_request')}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-purple-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-900 transition-colors"
                 >
                   <span>+ Gửi yêu cầu mới</span>
                 </button>
@@ -285,7 +285,7 @@ export default function BuybackWorkspace({
                 <button
                   type="button"
                   onClick={() => setActiveViewTab('requests')}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:underline dark:text-purple-400"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 hover:underline dark:text-slate-400"
                 >
                   <span>← Xem lại yêu cầu đã gửi ({rows.length})</span>
                 </button>
@@ -341,7 +341,7 @@ export default function BuybackWorkspace({
                     <button
                       type="button"
                       onClick={() => setActiveViewTab('new_request')}
-                      className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-purple-700"
+                      className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-900"
                     >
                       <span>+ Gửi yêu cầu ngay</span>
                     </button>
@@ -372,7 +372,7 @@ export default function BuybackWorkspace({
                           <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="mt-3 inline-block rounded-md bg-slate-100 px-3 py-1 font-semibold text-purple-600 hover:bg-slate-200 dark:bg-meta-4 dark:text-purple-300"
+                            className="mt-3 inline-block rounded-md bg-slate-100 px-3 py-1 font-semibold text-slate-800 hover:bg-slate-200 dark:bg-meta-4 dark:text-slate-300"
                           >
                             Xóa bộ lọc tìm kiếm
                           </button>
@@ -407,19 +407,19 @@ export default function BuybackWorkspace({
                                 onClick={() => void open(row.id)}
                                 className={`group relative w-full text-left rounded-xl p-2.5 sm:p-3 transition-all duration-150 border ${
                                   isSelected
-                                    ? 'border-2 border-purple-600 bg-purple-50/50 shadow-xs ring-2 ring-purple-600/15 dark:bg-purple-950/30 dark:border-purple-500'
-                                    : 'border-slate-200/80 bg-white hover:border-purple-300 hover:shadow-2xs hover:bg-slate-50/50 dark:border-strokedark dark:bg-boxdark dark:hover:border-slate-500'
+                                    ? 'border-2 border-slate-800 bg-slate-50/50 shadow-xs ring-2 ring-slate-800/15 dark:bg-slate-950/30 dark:border-slate-600'
+                                    : 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-2xs hover:bg-slate-50/50 dark:border-strokedark dark:bg-boxdark dark:hover:border-slate-500'
                                 }`}
                               >
                                 {/* Left active highlight bar */}
                                 {isSelected && (
-                                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-purple-600 dark:bg-purple-400" />
+                                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-slate-800 dark:bg-slate-400" />
                                 )}
 
                                 {/* Top row: TM badge + Mode Tag + Status badge */}
                                 <div className="flex items-center justify-between gap-1.5 pl-1">
                                   <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="font-mono text-[11px] font-black tracking-wide text-purple-900 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 px-1.5 py-0.5 rounded border border-purple-200/80 dark:border-purple-800">
+                                    <span className="font-mono text-[11px] font-black tracking-wide text-slate-950 bg-slate-100 dark:bg-slate-950 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-200/80 dark:border-slate-900">
                                       TM{row.id}
                                     </span>
                                     <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-meta-4 dark:text-slate-300">
@@ -430,7 +430,7 @@ export default function BuybackWorkspace({
                                 </div>
 
                                 {/* Middle Row: Model Name (single line truncated) */}
-                                <h4 className="mt-1.5 pl-1 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors truncate dark:text-white">
+                                <h4 className="mt-1.5 pl-1 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-slate-800 transition-colors truncate dark:text-white">
                                   {row.asset.name}
                                 </h4>
 
@@ -481,7 +481,7 @@ export default function BuybackWorkspace({
                                         onClick={() => setCurrentPage(page)}
                                         className={`min-w-[28px] rounded-lg px-2 py-1 text-xs font-bold transition-all ${
                                           currentPage === page
-                                            ? 'bg-purple-600 text-white shadow-2xs'
+                                            ? 'bg-slate-800 text-white shadow-2xs'
                                             : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4'
                                         }`}
                                       >
@@ -545,7 +545,7 @@ export default function BuybackWorkspace({
                           {selected.inboundReference && (
                             <>
                               <span>•</span>
-                              <span className="inline-flex items-center gap-1 font-mono font-semibold text-purple-700 dark:text-purple-300">
+                              <span className="inline-flex items-center gap-1 font-mono font-semibold text-slate-900 dark:text-slate-300">
                                 🚚 {selected.inboundReference}
                               </span>
                             </>
@@ -592,7 +592,7 @@ export default function BuybackWorkspace({
                           onClick={() => setDetailTab('inspection')}
                           className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
                             detailTab === 'inspection'
-                              ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
+                              ? 'border-slate-800 text-slate-800 dark:border-slate-400 dark:text-slate-300'
                               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
                           }`}
                         >
@@ -604,7 +604,7 @@ export default function BuybackWorkspace({
                           onClick={() => setDetailTab('specs')}
                           className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
                             detailTab === 'specs'
-                              ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
+                              ? 'border-slate-800 text-slate-800 dark:border-slate-400 dark:text-slate-300'
                               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
                           }`}
                         >
@@ -616,7 +616,7 @@ export default function BuybackWorkspace({
                           onClick={() => setDetailTab('media')}
                           className={`flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
                             detailTab === 'media'
-                              ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
+                              ? 'border-slate-800 text-slate-800 dark:border-slate-400 dark:text-slate-300'
                               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
                           }`}
                         >
@@ -631,7 +631,7 @@ export default function BuybackWorkspace({
                           onClick={() => setDetailTab('actions')}
                           className={`relative flex shrink-0 items-center gap-1.5 border-b-2 px-3.5 py-2.5 font-bold transition-all ${
                             detailTab === 'actions'
-                              ? 'border-purple-600 text-purple-600 dark:border-purple-400 dark:text-purple-300'
+                              ? 'border-slate-800 text-slate-800 dark:border-slate-400 dark:text-slate-300'
                               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
                           }`}
                         >
