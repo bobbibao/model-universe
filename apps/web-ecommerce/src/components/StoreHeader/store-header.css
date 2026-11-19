@@ -13,8 +13,8 @@
   gap: 20px;
 }
 .mu-shell .store-header .store-brand {
-  --brand-mark: 42px;
-  --brand-word: 28px;
+  --brand-mark: 40px;
+  --brand-word: 20px;
   color: var(--mu-navy-900);
 }
 .store-primary-nav {
@@ -186,8 +186,8 @@
     gap: 6px;
   }
   .mu-shell .store-header .store-brand {
-    --brand-mark: 36px;
-    --brand-word: 23px;
+    --brand-mark: 34px;
+    --brand-word: 18px;
   }
   .store-header-tools {
     gap: 1px;
@@ -217,8 +217,8 @@
 
 @media (max-width: 360px) {
   .mu-shell .store-header .store-brand {
-    --brand-mark: 32px;
-    --brand-word: 20px;
+    --brand-mark: 30px;
+    --brand-word: 16px;
   }
 }
 
