@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
@@ -8,29 +7,13 @@ import ContactIcon from '@/components/Contact/ContactIcon';
 import ProductImage from '@/components/ProductImage';
 import { SERVICE_FACTS } from '@/components/Services/serviceFacts';
 import { CONTACT } from '@/shared/contact-channels';
-import { useCountUp } from '@/shared/client/hooks/useReveal';
 import type { ShowcasePhoto } from '@/shared/types/showcase';
 
-function Stat({ value, label, active }: { value: string; label: string; active: boolean }) {
-  const shown = useCountUp(value, active);
-  return (
-    <div>
-      <dt>{label}</dt>
-      <dd>
-        <span aria-hidden="true">{shown}</span>
-        <span className="sr-only">{value}</span>
-      </dd>
-    </div>
-  );
-}
-
-// The top of /services: a soft aura on the paper, the pitch with the two fastest ways in (a buyback quote, or a
-// question on Zalo), the three numbers people ask first counting up once, and a stage of real kits from the shop with
-// two glass notes floating on it (prices follow published rules; opening hours). Where and when to come sits below.
+// The top of /services: where the shop takes kits in, the pitch with the two fastest ways in (a buyback quote, or a
+// question on Zalo), the three numbers people ask first, and three real kits photographed in the shop. Where and when
+// to come sits below. The words rise once on load and the photos settle; nothing loops.
 export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
   const g = useTranslations('serviceGuide');
-  const [counting, setCounting] = useState(false);
-  useEffect(() => setCounting(true), []);
   const stats = [
     { value: `${SERVICE_FACTS.sellMaxPercent}%`, label: g('statSell') },
     { value: `${SERVICE_FACTS.pawnPercent}%`, label: g('statPawn') },
@@ -38,11 +21,10 @@ export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
   ];
   return (
     <section className="svx-hero" aria-labelledby="services-title">
-      <div className="svx-aura" aria-hidden="true" />
       <div className="mu-wrap svx-hero-grid">
         <div className="svx-hero-copy">
           <p className="svx-where">
-            <span className="svx-where-dot" aria-hidden="true" />
+            <ContactIcon name="pin" size={16} />
             {g('heroWhere')}
           </p>
           <h1 id="services-title">{g('heroTitle')}</h1>
@@ -59,7 +41,10 @@ export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
           </div>
           <dl className="svx-stats">
             {stats.map((stat) => (
-              <Stat key={stat.label} value={stat.value} label={stat.label} active={counting} />
+              <div key={stat.label}>
+                <dt>{stat.label}</dt>
+                <dd>{stat.value}</dd>
+              </div>
             ))}
           </dl>
         </div>
@@ -78,16 +63,6 @@ export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
                 </Link>
               ))}
             </div>
-            <p className="svx-float is-rules">
-              <span className="svx-float-icon" aria-hidden="true">
-                <AdminIcon name="shield" size={18} />
-              </span>
-              {g('trustRules')}
-            </p>
-            <p className="svx-float is-hours">
-              <span className="svx-live" aria-hidden="true" />
-              {CONTACT.hours}
-            </p>
           </div>
         )}
       </div>

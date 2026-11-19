@@ -81,7 +81,7 @@ export default function ServiceConditionCasePanel({
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-strokedark">
         <div className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-100 text-xs font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-900 dark:bg-slate-950 dark:text-slate-300">
             🏷
           </span>
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-white">
@@ -130,7 +130,7 @@ export default function ServiceConditionCasePanel({
 
       {/* Condition chips */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-lg bg-purple-600 px-2.5 py-1 text-xs font-bold text-white shadow-2xs">
+        <span className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs font-bold text-white shadow-2xs">
           {snapshot.itemTypeKey === 'new' ? 'New (Mới)' : '2hand (Đã qua sử dụng)'}
         </span>
         {snapshot.labels.length > 0 ? (
@@ -151,19 +151,19 @@ export default function ServiceConditionCasePanel({
 
       {/* Reference SKU & Real sale price S */}
       {snapshot.productId && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/50 p-2.5 text-xs dark:border-indigo-950 dark:bg-indigo-950/20">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50/50 p-2.5 text-xs dark:border-slate-950 dark:bg-slate-950/20">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-indigo-900 dark:text-indigo-200">Mẫu định giá:</span>
-            <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300">SKU #{snapshot.productId}</span>
+            <span className="font-bold text-slate-950 dark:text-slate-200">Mẫu định giá:</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-slate-300">SKU #{snapshot.productId}</span>
           </div>
           {snapshot.salePriceVnd && (
-            <span className="font-mono font-extrabold text-indigo-900 dark:text-indigo-200">
+            <span className="font-mono font-extrabold text-slate-950 dark:text-slate-200">
               Giá bán niêm yết (S): {formatVND(snapshot.salePriceVnd, locale)}
             </span>
           )}
           <Link
             href={admin ? `/admin/products/${snapshot.productId}` : `/shop/product/${snapshot.productId}`}
-            className="font-bold text-purple-600 hover:underline dark:text-purple-400"
+            className="font-bold text-slate-800 hover:underline dark:text-slate-400"
             target="_blank"
           >
             Xem mô hình ↗

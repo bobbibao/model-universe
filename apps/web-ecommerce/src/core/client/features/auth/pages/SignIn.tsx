@@ -66,7 +66,7 @@ const SignIn = () => {
 
   return (
     <AuthCard
-      title={en ? 'Welcome back' : 'Chào mừng trở lại'}
+      title={en ? 'Sign in' : 'Đăng nhập'}
       description={
         en
           ? 'Sign in to follow your orders and find your next favourite model.'

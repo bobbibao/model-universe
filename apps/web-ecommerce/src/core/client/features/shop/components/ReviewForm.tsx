@@ -158,7 +158,7 @@ const ReviewForm = ({ productId, onSubmitted }: { productId: number; onSubmitted
 
       {/* Star rating with hover effect */}
       <div className="flex flex-col gap-2 rounded-lg bg-gray-50/80 p-4 dark:bg-store-card/40">
-        <label className="text-xs font-semibold uppercase tracking-wider text-body dark:text-store-muted">
+        <label className="text-sm font-medium text-body dark:text-store-muted">
           Đánh giá chất lượng chung
         </label>
         <div className="flex flex-wrap items-center gap-3">
@@ -200,7 +200,7 @@ const ReviewForm = ({ productId, onSubmitted }: { productId: number; onSubmitted
 
       {/* Google Maps style quick feedback tags */}
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-semibold uppercase tracking-wider text-body dark:text-store-muted">
+        <label className="text-sm font-medium text-body dark:text-store-muted">
           Điểm nổi bật của sản phẩm & dịch vụ (nhấp chọn nhanh)
         </label>
         <div className="flex flex-wrap gap-2">
@@ -236,7 +236,7 @@ const ReviewForm = ({ productId, onSubmitted }: { productId: number; onSubmitted
       {/* Media Uploader (Images & Videos) - Google Maps Style */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold uppercase tracking-wider text-body dark:text-store-muted">
+          <label className="text-sm font-medium text-body dark:text-store-muted">
             Hình ảnh & Video thực tế ({mediaList.length}/{MAX_FILES})
           </label>
           <span className="text-xs text-brand font-medium">

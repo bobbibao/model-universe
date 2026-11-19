@@ -1,9 +1,11 @@
+/* Storefront header: an opaque bar on the paper with one hairline under it, the same at every scroll depth. Nav words
+   darken on hover; the current page carries a 2px bar under its word. */
 .mu-shell .mu-header.store-header {
   color: var(--mu-ink);
-  background: #faf9f5ed;
-  border-bottom: 1px solid rgb(16 28 49 / 0.09);
-  box-shadow: 0 4px 24px rgb(16 28 49 / 0.03);
-  backdrop-filter: blur(18px);
+  background: var(--mu-paper);
+  border-bottom: 1px solid var(--mu-line);
+  box-shadow: none;
+  backdrop-filter: none;
 }
 .store-header-inner {
   display: flex;
@@ -20,32 +22,30 @@
 .store-primary-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 32px;
 }
 .store-primary-nav a {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 13px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 650;
-  color: var(--mu-ink-muted);
-  transition:
-    color 0.15s,
-    background 0.15s;
+  min-height: 64px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--mu-muted);
+  transition: color var(--mu-hover) var(--mu-ease);
 }
 .store-primary-nav a:hover,
 .store-primary-nav a[aria-current='page'] {
-  color: var(--mu-navy-900);
-  background: var(--mu-gold-soft);
+  color: var(--mu-navy-950);
 }
-.store-offers-link:before {
+.store-primary-nav a[aria-current='page']::after {
   content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--mu-emerald);
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--mu-navy-950);
 }
 .store-header-tools {
   display: flex;
@@ -69,43 +69,40 @@
 .store-tool:hover,
 .store-tool[aria-current='page'],
 .store-tool[aria-expanded='true'] {
-  color: var(--mu-navy-900);
-  background: var(--mu-gold-soft);
+  color: var(--mu-navy-950);
+  background: var(--mu-fill);
 }
 .store-language {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
+  width: 36px;
   min-height: 40px;
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.05em;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--mu-ink);
 }
 .store-header-divider {
   width: 1px;
-  height: 18px;
-  margin: 0 5px;
-  background: var(--mu-ivory-line);
+  height: 20px;
+  margin: 0 4px;
+  background: var(--mu-line);
 }
 .store-account {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid var(--mu-ivory-line);
-  border-radius: 100px;
-  color: var(--mu-navy-800);
-  background: #fff8;
-  font-size: 11px;
-  font-weight: 650;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 8px;
+  border-radius: var(--mu-r-control);
+  color: var(--mu-ink);
+  font-size: 15px;
+  font-weight: 500;
+  transition: background var(--mu-hover) var(--mu-ease);
 }
 .store-account:hover {
-  background: var(--mu-gold-soft);
-  border-color: var(--mu-gold);
+  background: var(--mu-fill);
 }
 .store-menu-button {
   display: none;
@@ -116,44 +113,44 @@
   left: 0;
   right: 0;
   padding: 12px max(24px, calc((100vw - 1320px) / 2));
-  background: #faf9f5fc;
-  border-bottom: 1px solid var(--mu-ivory-line);
-  box-shadow: 0 20px 30px rgb(16 28 49 / 0.08);
+  background: var(--mu-paper);
+  border-bottom: 1px solid var(--mu-line);
+  box-shadow: var(--mu-shadow-md);
 }
 .store-mobile-menu > a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 46px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--mu-ink-muted);
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: var(--mu-r-control);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mu-ink);
 }
 .store-mobile-menu > a:hover,
 .store-mobile-menu > a[aria-current='page'] {
-  background: var(--mu-gold-soft);
-  color: var(--mu-navy-900);
+  background: var(--mu-fill);
+  color: var(--mu-navy-950);
 }
 .store-menu-secondary {
   display: flex;
-  gap: 12px;
-  padding: 10px 14px 2px;
+  gap: 16px;
+  padding: 8px 16px 0;
   margin-top: 8px;
-  border-top: 1px solid var(--mu-ivory-line);
+  border-top: 1px solid var(--mu-line);
 }
 .store-menu-secondary a {
   display: flex;
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  font-size: 12px;
-  color: var(--mu-ink-muted);
+  font-size: 14px;
+  color: var(--mu-muted);
 }
 .store-header :focus-visible {
-  outline: 2px solid var(--mu-gold);
-  outline-offset: 3px;
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
 }
 @media (min-width: 1024px) {
   .store-mobile-menu {
@@ -168,8 +165,8 @@
     width: 40px;
     padding: 0;
   }
-  .store-primary-nav a {
-    padding-inline: 11px;
+  .store-primary-nav {
+    gap: 24px;
   }
 }
 @media (max-width: 1023px) {

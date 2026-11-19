@@ -27,29 +27,40 @@
   --mu-line-strong: rgb(18 28 46 / 0.26);
   --mu-fill: #f0f0ea;
   --mu-muted: #586071;
-  /* Depth: soft, diffused shadows tinted with the navy, never grey; and one easing for everything that moves. */
-  --mu-shadow-sm: 0 1px 2px rgb(16 28 49 / 0.04), 0 4px 12px -4px rgb(16 28 49 / 0.06);
-  --mu-shadow-md: 0 1px 2px rgb(16 28 49 / 0.04), 0 14px 32px -14px rgb(16 28 49 / 0.18);
-  --mu-shadow-lg: 0 2px 4px rgb(16 28 49 / 0.04), 0 28px 60px -20px rgb(16 28 49 / 0.28);
-  --mu-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Depth: small neutral shadows in the ink at low strength, the larger one only on hover; never coloured. */
+  --mu-shadow-sm: 0 1px 2px rgb(16 28 49 / 0.05);
+  --mu-shadow-md: 0 8px 24px rgb(16 28 49 / 0.08);
+  /* Motion: one easing curve; hover 150ms, press 90ms, things that enter 500ms. */
+  --mu-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mu-hover: 150ms;
+  --mu-press: 90ms;
+  /* Radius by size: controls 10, cards 14, panels 20. */
+  --mu-r-control: 10px;
+  --mu-r-card: 14px;
+  --mu-r-panel: 20px;
+  /* The interface face: Be Vietnam Pro (next/font, set on <html> as --font-ui) draws every Vietnamese mark;
+     Satoshi stays for the wordmark only. */
+  --mu-font: var(--font-ui), 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Scroll reveal (useReveal): only once the hook has armed the root are elements below the fold hidden; each rises in
-   with a short stagger (--i). It animates `translate`, so hover lifts on `transform` still work. */
-@keyframes mu-rise {
+/* The one entrance on a page: a hero's words rise 8px and fade in once on load; its photograph settles from 1.03.
+   Nothing else moves on load or on scroll. */
+@keyframes mu-enter {
   from {
     opacity: 0;
-    translate: 0 22px;
-  }
-  to {
-    opacity: 1;
-    translate: none;
+    transform: translateY(8px);
   }
 }
-.reveal-ready [data-reveal]:not(.is-revealed) {
-  opacity: 0;
+@keyframes mu-settle {
+  from {
+    transform: scale(1.03);
+  }
 }
-.reveal-ready [data-reveal].is-revealed:not(.is-instant) {
-  animation: mu-rise 0.8s var(--mu-ease) both;
-  animation-delay: calc(var(--i, 0) * 70ms);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

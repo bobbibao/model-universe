@@ -178,7 +178,7 @@ export default function ServiceHistoryHub() {
       {/* Section Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5 dark:border-strokedark">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-xs font-bold text-slate-900 dark:bg-slate-950/50 dark:text-slate-300">
             <AdminIcon name="refresh" size={14} />
             <span>THEO DÕI TIẾN ĐỘ & LỊCH SỬ</span>
           </div>
@@ -217,7 +217,7 @@ export default function ServiceHistoryHub() {
           <div className="mt-4">
             <Link
               href="/auth/signin?redirect=/services"
-              className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-purple-700"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-900"
             >
               <AdminIcon name="users" size={16} />
               <span>Đăng nhập để xem lịch sử</span>
@@ -229,19 +229,19 @@ export default function ServiceHistoryHub() {
           {/* Quick Metrics Bar */}
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 dark:border-strokedark dark:bg-meta-4/20">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tổng số yêu cầu</span>
+              <span className="text-[13px] font-medium text-slate-400">Tổng số yêu cầu</span>
               <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{counts.total}</p>
             </div>
             <div className="rounded-xl border border-sky-100 bg-sky-50/60 p-3.5 dark:border-sky-950/40 dark:bg-sky-950/20">
-              <span className="text-[11px] font-semibold text-sky-700 uppercase tracking-wider dark:text-sky-400">Đang xử lý</span>
+              <span className="text-[13px] font-medium text-sky-700 dark:text-sky-400">Đang xử lý</span>
               <p className="mt-1 text-2xl font-black text-sky-800 dark:text-sky-300">{counts.active}</p>
             </div>
             <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3.5 dark:border-amber-950/40 dark:bg-amber-950/20">
-              <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider dark:text-amber-400">Cần bạn duyệt</span>
+              <span className="text-[13px] font-medium text-amber-700 dark:text-amber-400">Cần bạn duyệt</span>
               <p className="mt-1 text-2xl font-black text-amber-800 dark:text-amber-300">{counts.actionNeeded}</p>
             </div>
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3.5 dark:border-emerald-950/40 dark:bg-emerald-950/20">
-              <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider dark:text-emerald-400">Hoàn tất</span>
+              <span className="text-[13px] font-medium text-emerald-700 dark:text-emerald-400">Hoàn tất</span>
               <p className="mt-1 text-2xl font-black text-emerald-800 dark:text-emerald-300">{counts.completed}</p>
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function ServiceHistoryHub() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm theo mã TM, tên mô hình hoặc phiên bản..."
-                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 shadow-2xs focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 focus:outline-none dark:border-strokedark dark:bg-boxdark dark:text-white"
+                  className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-8 text-xs text-slate-800 placeholder-slate-400 shadow-2xs focus:border-slate-800 focus:ring-2 focus:ring-slate-800/20 focus:outline-none dark:border-strokedark dark:bg-boxdark dark:text-white"
                 />
                 {searchQuery && (
                   <button
@@ -311,7 +311,7 @@ export default function ServiceHistoryHub() {
                   onClick={() => setStatusFilter(st.key as any)}
                   className={`rounded-lg px-3 py-1.5 font-semibold whitespace-nowrap transition-all ${
                     statusFilter === st.key
-                      ? 'bg-purple-600 text-white shadow-xs ring-1 ring-purple-600'
+                      ? 'bg-slate-800 text-white shadow-xs ring-1 ring-slate-800'
                       : 'border border-slate-200/80 bg-slate-100 text-slate-700 hover:bg-slate-200/90 dark:border-strokedark dark:bg-meta-4/40 dark:text-slate-300 dark:hover:bg-meta-4'
                   }`}
                 >
@@ -340,7 +340,7 @@ export default function ServiceHistoryHub() {
                   <div className="mt-4 flex flex-wrap justify-center gap-3">
                     <Link
                       href="/services/sell"
-                      className="rounded-lg bg-purple-600 px-4 py-2 text-xs font-bold text-white hover:bg-purple-700"
+                      className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-bold text-white hover:bg-slate-900"
                     >
                       Bán mô hình (Thu mua)
                     </Link>
@@ -359,7 +359,7 @@ export default function ServiceHistoryHub() {
                       setServiceFilter('all');
                       setStatusFilter('all');
                     }}
-                    className="mt-3 font-semibold text-purple-600 hover:underline dark:text-purple-400"
+                    className="mt-3 font-semibold text-slate-800 hover:underline dark:text-slate-400"
                   >
                     Đặt lại tất cả bộ lọc
                   </button>
@@ -398,7 +398,7 @@ export default function ServiceHistoryHub() {
                     return (
                       <div
                         key={`${item.serviceType}-${item.id}`}
-                        className="group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all duration-200 hover:border-purple-500/50 hover:shadow-md dark:border-strokedark dark:bg-boxdark"
+                        className="group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all duration-200 hover:border-slate-600/50 hover:shadow-md dark:border-strokedark dark:bg-boxdark"
                       >
                         <div>
                           {/* Top Row: Service Badge + TM Code + Status Badge */}
@@ -422,7 +422,7 @@ export default function ServiceHistoryHub() {
                           </div>
 
                           {/* Model Title */}
-                          <h3 className="mt-3 text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors line-clamp-2 leading-snug dark:text-white">
+                          <h3 className="mt-3 text-sm font-bold text-slate-900 group-hover:text-slate-800 transition-colors line-clamp-2 leading-snug dark:text-white">
                             {item.assetName}
                           </h3>
 
@@ -453,14 +453,14 @@ export default function ServiceHistoryHub() {
                               <button
                                 type="button"
                                 onClick={() => setPreviewItem(item)}
-                                className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 dark:bg-meta-4 dark:text-slate-200"
+                                className="rounded-md bg-slate-100 px-2.5 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-200 dark:bg-meta-4 dark:text-slate-200"
                               >
                                 Xem nhanh
                               </button>
                             )}
                             <Link
                               href={detailRoute}
-                              className="inline-flex items-center gap-1 font-bold text-purple-600 hover:underline dark:text-purple-400"
+                              className="inline-flex items-center gap-1 font-bold text-slate-800 hover:underline dark:text-slate-400"
                             >
                               <span>Vào trang</span>
                               <span>→</span>
@@ -491,7 +491,7 @@ export default function ServiceHistoryHub() {
                           onClick={() => setHubPage(page)}
                           className={`min-w-[32px] rounded-lg px-2.5 py-1 font-bold transition-all ${
                             hubPage === page
-                              ? 'bg-purple-600 text-white shadow-2xs'
+                              ? 'bg-slate-800 text-white shadow-2xs'
                               : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-strokedark dark:bg-boxdark dark:text-slate-300 dark:hover:bg-meta-4'
                           }`}
                         >

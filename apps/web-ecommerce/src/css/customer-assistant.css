@@ -87,7 +87,7 @@
 }
 .agent-panel-header h2 {
   font-size: 19px;
-  font-weight: 750;
+  font-weight: 600;
 }
 .agent-panel-header p {
   font-size: 12px;
@@ -136,7 +136,7 @@
 }
 .agent-eyebrow {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 1.8px;
   color: var(--agent-accent);
 }
@@ -144,7 +144,7 @@
   font-size: 32px;
   line-height: 1.2;
   letter-spacing: -1px;
-  font-weight: 750;
+  font-weight: 600;
   margin: 12px 0;
 }
 .agent-welcome > p {
@@ -217,7 +217,7 @@
   text-decoration: underline;
 }
 .agent-answer strong {
-  font-weight: 700;
+  font-weight: 600;
 }
 .agent-thinking {
   padding: 18px 2px;
@@ -252,7 +252,7 @@
   content: '✓';
   margin-right: 6px;
   color: var(--agent-accent);
-  font-weight: 700;
+  font-weight: 600;
 }
 .agent-composer {
   padding: 14px 18px max(14px, env(safe-area-inset-bottom));
@@ -383,7 +383,7 @@
   padding: 9px;
   font-size: 11px;
   color: var(--agent-accent);
-  font-weight: 650;
+  font-weight: 600;
 }
 .agent-product-buttons button + button {
   border-left: 1px solid var(--agent-line);
@@ -447,7 +447,7 @@
   color: #fff;
   border-radius: 12px;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
 }
@@ -564,7 +564,7 @@
   border-top: 1px solid var(--agent-line);
   padding-top: 10px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .agent-workspace {
   display: grid;
@@ -586,7 +586,7 @@
 .agent-workspace-intro h1 {
   font-size: 42px;
   line-height: 1.15;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: -1.5px;
   margin: 20px 0;
 }

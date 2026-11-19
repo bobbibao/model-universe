@@ -5,21 +5,21 @@
   gap: 10px;
   margin-top: 18px;
   padding-top: 16px;
-  border-top: 1px solid #eeebf2;
+  border-top: 1px solid #f0f0ed;
 }
 .payment-plan legend {
   float: left;
   width: 100%;
   margin-bottom: 4px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .payment-plan-option {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
   cursor: pointer;
   transition:
@@ -27,12 +27,12 @@
     background 0.15s;
 }
 .payment-plan-option:hover {
-  border-color: #c8bfe0;
+  border-color: #d5d5ca;
 }
 .payment-plan-option.is-selected {
-  border-color: #7956d8;
-  background: #f6f2ff;
-  box-shadow: 0 0 0 1px #7956d8 inset;
+  border-color: #182844;
+  background: #f9f9f8;
+  box-shadow: 0 0 0 1px #182844 inset;
 }
 .mu-shell .payment-plan-option input,
 .payment-plan-option input {
@@ -41,7 +41,7 @@
   min-height: 0;
   margin-top: 2px;
   flex-shrink: 0;
-  accent-color: #7956d8;
+  accent-color: #182844;
 }
 .payment-plan-option strong {
   display: block;
@@ -52,7 +52,7 @@
   margin-top: 2px;
   font-size: 11.5px;
   line-height: 1.5;
-  color: #6a6877;
+  color: #606a7f;
 }
 /* Inline (the bag): both plans on one row from tablet width. */
 @media (min-width: 640px) {
@@ -80,21 +80,21 @@
   align-items: center;
   gap: 2px;
   padding: 8px 6px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 11px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   background: #fff;
 }
 .payment-plan-presets button small {
   font-size: 10.5px;
   font-weight: 600;
-  color: #6a6877;
+  color: #606a7f;
 }
 .payment-plan-presets button[aria-pressed='true'] {
-  border-color: #7956d8;
-  color: #5b3fb8;
-  background: #f6f2ff;
+  border-color: #182844;
+  color: #182844;
+  background: #f9f9f8;
 }
 .payment-plan-split {
   display: grid;
@@ -104,21 +104,21 @@
 .payment-plan-split > div {
   padding: 10px 12px;
   border-radius: 12px;
-  background: #f6f5f9;
+  background: #f8f8f6;
 }
 .payment-plan-split dt {
   font-size: 11px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .payment-plan-split dd {
   margin-top: 2px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .payment-plan-note {
   font-size: 11.5px;
   line-height: 1.5;
-  color: #6a6877;
+  color: #606a7f;
 }
 .payment-plan.is-compact {
   margin-top: 10px;
@@ -131,16 +131,16 @@
 /* Transfer instructions (thank-you page, order history) */
 .transfer-instructions {
   padding: 16px 18px;
-  border: 1px solid #d9cdf7;
+  border: 1px solid #e5e5df;
   border-radius: 16px;
-  background: linear-gradient(135deg, #f6f2ff, #eefbfd);
-  color: #22212b;
+  background: linear-gradient(135deg, #f9f9f8, #eefbfd);
+  color: #121c2e;
 }
 .transfer-instructions h3 {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   /* The card stays light in the dark admin theme: never inherit the theme's heading colour. */
-  color: #22212b;
+  color: #121c2e;
 }
 .transfer-instructions dl {
   display: grid;
@@ -150,7 +150,7 @@
 }
 .transfer-instructions dt {
   font-size: 11px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .transfer-instructions dd {
   display: flex;
@@ -158,24 +158,24 @@
   gap: 8px;
   margin-top: 2px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .transfer-instructions dd button {
   flex-shrink: 0;
   padding: 2px 8px;
-  border: 1px solid #c8bfe0;
+  border: 1px solid #d5d5ca;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
   background: #fff;
 }
 .transfer-instructions p {
   margin-top: 12px;
   font-size: 12px;
   line-height: 1.55;
-  color: #4b4a57;
+  color: #454d5c;
 }
 
 /* Staff prepayment panel (admin order detail) */
@@ -190,7 +190,7 @@
 }
 .prepayment-facts dd {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .prepayment-entry {
   display: grid;
@@ -246,7 +246,7 @@
   transform: translateX(-50%);
 }
 .tracking-steps li.is-done { opacity: 1; font-weight: 600; color: #16a34a; }
-.tracking-steps li.is-current { opacity: 1; font-weight: 700; color: #2563eb; }
+.tracking-steps li.is-current { opacity: 1; font-weight: 600; color: #2563eb; }
 
 .address-pin { width: 28px; height: 28px; cursor: grab; }
 
@@ -261,7 +261,7 @@
   gap: 4px;
   padding: 4px;
   border-radius: 12px;
-  background: #f3f1f7;
+  background: #f5f5f3;
   width: min(100%, 360px);
 }
 .mu-shell .cart-delivery .fulfillment-switch label,
@@ -273,8 +273,8 @@
   padding: 8px 10px;
   border-radius: 9px;
   font-size: 13px;
-  font-weight: 650;
-  color: #5f5a6c;
+  font-weight: 600;
+  color: #555e71;
   cursor: pointer;
   transition:
     background 0.15s,
@@ -283,8 +283,8 @@
 }
 .fulfillment-switch label.is-selected {
   background: #fff;
-  color: #5b3fb8;
-  box-shadow: 0 1px 3px rgb(30 20 60 / 0.12);
+  color: #182844;
+  box-shadow: 0 1px 3px rgb(10 19 34 / 0.12);
 }
 .fulfillment-switch input {
   position: absolute;
@@ -292,7 +292,7 @@
   pointer-events: none;
 }
 .fulfillment-switch label:has(input:focus-visible) {
-  outline: 2px solid #7956d8;
+  outline: 2px solid #182844;
   outline-offset: 1px;
 }
 .delivery-address {
@@ -302,7 +302,7 @@
 .delivery-address-loading {
   height: 64px;
   border-radius: 14px;
-  background: linear-gradient(90deg, #f4f2f8 25%, #ebe7f3 50%, #f4f2f8 75%) 0 0 / 200% 100%;
+  background: linear-gradient(90deg, #f6f6f4 25%, #efefeb 50%, #f6f6f4 75%) 0 0 / 200% 100%;
   animation: delivery-shimmer 1.2s linear infinite;
   font-size: 0;
 }
@@ -317,7 +317,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
   background: linear-gradient(180deg, #fbfaff, #fff);
   position: relative;
@@ -328,7 +328,7 @@
   position: absolute;
   inset: 0 0 auto;
   height: 3px;
-  background: repeating-linear-gradient(135deg, #7956d8 0 14px, transparent 14px 20px, #e7843d 20px 34px, transparent 34px 40px);
+  background: repeating-linear-gradient(135deg, #182844 0 14px, transparent 14px 20px, #e7843d 20px 34px, transparent 34px 40px);
   opacity: 0.75;
 }
 .delivery-address-icon {
@@ -337,8 +337,8 @@
   width: 36px;
   height: 36px;
   border-radius: 11px;
-  color: #7956d8;
-  background: #f1ecff;
+  color: #182844;
+  background: #f7f7f4;
 }
 .delivery-address-text strong,
 .delivery-address-option strong {
@@ -347,13 +347,13 @@
   align-items: baseline;
   gap: 4px 10px;
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .delivery-address-text em,
 .delivery-address-option em {
   font-style: normal;
   font-weight: 500;
-  color: #6a6877;
+  color: #606a7f;
 }
 .delivery-address-text small,
 .delivery-address-option small {
@@ -361,18 +361,18 @@
   margin-top: 3px;
   font-size: 12px;
   line-height: 1.45;
-  color: #6a6877;
+  color: #606a7f;
 }
 .delivery-address-change {
   padding: 6px 12px;
   border-radius: 9px;
   font-size: 12.5px;
-  font-weight: 650;
-  color: #5b3fb8;
-  background: #f3effd;
+  font-weight: 600;
+  color: #182844;
+  background: #f7f7f5;
 }
 .delivery-address-change:hover {
-  background: #e9e1fb;
+  background: #f0f0ec;
 }
 .delivery-address-list,
 .delivery-address-form {
@@ -392,7 +392,7 @@
 }
 .delivery-address-list [role='radiogroup'] {
   display: grid;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
   overflow: hidden;
 }
@@ -406,13 +406,13 @@
   font-size: 13px;
 }
 .delivery-address-option + .delivery-address-option {
-  border-top: 1px solid #eeebf2;
+  border-top: 1px solid #f0f0ed;
 }
 .delivery-address-option:hover {
-  background: #faf9fc;
+  background: #fbfbfa;
 }
 .delivery-address-option.is-selected {
-  background: #f6f2ff;
+  background: #f9f9f8;
 }
 .mu-shell .cart-delivery .delivery-address-option input,
 .delivery-address-option input {
@@ -422,16 +422,16 @@
   margin-top: 2px;
   padding: 0;
   flex-shrink: 0;
-  accent-color: #7956d8;
+  accent-color: #182844;
 }
 .delivery-address-option i {
   padding: 1px 7px;
   border-radius: 999px;
   font-size: 10.5px;
   font-style: normal;
-  font-weight: 650;
-  color: #5b3fb8;
-  background: #efe9fd;
+  font-weight: 600;
+  color: #182844;
+  background: #f4f4f2;
 }
 .delivery-address-add {
   display: flex;
@@ -439,14 +439,14 @@
   justify-content: center;
   gap: 6px;
   padding: 10px;
-  border: 1px dashed #cfc6e6;
+  border: 1px dashed #dbdbd1;
   border-radius: 12px;
   font-size: 13px;
-  font-weight: 650;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
 }
 .delivery-address-add:hover {
-  background: #f8f5ff;
+  background: #fbfbf9;
 }
 .address-map-tools {
   display: flex;
@@ -457,7 +457,7 @@
   font-size: 12.5px;
 }
 .address-map-tools button {
-  color: #5b3fb8;
+  color: #182844;
   font-weight: 600;
 }
 .address-map-tools button:hover {
@@ -470,8 +470,8 @@
   gap: 10px;
   padding: 10px 14px;
   border-radius: 12px;
-  background: #f6f5f9;
-  color: #3f3a4b;
+  background: #f8f8f6;
+  color: #393f4c;
 }
 .carrier-quote-line strong {
   display: block;
@@ -480,11 +480,11 @@
 .carrier-quote-line small {
   display: block;
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .carrier-quote-line b {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .dark .fulfillment-switch,
 .dark .carrier-quote-line,
@@ -498,7 +498,7 @@
 .dark .fulfillment-switch label.is-selected,
 .dark .delivery-address-card,
 .dark .delivery-address-option.is-selected {
-  background: color-mix(in srgb, #7956d8 18%, transparent);
+  background: color-mix(in srgb, #182844 18%, transparent);
   color: inherit;
 }
 .dark .delivery-address-card,
@@ -512,8 +512,8 @@
 .dark .delivery-address-icon,
 .dark .delivery-address-change,
 .dark .delivery-address-option i {
-  background: color-mix(in srgb, #7956d8 25%, transparent);
-  color: #c9b8ff;
+  background: color-mix(in srgb, #182844 25%, transparent);
+  color: #e0e0d7;
 }
 .dark .delivery-address-text em,
 .dark .delivery-address-text small,
@@ -523,7 +523,7 @@
   color: color-mix(in srgb, currentColor 65%, transparent);
 }
 .dark .payment-plan-option.is-selected {
-  background: color-mix(in srgb, #7956d8 18%, transparent);
+  background: color-mix(in srgb, #182844 18%, transparent);
 }
 @media (max-width: 480px) {
   .delivery-address-card {
@@ -542,7 +542,7 @@
 .carrier-quote summary {
   cursor: pointer;
   font-size: 12px;
-  color: #5b3fb8;
+  color: #182844;
 }
 .carrier-quote ul {
   display: grid;
@@ -555,16 +555,16 @@
   gap: 0 12px;
   padding: 6px 10px;
   border-radius: 10px;
-  background: #f6f5f9;
+  background: #f8f8f6;
   font-size: 12px;
 }
 .carrier-quote li small {
   grid-column: 1 / -1;
-  color: #6a6877;
+  color: #606a7f;
 }
 .carrier-quote li.is-chosen {
-  font-weight: 700;
-  box-shadow: 0 0 0 1px #7956d8 inset;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #182844 inset;
 }
 .dark .carrier-quote li {
   background: color-mix(in srgb, currentColor 8%, transparent);
@@ -587,20 +587,20 @@
   padding: 8px;
   border-radius: 14px;
   background: #fff;
-  box-shadow: 0 0 0 1px #e5e2ec;
+  box-shadow: 0 0 0 1px #eaeae4;
 }
 .checkout-qr-timer {
   padding: 4px 12px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: #a45b05;
   background: color-mix(in srgb, #a45b05 12%, transparent);
 }
 .checkout-qr-hint {
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .checkout-qr-details {
   display: grid;
@@ -618,33 +618,33 @@
   font-size: 13px;
 }
 .checkout-qr-row dt {
-  color: #6a6877;
+  color: #606a7f;
 }
 .checkout-qr-row dd {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  font-weight: 700;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 .checkout-qr-row button {
   padding: 1px 8px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
 }
 .checkout-qr-summary {
   padding-top: 10px;
-  border-top: 1px solid #eeebf2;
+  border-top: 1px solid #f0f0ed;
 }
 .checkout-qr-waiting {
   display: flex;
   gap: 8px;
   align-items: center;
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .checkout-qr-dot {
   width: 8px;
@@ -680,7 +680,7 @@
   align-items: center;
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid #eeebf2;
+  border-top: 1px solid #f0f0ed;
   font-size: 13px;
 }
 @media (max-width: 640px) {
@@ -706,19 +706,19 @@
   gap: 12px;
   margin: 16px 0;
   padding: 16px;
-  border: 1px dashed #c8bfe0;
+  border: 1px dashed #d5d5ca;
   border-radius: 14px;
 }
 .order-payment-qr h3,
 .pending-checkouts h2 {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .pending-checkouts {
   display: grid;
   gap: 8px;
   padding: 16px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
 }
 .pending-checkouts ul {
@@ -739,7 +739,7 @@
 .pending-checkout small {
   display: block;
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 @media (max-width: 640px) {
   .checkout-qr-code {
@@ -751,22 +751,22 @@
 .print-table th,
 .print-table td {
   padding: 8px 10px;
-  border-bottom: 1px solid #eeebf2;
+  border-bottom: 1px solid #f0f0ed;
   text-align: left;
   vertical-align: top;
 }
 .print-table th {
   font-size: 12px;
-  font-weight: 700;
-  color: #6a6877;
+  font-weight: 600;
+  color: #606a7f;
 }
 .print-table small {
   display: block;
-  color: #6a6877;
+  color: #606a7f;
   font-size: 11.5px;
 }
 .print-table tr.is-selected {
-  background: color-mix(in srgb, #7956d8 7%, transparent);
+  background: color-mix(in srgb, #182844 7%, transparent);
 }
 .print-actions {
   position: sticky;
@@ -789,7 +789,7 @@
   gap: 4px;
   margin-bottom: 16px;
   overflow-x: auto;
-  border-bottom: 1px solid #e5e2ec;
+  border-bottom: 1px solid #eaeae4;
   background: var(--store-bg, #fff);
 }
 .dark .purchases-tabs {
@@ -806,11 +806,11 @@
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-  color: #6a6877;
+  color: #606a7f;
 }
 .purchases-tabs button[aria-selected='true'] {
-  border-bottom-color: #7956d8;
-  color: #5b3fb8;
+  border-bottom-color: #182844;
+  color: #182844;
 }
 .purchases-tab-count {
   min-width: 20px;
@@ -826,12 +826,12 @@
   gap: 12px;
   justify-items: center;
   padding: 64px 16px;
-  color: #6a6877;
+  color: #606a7f;
   text-align: center;
 }
 .order-card {
   overflow: hidden;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
   background: var(--store-panel, #fff);
 }
@@ -846,19 +846,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #eeebf2;
+  border-bottom: 1px solid #f0f0ed;
 }
 .order-card-header small {
   margin-left: 8px;
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .order-state {
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
 }
 .order-state.is-toPay,
 .order-state.is-cancelRequested {
@@ -868,7 +866,7 @@
   color: #16a34a;
 }
 .order-state.is-cancelled {
-  color: #6a6877;
+  color: #606a7f;
 }
 .order-card-next {
   display: flex;
@@ -900,7 +898,7 @@
   width: 64px;
   height: 64px;
   overflow: hidden;
-  border: 1px solid #eeebf2;
+  border: 1px solid #f0f0ed;
   border-radius: 10px;
 }
 .order-card-name a {
@@ -914,7 +912,7 @@
 .order-card-name small {
   display: block;
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .order-card-price {
   font-size: 14px;
@@ -925,16 +923,16 @@
   gap: 2px;
   justify-items: end;
   padding: 10px 16px;
-  border-top: 1px dashed #e5e2ec;
+  border-top: 1px dashed #eaeae4;
   font-size: 14px;
 }
 .order-card-total strong {
   font-size: 18px;
-  color: #5b3fb8;
+  color: #182844;
 }
 .order-card-total small {
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .order-card-actions {
   display: flex;
@@ -947,7 +945,7 @@
 .order-card-cancel,
 .order-card-toggle {
   padding: 8px 12px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
@@ -959,13 +957,13 @@
   display: grid;
   gap: 16px;
   padding: 16px;
-  border-top: 1px solid #eeebf2;
+  border-top: 1px solid #f0f0ed;
 }
 .order-card-notice {
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 13px;
-  background: #f6f5f9;
+  background: #f8f8f6;
 }
 .dark .order-card-notice {
   background: rgb(255 255 255 / 0.06);
@@ -984,7 +982,7 @@
   justify-items: center;
   text-align: center;
   font-size: 12px;
-  color: #9a98a6;
+  color: #939bab;
 }
 .order-progress li::before {
   content: '';
@@ -993,7 +991,7 @@
   right: 50%;
   left: -50%;
   height: 2px;
-  background: #e5e2ec;
+  background: #eaeae4;
 }
 .order-progress li:first-child::before {
   display: none;
@@ -1009,14 +1007,14 @@
   width: 30px;
   height: 30px;
   place-items: center;
-  border: 2px solid #e5e2ec;
+  border: 2px solid #eaeae4;
   border-radius: 50%;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   background: #fff;
 }
 .dark .order-progress-dot {
-  background: #1f1d2b;
+  background: #0a1322;
 }
 .order-progress li.is-done,
 .order-progress li.is-current {
@@ -1033,7 +1031,7 @@
   background: #be123c;
 }
 .order-progress small {
-  color: #6a6877;
+  color: #606a7f;
 }
 @media (max-width: 640px) {
   .order-progress strong {
@@ -1067,7 +1065,7 @@
 .pending-checkout-bar small {
   display: block;
   font-size: 12.5px;
-  color: #6a6877;
+  color: #606a7f;
 }
 
 /* Order progress: the bar fills step by step when the detail opens; the current step pulses. */
@@ -1087,7 +1085,7 @@
 }
 .order-progress li.is-done::before,
 .order-progress li.is-current::before {
-  background: #e5e2ec;
+  background: #eaeae4;
 }
 .order-progress li.is-done::after,
 .order-progress li.is-current::after {
@@ -1158,7 +1156,7 @@
   display: grid;
   gap: 16px;
   padding: 16px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
 }
 .dark .shipment-tracking {
@@ -1177,7 +1175,7 @@
   place-items: center;
   border-radius: 12px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   color: #fff;
   background: linear-gradient(135deg, #f97316, #e11d48);
 }
@@ -1196,10 +1194,10 @@
   gap: 8px;
   align-items: center;
   font-size: 13px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .shipment-tracking-id code {
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   color: inherit;
 }
@@ -1213,7 +1211,7 @@
 }
 .shipment-tracking-id button {
   padding: 1px 8px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
@@ -1228,21 +1226,21 @@
   gap: 2px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: #f6f5f9;
+  background: #f8f8f6;
 }
 .dark .shipment-tracking-facts span {
   background: rgb(255 255 255 / 0.06);
 }
 .shipment-tracking-facts small {
   font-size: 11.5px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .shipment-tracking-facts strong {
   font-size: 14px;
 }
 .shipment-tracking-empty {
   font-size: 13px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .shipment-timeline {
   display: grid;
@@ -1254,7 +1252,7 @@
   gap: 10px;
   padding-bottom: 16px;
   font-size: 13px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .shipment-timeline li:last-child {
   padding-bottom: 0;
@@ -1266,7 +1264,7 @@
   bottom: -2px;
   left: 83px;
   width: 2px;
-  background: #e5e2ec;
+  background: #eaeae4;
 }
 .shipment-timeline li:last-child::before {
   display: none;
@@ -1286,7 +1284,7 @@
   height: 12px;
   margin: 3px auto 0;
   border-radius: 50%;
-  background: #c8c5d3;
+  background: #c6cad2;
 }
 .shipment-timeline li strong {
   display: block;
@@ -1338,15 +1336,15 @@
 .packing-table th,
 .packing-table td {
   padding: 6px 8px;
-  border-bottom: 1px solid #eeebf2;
+  border-bottom: 1px solid #f0f0ed;
   text-align: left;
   vertical-align: middle;
   white-space: nowrap;
 }
 .packing-table th {
   font-size: 11.5px;
-  font-weight: 700;
-  color: #6a6877;
+  font-weight: 600;
+  color: #606a7f;
 }
 .packing-table tr.is-inactive {
   opacity: 0.55;
@@ -1355,7 +1353,7 @@
 .packing-text {
   width: 84px;
   padding: 5px 7px;
-  border: 1px solid #ddd8e6;
+  border: 1px solid #e3e3db;
   border-radius: 8px;
   background: transparent;
   font-size: 13px;
@@ -1369,7 +1367,7 @@
   padding: 1px 7px;
   border-radius: 999px;
   font-size: 10.5px;
-  font-weight: 650;
+  font-weight: 600;
   color: #92400e;
   background: #fef3c7;
 }
@@ -1382,14 +1380,14 @@
   border-color: color-mix(in srgb, currentColor 25%, transparent);
 }
 .carrier-quote-line small.carrier-quote-parcels {
-  color: #5b3fb8;
+  color: #182844;
   font-weight: 600;
 }
 
 /* The order's package plan for staff (Admin → order): parcels, cartons and a top view of each. */
 .package-plan {
   padding: 14px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
 }
 .package-plan-head {
@@ -1418,12 +1416,12 @@
   align-items: center;
   padding: 10px;
   border-radius: 12px;
-  background: #f8f7fb;
+  background: #fafaf8;
   font-size: 13px;
 }
 .package-plan-parcels small {
   display: block;
-  color: #6a6877;
+  color: #606a7f;
   font-size: 12px;
 }
 .package-plan-parcels ul {
@@ -1436,26 +1434,26 @@
 .parcel-topview {
   width: 72px;
   height: 54px;
-  border: 1.5px solid #c8bfe0;
+  border: 1.5px solid #d5d5ca;
   border-radius: 6px;
   background: #fff;
 }
 .parcel-topview rect {
-  fill: #7956d8;
+  fill: #182844;
   stroke: #fff;
   stroke-width: 0.6;
 }
 .package-plan-alternatives summary {
   cursor: pointer;
   font-size: 12.5px;
-  color: #5b3fb8;
+  color: #182844;
 }
 .package-plan-alternatives li {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   padding: 6px 0;
-  border-bottom: 1px solid #eeebf2;
+  border-bottom: 1px solid #f0f0ed;
   font-size: 12.5px;
 }
 .dark .package-plan,
@@ -1475,9 +1473,9 @@
   padding: 0 6px;
   border-radius: 6px;
   font-size: 11px;
-  font-weight: 700;
-  color: #5b3fb8;
-  background: #efe9fd;
+  font-weight: 600;
+  color: #182844;
+  background: #f4f4f2;
 }
 
 /* Tracking an order that ships in several parcels: one tab per parcel. */
@@ -1492,25 +1490,25 @@
   gap: 1px;
   min-width: 112px;
   padding: 8px 12px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 12px;
   text-align: left;
   font-size: 12.5px;
 }
 .shipment-parcels button small {
-  color: #6a6877;
+  color: #606a7f;
   font-size: 11.5px;
 }
 .shipment-parcels button.is-selected {
-  border-color: #7956d8;
-  background: #f6f2ff;
-  box-shadow: 0 0 0 1px #7956d8 inset;
+  border-color: #182844;
+  background: #f9f9f8;
+  box-shadow: 0 0 0 1px #182844 inset;
 }
 .dark .shipment-parcels button {
   border-color: color-mix(in srgb, currentColor 15%, transparent);
 }
 .dark .shipment-parcels button.is-selected {
-  background: color-mix(in srgb, #7956d8 18%, transparent);
+  background: color-mix(in srgb, #182844 18%, transparent);
 }
 
 /* "Gặp trực tiếp": the shop's address, how it works, and when the customer comes. */
@@ -1524,7 +1522,7 @@
   gap: 12px;
   align-items: center;
   padding: 14px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 14px;
   background: linear-gradient(180deg, #fbfaff, #fff);
 }
@@ -1538,7 +1536,7 @@
 }
 .showroom-card-text small {
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .showroom-card-actions {
   display: grid;
@@ -1551,7 +1549,7 @@
 .showroom-call {
   font-size: 12.5px;
   font-weight: 600;
-  color: #5b3fb8;
+  color: #182844;
 }
 .meeting-steps {
   display: grid;
@@ -1563,7 +1561,7 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: #f6f5f9;
+  background: #f8f8f6;
 }
 .meeting-steps li > span {
   display: grid;
@@ -1573,9 +1571,9 @@
   height: 22px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
-  background: #7956d8;
+  background: #182844;
 }
 .meeting-steps strong {
   display: block;
@@ -1586,7 +1584,7 @@
   margin-top: 2px;
   font-size: 11.5px;
   line-height: 1.45;
-  color: #6a6877;
+  color: #606a7f;
 }
 .meeting-perks {
   display: flex;
@@ -1597,7 +1595,7 @@
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 11.5px;
-  font-weight: 650;
+  font-weight: 600;
   color: #15803d;
   background: #e8f7ee;
 }
@@ -1612,13 +1610,13 @@
 .meeting-when legend {
   margin-bottom: 6px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mu-shell .cart-delivery .meeting-when input[type='date'],
 .meeting-when input[type='date'] {
   max-width: 220px;
   padding: 8px 12px;
-  border: 1px solid #ddd8e6;
+  border: 1px solid #e3e3db;
   border-radius: 9px;
   font-size: 13px;
 }
@@ -1630,16 +1628,16 @@
 .mu-shell .cart-delivery .meeting-slots label,
 .meeting-slots label {
   padding: 7px 12px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 999px;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
 }
 .meeting-slots label.is-selected {
-  border-color: #7956d8;
-  color: #5b3fb8;
-  background: #f6f2ff;
+  border-color: #182844;
+  color: #182844;
+  background: #f9f9f8;
 }
 .meeting-slots input {
   position: absolute;
@@ -1647,7 +1645,7 @@
   pointer-events: none;
 }
 .meeting-slots label:has(input:focus-visible) {
-  outline: 2px solid #7956d8;
+  outline: 2px solid #182844;
   outline-offset: 1px;
 }
 .dark .showroom-card,
@@ -1663,7 +1661,7 @@
   color: color-mix(in srgb, currentColor 65%, transparent);
 }
 .dark .meeting-slots label.is-selected {
-  background: color-mix(in srgb, #7956d8 18%, transparent);
+  background: color-mix(in srgb, #182844 18%, transparent);
   color: inherit;
 }
 @media (max-width: 640px) {
@@ -1682,12 +1680,12 @@
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 12.5px;
-  color: #5b3fb8;
-  background: #f3effd;
+  color: #182844;
+  background: #f7f7f5;
 }
 .dark .return-owner-note {
   color: inherit;
-  background: color-mix(in srgb, #7956d8 18%, transparent);
+  background: color-mix(in srgb, #182844 18%, transparent);
 }
 
 /* Checkout confirmation: what, where, and what is paid now (the one large number) and later. */
@@ -1712,7 +1710,7 @@
   overflow: hidden;
   border: 2px solid #fff;
   border-radius: 12px;
-  background: #f4f2f8;
+  background: #f6f6f4;
 }
 .order-confirm-thumbs > span:first-child {
   margin-left: 0;
@@ -1725,22 +1723,22 @@
   border-radius: 6px;
   font-size: 10px;
   color: #fff;
-  background: rgb(20 16 30 / 0.7);
+  background: rgb(10 19 34 / 0.7);
 }
 .order-confirm-thumbs .is-more {
   display: grid;
   place-items: center;
   font-size: 12px;
-  font-weight: 700;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
 }
 .order-confirm-row {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   gap: 10px;
   padding-top: 12px;
-  border-top: 1px solid #eeebf2;
-  color: #3f3a4b;
+  border-top: 1px solid #f0f0ed;
+  color: #393f4c;
 }
 .order-confirm-row > div {
   display: grid;
@@ -1748,14 +1746,14 @@
 }
 .order-confirm-row small {
   font-size: 11.5px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .order-confirm-row span {
-  color: #5f5a6c;
+  color: #555e71;
 }
 .order-confirm-visit {
-  font-weight: 650;
-  color: #5b3fb8 !important;
+  font-weight: 600;
+  color: #182844 !important;
 }
 .order-confirm-line {
   display: flex !important;
@@ -1767,36 +1765,36 @@
   gap: 6px;
   padding: 12px 14px;
   border-radius: 14px;
-  background: #f6f5f9;
+  background: #f8f8f6;
 }
 .order-confirm-money > div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  color: #5f5a6c;
+  color: #555e71;
 }
 .order-confirm-money dd {
-  font-weight: 700;
-  color: #1f1b2d;
+  font-weight: 600;
+  color: #0a1322;
 }
 .order-confirm-money .is-now {
   padding: 8px 0;
-  border-top: 1px dashed #d9d3e6;
-  border-bottom: 1px dashed #d9d3e6;
+  border-top: 1px dashed #e1e1d8;
+  border-bottom: 1px dashed #e1e1d8;
   align-items: baseline;
 }
 .order-confirm-money .is-now dt {
-  font-weight: 700;
-  color: #1f1b2d;
+  font-weight: 600;
+  color: #0a1322;
 }
 .order-confirm-money .is-now dd {
   font-size: 22px;
-  font-weight: 800;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
 }
 .order-confirm-note {
   font-size: 11.5px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .order-confirm-money .is-detail {
   font-size: 12.5px;
@@ -1814,7 +1812,7 @@
   padding: 8px 12px;
   border-radius: 10px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0f766e;
   background: #ecfdf8;
 }
@@ -1834,7 +1832,7 @@
   color: inherit;
 }
 .dark .order-confirm-money .is-now dd {
-  color: #c9b8ff;
+  color: #e0e0d7;
 }
 .dark .order-confirm-thumbs > span {
   border-color: transparent;
@@ -1855,19 +1853,19 @@
 }
 .thanks-hero h1 {
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .thanks-hero > p {
   max-width: 560px;
   font-size: 14px;
   line-height: 1.55;
-  color: #5f5a6c;
+  color: #555e71;
 }
 .thanks-spinner {
   width: 40px;
   height: 40px;
   margin: 40px 0;
-  border: 4px solid #7956d8;
+  border: 4px solid #182844;
   border-top-color: transparent;
   border-radius: 999px;
   animation: spin 0.9s linear infinite;
@@ -1880,20 +1878,20 @@
   gap: 8px 12px;
   margin-top: 4px;
   padding: 8px 14px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 999px;
   font-size: 13px;
 }
 .thanks-code span {
-  color: #6a6877;
+  color: #606a7f;
 }
 .thanks-code strong {
   font-size: 15px;
   letter-spacing: 0.04em;
 }
 .thanks-code button {
-  font-weight: 650;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
 }
 .thanks-status {
   display: grid;
@@ -1902,7 +1900,7 @@
   margin: 0 auto 24px;
   max-width: 640px;
   padding: 14px 16px;
-  border: 1px dashed #c8bfe0;
+  border: 1px dashed #d5d5ca;
   border-radius: 14px;
   text-align: center;
   font-size: 14px;
@@ -1924,14 +1922,14 @@
 }
 .thanks-card {
   padding: 18px;
-  border: 1px solid #e6e2ee;
+  border: 1px solid #ebebe5;
   border-radius: 16px;
   background: #fff;
 }
 .thanks-card h2 {
   margin-bottom: 12px;
   font-size: 15px;
-  font-weight: 750;
+  font-weight: 600;
 }
 .thanks-address {
   display: grid;
@@ -1939,13 +1937,13 @@
   font-size: 13.5px;
 }
 .thanks-address span {
-  color: #5f5a6c;
+  color: #555e71;
 }
 .thanks-address small {
   margin-top: 4px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #5b3fb8;
+  color: #182844;
 }
 .thanks-items {
   display: grid;
@@ -1956,7 +1954,7 @@
   gap: 12px;
   align-items: center;
   padding: 10px 0;
-  border-top: 1px solid #eeebf2;
+  border-top: 1px solid #f0f0ed;
   font-size: 13.5px;
 }
 .thanks-items li:first-child {
@@ -1969,7 +1967,7 @@
   height: 56px;
   overflow: hidden;
   border-radius: 12px;
-  background: #f4f2f8;
+  background: #f6f6f4;
 }
 .thanks-item-name {
   display: grid;
@@ -1977,7 +1975,7 @@
 }
 .thanks-item-name small {
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .thanks-money {
   display: grid;
@@ -1988,20 +1986,20 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  color: #5f5a6c;
+  color: #555e71;
 }
 .thanks-money dd {
-  font-weight: 650;
-  color: #1f1b2d;
+  font-weight: 600;
+  color: #0a1322;
 }
 .thanks-money .is-total {
   padding-top: 10px;
-  border-top: 1px solid #eeebf2;
-  font-weight: 700;
+  border-top: 1px solid #f0f0ed;
+  font-weight: 600;
 }
 .thanks-money .is-total dd {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .thanks-money .is-paid dd {
   color: #15803d;
@@ -2010,31 +2008,31 @@
   color: #c2410c;
 }
 .thanks-money .is-upfront dt {
-  font-weight: 700;
-  color: #1f1b2d;
+  font-weight: 600;
+  color: #0a1322;
 }
 .thanks-money .is-upfront dd {
-  font-weight: 800;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
 }
 .thanks-points {
   margin-top: 12px;
   padding: 8px 12px;
   border-radius: 10px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0f766e;
   background: #ecfdf8;
 }
 .thanks-money .is-balance {
   padding: 10px 12px;
   border-radius: 12px;
-  background: #f6f2ff;
+  background: #f9f9f8;
 }
 .thanks-money .is-balance dd {
   font-size: 16px;
-  font-weight: 800;
-  color: #5b3fb8;
+  font-weight: 600;
+  color: #182844;
 }
 .thanks-actions {
   display: grid;
@@ -2047,7 +2045,7 @@
 .thanks-help {
   font-size: 12px;
   line-height: 1.5;
-  color: #6a6877;
+  color: #606a7f;
   text-align: center;
 }
 .dark .thanks-card {
@@ -2068,10 +2066,10 @@
   color: inherit;
 }
 .dark .thanks-money .is-balance {
-  background: color-mix(in srgb, #7956d8 18%, transparent);
+  background: color-mix(in srgb, #182844 18%, transparent);
 }
 .dark .thanks-money .is-balance dd {
-  color: #c9b8ff;
+  color: #e0e0d7;
 }
 @media (max-width: 860px) {
   .thanks-grid {
@@ -2093,10 +2091,10 @@
   border-radius: 24px;
   color: #fff;
   background:
-    radial-gradient(120% 140% at 100% 0%, rgb(173 145 255 / 0.55) 0%, transparent 55%),
+    radial-gradient(120% 140% at 100% 0%, rgb(191 197 209 / 0.55) 0%, transparent 55%),
     radial-gradient(90% 120% at 0% 100%, rgb(214 243 107 / 0.18) 0%, transparent 60%),
-    linear-gradient(135deg, #24183f 0%, #3b2580 55%, #5b3fb8 100%);
-  box-shadow: 0 18px 40px -18px rgb(59 37 128 / 0.55);
+    linear-gradient(135deg, #101c31 0%, #101c31 55%, #182844 100%);
+  box-shadow: 0 18px 40px -18px rgb(16 28 49 / 0.55);
 }
 .thanks-banner-main {
   display: flex;
@@ -2118,7 +2116,7 @@
   width: 30px;
   height: 30px;
   fill: none;
-  stroke: #1f1b2d;
+  stroke: #0a1322;
   stroke-width: 3.2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -2153,7 +2151,7 @@
 .thanks-banner h1 {
   margin-top: 2px;
   font-size: clamp(26px, 3.2vw, 36px);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
@@ -2174,7 +2172,7 @@
 }
 .thanks-facts > div {
   padding: 12px 16px;
-  background: rgb(20 12 44 / 0.35);
+  background: rgb(10 19 34 / 0.35);
   backdrop-filter: blur(6px);
 }
 .thanks-facts dt {
@@ -2190,15 +2188,15 @@
 }
 .thanks-facts strong {
   font-size: 15px;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: 0.01em;
 }
 .thanks-facts button {
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 11.5px;
-  font-weight: 650;
-  color: #1f1b2d;
+  font-weight: 600;
+  color: #0a1322;
   background: #d6f36b;
 }
 @media (max-width: 720px) {
@@ -2230,29 +2228,29 @@
   gap: 1px;
   min-width: 68px;
   padding: 8px 10px;
-  border: 1px solid #e5e2ec;
+  border: 1px solid #eaeae4;
   border-radius: 12px;
   background: #fff;
 }
 .visit-days button small {
   font-size: 11px;
   font-weight: 600;
-  color: #6a6877;
+  color: #606a7f;
 }
 .visit-days button strong {
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 600;
 }
 .visit-days button.is-selected {
-  border-color: #7956d8;
-  background: #f6f2ff;
-  box-shadow: 0 0 0 1px #7956d8 inset;
+  border-color: #182844;
+  background: #f9f9f8;
+  box-shadow: 0 0 0 1px #182844 inset;
 }
 .visit-days button.is-selected small {
-  color: #5b3fb8;
+  color: #182844;
 }
 .visit-other strong {
-  color: #7956d8;
+  color: #182844;
   letter-spacing: 0.1em;
 }
 .meeting-slots label.is-disabled {
@@ -2262,14 +2260,14 @@
 }
 .visit-note {
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .dark .visit-days button {
   border-color: color-mix(in srgb, currentColor 15%, transparent);
   background: transparent;
 }
 .dark .visit-days button.is-selected {
-  background: color-mix(in srgb, #7956d8 18%, transparent);
+  background: color-mix(in srgb, #182844 18%, transparent);
 }
 
 /* Sooner than the slots allow: call the shop. */
@@ -2280,7 +2278,7 @@
   gap: 10px 12px;
   padding: 12px 14px;
   border-radius: 14px;
-  background: #1f1b2d;
+  background: #0a1322;
   color: #fff;
 }
 .visit-sooner > div {
@@ -2300,11 +2298,11 @@
   padding: 8px 14px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 .visit-call {
-  color: #1f1b2d;
+  color: #0a1322;
   background: #d6f36b;
 }
 .visit-map {

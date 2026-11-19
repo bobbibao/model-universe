@@ -1,6 +1,6 @@
 .sales-admin {
-  --sa-purple: #8057bf;
-  --sa-border: #e9e3ef;
+  --sa-purple: #182844;
+  --sa-border: #ecece6;
   max-width: 1600px;
   margin: auto;
 }
@@ -14,22 +14,22 @@
 .sa-heading p,
 .sa-eyebrow {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.15em;
-  color: #8b65b4;
+  color: #182844;
   margin-bottom: 9px;
 }
 .sa-heading h1 {
   font-size: clamp(24px, 2.6vw, 36px);
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.04em;
-  color: #30223e;
+  color: #101c31;
 }
 .sa-heading > div > span {
   display: block;
   margin-top: 9px;
   font-size: 13px;
-  color: #87798f;
+  color: #737e95;
   line-height: 1.8;
 }
 .sa-outline {
@@ -37,13 +37,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid #dacee6;
+  border: 1px solid #deded6;
   border-radius: 12px;
   background: white;
   padding: 11px 16px;
-  color: #70508d;
+  color: #101c31;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sa-stats {
   display: grid;
@@ -60,7 +60,7 @@
 .sa-stats span {
   display: block;
   font-size: 12px;
-  color: #8a7e93;
+  color: #788399;
 }
 .sa-stats strong {
   display: block;
@@ -68,13 +68,13 @@
   line-height: 1.3;
   letter-spacing: -0.05em;
   margin-top: 8px;
-  color: #463052;
+  color: #182844;
 }
 .sa-stats small {
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
-  color: #8a7e93;
+  color: #788399;
 }
 .sa-composer {
   display: grid;
@@ -104,21 +104,21 @@
 }
 .sa-panel h2 {
   font-size: 17px;
-  font-weight: 750;
-  color: #43304f;
+  font-weight: 600;
+  color: #182844;
   letter-spacing: -0.025em;
 }
 .sa-panel-head > span {
   font-size: 11px;
-  color: #927aa2;
+  color: #7e899e;
 }
 .sa-step {
   display: inline-grid;
   place-items: center;
-  background: #f0eafa;
-  color: #8b62b6;
+  background: #f4f4f0;
+  color: #182844;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   width: 30px;
   height: 30px;
   border-radius: 9px;
@@ -127,11 +127,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid #e3d9ef;
+  border: 1px solid #e7e7e1;
   border-radius: 12px;
-  background: #faf8fd;
+  background: #fbfbfa;
   padding: 0 14px;
-  color: #9c8aaa;
+  color: #8c95a8;
   min-height: 46px;
 }
 .admin-workspace .admin-page .sa-search > input[type='search'] {
@@ -143,10 +143,10 @@
   box-shadow: none;
   padding: 12px 0;
   outline: 0;
-  color: #3d2c49;
+  color: #101c31;
 }
 .sa-search:focus-within {
-  outline: 2px solid #a37bcc;
+  outline: 2px solid #959fb2;
   outline-offset: 2px;
 }
 .sa-picker-toolbar {
@@ -156,11 +156,11 @@
   flex-wrap: wrap;
   margin: 16px 0;
   font-size: 11px;
-  color: #8a739c;
+  color: #778298;
 }
 .sa-picker-toolbar button {
-  font-weight: 650;
-  color: #8053ab;
+  font-weight: 600;
+  color: #182844;
 }
 .sa-picker-toolbar label {
   display: flex;
@@ -170,7 +170,7 @@
 .sa-picker-toolbar input,
 .sa-product > input,
 .sa-toggle input {
-  accent-color: #8a5bb9;
+  accent-color: #182844;
   width: 16px;
   height: 16px;
   flex-shrink: 0;
@@ -186,15 +186,15 @@
   align-items: center;
   gap: 12px;
   border: 1px solid transparent;
-  border-bottom-color: #f0eaf4;
+  border-bottom-color: #f1f1ed;
   padding: 14px 8px;
   border-radius: 12px;
   cursor: pointer;
   min-width: 0;
 }
 .sa-product.is-selected {
-  background: #f6f0fd;
-  border-color: #d8c3ef;
+  background: #f8f8f5;
+  border-color: #deded4;
 }
 .sa-product + .sa-product {
   margin-top: 4px;
@@ -217,18 +217,18 @@
   overflow: hidden;
   font-size: 12px;
   line-height: 1.6;
-  color: #493553;
+  color: #182844;
 }
 .sa-product small {
   display: block;
   font-size: 10px;
   line-height: 1.8;
-  color: #96839f;
+  color: #828ca0;
   margin-top: 3px;
 }
 .sa-product small b {
-  color: #7c4f9d;
-  font-weight: 700;
+  color: #182844;
+  font-weight: 600;
 }
 .sa-safe {
   text-align: right;
@@ -258,7 +258,7 @@
 .sa-label {
   display: block;
   font-size: 13px;
-  color: #47354f;
+  color: #182844;
   font-weight: 600;
 }
 .sa-label textarea {
@@ -267,7 +267,7 @@
   resize: vertical;
   width: 100%;
   padding: 12px;
-  border: 1px solid #e6deee;
+  border: 1px solid #e9e9e3;
   font-size: 12px;
   font-weight: 400;
   line-height: 1.7;
@@ -275,7 +275,7 @@
 .sa-discount > label {
   font-size: 12px;
   font-weight: 600;
-  color: #594065;
+  color: #101c31;
 }
 .sa-discount > div:first-of-type {
   display: flex;
@@ -287,14 +287,14 @@
   max-width: 100px;
   padding: 10px 14px;
   font-size: 24px;
-  font-weight: 800;
-  color: #8d52b9;
-  border: 1px solid #e4d4ed;
+  font-weight: 600;
+  color: #182844;
+  border: 1px solid #e4e4dd;
 }
 .sa-discount > div > span {
   font-size: 24px;
-  font-weight: 700;
-  color: #8d52b9;
+  font-weight: 600;
+  color: #182844;
 }
 .sa-presets {
   display: flex;
@@ -303,17 +303,17 @@
 .sa-presets button {
   flex: 1;
   border-radius: 8px;
-  background: #f6f2fa;
+  background: #f7f7f5;
   border: 1px solid transparent;
   padding: 8px;
-  color: #9373ac;
+  color: #3b4a63;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .sa-presets button[aria-pressed='true'] {
-  border-color: #b68bd4;
-  background: #eee2f6;
-  color: #774b96;
+  border-color: #a3abbc;
+  background: #eeeeea;
+  color: #101c31;
 }
 .sa-summary {
   padding: 14px 16px;
@@ -337,22 +337,22 @@
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 20px;
-  background: linear-gradient(115deg, #fbf8ff, #f1edf9);
+  background: linear-gradient(115deg, #fbf8ff, #f4f4f2);
 }
 .sa-weekly > div > p:last-child {
   max-width: 760px;
   margin-top: 10px;
   font-size: 12px;
   line-height: 1.8;
-  color: #8e7e9b;
+  color: #7c879d;
 }
 .sa-toggle {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  font-weight: 650;
-  color: #79568f;
+  font-weight: 600;
+  color: #101c31;
 }
 .sa-weekly-fields {
   grid-column: 1/-1;
@@ -384,22 +384,22 @@
   justify-content: space-between;
   gap: 20px;
   padding: 20px 0;
-  border-bottom: 1px solid #eee8f3;
+  border-bottom: 1px solid #f0f0eb;
 }
 .sa-events article:last-child {
   border: 0;
 }
 .sa-events h3 {
   font-size: 16px;
-  font-weight: 700;
-  color: #483151;
+  font-weight: 600;
+  color: #182844;
   margin: 9px 0 6px;
 }
 .sa-events p,
 .sa-events small {
   font-size: 11px;
   line-height: 1.9;
-  color: #96829f;
+  color: #818ba0;
 }
 .sa-status {
   display: inline-block;
@@ -408,11 +408,11 @@
   border-radius: 100px;
   background: #e8f6ec;
   color: #48815a;
-  font-weight: 650;
+  font-weight: 600;
 }
 .sa-status.is-ended {
-  background: #f1edf4;
-  color: #96899f;
+  background: #f2f2ef;
+  color: #858fa3;
 }
 .sa-event-actions {
   display: flex;
@@ -421,7 +421,7 @@
   gap: 12px;
   max-width: 300px;
   font-size: 11px;
-  color: #865cad;
+  color: #182844;
 }
 .sa-event-actions button,
 .sa-event-actions a {
@@ -430,12 +430,12 @@
 }
 .sa-text-link {
   font-size: 11px;
-  font-weight: 650;
-  color: #8b62b6;
+  font-weight: 600;
+  color: #182844;
 }
 .sa-empty {
   font-size: 13px;
-  color: #96829f;
+  color: #818ba0;
   padding: 10px 0;
 }
 .sales-admin button:disabled {
@@ -444,15 +444,15 @@
 }
 .sales-admin button:focus-visible,
 .sales-admin a:focus-visible {
-  outline: 3px solid #bb97dc;
+  outline: 3px solid #aeb6c5;
   outline-offset: 4px;
 }
 .dark .sales-admin {
-  --sa-border: #42334e;
+  --sa-border: #182844;
 }
 .dark .sa-panel,
 .dark .sa-stats > div {
-  background: #251e2d;
+  background: #0a1322;
 }
 .dark .sa-heading h1,
 .dark .sa-panel h2,
@@ -460,20 +460,20 @@
 .dark .sa-events h3,
 .dark .sa-stats strong,
 .dark .sa-label {
-  color: #e9ddef;
+  color: #e9e9e3;
 }
 .dark .sa-product.is-selected {
-  background: #382842;
+  background: #101c31;
 }
 .dark .sa-weekly {
-  background: #2c2237;
+  background: #101c31;
 }
 .dark .sa-outline {
-  background: #34263e;
-  color: #c5a2df;
+  background: #101c31;
+  color: #b6bdcb;
 }
 .dark .sa-product {
-  border-bottom-color: #392b42;
+  border-bottom-color: #101c31;
 }
 @media (max-width: 1100px) {
   .sa-composer {
@@ -551,17 +551,17 @@
 .dark .sa-events p,
 .dark .sa-events small,
 .dark .sa-empty {
-  color: #bbaac9;
+  color: #aeb6c5;
 }
 .dark .sa-product small b,
 .dark .sa-picker-toolbar button,
 .dark .sa-event-actions,
 .dark .sa-text-link {
-  color: #cba3ef;
+  color: #c0c6d2;
 }
 .dark .sa-discount > label,
 .dark .sa-toggle {
-  color: #d0b8e1;
+  color: #d3d3c6;
 }
 .dark .sa-summary {
   background: #243b30;

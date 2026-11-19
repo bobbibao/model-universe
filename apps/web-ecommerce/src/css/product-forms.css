@@ -2,7 +2,7 @@
 .form-field-hint,
 .form-section-hint {
   margin-top: 6px;
-  color: var(--admin-muted, #71697e);
+  color: var(--admin-muted, #636e84);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -23,7 +23,7 @@
   padding-inline: 6px;
   color: var(--admin-ink);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .product-form-section > legend small {
   display: inline-block;

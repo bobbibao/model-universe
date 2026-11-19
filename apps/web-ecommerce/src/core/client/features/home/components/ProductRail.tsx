@@ -5,7 +5,6 @@ import './product-card-hover.css';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useLocale } from 'next-intl';
 import Link from '@/i18n/navigation';
-import Carousel from '@/components/Carousel';
 import PromoIcon, { type PromoIconName } from '@/components/PromoIcon';
 import ProductApi from '@/core/client/api/Product';
 import ProductCard from '@/core/client/features/shop/components/ProductCard';
@@ -23,12 +22,12 @@ interface ProductRailProps {
   aside?: ReactNode;
 }
 
-// A horizontal shelf of product cards that slides by itself (pausing while hovered): best sellers with their rank,
-// new arrivals, good prices, or the visitor's recently viewed kits. Renders nothing when the shelf would be empty.
+// A shelf of product cards: best sellers with their rank, new arrivals, good prices, or the visitor's recently viewed
+// kits. A still grid of the first five (four on narrower screens, two by two on a phone) with a link to the full list;
+// nothing slides by itself. Renders nothing when the shelf would be empty. `icon` and `tone` are kept for callers.
 export default function ProductRail({
   title,
   note,
-  icon,
   tone = 'plain',
   href,
   query,
@@ -56,9 +55,6 @@ export default function ProductRail({
   return (
     <section className={`product-rail mu-wrap is-${tone}`}>
       <header className="product-rail-head">
-        <span className="product-rail-icon">
-          <PromoIcon name={icon} size={20} />
-        </span>
         <div>
           <h2>{title}</h2>
           {note && <p>{note}</p>}
@@ -71,20 +67,14 @@ export default function ProductRail({
         )}
       </header>
       {products ? (
-        <Carousel
-          label={title}
-          className="product-rail-carousel"
-          autoplayMs={4200}
-          dots={false}
-          loop={products.length > 5}
-        >
-          {products.map((product, index) => (
+        <div className="product-rail-grid">
+          {products.slice(0, 5).map((product, index) => (
             <div key={product.id} className="product-rail-item">
-              {ranked && index < 10 && <span className={`rail-rank is-${Math.min(index + 1, 4)}`}>{index + 1}</span>}
+              {ranked && <span className="rail-rank">{String(index + 1).padStart(2, '0')}</span>}
               <ProductCard product={product} />
             </div>
           ))}
-        </Carousel>
+        </div>
       ) : (
         <div className="product-rail-skeleton" aria-busy="true">
           {Array.from({ length: 5 }, (_, index) => (

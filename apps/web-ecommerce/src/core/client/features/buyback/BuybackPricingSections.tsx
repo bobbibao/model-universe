@@ -174,7 +174,7 @@ export default function BuybackPricingSections({
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-strokedark">
             <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-50 text-xs font-bold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-50 text-xs font-bold text-slate-900 dark:bg-slate-950/60 dark:text-slate-300">
                 ⚖
               </span>
               <div>
@@ -532,7 +532,7 @@ export function EstimateCard({ estimate }: { estimate: BuybackEstimate }) {
         <button
           type="button"
           onClick={() => setShowFormula(!showFormula)}
-          className="font-semibold text-purple-600 hover:underline dark:text-purple-400"
+          className="font-semibold text-slate-800 hover:underline dark:text-slate-400"
         >
           {showFormula ? '▲ Ẩn chi tiết công thức định giá' : '▼ Xem chi tiết công thức & quy tắc định giá'}
         </button>

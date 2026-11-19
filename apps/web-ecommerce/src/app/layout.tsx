@@ -14,6 +14,7 @@ import '@/css/checkout-payment.css';
 import '@/css/promotions.css';
 import '@/css/product-conditions.css';
 import '@/css/commerce-experience.css';
+import { Be_Vietnam_Pro } from 'next/font/google';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import AppProviders from '@/components/AppProviders';
@@ -21,6 +22,15 @@ import type { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
 import { OG_IMAGE, SITE_NAME } from '@/shared/seo';
+
+// The interface face. Satoshi has no Vietnamese stacked marks (ầ, ữ, ộ, ư, ơ…), so every Vietnamese word fell back
+// to a system font letter by letter; Be Vietnam Pro draws all of them. Self-hosted by next/font at build time.
+const uiFont = Be_Vietnam_Pro({
+  subsets: ['vietnamese', 'latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-ui',
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -101,7 +111,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     // Browser extensions (password managers, translators, assistants) add attributes to <html> and <body> before React
     // hydrates; suppressHydrationWarning ignores attribute differences on these two elements only, not their children.
     // data-scroll-behavior keeps the smooth scrolling from style.css while Next.js routes (Next 15 contract).
-    <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={locale} suppressHydrationWarning data-scroll-behavior="smooth" className={uiFont.variable}>
       <body id="workspace-page" suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Ho_Chi_Minh">
           <AppProviders>{children}</AppProviders>

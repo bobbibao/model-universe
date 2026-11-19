@@ -252,7 +252,7 @@ function AccountWorkspace({ user }: { user: User }) {
               {/* Account Overview Hero Card */}
               <div className="account-identity-banner mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark sm:p-7">
                 <div className="flex items-center gap-4">
-                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-xl font-extrabold text-white shadow-md sm:h-20 sm:w-20 sm:text-2xl">
+                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-tr from-slate-800 to-slate-600 text-xl font-extrabold text-white shadow-md sm:h-20 sm:w-20 sm:text-2xl">
                     {initials}
                   </div>
                   <div>
@@ -271,12 +271,12 @@ function AccountWorkspace({ user }: { user: User }) {
                 </div>
 
                 <div className="flex flex-col items-start gap-1.5 sm:items-end">
-                  <span className="account-completion rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 dark:bg-purple-950/40 dark:text-purple-300">
+                  <span className="account-completion rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-900 dark:bg-slate-950/40 dark:text-slate-300">
                     {t('completion', { count: completed, total: fields.length })}
                   </span>
                   <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-meta-4">
                     <div
-                      className="h-full rounded-full bg-purple-600 transition-all duration-500"
+                      className="h-full rounded-full bg-slate-800 transition-all duration-500"
                       style={{ width: `${(completed / fields.length) * 100}%` }}
                     />
                   </div>
@@ -308,7 +308,7 @@ function AccountWorkspace({ user }: { user: User }) {
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('lastName')}</span>
                           <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.lastName || profile('unknown')}</strong>
                         </div>
-                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                        <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>
                       </button>
 
                       {/* First Name */}
@@ -322,7 +322,7 @@ function AccountWorkspace({ user }: { user: User }) {
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('firstName')}</span>
                           <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.firstName || profile('unknown')}</strong>
                         </div>
-                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                        <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>
                       </button>
 
                       {/* Gender */}
@@ -376,7 +376,7 @@ function AccountWorkspace({ user }: { user: User }) {
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('phone')}</span>
                           <strong className="block text-sm font-bold text-slate-800 dark:text-white">{user.phone || profile('unknown')}</strong>
                         </div>
-                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                        <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>
                       </button>
 
                       {/* Address */}
@@ -390,7 +390,7 @@ function AccountWorkspace({ user }: { user: User }) {
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{profile('address')}</span>
                           <strong className="block truncate text-sm font-bold text-slate-800 dark:text-white">{user.address || profile('unknown')}</strong>
                         </div>
-                        <span className="text-xs font-semibold text-purple-600 opacity-80 group-hover:opacity-100 dark:text-purple-400">{t('edit')} ↗</span>
+                        <span className="text-xs font-semibold text-slate-800 opacity-80 group-hover:opacity-100 dark:text-slate-400">{t('edit')} ↗</span>
                       </button>
                     </div>
                   </div>
@@ -402,7 +402,7 @@ function AccountWorkspace({ user }: { user: User }) {
                 {/* Security Card */}
                 <article className="account-card flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-strokedark dark:bg-boxdark">
                   <div className="flex items-start gap-4">
-                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-300">
+                    <div className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-slate-50 text-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
                       <AdminIcon name="shield" size={24} />
                     </div>
                     <div>

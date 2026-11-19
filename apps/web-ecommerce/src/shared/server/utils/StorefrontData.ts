@@ -113,8 +113,25 @@ export async function getCatalogFirstPage(category?: string): Promise<PaginatedR
     const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(2500) };
     const response = await fetch(`http://127.0.0.1:${port}/api/products?${query}`, options);
     if (!response.ok) return undefined;
-    const result = (await response.json()) as { payload?: PaginatedResult<ProductSummary> };
-    return Array.isArray(result.payload?.data) ? result.payload : undefined;
+    const result = (await response.json()) as {
+      payload?: { data?: ProductSummary[]; pagination?: Record<string, unknown> };
+    };
+    if (!Array.isArray(result.payload?.data)) return undefined;
+    // The API speaks snake_case; the client's Pagination is camelCase (the browser API layer converts it, this server
+    // fetch has to do the same, or the pager reads "NaN–NaN" and offers no next page).
+    const raw = result.payload.pagination ?? {};
+    const pick = (camel: string, snake: string) => raw[camel] ?? raw[snake];
+    return {
+      data: result.payload.data,
+      pagination: {
+        total: Number(pick('total', 'total') ?? result.payload.data.length),
+        page: Number(pick('page', 'page') ?? 1),
+        perPage: Number(pick('perPage', 'per_page') ?? 12),
+        totalPages: Number(pick('totalPages', 'total_pages') ?? 1),
+        hasNextPage: Boolean(pick('hasNextPage', 'has_next_page')),
+        hasPreviousPage: Boolean(pick('hasPreviousPage', 'has_previous_page')),
+      },
+    };
   } catch {
     return undefined;
   }

@@ -39,30 +39,30 @@
     transform 180ms ease;
 }
 .mu-shell .product-rail .product-tile:focus-within .mu-product-photo::after {
-  border-color: #7956d8;
-  box-shadow: inset 0 0 0 1px #7956d8;
+  border-color: #182844;
+  box-shadow: inset 0 0 0 1px #182844;
 }
 .mu-shell .product-rail .product-tile a:focus-visible,
 .mu-shell .product-rail .product-tile button:focus-visible {
-  outline: 2px solid #6541b7;
+  outline: 2px solid #182844;
   outline-offset: 3px;
   border-radius: 6px;
 }
 @media (hover: hover) and (pointer: fine) {
   .mu-shell .product-rail .product-tile:hover .mu-product-photo::after {
-    border-color: #b7a3d6;
+    border-color: #b2b9c7;
     box-shadow: inset 0 0 0 3px #ffffff40;
   }
   .mu-shell .product-rail .product-tile:hover .product-stage-photo {
     transform: scale(1.025);
   }
   .mu-shell .product-rail .product-tile:hover .product-tile-action {
-    border-color: #c6b5e4;
-    color: #54348e;
+    border-color: #d3d3c6;
+    color: #101c31;
   }
   .mu-shell .product-rail .product-tile:hover .product-tile-action > span {
     color: #fff;
-    background-color: #6541b7;
+    background-color: #182844;
     transform: translate(2px, -2px);
   }
   .mu-shell .product-rail .product-tile .product-tile-name:hover {

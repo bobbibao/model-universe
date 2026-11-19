@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { showToast } from '@/shared/client/utils/toast';
 import Link from '@/i18n/navigation';
@@ -11,7 +11,6 @@ import { CHECKIN_POINTS, TIER_ORDER } from '@/shared/promotions';
 import { RANK_BENEFITS } from '@/shared/voucher-stack';
 import { LOYALTY_TIERS } from '@/shared/loyalty-rules';
 import { formatVND } from '@/shared/server/utils/utils';
-import { useReveal } from '@/shared/client/hooks/useReveal';
 import VoucherTicket from './VoucherTicket';
 import LuckyWheel from './LuckyWheel';
 import MemberCard from './MemberCard';
@@ -24,10 +23,9 @@ const MISSION_ICONS: Record<string, PromoIconName> = {
   share: 'share',
 };
 
-// The offers page: a hero on a soft aura with today's quick wins and the member's standing (or the navy sign-in card),
-// then everything that saves money, each in its own section that the pill links jump to — vouchers (codes anyone can
+// The offers page: a hero with today's quick wins and the member's standing (or the navy sign-in card), then
+// everything that saves money, each in its own section that the section links jump to — vouchers (codes anyone can
 // use and timed drops to save), the daily check-in and wheel, one-off missions, and a table of what each tier gets.
-// Sections and cards rise in as they scroll into view (useReveal).
 export default function PromotionsHub() {
   const t = useTranslations('promotions'),
     tiers = useTranslations('tiers'),
@@ -38,8 +36,6 @@ export default function PromotionsHub() {
   const [filter, setFilter] = useState<'all' | 'discount' | 'freeship'>('all');
   const load = useCallback(() => void PromotionApi.hub().then(setHub), []);
   useEffect(load, [load, user?.id]);
-  const page = useRef<HTMLDivElement>(null);
-  useReveal(page, [hub === undefined, hub === null]);
   const money = (value: number) => formatVND(value, locale);
 
   const act = async <T,>(action: () => Promise<T>, success: (value: T) => string) => {
@@ -77,7 +73,6 @@ export default function PromotionsHub() {
   // wins, and the member's card or the sign-in panel beside them.
   const hero = (today: ReactNode, aside: ReactNode) => (
     <section className="promo-hero" aria-labelledby="promo-title">
-      <div className="promo-aura" aria-hidden="true" />
       <div className="promo-hero-inner">
         <div className="promo-hero-copy">
           <h1 id="promo-title">{t('title')}</h1>
@@ -91,19 +86,14 @@ export default function PromotionsHub() {
   );
   if (hub === undefined)
     return (
-      <div className="promo-screen" ref={page}>
+      <div className="promo-screen">
         {hero(null, <div className="promo-hero-aside promo-skeleton" aria-hidden="true" />)}
         <div className="promo-page">
           <div className="promo-skeleton" aria-busy="true" />
         </div>
       </div>
     );
-  if (!hub)
-    return (
-      <div className="promo-screen" ref={page}>
-        {hero(null, null)}
-      </div>
-    );
+  if (!hub) return <div className="promo-screen">{hero(null, null)}</div>;
   const member = hub.member;
   const tierIndex = member ? TIER_ORDER.indexOf(member.tier as (typeof TIER_ORDER)[number]) : -1;
   const vouchers = [...hub.standing, ...hub.drops].filter((drop) => filter === 'all' || drop.benefitType === filter);
@@ -180,11 +170,11 @@ export default function PromotionsHub() {
   );
 
   return (
-    <div className="promo-screen" ref={page}>
+    <div className="promo-screen">
       {hero(today, aside)}
       <div className="promo-page">
         <section id="vouchers" className="promo-section">
-          <header className="promo-section-head" data-reveal>
+          <header className="promo-section-head">
             <div>
               <h2>{t('dropsTitle')}</h2>
               <p>{t('dropsText')}</p>
@@ -207,12 +197,7 @@ export default function PromotionsHub() {
           {vouchers.length ? (
             <div className="voucher-grid">
               {vouchers.map((drop, index) => (
-                <div
-                  key={`${drop.kind}-${drop.id}`}
-                  className="promo-reveal"
-                  data-reveal
-                  style={{ ['--i' as string]: index % 4 }}
-                >
+                <div key={`${drop.kind}-${drop.id}`} className="promo-reveal">
                   <VoucherTicket drop={drop} busy={busy} onClaim={claim} />
                 </div>
               ))}
@@ -223,7 +208,7 @@ export default function PromotionsHub() {
         </section>
 
         <section id="daily" className="promo-section promo-daily">
-          <article className="promo-card promo-checkin" data-reveal>
+          <article className="promo-card promo-checkin">
             <header>
               <h2>{t('checkinTitle')}</h2>
               <p>{t('checkinText')}</p>
@@ -280,7 +265,7 @@ export default function PromotionsHub() {
             </button>
           </article>
 
-          <article className="promo-card promo-wheel" data-reveal style={{ ['--i' as string]: 1 }}>
+          <article className="promo-card promo-wheel">
             <header>
               <h2>{t('wheelTitle')}</h2>
               <p>{t('wheelText')}</p>
@@ -303,7 +288,7 @@ export default function PromotionsHub() {
         </section>
 
         <section id="missions" className="promo-section">
-          <header className="promo-section-head" data-reveal>
+          <header className="promo-section-head">
             <div>
               <h2>{t('missionsTitle')}</h2>
               <p>{t('missionsText')}</p>
@@ -321,12 +306,7 @@ export default function PromotionsHub() {
             {hub.missions.map((mission, index) => {
               const ready = mission.ready || mission.key === 'share';
               return (
-                <li
-                  key={mission.key}
-                  className={mission.claimed ? 'is-done' : ready ? 'is-ready' : ''}
-                  data-reveal
-                  style={{ ['--i' as string]: index }}
-                >
+                <li key={mission.key} className={mission.claimed ? 'is-done' : ready ? 'is-ready' : ''}>
                   <span className="mission-icon" aria-hidden="true">
                     <PromoIcon name={mission.claimed ? 'check' : (MISSION_ICONS[mission.key] ?? 'star')} size={22} />
                   </span>
@@ -358,13 +338,13 @@ export default function PromotionsHub() {
         </section>
 
         <section id="tiers" className="promo-section">
-          <header className="promo-section-head" data-reveal>
+          <header className="promo-section-head">
             <div>
               <h2>{t('tiersTitle')}</h2>
               <p>{t('tiersText')}</p>
             </div>
           </header>
-          <div className="tier-table-wrap" data-reveal>
+          <div className="tier-table-wrap">
             <table className="tier-table">
               <thead>
                 <tr>

@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
-import { useReveal } from '@/shared/client/hooks/useReveal';
 import { ServiceTerms } from '@/components/Services/ServiceExperience';
 import ServiceCards from '@/components/Services/ServiceCards';
 import type { ShowcasePhoto } from '@/shared/types/showcase';
@@ -24,8 +23,6 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
   const experience = useTranslations('experience');
   const g = useTranslations('serviceGuide');
   const [activeTab, setActiveTab] = useState<Tab>('services');
-  const body = useRef<HTMLDivElement>(null);
-  useReveal(body, [activeTab]);
 
   // ?tab=history or ?tab=faq opens that tab (links from the account, the footer and the assistant).
   useEffect(() => {
@@ -36,7 +33,7 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
   return (
     <>
       <ServicesHero photos={photos} />
-      <div ref={body} className="mu-wrap store-workspace sv-body">
+      <div className="mu-wrap store-workspace sv-body">
         <nav className="sg-tabs" aria-label={t('title')}>
           {TABS.map((tab) => (
             <button
@@ -53,13 +50,13 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
         {activeTab === 'services' && (
           <>
             <section className="sv-hub" aria-labelledby="services-hub-title">
-              <header className="sv-section-head" data-reveal>
+              <header className="sv-section-head">
                 <h2 id="services-hub-title">{experience('hubTitle')}</h2>
                 <p>{experience('hubIntro')}</p>
               </header>
               <ServiceCards photo={photos[3] ?? photos[0]} />
             </section>
-            <section className="svx-process" aria-labelledby="services-process" data-reveal>
+            <section className="svx-process" aria-labelledby="services-process">
               <div className="svx-process-head">
                 <h2 id="services-process">{g('processTitle')}</h2>
                 <Link className="svx-button is-light" href="/services/sell">

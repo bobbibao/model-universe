@@ -22,7 +22,7 @@
 }
 .mk-selection-heading h3 {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .mk-step {
   display: grid;
@@ -33,7 +33,7 @@
   background: color-mix(in srgb, var(--admin-accent) 10%, var(--admin-surface));
   color: var(--admin-accent);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .mk-selection-count {
   border-radius: 8px;
@@ -41,7 +41,7 @@
   background: var(--admin-soft);
   color: var(--admin-muted);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .mk-picker-search {
@@ -83,7 +83,7 @@
   border-radius: 8px;
   padding: 5px 9px;
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--admin-muted);
   background: var(--admin-surface);
 }
@@ -155,7 +155,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 .mk-product-option small {
@@ -170,7 +170,7 @@
 .mk-product-option b {
   display: block;
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 600;
   color: var(--admin-accent);
   margin-top: 4px;
 }
@@ -276,7 +276,7 @@
   background: #11182766;
   color: white;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .mk-library-image.is-selected .mk-media-check {
   background: var(--admin-accent);
@@ -320,7 +320,7 @@
   color: #fff;
   padding: 2px 5px;
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-selected-photo > button {
   position: absolute;
@@ -380,7 +380,7 @@
 }
 .mk-upload-zone strong {
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 600;
 }
 .mk-upload-zone small {
   font-size: 10px;
@@ -435,7 +435,7 @@
   display: block;
   color: var(--admin-ink);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-date-icon {
   display: grid;
@@ -472,7 +472,7 @@
   color: #fff;
   background: #0008;
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .mk-selection button:focus-visible,
 .mk-date-picker button:focus-visible {

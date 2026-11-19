@@ -3,10 +3,10 @@
   display: grid;
   gap: 0;
   margin-bottom: 28px;
-  border: 1px solid #e7e3ef;
+  border: 1px solid #ecece6;
   border-radius: 18px;
   background: #fff;
-  color: #1d1a29;
+  color: #0a1322;
 }
 .service-form-section {
   display: grid;
@@ -14,19 +14,17 @@
   padding: 18px 20px;
 }
 .service-form-section + .service-form-section {
-  border-top: 1px solid #f0edf5;
+  border-top: 1px solid #f3f3ef;
 }
 .service-form-section h3 {
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #6d6780;
+  font-weight: 600;
+  color: #636e84;
 }
 .service-form-hint {
   margin-top: -6px;
   font-size: 12px;
-  color: #8e87a3;
+  color: #8690a4;
 }
 .service-form-submit {
   grid-template-columns: minmax(0, 1fr) auto;
@@ -48,16 +46,16 @@
   width: 17px;
   height: 17px;
   margin-top: 1px;
-  accent-color: #6f48cc;
+  accent-color: #182844;
 }
 .service-form-agree details {
   padding-left: 25px;
   font-size: 12px;
-  color: #6d6780;
+  color: #636e84;
 }
 .service-form-agree summary {
   cursor: pointer;
-  color: #6f48cc;
+  color: #182844;
   font-weight: 600;
 }
 .service-form-agree details p {
@@ -89,7 +87,7 @@
   padding: 7px 0 0;
   font-size: 13px;
   font-weight: 600;
-  color: #6d6780;
+  color: #636e84;
 }
 .item-condition-chips {
   display: flex;
@@ -110,27 +108,27 @@
   align-items: center;
   min-height: 32px;
   padding: 0 12px;
-  border: 1px solid #e2ddeb;
+  border: 1px solid #e7e7e1;
   border-radius: 999px;
   background: #fff;
   font-size: 13px;
-  color: #42394f;
+  color: #3a414e;
   transition:
     border-color 0.15s,
     background 0.15s,
     color 0.15s;
 }
 .item-condition-chip:hover span {
-  border-color: #b9a6ea;
+  border-color: #bfc5d1;
 }
 .item-condition-chip input:checked + span {
-  border-color: #6f48cc;
-  background: #f3effb;
-  color: #5b36b8;
-  font-weight: 650;
+  border-color: #182844;
+  background: #f6f6f4;
+  color: #182844;
+  font-weight: 600;
 }
 .item-condition-chip input:focus-visible + span {
-  outline: 2px solid #b79cff;
+  outline: 2px solid #d3d3c8;
   outline-offset: 2px;
 }
 .item-condition-verdict {
@@ -163,10 +161,8 @@
 }
 .evidence-head strong {
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #6d6780;
+  font-weight: 600;
+  color: #636e84;
 }
 .evidence-head span {
   font-size: 12px;
@@ -178,7 +174,7 @@
 }
 .evidence-hint {
   font-size: 12px;
-  color: #8e87a3;
+  color: #8690a4;
 }
 .evidence-grid {
   display: grid;
@@ -192,9 +188,9 @@
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  border: 1px solid #ece8f3;
+  border: 1px solid #f0f0eb;
   border-radius: 12px;
-  background: #faf9fc;
+  background: #fbfbfa;
 }
 .evidence-grid img {
   width: 100%;
@@ -210,7 +206,7 @@
   font-size: 11px;
   text-align: center;
   word-break: break-all;
-  color: #42394f;
+  color: #3a414e;
 }
 .evidence-grid li > button {
   position: absolute;
@@ -221,7 +217,7 @@
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: #1d1a29cc;
+  background: #0a1322cc;
   color: #fff;
   font-size: 14px;
   line-height: 1;
@@ -232,10 +228,10 @@
   align-content: center;
   gap: 2px;
   height: 100%;
-  border: 1.5px dashed #c9bfe0;
+  border: 1.5px dashed #d5d5ca;
   border-radius: 12px;
   background: #fbfaff;
-  color: #6f48cc;
+  color: #182844;
   cursor: pointer;
 }
 .evidence-grid li:has(.evidence-add) {
@@ -257,7 +253,7 @@
   text-align: center;
 }
 .evidence-add:focus-within {
-  outline: 2px solid #b79cff;
+  outline: 2px solid #d3d3c8;
   outline-offset: 2px;
 }
 

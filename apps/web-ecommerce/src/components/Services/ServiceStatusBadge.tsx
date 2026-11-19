@@ -30,7 +30,7 @@ const statusStyles: Record<
     bg: 'bg-orange-50 dark:bg-orange-950/40',
     text: 'text-orange-800 dark:text-orange-300',
     border: 'border-orange-300 dark:border-orange-800/60',
-    dot: 'bg-orange-500 animate-pulse',
+    dot: 'bg-orange-500',
     defaultLabelVi: 'Cần bổ sung ảnh/video',
   },
   quoted: {
@@ -48,10 +48,10 @@ const statusStyles: Record<
     defaultLabelVi: 'Chờ mô hình gửi tới',
   },
   inspecting: {
-    bg: 'bg-purple-50 dark:bg-purple-950/40',
-    text: 'text-purple-800 dark:text-purple-300',
-    border: 'border-purple-200 dark:border-purple-800/60',
-    dot: 'bg-purple-500 animate-pulse',
+    bg: 'bg-teal-50 dark:bg-teal-950/40',
+    text: 'text-teal-800 dark:text-teal-300',
+    border: 'border-teal-200 dark:border-teal-800/60',
+    dot: 'bg-teal-500',
     defaultLabelVi: 'Đang thẩm định hiện vật',
   },
   reinspection_requested: {
