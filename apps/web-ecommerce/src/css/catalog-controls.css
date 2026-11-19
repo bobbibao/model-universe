@@ -506,8 +506,8 @@ select:not([multiple]) {
 .catalog-price-inputs label {
   flex: 1;
   min-width: 0;
-  color: #6d7991;
-  font-size: 11px;
+  color: var(--mu-muted);
+  font-size: 12px;
 }
 .catalog-price-inputs input {
   display: block;

@@ -625,11 +625,12 @@
   height: 52px;
   padding: 0 20px 0 8px;
   border-radius: 999px;
-  background: var(--ch-green, #14955a);
+  /* Deep emerald: white 14px text needs 4.5:1, which the brighter call green (3.8:1) missed. */
+  background: var(--mu-emerald-deep, #0b6e52);
   color: #fff;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 10px 28px #14955a55;
+  box-shadow: 0 10px 28px rgb(11 110 82 / 0.33);
 }
 .ch-fab-toggle .ch-fab-ring {
   display: grid;
