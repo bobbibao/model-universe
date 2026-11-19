@@ -3821,6 +3821,8 @@
     }
   },
   "commerceUX": {
+    "saveProduct": "Save {name}",
+    "unsaveProduct": "Remove {name} from saved",
     "appliedFilters": "Applied filters",
     "removeFilter": "Remove filter: {name}",
     "clearFilters": "Clear filters",
@@ -4343,6 +4345,7 @@
     }
   },
   "contactHub": {
+    "otherChannels": "Other channels",
     "eyebrow": "Customer support",
     "heroTitle": "Need advice? Model Universe is here to help.",
     "heroIntro": "Choosing a kit, checking an order, a buyback quote or a partnership: pick the easiest channel and we reply quickly during opening hours.",
@@ -4486,5 +4489,38 @@
     "statSell": "top buyback price, of the real selling price",
     "statPawn": "pawn amount, of the real selling price",
     "statHold": "days a deposit holds a kit"
+  },
+  "holdDialog": {
+    "title": "Hold this kit",
+    "subtitle": "Pay a deposit and the shop keeps this kit for you.",
+    "quantity": "Quantity {count}",
+    "minimum": "Minimum deposit",
+    "holdFor": "Held {days} days",
+    "merchandise": "Merchandise",
+    "discount": "Discount",
+    "total": "Deposit basis",
+    "bandsTitle": "A larger deposit holds it longer",
+    "bandFrom": "From {percent}%",
+    "days": "{days} days",
+    "paidInFull": "Paid in full, awaiting delivery",
+    "note": "The deposit counts toward the order when you collect the kit. The kit is set aside for you as soon as the deposit is confirmed.",
+    "couponToggle": "Have a discount code?",
+    "couponPlaceholder": "Enter a discount code",
+    "couponApply": "Apply",
+    "couponApplying": "Checking",
+    "terms": "Hold and refund terms",
+    "accept": "I have read and accept the hold terms.",
+    "submit": "Create hold request",
+    "submitting": "Creating request…",
+    "failed": "Could not get the hold quote.",
+    "retry": "Try again"
+  },
+  "wishlistToast": {
+    "savedTitle": "Saved",
+    "savedHint": "{name} · Tap to see your saved kits",
+    "removedTitle": "Removed from saved",
+    "removedHint": "Tap to see your saved kits",
+    "signInTitle": "Sign in to save kits",
+    "signInHint": "Tap to sign in; your saved kits are kept in your account."
   }
 }

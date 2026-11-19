@@ -3821,6 +3821,8 @@
     }
   },
   "commerceUX": {
+    "saveProduct": "Lưu {name} vào yêu thích",
+    "unsaveProduct": "Bỏ {name} khỏi yêu thích",
     "appliedFilters": "Bộ lọc đang áp dụng",
     "removeFilter": "Bỏ bộ lọc: {name}",
     "clearFilters": "Xóa bộ lọc",
@@ -4343,6 +4345,7 @@
     }
   },
   "contactHub": {
+    "otherChannels": "Kênh khác",
     "eyebrow": "Hỗ trợ khách hàng",
     "heroTitle": "Cần tư vấn? Model Universe luôn sẵn sàng.",
     "heroIntro": "Chọn mô hình, kiểm tra đơn hàng, báo giá thu mua hay hợp tác: chọn kênh tiện nhất, chúng tôi phản hồi nhanh trong giờ mở cửa.",
@@ -4486,5 +4489,38 @@
     "statSell": "giá thu tối đa, tính trên giá bán thực",
     "statPawn": "số tiền cầm, tính trên giá bán thực",
     "statHold": "ngày giữ hàng khi đặt cọc"
+  },
+  "holdDialog": {
+    "title": "Giữ mô hình này",
+    "subtitle": "Đặt cọc để shop giữ riêng mẫu này cho bạn.",
+    "quantity": "Số lượng {count}",
+    "minimum": "Cọc tối thiểu",
+    "holdFor": "Giữ {days} ngày",
+    "merchandise": "Tiền hàng",
+    "discount": "Ưu đãi",
+    "total": "Tổng tính cọc",
+    "bandsTitle": "Cọc nhiều hơn, giữ lâu hơn",
+    "bandFrom": "Từ {percent}%",
+    "days": "{days} ngày",
+    "paidInFull": "Trả đủ, chờ giao",
+    "note": "Cọc được trừ vào tổng đơn khi nhận hàng. Mẫu được giữ riêng cho bạn ngay khi tiền cọc được xác nhận.",
+    "couponToggle": "Có mã ưu đãi?",
+    "couponPlaceholder": "Nhập mã ưu đãi",
+    "couponApply": "Áp dụng",
+    "couponApplying": "Đang tính",
+    "terms": "Điều khoản giữ hàng và hoàn cọc",
+    "accept": "Tôi đã đọc và đồng ý với điều khoản giữ hàng.",
+    "submit": "Tạo yêu cầu giữ hàng",
+    "submitting": "Đang tạo yêu cầu…",
+    "failed": "Chưa lấy được báo giá giữ hàng.",
+    "retry": "Thử lại"
+  },
+  "wishlistToast": {
+    "savedTitle": "Đã lưu vào Yêu thích",
+    "savedHint": "{name} · Bấm để xem danh sách",
+    "removedTitle": "Đã bỏ khỏi Yêu thích",
+    "removedHint": "Bấm để xem các mô hình đã lưu",
+    "signInTitle": "Đăng nhập để lưu mô hình",
+    "signInHint": "Bấm để đăng nhập, danh sách yêu thích được lưu trong tài khoản của bạn."
   }
 }

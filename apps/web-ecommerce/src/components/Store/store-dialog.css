@@ -1,0 +1,122 @@
+/* Storefront dialog (StoreDialog.tsx): a white card on a dimmed page, a bottom sheet on phones. */
+.store-dialog {
+  width: min(var(--store-dialog-width, 560px), calc(100vw - 32px));
+  max-width: none;
+  max-height: min(88dvh, 820px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--mu-r-panel);
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+  box-shadow: 0 24px 64px rgb(10 19 34 / 0.24);
+  font-family: var(--mu-font);
+}
+.store-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  animation: store-dialog-in 280ms var(--mu-ease);
+}
+.store-dialog::backdrop {
+  background: rgb(10 19 34 / 0.56);
+  animation: store-dialog-fade 200ms ease-out;
+}
+.store-dialog-head {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--mu-line);
+}
+.store-dialog-head h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--mu-navy-950);
+}
+.store-dialog-head p {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mu-muted);
+}
+.store-dialog-close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: -4px -8px 0 0;
+  border-radius: 50%;
+  color: var(--mu-muted);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    color var(--mu-hover) var(--mu-ease);
+}
+.store-dialog-close:hover {
+  color: var(--mu-ink);
+  background: var(--mu-fill);
+}
+.store-dialog-close:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
+}
+.store-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.store-dialog-foot {
+  flex: none;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--mu-line);
+  background: var(--mu-surface);
+}
+@keyframes store-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+}
+@keyframes store-dialog-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes store-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (max-width: 640px) {
+  .store-dialog {
+    width: 100%;
+    max-height: 92dvh;
+    margin: auto 0 0;
+    border-radius: 20px 20px 0 0;
+  }
+  .store-dialog[open] {
+    animation-name: store-sheet-in;
+  }
+  .store-dialog-head {
+    padding: 18px 20px 14px;
+  }
+  .store-dialog-body {
+    padding: 16px 20px 20px;
+  }
+  .store-dialog-foot {
+    padding: 14px 20px calc(16px + env(safe-area-inset-bottom));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .store-dialog[open],
+  .store-dialog::backdrop {
+    animation: none;
+  }
+}
