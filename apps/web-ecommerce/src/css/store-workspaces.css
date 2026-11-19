@@ -542,7 +542,7 @@
   padding-top: 14px;
   border-top: 1px solid #f0f0ed;
 }
-.cart-totals-title {
+.cart-order-summary .cart-totals-title {
   display: none;
 }
 /* Phones and tablets: one column in the order a checkout is done: the kits, the offers that change the price,
@@ -587,7 +587,7 @@
   .cart-offers > :first-child {
     margin-top: 0;
   }
-  .cart-totals-title {
+  .cart-order-summary .cart-totals-title {
     display: flex;
     margin-bottom: 12px;
     font-size: 15px;

@@ -19,21 +19,22 @@
   height: 38px;
   border: 1px solid var(--mu-line);
   border-radius: 50%;
-  color: var(--mu-ink);
   background: rgb(255 255 255 / 0.94);
   box-shadow: 0 2px 8px -4px rgb(18 28 46 / 0.3);
-  transition:
-    transform var(--mu-hover) var(--mu-ease),
-    color var(--mu-hover) var(--mu-ease);
+  transition: transform var(--mu-hover) var(--mu-ease);
+  /* The heart's colour lives in --heart: the product tile's own button colour rule is more specific than ours. */
+  --heart: var(--mu-ink);
 }
 .product-tile-save svg {
   fill: transparent;
-  stroke: currentColor;
-  transition: fill var(--mu-hover) var(--mu-ease);
+  stroke: var(--heart);
+  transition:
+    fill var(--mu-hover) var(--mu-ease),
+    stroke var(--mu-hover) var(--mu-ease);
 }
 @media (hover: hover) {
   .product-tile-save:hover {
-    color: var(--p-sale, #c2331b);
+    --heart: var(--p-sale, #c2331b);
     transform: scale(1.06);
   }
 }
@@ -42,10 +43,10 @@
   transition-duration: var(--mu-press);
 }
 .product-tile-save[aria-pressed='true'] {
-  color: var(--p-sale, #c2331b);
+  --heart: var(--p-sale, #c2331b);
 }
 .product-tile-save[aria-pressed='true'] svg {
-  fill: currentColor;
+  fill: var(--heart);
   animation: tile-heart-pop 380ms var(--mu-ease);
 }
 .product-tile-save:disabled {

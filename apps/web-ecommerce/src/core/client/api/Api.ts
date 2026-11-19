@@ -10,6 +10,13 @@ import ApiResponse from '@/shared/client/utils/ApiResponseUtils';
 import camelCaseKeys from 'camelcase-keys';
 import { Events, eventEmitter } from '@/shared/client/utils/eventEmitter';
 
+// `quiet`: the caller confirms the result with its own toast, so the server's success message is not shown too.
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    quiet?: boolean;
+  }
+}
+
 function axiosCreate(baseUrl: string) {
   return axios.create({
     baseURL: baseUrl,
@@ -57,7 +64,7 @@ axiosInstance.interceptors.response.use(
       eventEmitter.dispatch(Events.OPEN_MODAL_MESSAGES_ERRORS, validationModalProps);
     }
 
-    if (apiResponse.toastType === 'success' && apiResponse.userMessages) {
+    if (apiResponse.toastType === 'success' && apiResponse.userMessages && !response.config.quiet) {
       showToast.success(apiResponse.userMessages.join('\n'));
     }
 

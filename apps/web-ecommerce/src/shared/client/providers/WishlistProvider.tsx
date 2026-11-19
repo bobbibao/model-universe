@@ -68,7 +68,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       try {
         if (existing) {
           setItems((current) => current.filter((item) => item.productId !== product.id));
-          if (await WishlistApi.removeItem(existing.itemId)) {
+          if (await WishlistApi.removeItem(existing.itemId, true)) {
             showToast(t('removedHint'), { title: t('removedTitle'), href: '/wishlist' });
           } else {
             setItems((current) => [...current, existing]);
@@ -76,7 +76,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           return;
         }
         setItems((current) => [...current, { itemId: -product.id, productId: product.id }]);
-        const added = await WishlistApi.addItem(product.id);
+        const added = await WishlistApi.addItem(product.id, true);
         if (!added) {
           setItems((current) => current.filter((item) => item.productId !== product.id));
           return;

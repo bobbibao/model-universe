@@ -14,18 +14,19 @@ export default class WishlistApi {
     }
   }
 
-  static async addItem(productId: number): Promise<Pick<WishlistItem, 'id' | 'productId'> | undefined> {
+  // `quiet`: the caller shows its own confirmation (the storefront hearts), not the server's message.
+  static async addItem(productId: number, quiet = false): Promise<Pick<WishlistItem, 'id' | 'productId'> | undefined> {
     try {
-      const response = await Api.post(WISHLIST_API.ADD_ITEM, { productId });
+      const response = await Api.post(WISHLIST_API.ADD_ITEM, { productId }, { quiet });
       return response.data;
     } catch (error) {
       return undefined;
     }
   }
 
-  static async removeItem(itemId: number): Promise<boolean> {
+  static async removeItem(itemId: number, quiet = false): Promise<boolean> {
     try {
-      await Api.delete(WISHLIST_API.REMOVE_ITEM(itemId));
+      await Api.delete(WISHLIST_API.REMOVE_ITEM(itemId), { quiet });
       return true;
     } catch (error) {
       return false;
