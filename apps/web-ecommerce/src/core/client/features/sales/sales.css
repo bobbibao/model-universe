@@ -42,7 +42,7 @@
   height: 7px;
   width: 7px;
   border-radius: 50%;
-  background: #e5ff8d;
+  background: var(--mu-emerald-glow);
   box-shadow: none;
 }
 .sale-hero h2 {
@@ -89,7 +89,7 @@
 }
 .sale-hero-links a:first-child {
   padding: 11px 16px;
-  background: #e7ff8c;
+  background: var(--mu-emerald-glow);
   color: var(--mu-accent-ink);
   border-radius: 100px;
 }
@@ -116,7 +116,7 @@
   line-height: 1.15;
   letter-spacing: -0.08em;
   font-weight: 600;
-  color: #e7ff8c;
+  color: var(--mu-emerald-glow);
 }
 .sale-hero-mark small {
   font-size: 0.45em;
@@ -284,7 +284,7 @@
 }
 @keyframes sale-pulse {
   50% {
-    box-shadow: 0 0 0 8px #e5ff8d05;
+    box-shadow: 0 0 0 8px rgb(58 217 168 / 0.02);
   }
 }
 @media (max-width: 900px) {

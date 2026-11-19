@@ -310,7 +310,7 @@ textarea.mk-input {
   font-family: Georgia, serif;
 }
 .mk-glyph.is-meta {
-  background: linear-gradient(135deg, #0668e1, #a23bec);
+  background: linear-gradient(135deg, #0668e1, #182844);
 }
 .mk-glyph.is-google {
   background: conic-gradient(from 200deg, #ea4335 0 25%, #fbbc05 0 45%, #34a853 0 70%, #4285f4 0);
@@ -468,18 +468,18 @@ textarea.mk-input {
   border-radius: 999px;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, #8b5cf6 18%, transparent),
+    color-mix(in srgb, #9ba4b7 18%, transparent),
     color-mix(in srgb, var(--admin-accent) 18%, transparent)
   );
   color: var(--admin-ink);
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid color-mix(in srgb, #8b5cf6 35%, transparent);
+  border: 1px solid color-mix(in srgb, #9ba4b7 35%, transparent);
   transition: box-shadow 0.15s;
 }
 .mk-agent-trigger:hover:not(:disabled),
 .mk-agent-trigger[aria-expanded='true'] {
-  box-shadow: 0 0 0 4px color-mix(in srgb, #8b5cf6 16%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, #9ba4b7 16%, transparent);
 }
 .mk-agent-trigger:disabled {
   opacity: 0.5;
@@ -727,7 +727,7 @@ textarea.mk-input {
   place-items: center;
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #22d3ee, #7c3aed);
+  background: linear-gradient(135deg, #22d3ee, #182844);
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -986,7 +986,7 @@ textarea.mk-input {
     sans-serif;
 }
 .mk-tiktok .mk-media-empty {
-  background: linear-gradient(160deg, #1f1f2b, #000);
+  background: linear-gradient(160deg, #121c2e, #000);
   color: #9ca3af;
 }
 .mk-tiktok-rail {

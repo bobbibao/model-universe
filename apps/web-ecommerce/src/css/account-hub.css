@@ -196,7 +196,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #d7ef88;
+  color: var(--mu-emerald-glow);
   font-size: 10px;
   letter-spacing: 0.14em;
   font-weight: 600;
@@ -252,7 +252,7 @@
   border-color: #e3e9ce;
 }
 .account-next-build .account-icon {
-  background: #d7e6ae;
+  background: var(--mu-emerald-soft);
   color: #475b1d;
   margin-bottom: 20px;
 }
