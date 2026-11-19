@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import Link from '@/i18n/navigation';
+import AdminIcon from '@/components/Admin/AdminIcon';
+import { useReveal } from '@/shared/client/hooks/useReveal';
 import { ServiceTerms } from '@/components/Services/ServiceExperience';
 import ServiceCards from '@/components/Services/ServiceCards';
 import type { ShowcasePhoto } from '@/shared/types/showcase';
@@ -21,6 +24,8 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
   const experience = useTranslations('experience');
   const g = useTranslations('serviceGuide');
   const [activeTab, setActiveTab] = useState<Tab>('services');
+  const body = useRef<HTMLDivElement>(null);
+  useReveal(body, [activeTab]);
 
   // ?tab=history or ?tab=faq opens that tab (links from the account, the footer and the assistant).
   useEffect(() => {
@@ -31,7 +36,7 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
   return (
     <>
       <ServicesHero photos={photos} />
-      <div className="mu-wrap store-workspace sv-body">
+      <div ref={body} className="mu-wrap store-workspace sv-body">
         <nav className="sg-tabs" aria-label={t('title')}>
           {TABS.map((tab) => (
             <button
@@ -48,14 +53,20 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
         {activeTab === 'services' && (
           <>
             <section className="sv-hub" aria-labelledby="services-hub-title">
-              <header className="sv-section-head">
+              <header className="sv-section-head" data-reveal>
                 <h2 id="services-hub-title">{experience('hubTitle')}</h2>
                 <p>{experience('hubIntro')}</p>
               </header>
-              <ServiceCards />
+              <ServiceCards photo={photos[3] ?? photos[0]} />
             </section>
-            <section className="svx-process" aria-labelledby="services-process">
-              <h2 id="services-process">{g('processTitle')}</h2>
+            <section className="svx-process" aria-labelledby="services-process" data-reveal>
+              <div className="svx-process-head">
+                <h2 id="services-process">{g('processTitle')}</h2>
+                <Link className="svx-button is-light" href="/services/sell">
+                  {g('heroPrimary')}
+                  <AdminIcon name="arrow" size={18} />
+                </Link>
+              </div>
               <ol>
                 {([1, 2, 3, 4] as const).map((step) => (
                   <li key={step}>
@@ -64,6 +75,14 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
                   </li>
                 ))}
               </ol>
+              <ul className="svx-trust">
+                {(['trustRules', 'trustTracking', 'trustMoney'] as const).map((key) => (
+                  <li key={key}>
+                    <AdminIcon name="check" size={16} />
+                    {g(key)}
+                  </li>
+                ))}
+              </ul>
             </section>
             <ServiceTerms>
               <p>{t('subtitle')}</p>

@@ -711,8 +711,8 @@
 .voucher-ticket {
   --tone: var(--mu-navy-800);
   --tone-soft: #eef1f6;
-  --stub-bg: #eef1f6;
-  --stub-text: var(--mu-navy-900);
+  --stub-bg: linear-gradient(160deg, var(--mu-navy-700), var(--mu-navy-950));
+  --stub-text: #fff;
   position: relative;
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr) auto;
@@ -720,11 +720,13 @@
   height: 100%;
   min-height: 116px;
   border: 1px solid var(--mu-line);
-  border-radius: 16px;
+  border-radius: 18px;
   background: var(--mu-surface);
+  box-shadow: var(--mu-shadow-sm);
   transition:
-    border-color 0.2s,
-    transform 0.2s;
+    border-color 0.3s,
+    box-shadow 0.45s var(--mu-ease, ease),
+    transform 0.45s var(--mu-ease, ease);
 }
 /* Two punched notches where the stub tears off. */
 .voucher-ticket::before,
@@ -747,13 +749,14 @@
 }
 .voucher-ticket:hover {
   border-color: var(--mu-line-strong);
-  transform: translateY(-2px);
+  box-shadow: var(--mu-shadow-md);
+  transform: translateY(-3px);
 }
 .voucher-ticket.is-ship {
   --tone: var(--mu-emerald-deep);
   --tone-soft: var(--mu-emerald-soft);
-  --stub-bg: var(--mu-emerald-soft);
-  --stub-text: var(--mu-emerald-deep);
+  --stub-bg: linear-gradient(160deg, #1fbf8f, var(--mu-emerald-deep));
+  --stub-text: #fff;
 }
 .voucher-stub {
   position: relative;
@@ -761,17 +764,17 @@
   place-content: center;
   justify-items: center;
   gap: 2px;
-  border-radius: 15px 0 0 15px;
+  border-radius: 17px 0 0 17px;
   color: var(--stub-text);
   background: var(--stub-bg);
 }
 .voucher-stub::after {
   content: '';
   position: absolute;
-  top: 12px;
-  right: -1px;
-  bottom: 12px;
-  border-right: 1px dashed var(--mu-line-strong);
+  top: 14px;
+  right: 0;
+  bottom: 14px;
+  border-right: 1.5px dashed rgb(255 255 255 / 0.35);
 }
 .voucher-stub strong {
   font-size: 24px;
@@ -905,10 +908,10 @@
   overflow: hidden;
   display: grid;
   gap: 18px;
-  padding: 24px;
-  border-radius: 22px;
+  padding: 28px;
+  border-radius: 28px;
   color: #f4f3ee;
-  background: var(--mu-navy-900);
+  background: var(--mu-navy-950);
 }
 .member-card.tier-bronze {
   --tier: #c0804a;
@@ -1070,8 +1073,9 @@
   font-size: 12.5px;
   color: #e5e3ec;
 }
-/* --- Offers page (/uu-dai): quiet and roomy. Paper ground, white surfaces with hairlines, navy ink and buttons,
-   emerald as the one accent (progress, done marks, focus). Tier colours appear only as small dots. ---------------- */
+/* --- Offers page (/uu-dai): premium and quiet. A soft emerald aura and dot grid behind the hero, white surfaces
+   with navy-tinted shadows that deepen on hover, navy ink and buttons, emerald as the one accent (progress, done
+   marks, focus), and the sign-in panel as a deep navy card like the member card. Tier colours stay small dots. ---- */
 .promo-screen {
   color: var(--mu-ink);
   background: var(--mu-paper);
@@ -1082,7 +1086,7 @@
   margin: 0 auto;
 }
 .promo-page {
-  padding: 0 0 48px;
+  padding: 0 0 64px;
 }
 @media (min-width: 1600px) {
   .promo-page,
@@ -1109,79 +1113,123 @@
   }
 }
 
-/* The hero: the heading and today's three quick wins, the sign-in panel or member card beside them. */
+/* The hero: the heading and today's three quick wins, the sign-in card or member card beside them. */
 @keyframes promo-enter {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-.promo-hero {
-  padding-top: 72px;
+@keyframes promo-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(20 168 126 / 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgb(20 168 126 / 0);
+  }
 }
-.promo-hero-inner:first-child {
+.promo-hero {
+  position: relative;
+  isolation: isolate;
+  padding-top: 80px;
+}
+.promo-aura {
+  position: absolute;
+  inset: -120px 0 auto;
+  z-index: -1;
+  height: 860px;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(36% 46% at 82% 30%, rgb(20 168 126 / 0.15), transparent 72%),
+    radial-gradient(30% 40% at 100% 76%, rgb(36 55 89 / 0.12), transparent 72%),
+    radial-gradient(34% 40% at 6% 8%, rgb(58 217 168 / 0.08), transparent 72%);
+}
+.promo-aura::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(18 28 46 / 0.13) 1px, transparent 1.2px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(50% 50% at 30% 40%, #000 10%, transparent 72%);
+  mask-image: radial-gradient(50% 50% at 30% 40%, #000 10%, transparent 72%);
+}
+.promo-aura + .promo-hero-inner {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   gap: 72px;
   align-items: end;
 }
 .promo-hero-copy {
-  animation: promo-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: promo-enter 0.8s var(--mu-ease) both;
 }
 .promo-hero-copy h1 {
   text-wrap: balance;
-  font-size: clamp(40px, 4.6vw, 66px);
+  padding-bottom: 0.06em;
+  font-size: clamp(46px, 5.4vw, 80px);
   font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  line-height: 1;
+  letter-spacing: -0.045em;
   color: var(--mu-navy-950);
+  background: linear-gradient(180deg, var(--mu-navy-950) 30%, var(--mu-navy-700));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .promo-hero-copy > p {
   max-width: 48ch;
   margin-top: 20px;
   font-size: 18px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--mu-muted);
 }
 .promo-today {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  margin-top: 48px;
+  margin-top: 52px;
 }
 .promo-today a {
+  position: relative;
   display: grid;
   gap: 4px;
   height: 100%;
-  padding: 20px;
+  padding: 22px;
   border: 1px solid var(--mu-line);
-  border-radius: 16px;
-  background: var(--mu-surface);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.86);
+  box-shadow: var(--mu-shadow-sm);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   transition:
-    border-color 0.15s,
-    transform 0.15s;
+    border-color 0.3s,
+    box-shadow 0.45s var(--mu-ease),
+    transform 0.45s var(--mu-ease);
 }
 .promo-today a:hover {
   border-color: var(--mu-line-strong);
-  transform: translateY(-2px);
+  box-shadow: var(--mu-shadow-lg);
+  transform: translateY(-4px);
 }
 .promo-today-icon {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  margin-bottom: 16px;
-  border-radius: 10px;
-  color: var(--mu-ink);
-  background: var(--mu-fill);
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(160deg, var(--mu-navy-700), var(--mu-navy-950));
+  box-shadow: 0 8px 18px -10px rgb(10 19 34 / 0.7);
 }
 .promo-today li.is-done .promo-today-icon {
-  color: var(--mu-emerald-deep);
-  background: var(--mu-emerald-soft);
+  color: #fff;
+  background: linear-gradient(160deg, var(--mu-emerald), var(--mu-emerald-deep));
+  box-shadow: 0 8px 18px -10px rgb(11 110 82 / 0.7);
 }
 .promo-today strong {
   font-size: 16px;
@@ -1196,61 +1244,109 @@
 .promo-today li.is-done small {
   color: var(--mu-emerald-deep);
 }
+.promo-today-go {
+  position: absolute;
+  top: 24px;
+  right: 22px;
+  color: var(--mu-navy-300);
+  transition:
+    color 0.2s,
+    transform 0.45s var(--mu-ease);
+}
+.promo-today a:hover .promo-today-go {
+  color: var(--mu-navy-950);
+  transform: rotate(-45deg);
+}
 .promo-hero-aside {
   min-width: 0;
+  animation: promo-enter 0.9s 0.1s var(--mu-ease) both;
 }
 .promo-hero-aside.promo-skeleton {
-  height: 320px;
-  border-radius: 20px;
+  height: 340px;
+  border-radius: 28px;
+}
+
+/* Sign-in card: deep navy like the member card, an emerald glow and the ram mark as a faint watermark. */
+.promo-join,
+.member-card {
+  isolation: isolate;
+  box-shadow: var(--mu-shadow-lg);
+}
+.promo-join::before,
+.member-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 70% at 100% 0%, rgb(20 168 126 / 0.32), transparent 70%),
+    radial-gradient(50% 60% at 0% 100%, rgb(36 55 89 / 0.8), transparent 70%);
+}
+.promo-join::after,
+.member-card::after {
+  content: '';
+  position: absolute;
+  right: -48px;
+  bottom: -64px;
+  z-index: -1;
+  width: 280px;
+  aspect-ratio: 259 / 256;
+  background: rgb(255 255 255 / 0.05);
+  -webkit-mask: url('/brand/mark.png') center / contain no-repeat;
+  mask: url('/brand/mark.png') center / contain no-repeat;
 }
 .promo-join {
+  position: relative;
+  overflow: hidden;
   display: grid;
   justify-items: start;
   gap: 12px;
-  padding: 32px;
-  border: 1px solid var(--mu-line);
-  border-radius: 20px;
-  background: var(--mu-surface);
+  padding: 36px;
+  border-radius: 28px;
+  color: #fff;
+  background: var(--mu-navy-950);
 }
 .promo-join-icon {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  margin-bottom: 8px;
-  border-radius: 10px;
-  color: var(--mu-emerald-deep);
-  background: var(--mu-emerald-soft);
+  width: 46px;
+  height: 46px;
+  margin-bottom: 10px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 14px;
+  color: var(--mu-emerald-glow);
+  background: rgb(255 255 255 / 0.06);
 }
 .promo-join h2 {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-  color: var(--mu-navy-950);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #fff;
 }
 .promo-join p {
-  max-width: 44ch;
+  max-width: 40ch;
   font-size: 16px;
   line-height: 1.6;
-  color: var(--mu-muted);
+  color: rgb(255 255 255 / 0.7);
 }
 .promo-join-tiers {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 8px 0 12px;
+  margin: 10px 0 16px;
 }
 .promo-join-tiers li {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--mu-line);
+  gap: 7px;
+  padding: 5px 11px;
+  border: 1px solid rgb(255 255 255 / 0.12);
   border-radius: 999px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--mu-ink);
+  color: rgb(255 255 255 / 0.86);
+  background: rgb(255 255 255 / 0.04);
 }
 .promo-join-tiers li::before {
   content: '';
@@ -1258,37 +1354,50 @@
   height: 8px;
   border-radius: 50%;
   background: var(--chip, #9aa6bc);
+  box-shadow: 0 0 8px var(--chip, #9aa6bc);
 }
 .promo-join .promo-button {
   width: 100%;
+  min-height: 52px;
+  border-radius: 14px;
+  color: var(--mu-navy-950);
+  background: #fff;
 }
+.promo-join .promo-button:hover:not(:disabled) {
+  background: var(--mu-emerald-soft);
+}
+
+/* Section links: a pill switch under the hero. */
 .promo-anchors {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 4px 32px;
-  margin-top: 72px;
-  border-bottom: 1px solid var(--mu-line);
+  gap: 4px;
+  margin-top: 80px;
+  padding: 5px;
+  border: 1px solid var(--mu-line);
+  border-radius: 999px;
+  background: var(--mu-surface);
+  box-shadow: var(--mu-shadow-sm);
 }
 .promo-anchors a {
-  margin-bottom: -1px;
-  padding: 16px 0 14px;
-  border-bottom: 2px solid transparent;
+  padding: 10px 22px;
+  border-radius: 999px;
   font-size: 15px;
   font-weight: 500;
   color: var(--mu-muted);
   transition:
-    border-color 0.15s,
-    color 0.15s;
+    background 0.25s var(--mu-ease),
+    color 0.2s;
 }
 .promo-anchors a:hover {
-  border-bottom-color: var(--mu-navy-900);
-  color: var(--mu-ink);
+  color: #fff;
+  background: var(--mu-navy-900);
 }
 
 /* Sections: the heading first, wide air between them. */
 .promo-page .promo-section {
   scroll-margin-top: 96px;
-  padding-top: 96px;
+  padding-top: 104px;
 }
 .promo-section-head {
   display: flex;
@@ -1296,40 +1405,41 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px 24px;
-  margin-bottom: 40px;
+  margin-bottom: 44px;
 }
 .promo-section-head h2 {
-  font-size: clamp(28px, 2.6vw, 36px);
+  font-size: clamp(32px, 3vw, 44px);
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
   color: var(--mu-navy-950);
 }
 .promo-section-head p {
   max-width: 62ch;
-  margin-top: 8px;
-  font-size: 16px;
+  margin-top: 12px;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--mu-muted);
 }
 .promo-segments {
   display: inline-flex;
   gap: 4px;
-  padding: 4px;
+  padding: 5px;
   border: 1px solid var(--mu-line);
-  border-radius: 12px;
+  border-radius: 999px;
   background: var(--mu-surface);
+  box-shadow: var(--mu-shadow-sm);
 }
 .promo-segments button {
-  min-height: 36px;
-  padding: 0 16px;
-  border-radius: 8px;
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
   color: var(--mu-muted);
   transition:
-    background 0.15s,
-    color 0.15s;
+    background 0.25s var(--mu-ease),
+    color 0.2s;
 }
 .promo-segments button:hover {
   color: var(--mu-ink);
@@ -1339,12 +1449,13 @@
   background: var(--mu-navy-900);
 }
 .promo-empty {
-  padding: 40px;
+  padding: 48px;
   border: 1px dashed var(--mu-line-strong);
-  border-radius: 16px;
+  border-radius: 20px;
   text-align: center;
   font-size: 15px;
   color: var(--mu-muted);
+  background: rgb(255 255 255 / 0.5);
 }
 
 /* Daily: the check-in and the wheel, two white cards of one height. */
@@ -1355,38 +1466,42 @@
   align-items: stretch;
 }
 .promo-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   align-content: start;
-  gap: 24px;
-  padding: 32px;
+  gap: 28px;
+  padding: 40px;
   border: 1px solid var(--mu-line);
-  border-radius: 20px;
+  border-radius: 28px;
   background: var(--mu-surface);
+  box-shadow: var(--mu-shadow-sm);
 }
 .promo-card h2 {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   color: var(--mu-navy-950);
 }
 .promo-card header p {
-  max-width: 48ch;
-  margin-top: 8px;
+  max-width: 46ch;
+  margin-top: 10px;
   font-size: 16px;
   line-height: 1.6;
   color: var(--mu-muted);
 }
 .checkin-streak {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   font-size: 14px;
   font-weight: 500;
   color: var(--mu-ink);
 }
 .checkin-streak i {
   overflow: hidden;
-  height: 6px;
+  height: 8px;
   border-radius: 999px;
   background: var(--mu-fill);
 }
@@ -1394,47 +1509,55 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--mu-emerald);
-  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(90deg, var(--mu-emerald-deep), var(--mu-emerald-glow));
+  transition: width 0.9s var(--mu-ease);
 }
 .checkin-days {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 .checkin-days li {
   position: relative;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .checkin-mark {
   display: grid;
   place-items: center;
   width: 100%;
-  max-width: 64px;
+  max-width: 68px;
   aspect-ratio: 1;
   border: 1px solid var(--mu-line);
-  border-radius: 12px;
+  border-radius: 16px;
   font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--mu-ink);
   background: var(--mu-paper);
+  transition: transform 0.4s var(--mu-ease);
+}
+.checkin-days li:hover .checkin-mark {
+  transform: translateY(-2px);
 }
 .checkin-days li.is-done .checkin-mark {
-  border-color: var(--mu-emerald-deep);
+  border-color: transparent;
   color: #fff;
-  background: var(--mu-emerald-deep);
+  background: linear-gradient(160deg, var(--mu-emerald), var(--mu-emerald-deep));
+  box-shadow: 0 8px 18px -10px rgb(11 110 82 / 0.8);
 }
 .checkin-days li.is-today .checkin-mark {
-  border: 2px solid var(--mu-navy-900);
+  border: 2px solid var(--mu-emerald);
+  color: var(--mu-navy-950);
   background: var(--mu-surface);
+  animation: promo-ring 1.8s ease-out infinite;
 }
 .checkin-days li.is-gift:not(.is-done) .checkin-mark {
   border-style: dashed;
-  border-color: var(--mu-line-strong);
+  border-color: var(--mu-emerald);
   color: var(--mu-emerald-deep);
+  background: var(--mu-emerald-soft);
 }
 .checkin-days small {
   font-size: 13px;
@@ -1447,7 +1570,8 @@
 .promo-card.promo-checkin {
   align-content: stretch;
 }
-/* The wheel sits beside its heading and button, so the card is as tall as the check-in, not twice as tall. */
+/* The wheel sits beside its heading and button, so the card is as tall as the check-in, not twice as tall; a soft
+   emerald halo sits behind the dial. */
 .promo-card.promo-wheel {
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
@@ -1455,7 +1579,19 @@
     'dial button';
   align-items: center;
   align-content: center;
-  column-gap: 40px;
+  column-gap: 44px;
+}
+.promo-card.promo-wheel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 40px;
+  z-index: -1;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(20 168 126 / 0.16), transparent);
+  transform: translate(-6%, -50%) scale(1.25);
 }
 .promo-wheel > header {
   grid-area: header;
@@ -1466,7 +1602,7 @@
 }
 .promo-wheel .lucky-wheel-dial {
   grid-area: dial;
-  width: 260px;
+  width: 270px;
 }
 .promo-wheel .lucky-wheel-button {
   grid-area: button;
@@ -1483,6 +1619,7 @@
   width: min(100%, 300px);
   aspect-ratio: 1;
   border-radius: 50%;
+  filter: drop-shadow(0 22px 28px rgb(16 28 49 / 0.2));
 }
 .lucky-wheel-dial svg {
   width: 100%;
@@ -1495,31 +1632,41 @@
 }
 .lucky-wheel-pointer {
   position: absolute;
-  top: -6px;
+  top: -8px;
   left: 50%;
   z-index: 2;
   width: 0;
   height: 0;
-  border-right: 10px solid transparent;
-  border-left: 10px solid transparent;
-  border-top: 18px solid var(--mu-emerald-deep);
+  border-right: 11px solid transparent;
+  border-left: 11px solid transparent;
+  border-top: 20px solid var(--mu-emerald);
   transform: translateX(-50%);
+  filter: drop-shadow(0 3px 4px rgb(11 110 82 / 0.4));
 }
 .lucky-wheel-button {
-  min-width: 180px;
-  min-height: 48px;
-  padding: 0 24px;
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 190px;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 14px;
   font-size: 16px;
   font-weight: 600;
   color: #fff;
-  background: var(--mu-navy-900);
+  background: linear-gradient(180deg, var(--mu-navy-800), var(--mu-navy-950));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 12px 28px -12px rgb(10 19 34 / 0.7);
   transition:
-    background 0.15s,
-    transform 0.15s;
+    box-shadow 0.3s var(--mu-ease),
+    transform 0.3s var(--mu-ease);
 }
 .lucky-wheel-button:hover:not(:disabled) {
-  background: var(--mu-navy-700);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 18px 36px -14px rgb(10 19 34 / 0.75);
 }
 .lucky-wheel-button:active:not(:disabled) {
   transform: scale(0.98);
@@ -1528,6 +1675,7 @@
   cursor: not-allowed;
   color: var(--mu-muted);
   background: var(--mu-fill);
+  box-shadow: none;
 }
 
 /* Missions: four white cards, each with its icon, points and one action. */
@@ -1542,8 +1690,8 @@
 }
 .mission-progress i {
   overflow: hidden;
-  width: 160px;
-  height: 6px;
+  width: 180px;
+  height: 8px;
   border-radius: 999px;
   background: var(--mu-fill);
 }
@@ -1551,84 +1699,103 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--mu-emerald);
+  background: linear-gradient(90deg, var(--mu-emerald-deep), var(--mu-emerald-glow));
 }
 .mission-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px;
+  gap: 20px;
 }
 .mission-grid li {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   align-items: start;
-  gap: 20px 12px;
-  padding: 24px;
+  gap: 22px 12px;
+  padding: 28px;
   border: 1px solid var(--mu-line);
-  border-radius: 20px;
+  border-radius: 24px;
   background: var(--mu-surface);
-  transition: border-color 0.15s;
+  box-shadow: var(--mu-shadow-sm);
+  transition:
+    border-color 0.3s,
+    box-shadow 0.45s var(--mu-ease),
+    transform 0.45s var(--mu-ease);
 }
 .mission-grid li:hover {
   border-color: var(--mu-line-strong);
+  box-shadow: var(--mu-shadow-lg);
+  transform: translateY(-4px);
 }
 .mission-icon {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  color: var(--mu-ink);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: var(--mu-navy-900);
   background: var(--mu-fill);
+  transition:
+    background 0.35s var(--mu-ease),
+    color 0.3s,
+    transform 0.45s var(--mu-ease);
+}
+.mission-grid li:hover .mission-icon {
+  color: #fff;
+  background: var(--mu-navy-900);
+  transform: rotate(-6deg);
 }
 .mission-grid li.is-done .mission-icon {
-  color: var(--mu-emerald-deep);
-  background: var(--mu-emerald-soft);
+  color: #fff;
+  background: linear-gradient(160deg, var(--mu-emerald), var(--mu-emerald-deep));
 }
 .mission-points {
   justify-self: end;
-  font-size: 15px;
-  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--mu-emerald-deep);
+  background: var(--mu-emerald-soft);
 }
 .mission-copy {
   display: grid;
   grid-column: 1 / -1;
-  gap: 6px;
+  gap: 8px;
 }
 .mission-copy strong {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: var(--mu-navy-950);
 }
 .mission-copy small {
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--mu-muted);
 }
 .mission-grid button {
   grid-column: 1 / -1;
-  min-height: 44px;
+  min-height: 46px;
   border: 1px solid var(--mu-line);
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
   color: var(--mu-ink);
   background: var(--mu-surface);
   transition:
-    background 0.15s,
-    border-color 0.15s;
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.3s var(--mu-ease);
 }
 .mission-grid li.is-ready button:not(:disabled) {
-  border-color: var(--mu-navy-900);
+  border-color: transparent;
   color: #fff;
-  background: var(--mu-navy-900);
-}
-.mission-grid li.is-ready button:hover:not(:disabled) {
-  background: var(--mu-navy-700);
+  background: linear-gradient(180deg, var(--mu-navy-800), var(--mu-navy-950));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 10px 24px -12px rgb(10 19 34 / 0.7);
 }
 .mission-grid button:disabled {
   cursor: not-allowed;
@@ -1636,15 +1803,16 @@
   background: var(--mu-paper);
 }
 .mission-grid li.is-done {
-  background: var(--mu-paper);
+  background: linear-gradient(180deg, var(--mu-surface), var(--mu-emerald-soft));
 }
 
-/* Tier table: white, hairlines, the member's own column tinted. */
+/* Tier table: white, hairlines, the member's own column tinted with an emerald cap. */
 .tier-table-wrap {
   overflow-x: auto;
   border: 1px solid var(--mu-line);
-  border-radius: 20px;
+  border-radius: 28px;
   background: var(--mu-surface);
+  box-shadow: var(--mu-shadow-sm);
 }
 .tier-table {
   width: 100%;
@@ -1654,15 +1822,22 @@
 }
 .tier-table th,
 .tier-table td {
-  padding: 18px 20px;
+  padding: 20px 20px;
   border-bottom: 1px solid var(--mu-line);
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+.tier-table tbody tr {
+  transition: background 0.2s;
+}
+.tier-table tbody tr:hover {
+  background: rgb(240 240 234 / 0.5);
 }
 .tier-table tbody tr:last-child > * {
   border-bottom: 0;
 }
 .tier-table th[scope='row'] {
+  padding-left: 28px;
   text-align: left;
   font-size: 14px;
   font-weight: 500;
@@ -1670,12 +1845,15 @@
   color: var(--mu-muted);
 }
 .tier-table thead th {
+  padding-block: 24px;
   font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
   color: var(--mu-navy-950);
+  background: linear-gradient(180deg, var(--mu-paper), var(--mu-surface));
 }
 .tier-table thead th:first-child {
+  padding-left: 28px;
   text-align: left;
   font-size: 14px;
   font-weight: 500;
@@ -1683,27 +1861,33 @@
 }
 .tier-table thead th small {
   display: block;
-  margin-top: 4px;
+  margin-top: 6px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--mu-emerald-deep);
 }
 .tier-table th.is-current,
 .tier-table td.is-current {
   background: var(--mu-emerald-soft);
 }
+.tier-table thead th.is-current {
+  box-shadow: inset 0 3px 0 var(--mu-emerald);
+}
 .tier-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   color: inherit;
 }
 .tier-chip::before {
   content: '';
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--chip, #9aa6bc);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--chip, #9aa6bc) 22%, transparent),
+    0 0 10px color-mix(in srgb, var(--chip, #9aa6bc) 60%, transparent);
 }
 .tier-bronze {
   --chip: #c0804a;
@@ -1725,16 +1909,16 @@
 }
 .promo-footnote {
   max-width: 96ch;
-  margin-top: 20px;
+  margin-top: 24px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--mu-muted);
 }
 
 @media (max-width: 1100px) {
-  .promo-hero-inner:first-child {
+  .promo-aura + .promo-hero-inner {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 44px;
   }
   .promo-daily {
     grid-template-columns: 1fr;
@@ -1752,37 +1936,57 @@
   }
   .promo-today {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 10px;
     margin-top: 32px;
   }
   .promo-today a {
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: 44px minmax(0, 1fr);
     column-gap: 16px;
     align-items: center;
-    padding: 14px 16px;
+    padding: 14px 44px 14px 14px;
+    border-radius: 18px;
   }
   .promo-today-icon {
     grid-row: span 2;
     margin-bottom: 0;
   }
+  .promo-today-go {
+    top: 50%;
+    right: 16px;
+    translate: 0 -50%;
+  }
   .promo-join {
-    padding: 24px;
+    padding: 28px 24px;
+    border-radius: 24px;
   }
   .promo-anchors {
-    gap: 4px 24px;
-    margin-top: 48px;
+    display: flex;
+    margin-top: 52px;
+  }
+  .promo-anchors a {
+    flex: 1 0 auto;
+    padding: 9px 14px;
+    text-align: center;
+    font-size: 14px;
   }
   .promo-page .promo-section {
-    padding-top: 64px;
+    padding-top: 72px;
   }
   .promo-section-head {
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
   .promo-card {
-    padding: 24px 20px;
+    padding: 28px 20px;
+    border-radius: 24px;
+  }
+  .promo-card h2 {
+    font-size: 24px;
   }
   .checkin-days {
     gap: 6px;
+  }
+  .checkin-mark {
+    border-radius: 12px;
   }
   /* Seven columns are too narrow for "Ngày N" under each mark; the order already says the day, so the labels stay
      for screen readers only. */
@@ -1801,6 +2005,11 @@
       'dial'
       'button';
   }
+  .promo-card.promo-wheel::before {
+    top: 58%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
   .promo-wheel .lucky-wheel-dial {
     justify-self: center;
     width: min(100%, 260px);
@@ -1812,14 +2021,26 @@
     grid-template-columns: 1fr;
     gap: 12px;
   }
+  .mission-grid li {
+    padding: 22px;
+  }
+  .tier-table-wrap {
+    border-radius: 22px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .promo-hero-copy {
+  .promo-hero-copy,
+  .promo-hero-aside,
+  .checkin-days li.is-today .checkin-mark {
     animation: none;
   }
   .promo-today a,
+  .promo-today-go,
   .mission-grid li,
-  .checkin-streak em {
+  .mission-icon,
+  .checkin-mark,
+  .checkin-streak em,
+  .lucky-wheel-button {
     transition: none;
   }
 }
