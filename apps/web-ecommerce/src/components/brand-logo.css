@@ -1,36 +1,30 @@
-/* BrandLogo: the colour mark, then the wordmark as an alpha mask filled with currentColor.
-   Size with --brand-mark (the mark's height) and --brand-word (the wordmark's height). */
+/* BrandLogo: the line-art mark as an alpha mask filled with currentColor, then the name as plain text.
+   Size with --brand-mark (the mark's height) and --brand-word (the name's font size). */
 .brand-logo {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  gap: calc(var(--brand-mark, 36px) * 0.24);
-  line-height: 0;
-  color: #1f1e24;
+  gap: calc(var(--brand-mark, 36px) * 0.26);
+  color: var(--mu-navy-900, #101c31);
 }
 .brand-logo-mark {
   display: block;
   flex: none;
-  width: auto;
   height: var(--brand-mark, 36px);
+  aspect-ratio: 259 / 256;
+  background-color: currentColor;
+  -webkit-mask: url('/brand/mark.png') center / contain no-repeat;
+  mask: url('/brand/mark.png') center / contain no-repeat;
 }
 .brand-logo-word {
-  display: block;
-  flex: none;
-  background-color: currentColor;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  height: var(--brand-word, 26px);
-  aspect-ratio: 332 / 80;
-  -webkit-mask-image: url('/brand/wordmark.png');
-  mask-image: url('/brand/wordmark.png');
+  font-size: var(--brand-word, 19px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
 }
 @media (forced-colors: active) {
-  .brand-logo-word {
+  .brand-logo-mark {
     forced-color-adjust: none;
     background-color: CanvasText;
   }

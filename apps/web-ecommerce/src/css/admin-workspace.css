@@ -116,13 +116,13 @@
   border-bottom: 1px solid #ffffff0a;
 }
 .admin-sidebar-brand .brand-logo {
-  --brand-mark: 36px;
-  --brand-word: 24px;
+  --brand-mark: 32px;
+  --brand-word: 18px;
   color: #f0f5ff;
 }
 .admin-brand-caption {
   display: block;
-  margin: 8px 0 0 45px;
+  margin: 8px 0 0 40px;
   color: #8496b3;
   font-size: 10px;
   letter-spacing: 0.16em;

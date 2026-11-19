@@ -39,8 +39,8 @@
   font-size: 14px;
 }
 .mu-shell .mu-footer.sf .sf-brand {
-  --brand-mark: 64px;
-  --brand-word: 40px;
+  --brand-mark: 56px;
+  --brand-word: 26px;
   color: #fff;
 }
 .mu-shell .mu-footer.sf .sf-about p {
