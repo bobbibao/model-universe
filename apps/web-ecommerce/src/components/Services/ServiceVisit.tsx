@@ -1,15 +1,19 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import AdminIcon from '@/components/Admin/AdminIcon';
 import ContactIcon from '@/components/Contact/ContactIcon';
 import { CONTACT } from '@/shared/contact-channels';
 
-// Where to bring a kit, with the address set large: the showroom's street, its hours and phone, and the three ways
-// there (directions, a call, a message on Zalo).
+// Where to bring a kit, on one card: the showroom's address (a link to the map), its hours and phone, and the three
+// ways there (directions, a message on Zalo, a call).
 export default function ServiceVisit() {
   const g = useTranslations('serviceGuide');
   return (
     <section className="svc-visit" aria-labelledby="svc-visit-title">
+      <span className="svc-visit-icon" aria-hidden="true">
+        <ContactIcon name="pin" size={24} />
+      </span>
       <div className="svc-visit-copy">
         <h2 id="svc-visit-title">{g('visitTitle')}</h2>
         <a className="svc-visit-address" href={CONTACT.mapsUrl} target="_blank" rel="noopener noreferrer">
@@ -36,8 +40,8 @@ export default function ServiceVisit() {
       </div>
       <div className="svc-visit-actions">
         <a className="svx-button is-primary" href={CONTACT.mapsUrl} target="_blank" rel="noopener noreferrer">
-          <ContactIcon name="pin" size={18} />
           {g('visitDirections')}
+          <AdminIcon name="arrow" size={18} />
         </a>
         <a className="svx-button is-outline" href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
           <ContactIcon name="zalo" size={22} />

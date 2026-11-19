@@ -572,135 +572,142 @@ const Cart = () => {
           )}
         </div>
         <aside className="cart-sidebar" aria-label={t('summaryTitle')}>
-          {/* One sticky card that fits a laptop screen: offers, the lines they change, the total and the button. */}
+          {/* One sticky card that fits a laptop screen: offers, the lines they change, the total and the button. On a
+              phone its two halves take their own places in the checkout order (store-workspaces.css): the offers under
+              the kits, the total after delivery and payment. */}
           <section className="cart-order-summary" aria-busy={quoting || couponPending}>
             <header className="cart-summary-head">
               <h2>{t('summaryTitle')}</h2>
               <span>{t('countChip', { count })}</span>
             </header>
-            {courier && benefitSubtotalVnd > 0 && (
-              <FreeshipProgress
-                subtotal={benefitSubtotalVnd}
-                appliedVnd={checkedQuote?.shippingDiscountVnd ?? 0}
-                loggedIn={!!user}
-                hasFee={benefitShippingFee > 0}
-              />
-            )}
-            <div className="cart-summary-group">
-              <h3>{t('couponTitle')}</h3>
-              {user && (
-                <Link href="/uu-dai" className="cart-summary-link">
-                  {vouchers('huntShort')}
-                </Link>
+            <div className="cart-offers">
+              {courier && benefitSubtotalVnd > 0 && (
+                <FreeshipProgress
+                  subtotal={benefitSubtotalVnd}
+                  appliedVnd={checkedQuote?.shippingDiscountVnd ?? 0}
+                  loggedIn={!!user}
+                  hasFee={benefitShippingFee > 0}
+                />
               )}
-            </div>
-            <VoucherSection
-              loggedIn={!!user}
-              items={entries.map(({ item }) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-              }))}
-              subtotal={benefitSubtotalVnd}
-              shippingFeeVnd={benefitShippingFee}
-              coupon={coupon}
-              freeship={freeship}
-              onCoupon={setCoupon}
-              onFreeship={setFreeship}
-              quote={checkedQuote}
-            />
-            {memberSavingVnd > 0 && !memberApplied && !(user && (couponPending || quoting)) && (
-              <p className="cart-member-hint">
-                <AdminIcon name="spark" size={14} />
-                {user ? (
-                  <span>{t('memberHint.other', { amount: money(memberSavingVnd) })}</span>
-                ) : (
-                  <Link href="/auth/signin?redirect=/cart">
-                    {t('memberHint.guest', { amount: money(memberSavingVnd) })}
+              <div className="cart-summary-group">
+                <h3>{t('couponTitle')}</h3>
+                {user && (
+                  <Link href="/uu-dai" className="cart-summary-link">
+                    {vouchers('huntShort')}
                   </Link>
                 )}
-              </p>
-            )}
-            <div className="cart-summary-lines">
-              <SummaryGroup label={t('goods')} value={money(subtotal - discount)}>
-                {discount > 0 && (
-                  <>
-                    <SummaryRow label={t('originalPrice')} value={money(subtotal)} />
-                    {voucherVnd > 0 && (
-                      <SummaryRow
-                        label={
-                          memberApplied
-                            ? t('benefits.member')
-                            : `${t('benefits.voucher')} ${checkedQuote?.couponCode ?? ''}`.trim()
-                        }
-                        value={`-${money(voucherVnd)}`}
-                        saving
-                      />
-                    )}
-                    {(checkedQuote?.rankDiscountVnd ?? 0) > 0 && checkedQuote?.rank && (
-                      <SummaryRow
-                        label={t('benefits.rank', { tier: tierNames(checkedQuote.rank.tier) })}
-                        value={`-${money(checkedQuote.rankDiscountVnd!)}`}
-                        saving
-                      />
-                    )}
-                  </>
-                )}
-              </SummaryGroup>
-              {hasPartnerItems && (
-                <p className="cart-summary-note">{t('shopBenefitsOnly', { amount: money(benefitSubtotalVnd) })}</p>
-              )}
-              <SummaryGroup
-                label={t('shippingFee')}
-                value={
-                  !courier
-                    ? fulfillment('meetingFree')
-                    : currentFee
-                      ? money(shippingFee - shippingDiscount)
-                      : fulfillment(feeQuoting ? 'feeQuoting' : 'feeNeedsAddress')
-                }
-              >
-                {shippingDiscount > 0 && currentFee && (
-                  <>
-                    <SummaryRow label={t('shippingLine')} value={money(shippingFee)} />
-                    <SummaryRow label={t('benefits.freeship')} value={`-${money(shippingDiscount)}`} saving />
-                  </>
-                )}
-              </SummaryGroup>
-            </div>
-            <div className="cart-summary-total">
-              <span>{t('total')}</span>
-              <strong>{money(total)}</strong>
-              {(saved > 0 || (checkedQuote?.earnedPoints ?? 0) > 0) && (
-                <small>
-                  {saved > 0 && (
-                    <b>
-                      {t('savedPercent', {
-                        amount: money(saved),
-                        percent: Math.round((saved * 100) / Math.max(1, subtotal + shippingFee)),
-                      })}
-                    </b>
+              </div>
+              <VoucherSection
+                loggedIn={!!user}
+                items={entries.map(({ item }) => ({
+                  productId: item.productId,
+                  quantity: item.quantity,
+                }))}
+                subtotal={benefitSubtotalVnd}
+                shippingFeeVnd={benefitShippingFee}
+                coupon={coupon}
+                freeship={freeship}
+                onCoupon={setCoupon}
+                onFreeship={setFreeship}
+                quote={checkedQuote}
+              />
+              {memberSavingVnd > 0 && !memberApplied && !(user && (couponPending || quoting)) && (
+                <p className="cart-member-hint">
+                  <AdminIcon name="spark" size={14} />
+                  {user ? (
+                    <span>{t('memberHint.other', { amount: money(memberSavingVnd) })}</span>
+                  ) : (
+                    <Link href="/auth/signin?redirect=/cart">
+                      {t('memberHint.guest', { amount: money(memberSavingVnd) })}
+                    </Link>
                   )}
-                  {saved > 0 && (checkedQuote?.earnedPoints ?? 0) > 0 && ' · '}
-                  {(checkedQuote?.earnedPoints ?? 0) > 0 && t('pointsLine', { points: checkedQuote!.earnedPoints! })}
-                </small>
+                </p>
               )}
             </div>
-            {user && (
-              <dl className="cart-pay-split">
-                <div>
-                  <dt>{t('payment.transferNow')}</dt>
-                  <dd>{money(upfrontVnd)}</dd>
-                </div>
-                <div>
-                  <dt>{t(courier ? 'payment.codLater' : 'payment.payAtShop')}</dt>
-                  <dd>{balanceVnd > 0 ? money(balanceVnd) : t('payment.nothingLater')}</dd>
-                </div>
-              </dl>
-            )}
-            {checkoutButton('mu-button cart-review-button')}
-            <p className="cart-checkout-note" role="status">
-              {quoting || couponPending ? t('quotePending') : t('reviewNote')}
-            </p>
+            <div className="cart-totals">
+              <h2 className="cart-totals-title">{t('summaryTitle')}</h2>
+              <div className="cart-summary-lines">
+                <SummaryGroup label={t('goods')} value={money(subtotal - discount)}>
+                  {discount > 0 && (
+                    <>
+                      <SummaryRow label={t('originalPrice')} value={money(subtotal)} />
+                      {voucherVnd > 0 && (
+                        <SummaryRow
+                          label={
+                            memberApplied
+                              ? t('benefits.member')
+                              : `${t('benefits.voucher')} ${checkedQuote?.couponCode ?? ''}`.trim()
+                          }
+                          value={`-${money(voucherVnd)}`}
+                          saving
+                        />
+                      )}
+                      {(checkedQuote?.rankDiscountVnd ?? 0) > 0 && checkedQuote?.rank && (
+                        <SummaryRow
+                          label={t('benefits.rank', { tier: tierNames(checkedQuote.rank.tier) })}
+                          value={`-${money(checkedQuote.rankDiscountVnd!)}`}
+                          saving
+                        />
+                      )}
+                    </>
+                  )}
+                </SummaryGroup>
+                {hasPartnerItems && (
+                  <p className="cart-summary-note">{t('shopBenefitsOnly', { amount: money(benefitSubtotalVnd) })}</p>
+                )}
+                <SummaryGroup
+                  label={t('shippingFee')}
+                  value={
+                    !courier
+                      ? fulfillment('meetingFree')
+                      : currentFee
+                        ? money(shippingFee - shippingDiscount)
+                        : fulfillment(feeQuoting ? 'feeQuoting' : 'feeNeedsAddress')
+                  }
+                >
+                  {shippingDiscount > 0 && currentFee && (
+                    <>
+                      <SummaryRow label={t('shippingLine')} value={money(shippingFee)} />
+                      <SummaryRow label={t('benefits.freeship')} value={`-${money(shippingDiscount)}`} saving />
+                    </>
+                  )}
+                </SummaryGroup>
+              </div>
+              <div className="cart-summary-total">
+                <span>{t('total')}</span>
+                <strong>{money(total)}</strong>
+                {(saved > 0 || (checkedQuote?.earnedPoints ?? 0) > 0) && (
+                  <small>
+                    {saved > 0 && (
+                      <b>
+                        {t('savedPercent', {
+                          amount: money(saved),
+                          percent: Math.round((saved * 100) / Math.max(1, subtotal + shippingFee)),
+                        })}
+                      </b>
+                    )}
+                    {saved > 0 && (checkedQuote?.earnedPoints ?? 0) > 0 && ' · '}
+                    {(checkedQuote?.earnedPoints ?? 0) > 0 && t('pointsLine', { points: checkedQuote!.earnedPoints! })}
+                  </small>
+                )}
+              </div>
+              {user && (
+                <dl className="cart-pay-split">
+                  <div>
+                    <dt>{t('payment.transferNow')}</dt>
+                    <dd>{money(upfrontVnd)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t(courier ? 'payment.codLater' : 'payment.payAtShop')}</dt>
+                    <dd>{balanceVnd > 0 ? money(balanceVnd) : t('payment.nothingLater')}</dd>
+                  </div>
+                </dl>
+              )}
+              {checkoutButton('mu-button cart-review-button')}
+              <p className="cart-checkout-note" role="status">
+                {quoting || couponPending ? t('quotePending') : t('reviewNote')}
+              </p>
+            </div>
           </section>
           <CartContactHelp />
         </aside>

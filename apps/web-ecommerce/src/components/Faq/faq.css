@@ -1,0 +1,216 @@
+/* Questions and answers, the same everywhere (service pages, the services hub, guides): hairline rules, the question in
+   navy, a round plus that turns into a filled minus, the answer in quiet ink. The open answer slides where the browser
+   can animate a <details> (::details-content); elsewhere it simply opens. */
+.faq-list {
+  --faq-ease: var(--mu-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  border-top: 1px solid var(--mu-line);
+  color: var(--mu-ink);
+  interpolate-size: allow-keywords;
+}
+.faq-item {
+  border-bottom: 1px solid var(--mu-line);
+}
+.faq-item summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item summary h3,
+.faq-question {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+  color: var(--mu-navy-950);
+  transition: color var(--mu-hover) var(--faq-ease);
+}
+.faq-icon {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: 50%;
+  color: var(--mu-navy-950);
+  transition:
+    background-color 200ms var(--faq-ease),
+    border-color 200ms var(--faq-ease),
+    color 200ms var(--faq-ease);
+}
+.faq-icon::before,
+.faq-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 1.5px;
+  margin: -0.75px 0 0 -6px;
+  border-radius: 1px;
+  background: currentColor;
+  transition: transform 260ms var(--faq-ease);
+}
+.faq-icon::after {
+  transform: rotate(90deg);
+}
+.faq-item[open] .faq-icon,
+.faq-item[data-open='true'] .faq-icon {
+  border-color: var(--mu-navy-950);
+  color: #fff;
+  background: var(--mu-navy-950);
+}
+.faq-item[open] .faq-icon::after,
+.faq-item[data-open='true'] .faq-icon::after {
+  transform: rotate(0deg);
+}
+@media (hover: hover) {
+  .faq-item summary:hover h3,
+  .faq-trigger:hover .faq-question {
+    color: var(--mu-navy-700);
+  }
+  .faq-item summary:hover .faq-icon,
+  .faq-trigger:hover .faq-icon {
+    border-color: var(--mu-navy-950);
+  }
+}
+.faq-item summary:focus-visible,
+.faq-trigger:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.faq-answer {
+  max-width: 70ch;
+  padding: 0 56px 24px 0;
+  font-size: 16px;
+  line-height: 1.75;
+  white-space: pre-line;
+  color: #3e4553;
+}
+.faq-item::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 320ms var(--faq-ease),
+    content-visibility 320ms allow-discrete;
+}
+.faq-item[open]::details-content {
+  block-size: auto;
+}
+
+/* The same item driven by a button (the services hub, where questions are searched and filtered): the answer row
+   grows from 0fr to 1fr, so it slides in every browser. */
+.faq-trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  padding: 20px 0;
+  text-align: left;
+}
+.faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 320ms var(--faq-ease),
+    visibility 0s linear 320ms;
+}
+.faq-item[data-open='true'] .faq-panel {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 320ms var(--faq-ease),
+    visibility 0s;
+}
+.faq-panel > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* "Still looking?" beside or under a list. */
+.faq-help {
+  padding: 22px;
+  border-radius: var(--mu-r-card);
+  background: var(--mu-surface);
+  border: 1px solid var(--mu-line);
+}
+.faq-help strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--mu-navy-950);
+}
+.faq-help p {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--mu-muted);
+}
+.faq-help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.faq-help-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: var(--mu-r-control);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+  transition: border-color var(--mu-hover) var(--faq-ease, ease);
+}
+.faq-help-actions a:hover {
+  border-color: var(--mu-navy-900);
+}
+.faq-help-actions a.is-primary {
+  border-color: var(--mu-navy-900);
+  color: #fff;
+  background: var(--mu-navy-900);
+}
+.faq-help-actions a.is-primary:hover {
+  background: var(--mu-navy-950);
+}
+.faq-help-actions a:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .faq-item summary,
+  .faq-trigger {
+    gap: 16px;
+    padding: 18px 0;
+  }
+  .faq-item summary h3,
+  .faq-question {
+    font-size: 16px;
+  }
+  .faq-answer {
+    padding-right: 0;
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-item::details-content,
+  .faq-panel,
+  .faq-item[data-open='true'] .faq-panel,
+  .faq-icon,
+  .faq-icon::before,
+  .faq-icon::after {
+    transition: none;
+  }
+}

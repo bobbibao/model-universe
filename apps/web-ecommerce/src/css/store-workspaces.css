@@ -302,11 +302,11 @@
   align-items: center;
   gap: 6px;
   margin-top: 10px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-radius: 8px;
-  background: #fff1f3;
-  color: #be123c;
-  font-size: 12px;
+  background: var(--mu-emerald-soft);
+  color: var(--mu-emerald-deep);
+  font-size: 13px;
   font-weight: 600;
 }
 .cart-member-hint a:hover {
@@ -536,42 +536,108 @@
   border-radius: 9px;
   font-size: 12px;
 }
+/* The summary's two halves: on a wide screen one card (offers above, the total under a rule). */
+.cart-totals {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f0ed;
+}
+.cart-order-summary .cart-totals-title {
+  display: none;
+}
+/* Phones and tablets: one column in the order a checkout is done: the kits, the offers that change the price,
+   delivery and payment, then the total (on a phone the sticky bar carries the total and the action), then help. */
 @media (max-width: 1023px) {
   .cart-workspace-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
-  .cart-main {
+  .cart-main,
+  .cart-sidebar,
+  .cart-workspace-layout .cart-order-summary {
     display: contents;
   }
   .cart-items-panel {
-    grid-row: 1;
+    order: 1;
   }
-  .cart-sidebar {
-    position: static;
-    grid-row: 2;
+  .cart-offers {
+    order: 2;
   }
   .cart-delivery {
-    grid-row: 3;
+    order: 3;
+  }
+  .cart-totals {
+    order: 4;
+  }
+  .ch-cart-help {
+    order: 5;
+  }
+  .cart-summary-head {
+    display: none;
+  }
+  .cart-offers,
+  .cart-totals {
+    margin: 0;
+    padding: 20px;
+    border: 1px solid #ebebe5;
+    border-radius: 16px;
+    background: #fff;
+  }
+  .cart-offers > :first-child {
+    margin-top: 0;
+  }
+  .cart-order-summary .cart-totals-title {
+    display: flex;
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+@media (max-width: 767px) {
+  /* The sticky bar carries the action; the total card only sums up. */
+  .cart-totals .cart-review-button {
+    display: none;
   }
 }
 @media (max-width: 640px) {
   .cart-items-panel,
   .cart-delivery,
   .cart-order-summary,
-  .cart-promotion-panel {
+  .cart-promotion-panel,
+  .cart-offers,
+  .cart-totals {
     padding: 16px;
-    border-radius: 13px;
+    border-radius: 14px;
   }
   .cart-line-item {
-    grid-template-columns: 64px minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 14px;
+    padding-block: 16px;
   }
   .cart-line-photo {
     height: 72px;
   }
   .cart-line-name {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .cart-line-meta {
     font-size: 12px;
+  }
+  .cart-line-controls {
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .cart-quantity output {
+    font-size: 14px;
+  }
+  .cart-line-remove {
+    font-size: 13px;
   }
   .cart-line-total {
     grid-column: 2;

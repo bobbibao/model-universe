@@ -344,27 +344,29 @@
   margin-top: 16px;
 }
 
-/* FAQ */
+/* FAQ on the services hub: the title, a search and the topics beside the list (the list and the help card are
+   faq.css, shared with the service pages and the guides). */
 .sg-faq {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
   gap: 56px;
   align-items: start;
   color: var(--sv-ink);
 }
 .sg-faq-side {
   position: sticky;
-  top: 88px;
+  top: 96px;
 }
 .sg-faq h2 {
-  font-size: clamp(22px, 2.2vw, 28px);
-  font-weight: 600;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  color: var(--mu-navy-950);
 }
 .sg-faq-intro {
   margin-top: 8px;
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--sv-muted);
 }
@@ -372,92 +374,83 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 22px;
   color: var(--sv-faint);
 }
 .sg-faq-search svg {
   position: absolute;
-  left: 12px;
+  left: 14px;
 }
 .sg-faq-search input {
   width: 100%;
-  height: 44px;
-  padding: 0 38px;
-  border: 1px solid #d6d3cb;
-  border-radius: 10px;
-  background: #fff;
+  height: 46px;
+  padding: 0 40px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: var(--mu-r-control);
+  font-size: 15px;
   color: var(--sv-ink);
-  font-size: 14.5px;
+  background: var(--mu-surface);
+  transition:
+    border-color var(--mu-hover) var(--mu-ease),
+    box-shadow var(--mu-hover) var(--mu-ease);
 }
 .sg-faq-search input:focus {
-  border-color: var(--sv-ink);
+  border-color: var(--mu-navy-900);
   outline: none;
+  box-shadow: 0 0 0 3px rgb(16 28 49 / 0.1);
 }
 .sg-faq-search button {
   position: absolute;
-  right: 12px;
+  right: 14px;
   font-size: 13px;
+  color: var(--sv-muted);
 }
 .sg-faq-filters {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 16px;
 }
 .sg-faq-filters button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--sv-line);
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: 999px;
   font-size: 14px;
-  font-weight: 600;
-  text-align: left;
-  color: var(--sv-muted);
+  font-weight: 500;
+  color: var(--sv-ink);
+  background: var(--mu-surface);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    border-color var(--mu-hover) var(--mu-ease),
+    color var(--mu-hover) var(--mu-ease);
 }
 .sg-faq-filters button:hover {
-  color: var(--sv-ink);
+  border-color: var(--mu-navy-900);
 }
 .sg-faq-filters button span {
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
-  color: var(--sv-faint);
-}
-.sg-faq-filters button[aria-pressed='true'] {
-  font-weight: 600;
-  color: var(--sv-ink);
-}
-.sg-faq-help {
-  margin-top: 26px;
-  font-size: 14px;
-}
-.sg-faq-help strong {
-  font-size: 15px;
-}
-.sg-faq-help p {
-  margin-top: 4px;
-  line-height: 1.55;
   color: var(--sv-muted);
 }
-.sg-faq-help > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  margin-top: 10px;
+.sg-faq-filters button[aria-pressed='true'] {
+  border-color: var(--mu-navy-950);
+  color: #fff;
+  background: var(--mu-navy-950);
 }
-.sg-faq-help a,
-.sg-faq-help-link {
-  font-weight: 600;
-  color: var(--sv-ink);
-  text-decoration: underline;
-  text-decoration-color: var(--sv-line);
-  text-underline-offset: 4px;
+.sg-faq-filters button[aria-pressed='true'] span {
+  color: rgb(255 255 255 / 0.7);
 }
-.sg-faq-help a:hover {
-  text-decoration-color: currentColor;
+.sg-faq-filters button:focus-visible,
+.sg-faq-search button:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
 }
-.sg-faq-help-link {
-  display: inline-block;
-  margin-top: 10px;
+.sg-faq-help {
+  margin-top: 28px;
 }
 .sg-faq-empty {
   padding: 40px 0;
@@ -467,122 +460,57 @@
   min-width: 0;
 }
 .sg-faq-count {
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--sv-ink);
-  font-size: 13px;
-  color: var(--sv-faint);
-}
-.sg-faq-item {
-  border-bottom: 1px solid var(--sv-line);
-}
-.sg-faq-item h3 button {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 20px;
-  align-items: center;
-  gap: 20px;
-  width: 100%;
-  padding: 18px 0;
-  text-align: left;
-}
-.sg-faq-question {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-.sg-faq-item h3 button:hover .sg-faq-question {
-  color: var(--sv-accent);
-}
-/* A plus that turns into a minus. */
-.sg-faq-chevron {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  justify-self: end;
-}
-.sg-faq-chevron::before,
-.sg-faq-chevron::after {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 0;
-  width: 14px;
-  height: 2px;
-  background: var(--sv-ink);
-  transition: transform 0.2s;
-}
-.sg-faq-chevron::after {
-  transform: rotate(90deg);
-}
-.sg-faq-item[data-open='true'] .sg-faq-chevron::after {
-  transform: rotate(0deg);
-}
-.sg-faq-answer {
-  max-width: 72ch;
-  padding: 0 40px 22px 0;
-  font-size: 15px;
-  line-height: 1.75;
-  color: #3e4553;
+  padding-bottom: 12px;
+  font-size: 14px;
+  color: var(--sv-muted);
 }
 
-/* Questions of one service (server-rendered <details>) */
+/* Questions of one service (/services/sell, trade, pawn): the title and where to ask beside the list. */
 .sv-questions {
-  margin-top: 48px;
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+  margin-top: 72px;
+  padding-bottom: 80px;
   color: var(--sv-ink);
 }
-.sv-questions > h2 {
-  margin-bottom: 14px;
-  font-size: clamp(22px, 2.2vw, 28px);
-  font-weight: 600;
+.sv-questions-side {
+  position: sticky;
+  top: 96px;
+}
+.sv-questions h2 {
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 500;
+  line-height: 1.2;
   letter-spacing: -0.02em;
+  color: var(--mu-navy-950);
 }
-.sv-questions-list {
-  max-width: 880px;
-  border-top: 2px solid var(--sv-ink);
-}
-.sv-questions details {
-  border-bottom: 1px solid var(--sv-line);
-}
-.sv-questions summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 14px;
-  align-items: center;
-  gap: 20px;
-  padding: 18px 0;
-  cursor: pointer;
-  list-style: none;
-}
-.sv-questions summary::-webkit-details-marker {
-  display: none;
-}
-.sv-questions summary h3 {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-.sv-questions summary::after {
-  content: '+';
-  font-size: 20px;
-  line-height: 1;
-}
-.sv-questions details[open] summary::after {
-  content: '−';
-}
-.sv-questions details p {
-  max-width: 72ch;
-  padding: 0 34px 22px 0;
-  font-size: 15px;
-  line-height: 1.75;
-  color: #3e4553;
+.sv-questions .faq-help {
+  margin-top: 24px;
 }
 
 @media (max-width: 1000px) {
   .sg-guest,
-  .sg-faq {
+  .sg-faq,
+  .sv-questions {
     grid-template-columns: 1fr;
     gap: 32px;
   }
   .sg-faq-side {
     position: static;
+  }
+  .sv-questions {
+    gap: 24px;
+    margin-top: 56px;
+    padding-bottom: 56px;
+  }
+  .sv-questions-side {
+    display: contents;
+  }
+  .sv-questions .faq-help {
+    order: 1;
+    margin-top: 0;
   }
 }
 @media (max-width: 760px) {
@@ -618,25 +546,22 @@
   .sg-guest-side {
     padding: 18px;
   }
-  .sg-faq-answer {
-    padding-right: 0;
-    font-size: 14.5px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .sg-button,
   .sv-row,
   .sv-go svg,
-  .sg-faq-chevron::after {
+  .sg-faq-search input,
+  .sg-faq-filters button {
     transition: none;
   }
 }
 
 /* --- Services hub (/services) -----------------------------------------------------------------------------------
-   Paper ground, white cards with one hairline, navy ink and buttons. The kit photos are the colour: three in the hero
-   and one under the buyback card. The process sits on the page's one navy band. Only the hero moves on load. */
+   Paper ground, white cards with one hairline, navy ink and buttons. The kit photos are the colour (three in the hero);
+   navy marks the chosen service and its numbers. Only the hero moves on load. */
 .svx-hero {
-  padding-top: 64px;
+  padding-top: 56px;
   color: var(--mu-ink);
 }
 .svx-hero-grid {
@@ -751,7 +676,7 @@
   grid-template-columns: 1.25fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 12px;
-  height: 560px;
+  height: 520px;
 }
 .svx-shot {
   position: relative;
@@ -780,7 +705,7 @@
 
 /* Tabs on this page: plain words, a 2px bar under the open one. */
 .sv-body .sg-tabs {
-  margin: 64px 0 48px;
+  margin: 56px 0 40px;
 }
 
 /* Sections under the tabs: generous air, the heading first. */
@@ -788,10 +713,9 @@
   margin: 0;
 }
 .sv-body .sv-hub > .sv-section-head {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
-.sv-body .sv-section-head h2,
-.svx-process h2 {
+.sv-body .sv-section-head h2 {
   font-size: clamp(28px, 2.6vw, 36px);
   font-weight: 500;
   line-height: 1.15;
@@ -805,163 +729,307 @@
   color: var(--mu-muted);
 }
 
-/* The three numbers people ask first, set large between two hairlines. */
-.svc-figures {
-  margin: 0 0 112px;
+/* The services hub: five tiles choose a service, one card shows it. Every service's card is rendered in the same grid
+   cell, so the card keeps its height when the choice changes and nothing under it moves. */
+.svc-explorer {
+  scroll-margin-top: 96px;
 }
-.svc-figures dl {
+.svc-picker {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-block: 1px solid var(--mu-line);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
 }
-.svc-figures dl > div {
+.svc-tile {
   display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
-  gap: 16px;
-  padding: 40px 32px 40px 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 20px;
+  border: 1px solid var(--mu-line);
+  border-radius: var(--mu-r-card);
+  text-align: left;
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    border-color var(--mu-hover) var(--mu-ease),
+    box-shadow var(--mu-hover) var(--mu-ease),
+    transform var(--mu-hover) var(--mu-ease);
 }
-.svc-figures dl > div + div {
-  padding-left: 32px;
-  border-left: 1px solid var(--mu-line);
+@media (hover: hover) {
+  .svc-tile:hover {
+    border-color: var(--mu-line-strong);
+    box-shadow: var(--mu-shadow-md);
+    transform: translateY(-2px);
+  }
 }
-.svc-figures dd {
-  font-size: clamp(56px, 7vw, 112px);
-  font-weight: 400;
-  line-height: 0.95;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
+.svc-tile:active {
+  transform: scale(0.985);
+  transition-duration: var(--mu-press);
+}
+.svc-tile[aria-selected='true'] {
+  border-color: var(--mu-navy-950);
+  color: #fff;
+  background: var(--mu-navy-950);
+  box-shadow: none;
+  transform: none;
+}
+.svc-tile:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
+}
+.svc-tile-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 14px;
+  border-radius: var(--mu-r-control);
+  color: var(--mu-navy-900);
+  background: var(--mu-fill);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    color var(--mu-hover) var(--mu-ease);
+}
+.svc-tile[aria-selected='true'] .svc-tile-icon {
   color: var(--mu-navy-950);
+  background: var(--mu-emerald-glow);
 }
-.svc-figures dt {
-  max-width: 26ch;
-  font-size: 16px;
-  line-height: 1.5;
+.svc-tile-name {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.svc-tile-fact {
+  font-size: 14px;
+  line-height: 1.45;
   color: var(--mu-muted);
+  transition: color var(--mu-hover) var(--mu-ease);
+}
+.svc-tile[aria-selected='true'] .svc-tile-fact {
+  color: rgb(255 255 255 / 0.74);
 }
 
-/* Services as chapters: one white card per service, the kit photo on one half and the service on the other, sides
-   alternating; on a wide screen each card holds under the header while the next one slides up over it. */
-.svc-chapters {
+/* The card: what the service does, its four steps and the way in; beside them a navy card with the number it is
+   chosen for and its promise, and the shop's rules under that. */
+.svc-stage {
   display: grid;
-  gap: 24px;
-}
-.svc-chapter {
-  position: sticky;
-  top: 88px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  height: min(calc(100vh - 112px), 600px);
-  min-height: 460px;
   overflow: hidden;
   border: 1px solid var(--mu-line);
   border-radius: var(--mu-r-panel);
   background: var(--mu-surface);
 }
-.svc-chapter:nth-child(even) .svc-chapter-photo {
-  order: 2;
-}
-/* The kit whole, on the warm grey ground of the product tiles: catalogue photos are often box art with lettering, so
-   they are shown as they are, never cropped or stretched across the card. */
-.svc-chapter-photo {
-  position: relative;
-  min-height: 0;
-  background: var(--mu-fill);
-}
-.svc-chapter-photo img {
-  padding: 40px;
-  object-fit: contain;
-  transition: transform 600ms var(--mu-ease);
-}
-.svc-chapter:hover .svc-chapter-photo img {
-  transform: scale(1.025);
-}
-.svc-chapter-panel {
+.svc-panel {
+  grid-area: 1 / 1;
   display: grid;
-  align-content: center;
-  justify-items: start;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 56px;
   padding: 48px 56px;
+  visibility: hidden;
 }
-.svc-chapter-num {
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-  color: var(--mu-muted);
+.svc-panel[data-active='true'] {
+  visibility: visible;
 }
-.svc-chapter h3 {
-  font-size: clamp(32px, 3.2vw, 48px);
+.svc-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.svc-main h3 {
+  font-size: clamp(28px, 2.6vw, 36px);
   font-weight: 500;
-  line-height: 1.06;
-  letter-spacing: -0.03em;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
   color: var(--mu-navy-950);
 }
-.svc-chapter-panel p {
-  max-width: 40ch;
+.svc-summary {
+  max-width: 54ch;
+  margin-top: 12px;
   font-size: 17px;
   line-height: 1.6;
   color: var(--mu-muted);
 }
-.svc-chapter-panel .svc-chapter-fact {
+.svc-label {
+  margin-top: 36px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mu-ink);
+}
+.svc-steps {
+  display: grid;
+  margin-top: 18px;
+}
+.svc-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 16px;
+  padding-bottom: 18px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--mu-ink);
+}
+.svc-steps li:last-child {
+  padding-bottom: 0;
+}
+/* The thread from one step to the next. */
+.svc-steps li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  bottom: 4px;
+  left: 15.5px;
+  width: 1px;
+  background: var(--mu-line-strong);
+}
+.svc-step-num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mu-navy-900);
+}
+.svc-steps li > span:last-child {
+  padding-top: 4px;
+}
+.svc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 36px;
+}
+.svc-aside {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.svc-card {
+  padding: 32px;
+  border-radius: var(--mu-r-card);
+  color: #fff;
+  background: var(--mu-navy-950);
+}
+.svc-figure strong {
+  display: block;
+  font-size: clamp(52px, 4.6vw, 72px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.svc-figure span {
+  display: block;
+  max-width: 26ch;
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.74);
+}
+.svc-statement {
+  max-width: 20ch;
+  font-size: clamp(24px, 2.1vw, 30px);
   font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+}
+.svc-promise {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgb(255 255 255 / 0.14);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.svc-promise svg,
+.svc-trust svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--mu-emerald-glow);
+}
+.svc-trust {
+  margin-top: auto;
+  padding-top: 32px;
+}
+.svc-trust h4 {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mu-muted);
+}
+.svc-trust ul {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.svc-trust li {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mu-ink);
+}
+.svc-trust svg {
   color: var(--mu-emerald-deep);
 }
-.svc-chapter-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  margin-top: 8px;
-  padding: 0 20px;
-  border-radius: var(--mu-r-control);
-  font-size: 16px;
-  font-weight: 500;
-  color: #fff;
-  background: var(--mu-navy-900);
-  transition:
-    background-color var(--mu-hover) var(--mu-ease),
-    transform var(--mu-hover) var(--mu-ease);
+/* Once the visitor picks a service, its words rise in one after another (the card itself never moves). */
+.svc-explorer[data-moved] .svc-panel[data-active='true'] .svc-in {
+  animation: svc-in 380ms var(--mu-ease) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
 }
-.svc-chapter-go:hover {
-  background: var(--mu-navy-950);
-  transform: translateY(-1px);
-}
-.svc-chapter-go svg {
-  transition: transform var(--mu-hover) var(--mu-ease);
-}
-.svc-chapter-go:hover svg {
-  transform: translateX(3px);
-}
-.svc-chapter-go:focus-visible {
-  outline: 2px solid var(--mu-emerald);
-  outline-offset: 2px;
+@keyframes svc-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
-/* Where to bring a kit: the address set large, hours and phone, the three ways there. */
+/* Where to bring a kit: one card, the address and its facts beside the three ways there. */
 .svc-visit {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: 48px;
-  align-items: end;
-  margin: 0 0 96px;
-  padding: 56px 0;
-  border-block: 1px solid var(--mu-line);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px 28px;
+  margin: 72px 0 56px;
+  padding: 28px 32px;
+  border: 1px solid var(--mu-line);
+  border-radius: var(--mu-r-panel);
+  background: var(--mu-surface);
+}
+.svc-visit-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--mu-r-card);
+  color: var(--mu-navy-900);
+  background: var(--mu-fill);
 }
 .svc-visit h2 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--mu-muted);
 }
 .svc-visit-address {
-  display: block;
-  max-width: 22ch;
-  margin-top: 16px;
-  font-size: clamp(32px, 3.6vw, 52px);
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 21px;
   font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   color: var(--mu-navy-950);
   text-decoration: underline 1px transparent;
-  text-underline-offset: 8px;
+  text-underline-offset: 5px;
   transition: text-decoration-color var(--mu-hover) var(--mu-ease);
 }
 .svc-visit-address:hover {
@@ -970,109 +1038,33 @@
 .svc-visit-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px 48px;
-  margin-top: 32px;
+  gap: 6px 28px;
+  margin-top: 8px;
+}
+.svc-visit-facts > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
 }
 .svc-visit-facts dt {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
   color: var(--mu-muted);
 }
 .svc-visit-facts dd {
-  margin-top: 4px;
-  font-size: 17px;
   font-variant-numeric: tabular-nums;
   color: var(--mu-ink);
 }
+.svc-visit-facts dd a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 .svc-visit-actions {
-  display: grid;
-  gap: 12px;
-}
-.svc-visit-actions .svx-button {
-  justify-content: flex-start;
-}
-
-/* The four steps every request follows, on the page's one navy band, with the trust notes under them. */
-.svx-process {
-  margin: 112px 0 80px;
-  padding: 64px 56px 48px;
-  border-radius: var(--mu-r-panel);
-  color: #fff;
-  background: var(--mu-navy-950);
-}
-.svx-process-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-}
-.svx-process h2 {
-  max-width: 16ch;
-  color: #fff;
-}
-.svx-process ol {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 32px;
-  margin-top: 56px;
-}
-.svx-process ol::before {
-  content: '';
-  position: absolute;
-  top: 22px;
-  right: 0;
-  left: 22px;
-  height: 1px;
-  background: rgb(255 255 255 / 0.16);
-}
-.svx-process li {
-  position: relative;
-  display: grid;
-  align-content: start;
-  gap: 20px;
-  padding-right: 16px;
-  font-size: 16px;
-  line-height: 1.55;
-  color: rgb(255 255 255 / 0.86);
-}
-.svx-process .svx-step {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgb(255 255 255 / 0.24);
-  border-radius: 50%;
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-  background: var(--mu-navy-950);
-}
-.svx-process li:first-child .svx-step {
-  border-color: var(--mu-emerald-glow);
-  color: var(--mu-navy-950);
-  background: var(--mu-emerald-glow);
-}
-.svx-trust {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 40px;
-  margin-top: 56px;
-  padding-top: 24px;
-  border-top: 1px solid rgb(255 255 255 / 0.12);
-  font-size: 15px;
-  color: rgb(255 255 255 / 0.74);
-}
-.svx-trust li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.svx-trust svg {
-  color: var(--mu-emerald-glow);
+  gap: 10px;
 }
 
 @media (max-width: 1100px) {
@@ -1083,66 +1075,66 @@
   .svx-gallery {
     height: 480px;
   }
+  .svc-tile {
+    padding: 16px;
+  }
+  .svc-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+    gap: 40px;
+    padding: 40px;
+  }
   .svc-visit {
-    grid-template-columns: 1fr;
-    gap: 32px;
+    grid-template-columns: auto minmax(0, 1fr);
   }
   .svc-visit-actions {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
-  .svx-process {
-    padding: 48px 40px 40px;
-  }
-  .svx-process ol {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 40px;
-  }
-  .svx-process ol::before {
-    display: none;
+    grid-column: 1 / -1;
   }
 }
-@media (max-width: 767px) {
-  .svc-figures {
-    margin-bottom: 72px;
-  }
-  .svc-figures dl {
-    grid-template-columns: 1fr;
-  }
-  .svc-figures dl > div,
-  .svc-figures dl > div + div {
+@media (max-width: 900px) {
+  /* The tiles become one sideways row of chips; the card stacks, its navy part last. */
+  .svc-picker {
+    display: flex;
     gap: 8px;
-    padding: 24px 0;
-    border-left: 0;
+    margin-inline: -24px;
+    padding: 2px 24px 6px;
+    overflow-x: auto;
+    scroll-padding-inline: 24px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
   }
-  .svc-figures dl > div + div {
-    border-top: 1px solid var(--mu-line);
+  .svc-picker::-webkit-scrollbar {
+    display: none;
   }
-  .svc-figures dd {
-    font-size: 56px;
+  .svc-tile {
+    flex: none;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 16px 7px 7px;
+    border-radius: 12px;
+    scroll-snap-align: start;
   }
-  /* On a phone the chapters follow each other: the photo, then its words. */
-  .svc-chapters {
-    gap: 16px;
+  .svc-tile-icon {
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    border-radius: 8px;
   }
-  .svc-chapter {
-    position: relative;
-    top: auto;
-    grid-template-columns: 1fr;
-    height: auto;
-    min-height: 0;
+  .svc-tile-name {
+    font-size: 15px;
+    white-space: nowrap;
   }
-  .svc-chapter:nth-child(even) .svc-chapter-photo {
-    order: 0;
+  .svc-tile-fact {
+    display: none;
   }
-  .svc-chapter-photo {
-    aspect-ratio: 1;
+  .svc-panel {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: 32px;
+    padding: 32px 28px;
   }
-  .svc-chapter-panel {
-    gap: 12px;
-    padding: 24px;
-  }
-  .svc-chapter h3 {
-    font-size: 30px;
+  .svc-trust {
+    padding-top: 24px;
   }
 }
 @media (max-width: 640px) {
@@ -1168,60 +1160,58 @@
   .sv-body .sg-tabs {
     margin: 48px 0 32px;
   }
+  .svc-picker {
+    margin-inline: -16px;
+    padding-inline: 16px;
+    scroll-padding-inline: 16px;
+  }
+  .svc-panel {
+    gap: 28px;
+    padding: 24px 20px 28px;
+  }
+  .svc-main h3 {
+    font-size: 26px;
+  }
+  .svc-summary {
+    font-size: 16px;
+  }
+  .svc-steps li {
+    font-size: 15px;
+  }
+  .svc-card {
+    padding: 24px 20px;
+  }
+  .svc-figure strong {
+    font-size: 52px;
+  }
   .svc-visit {
-    margin-bottom: 64px;
-    padding: 40px 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin: 56px 0 40px;
+    padding: 24px 20px;
+  }
+  .svc-visit-icon {
+    display: none;
   }
   .svc-visit-address {
-    font-size: 30px;
+    font-size: 19px;
   }
-  .svx-process {
-    margin: 80px 0 48px;
-    padding: 40px 24px 32px;
-  }
-  .svx-process-head .svx-button {
-    flex: 1 1 100%;
-  }
-  .svx-process ol {
-    grid-template-columns: 1fr;
-    gap: 24px;
-    margin-top: 40px;
-  }
-  .svx-process ol::before {
-    display: block;
-    top: 22px;
-    bottom: 22px;
-    left: 22px;
-    right: auto;
-    width: 1px;
-    height: auto;
-  }
-  .svx-process li {
-    grid-template-columns: 44px minmax(0, 1fr);
-    align-items: center;
-    gap: 16px;
-    padding-right: 0;
-  }
-  .svx-trust {
+  .svc-visit-facts {
     flex-direction: column;
-    margin-top: 40px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .svx-hero-copy,
-  .svx-shot img {
+  .svx-shot img,
+  .svc-explorer[data-moved] .svc-panel[data-active='true'] .svc-in {
     animation: none;
-  }
-  .svc-chapter {
-    position: relative;
-    top: auto;
   }
   .svx-button,
   .svx-button svg,
   .svx-shot img,
-  .svc-chapter-photo img,
-  .svc-chapter-go,
-  .svc-chapter-go svg,
+  .svc-tile,
+  .svc-tile-icon,
+  .svc-tile-fact,
   .svc-visit-address {
     transition: none;
   }

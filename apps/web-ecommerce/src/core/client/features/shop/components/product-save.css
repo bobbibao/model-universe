@@ -1,0 +1,86 @@
+/* The heart on a product tile (ProductCard.tsx): top right of the photo, white disc, outline heart; saved, it fills in
+   the sale red with one small pop. The photo's badges keep to the left of it. */
+.mu-shell .product-tile {
+  position: relative;
+}
+.mu-shell .product-tile .mu-product-photo .product-tile-badges {
+  right: 58px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.product-tile-save {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--mu-line);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.94);
+  box-shadow: 0 2px 8px -4px rgb(18 28 46 / 0.3);
+  transition: transform var(--mu-hover) var(--mu-ease);
+  /* The heart's colour lives in --heart: the product tile's own button colour rule is more specific than ours. */
+  --heart: var(--mu-ink);
+}
+.product-tile-save svg {
+  fill: transparent;
+  stroke: var(--heart);
+  transition:
+    fill var(--mu-hover) var(--mu-ease),
+    stroke var(--mu-hover) var(--mu-ease);
+}
+@media (hover: hover) {
+  .product-tile-save:hover {
+    --heart: var(--p-sale, #c2331b);
+    transform: scale(1.06);
+  }
+}
+.product-tile-save:active {
+  transform: scale(0.9);
+  transition-duration: var(--mu-press);
+}
+.product-tile-save[aria-pressed='true'] {
+  --heart: var(--p-sale, #c2331b);
+}
+.product-tile-save[aria-pressed='true'] svg {
+  fill: var(--heart);
+  animation: tile-heart-pop 380ms var(--mu-ease);
+}
+.product-tile-save:disabled {
+  cursor: progress;
+}
+.product-tile-save:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
+}
+@keyframes tile-heart-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+}
+@media (max-width: 640px) {
+  .product-tile-save {
+    top: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+  }
+  .mu-shell .product-tile .mu-product-photo .product-tile-badges {
+    right: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-tile-save,
+  .product-tile-save svg {
+    transition: none;
+  }
+  .product-tile-save[aria-pressed='true'] svg {
+    animation: none;
+  }
+}

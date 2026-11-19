@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { RestockAlertsProvider } from '@/shared/client/providers/RestockAlertsProvider';
+import { WishlistProvider } from '@/shared/client/providers/WishlistProvider';
 import StoreHeader from '@/components/StoreHeader';
 import StoreFooter from '@/components/StoreFooter';
 import FloatingContact from '@/components/Contact/FloatingContact';
@@ -11,15 +12,17 @@ import TrackingTags from '@/components/Tracking/TrackingTags';
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <RestockAlertsProvider>
-      <div className="mu-shell flex min-h-screen flex-col">
-        <StoreHeader />
-        <main className="flex-1">{children}</main>
-        <StoreFooter />
-        <FloatingContact />
-        <AttributionCapture />
-        <TrackingTags />
-        <ConsentBanner />
-      </div>
+      <WishlistProvider>
+        <div className="mu-shell flex min-h-screen flex-col">
+          <StoreHeader />
+          <main className="flex-1">{children}</main>
+          <StoreFooter />
+          <FloatingContact />
+          <AttributionCapture />
+          <TrackingTags />
+          <ConsentBanner />
+        </div>
+      </WishlistProvider>
     </RestockAlertsProvider>
   );
 }

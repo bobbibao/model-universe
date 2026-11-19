@@ -1,0 +1,349 @@
+/* The hold request (HoldRequestDialog.tsx) inside a StoreDialog: the kit, the smallest deposit set large with how long
+   it holds the kit, the deposit bands as a ruled table, an optional code, the terms, then accept and send. */
+.hold-content {
+  display: grid;
+  gap: 20px;
+}
+.hold-product {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hold-product-photo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--mu-r-control);
+  object-fit: cover;
+  color: var(--mu-muted);
+  background: var(--mu-fill);
+}
+.hold-product strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--mu-navy-950);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.hold-product span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--mu-muted);
+}
+
+/* The smallest deposit: navy card, the amount set large. */
+.hold-deposit {
+  padding: 20px 22px;
+  border-radius: var(--mu-r-card);
+  color: #fff;
+  background: var(--mu-navy-950);
+  transition: opacity var(--mu-hover) var(--mu-ease);
+}
+.hold-deposit.is-busy {
+  opacity: 0.6;
+}
+.hold-deposit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: rgb(255 255 255 / 0.74);
+}
+.hold-days {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mu-navy-950);
+  background: var(--mu-emerald-glow);
+}
+.hold-deposit-amount {
+  display: block;
+  margin-top: 6px;
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.hold-deposit-lines {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 0.14);
+  font-size: 14px;
+}
+.hold-deposit-lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hold-deposit-lines dt {
+  color: rgb(255 255 255 / 0.74);
+}
+.hold-deposit-lines dd {
+  font-variant-numeric: tabular-nums;
+}
+.hold-deposit-lines .is-saving dd {
+  color: var(--mu-emerald-glow);
+}
+
+/* Deposit bands: share, amount, days. */
+.hold-bands h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--mu-navy-950);
+}
+.hold-bands ol {
+  margin-top: 10px;
+  border-top: 1px solid var(--mu-line);
+}
+.hold-bands li {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--mu-line);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.hold-band-share {
+  color: var(--mu-muted);
+}
+.hold-band-amount {
+  color: var(--mu-ink);
+}
+.hold-band-days {
+  font-weight: 600;
+  text-align: right;
+  color: var(--mu-navy-950);
+}
+.hold-bands li.is-first .hold-band-days {
+  color: var(--mu-emerald-deep);
+}
+.hold-note {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--mu-muted);
+}
+
+/* Code, terms, notices. */
+.hold-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mu-navy-900);
+  text-decoration: underline;
+  text-decoration-color: var(--mu-line-strong);
+  text-underline-offset: 4px;
+}
+.hold-link:hover {
+  text-decoration-color: currentColor;
+}
+.hold-coupon-row {
+  display: flex;
+  gap: 8px;
+}
+.hold-coupon-row input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: var(--mu-r-control);
+  font-size: 15px;
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+}
+.hold-coupon-row input:focus {
+  border-color: var(--mu-navy-900);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(16 28 49 / 0.1);
+}
+.hold-coupon-row button {
+  flex: none;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--mu-r-control);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mu-navy-950);
+  background: var(--mu-fill);
+  transition: background-color var(--mu-hover) var(--mu-ease);
+}
+.hold-coupon-row button:hover:not(:disabled) {
+  background: #e6e6de;
+}
+.hold-coupon-row button:disabled {
+  opacity: 0.5;
+}
+.hold-terms {
+  border-top: 1px solid var(--mu-line);
+  border-bottom: 1px solid var(--mu-line);
+}
+.hold-terms summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--mu-ink);
+  cursor: pointer;
+  list-style: none;
+}
+.hold-terms summary::-webkit-details-marker {
+  display: none;
+}
+.hold-terms summary span {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+.hold-terms summary span::before,
+.hold-terms summary span::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 0;
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  transition: transform var(--mu-hover) var(--mu-ease);
+}
+.hold-terms summary span::after {
+  transform: rotate(90deg);
+}
+.hold-terms[open] summary span::after {
+  transform: rotate(0deg);
+}
+.hold-terms p {
+  padding-bottom: 14px;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-line;
+  color: var(--mu-muted);
+}
+.hold-alert,
+.hold-blocked {
+  padding: 12px 14px;
+  border-radius: var(--mu-r-control);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.hold-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #8a1c1c;
+  background: #fdecec;
+}
+.hold-alert button {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hold-blocked {
+  color: #6b4a00;
+  background: var(--mu-gold-soft);
+}
+.hold-skeleton {
+  display: grid;
+  gap: 12px;
+}
+.hold-skeleton span {
+  height: 120px;
+  border-radius: var(--mu-r-card);
+  background: var(--mu-fill);
+  animation: hold-pulse 1.2s ease-in-out infinite alternate;
+}
+.hold-skeleton span + span {
+  height: 180px;
+}
+@keyframes hold-pulse {
+  to {
+    opacity: 0.55;
+  }
+}
+
+/* Footer: accept, then the one action. */
+.hold-foot {
+  display: grid;
+  gap: 12px;
+}
+.hold-accept {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mu-ink);
+  cursor: pointer;
+}
+.hold-accept input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--mu-navy-900);
+}
+.hold-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 50px;
+  border-radius: var(--mu-r-control);
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--mu-navy-900);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    opacity var(--mu-hover) var(--mu-ease);
+}
+.hold-submit:hover:not(:disabled) {
+  background: var(--mu-navy-950);
+}
+.hold-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.hold-submit:focus-visible,
+.hold-link:focus-visible,
+.hold-coupon-row button:focus-visible,
+.hold-terms summary:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .hold-deposit {
+    padding: 18px;
+  }
+  .hold-deposit-amount {
+    font-size: 30px;
+  }
+  .hold-bands li {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hold-skeleton span {
+    animation: none;
+  }
+}

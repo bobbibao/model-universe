@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import { CONTACT } from '@/shared/contact-channels';
 import { FAQ_LIST, type FaqItem } from './serviceFaqItems';
+import '@/components/Faq/faq.css';
 import './service-guide.css';
 
 type CategoryFilter = 'all' | FaqItem['category'];
@@ -80,18 +81,16 @@ export default function ServiceFaq() {
             </button>
           ))}
         </div>
-        <div className="sg-faq-help">
+        <div className="faq-help sg-faq-help">
           <strong>{g('faqHelpTitle')}</strong>
           <p>{g('faqHelpText', { hours: CONTACT.hours })}</p>
-          <div>
-            <a href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
+          <div className="faq-help-actions">
+            <a className="is-primary" href={CONTACT.zalo} target="_blank" rel="noopener noreferrer">
               {g('guestZalo')}
             </a>
             <a href={CONTACT.tel}>{g('guestCall', { phone: CONTACT.phoneDisplay })}</a>
+            <Link href="/contact">{g('faqContact')}</Link>
           </div>
-          <Link href="/contact" className="sg-faq-help-link">
-            {g('faqContact')} →
-          </Link>
         </div>
       </div>
 
@@ -102,28 +101,33 @@ export default function ServiceFaq() {
         {visible.length === 0 ? (
           <p className="sg-faq-empty">{g('faqEmpty')}</p>
         ) : (
-          visible.map((faq) => {
-            const open = !!expandedIds[faq.id];
-            return (
-              <article key={faq.id} id={`faq-${faq.id}`} className="sg-faq-item" data-open={open}>
-                <h3>
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    aria-controls={`faq-answer-${faq.id}`}
-                    onClick={() => setExpandedIds((current) => ({ ...current, [faq.id]: !current[faq.id] }))}
-                  >
-                    <span className="sg-faq-question">{faq.question}</span>
-                    <span className="sg-faq-chevron" aria-hidden="true" />
-                  </button>
-                </h3>
-                {/* Collapsed answers stay in the HTML (hidden) so search engines read every answer. */}
-                <div id={`faq-answer-${faq.id}`} className="sg-faq-answer" hidden={!open}>
-                  {faq.answer}
-                </div>
-              </article>
-            );
-          })
+          <div className="faq-list">
+            {visible.map((faq) => {
+              const open = !!expandedIds[faq.id];
+              return (
+                <article key={faq.id} id={`faq-${faq.id}`} className="faq-item" data-open={open}>
+                  <h3>
+                    <button
+                      type="button"
+                      className="faq-trigger"
+                      aria-expanded={open}
+                      aria-controls={`faq-answer-${faq.id}`}
+                      onClick={() => setExpandedIds((current) => ({ ...current, [faq.id]: !current[faq.id] }))}
+                    >
+                      <span className="faq-question">{faq.question}</span>
+                      <span className="faq-icon" aria-hidden="true" />
+                    </button>
+                  </h3>
+                  {/* Collapsed answers stay in the HTML (folded to no height) so search engines read every answer. */}
+                  <div id={`faq-answer-${faq.id}`} className="faq-panel">
+                    <div>
+                      <p className="faq-answer">{faq.answer}</p>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         )}
       </div>
     </section>
