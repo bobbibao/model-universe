@@ -1589,8 +1589,11 @@
   color: #121c2e;
 }
 .mu-shell .bg-brand {
-  background: #dcf56a;
-  color: #121c2e;
+  background: var(--mu-navy-900);
+  color: #fff;
+}
+.mu-shell .bg-brand:hover {
+  background: var(--mu-navy-950);
 }
 .mu-shell .mu-header .text-brand,
 .mu-shell .mu-footer .text-brand {

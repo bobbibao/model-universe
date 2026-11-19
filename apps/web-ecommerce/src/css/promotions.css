@@ -1958,11 +1958,6 @@
   outline: 2px solid var(--mu-emerald);
   outline-offset: 2px;
 }
-.home-hero-fact {
-  margin-top: 24px;
-  font-size: 14px;
-  color: var(--mu-muted);
-}
 .home-hero-photo {
   position: relative;
   display: block;

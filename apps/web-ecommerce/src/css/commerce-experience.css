@@ -2073,6 +2073,24 @@
   background: var(--mu-surface);
   transition: border-color var(--mu-hover) var(--mu-ease);
 }
+@media (max-width: 640px) {
+  .mu-shell .product-tile .product-tile-name {
+    font-size: 14px;
+  }
+  .mu-shell .product-tile .product-tile-body {
+    padding: 12px 12px 0;
+  }
+  .mu-shell .product-tile .product-tile-footer {
+    padding: 12px;
+  }
+  .mu-shell .product-tile :is(.product-tile-cart-btn, .product-tile-action, .product-tile-alert-btn),
+  .mu-shell .product-tile :is(.product-tile-cart-btn, .product-tile-action, .product-tile-alert-btn) * {
+    font-size: 13px;
+    line-height: 1.25;
+    white-space: normal;
+    text-overflow: clip;
+  }
+}
 .mu-shell .product-tile :is(.product-tile-cart-btn, .product-tile-action, .product-tile-alert-btn):hover {
   border-color: var(--mu-navy-900);
   color: var(--mu-navy-950);
