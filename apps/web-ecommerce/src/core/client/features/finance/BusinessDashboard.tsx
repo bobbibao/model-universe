@@ -68,20 +68,17 @@ export default function BusinessDashboard() {
       <header className="finance-heading">
         <div>
           <p className="finance-eyebrow">
-            MODEL UNIVERSE /{' '}
             {today
-              ? today
-                  .toLocaleDateString(en ? 'en-GB' : 'vi-VN', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    timeZone: 'Asia/Ho_Chi_Minh',
-                  })
-                  .toUpperCase()
+              ? today.toLocaleDateString(en ? 'en-GB' : 'vi-VN', {
+                  weekday: 'long',
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  timeZone: 'Asia/Ho_Chi_Minh',
+                })
               : en
-                ? 'BUSINESS'
-                : 'KINH DOANH'}
+                ? 'Business'
+                : 'Kinh doanh'}
           </p>
           <h1>
             {greeting}

@@ -171,7 +171,7 @@ export default function PartnerInventory({ admin = false }: { admin?: boolean })
         <Breadcrumb pageName={t('adminTitle')} />
       ) : (
         <>
-          <p className="mu-eyebrow">MODEL UNIVERSE / {t('eyebrow')}</p>
+          <p className="mu-eyebrow">{t('eyebrow')}</p>
           <h1 className="mu-heading">{t('title')}</h1>
         </>
       )}

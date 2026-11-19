@@ -58,7 +58,7 @@ const CartDropdown = ({ buttonClassName }: { buttonClassName: string }) => {
               setOpen(false);
           }}
         >
-          <span className="store-cart-kicker">MODEL UNIVERSE / {t('cart')}</span>
+          <span className="store-cart-kicker">{t('cart')}</span>
           <p className="store-cart-count">{t('bagCount', { count })}</p>
           <p className="store-cart-subtotal">
             <span>{t('subtotal')}</span>

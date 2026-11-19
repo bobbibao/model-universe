@@ -22,7 +22,7 @@ export default function SellerStore() {
     finally { if (request.current === current) setLoaded(true); }
   }, [id, offset]);
   useEffect(() => { void load(); return () => { request.current++; }; }, [load]);
-  return <section className="mu-wrap mu-section"><p className="mu-eyebrow">MODEL UNIVERSE / MARKETPLACE</p>
+  return <section className="mu-wrap mu-section"><p className="mu-eyebrow">MARKETPLACE</p>
     <h1 className="mu-heading break-words">{store?.displayName || t('title')}</h1>
     {!loaded && <p role="status" className="mu-note">{common('loading')}</p>}
     {failed && <div role="alert" className="mu-panel mt-6 space-y-4 p-6"><p>{t('unavailable')}</p><button className="mu-button" onClick={() => void load()}>{common('retry')}</button></div>}

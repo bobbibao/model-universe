@@ -611,10 +611,9 @@ select:not([multiple]) {
   box-shadow: 0 18px 56px #121c2e24;
 }
 .store-cart-kicker {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  font-weight: 600;
-  color: var(--mu-accent-ink);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mu-muted);
 }
 .store-cart-count {
   font-size: 24px;
