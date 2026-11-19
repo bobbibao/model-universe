@@ -344,27 +344,29 @@
   margin-top: 16px;
 }
 
-/* FAQ */
+/* FAQ on the services hub: the title, a search and the topics beside the list (the list and the help card are
+   faq.css, shared with the service pages and the guides). */
 .sg-faq {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
   gap: 56px;
   align-items: start;
   color: var(--sv-ink);
 }
 .sg-faq-side {
   position: sticky;
-  top: 88px;
+  top: 96px;
 }
 .sg-faq h2 {
-  font-size: clamp(22px, 2.2vw, 28px);
-  font-weight: 600;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  color: var(--mu-navy-950);
 }
 .sg-faq-intro {
   margin-top: 8px;
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--sv-muted);
 }
@@ -372,92 +374,83 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 22px;
   color: var(--sv-faint);
 }
 .sg-faq-search svg {
   position: absolute;
-  left: 12px;
+  left: 14px;
 }
 .sg-faq-search input {
   width: 100%;
-  height: 44px;
-  padding: 0 38px;
-  border: 1px solid #d6d3cb;
-  border-radius: 10px;
-  background: #fff;
+  height: 46px;
+  padding: 0 40px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: var(--mu-r-control);
+  font-size: 15px;
   color: var(--sv-ink);
-  font-size: 14.5px;
+  background: var(--mu-surface);
+  transition:
+    border-color var(--mu-hover) var(--mu-ease),
+    box-shadow var(--mu-hover) var(--mu-ease);
 }
 .sg-faq-search input:focus {
-  border-color: var(--sv-ink);
+  border-color: var(--mu-navy-900);
   outline: none;
+  box-shadow: 0 0 0 3px rgb(16 28 49 / 0.1);
 }
 .sg-faq-search button {
   position: absolute;
-  right: 12px;
+  right: 14px;
   font-size: 13px;
+  color: var(--sv-muted);
 }
 .sg-faq-filters {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 16px;
 }
 .sg-faq-filters button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--sv-line);
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: 999px;
   font-size: 14px;
-  font-weight: 600;
-  text-align: left;
-  color: var(--sv-muted);
+  font-weight: 500;
+  color: var(--sv-ink);
+  background: var(--mu-surface);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    border-color var(--mu-hover) var(--mu-ease),
+    color var(--mu-hover) var(--mu-ease);
 }
 .sg-faq-filters button:hover {
-  color: var(--sv-ink);
+  border-color: var(--mu-navy-900);
 }
 .sg-faq-filters button span {
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
-  color: var(--sv-faint);
-}
-.sg-faq-filters button[aria-pressed='true'] {
-  font-weight: 600;
-  color: var(--sv-ink);
-}
-.sg-faq-help {
-  margin-top: 26px;
-  font-size: 14px;
-}
-.sg-faq-help strong {
-  font-size: 15px;
-}
-.sg-faq-help p {
-  margin-top: 4px;
-  line-height: 1.55;
   color: var(--sv-muted);
 }
-.sg-faq-help > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  margin-top: 10px;
+.sg-faq-filters button[aria-pressed='true'] {
+  border-color: var(--mu-navy-950);
+  color: #fff;
+  background: var(--mu-navy-950);
 }
-.sg-faq-help a,
-.sg-faq-help-link {
-  font-weight: 600;
-  color: var(--sv-ink);
-  text-decoration: underline;
-  text-decoration-color: var(--sv-line);
-  text-underline-offset: 4px;
+.sg-faq-filters button[aria-pressed='true'] span {
+  color: rgb(255 255 255 / 0.7);
 }
-.sg-faq-help a:hover {
-  text-decoration-color: currentColor;
+.sg-faq-filters button:focus-visible,
+.sg-faq-search button:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
 }
-.sg-faq-help-link {
-  display: inline-block;
-  margin-top: 10px;
+.sg-faq-help {
+  margin-top: 28px;
 }
 .sg-faq-empty {
   padding: 40px 0;
@@ -467,122 +460,57 @@
   min-width: 0;
 }
 .sg-faq-count {
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--sv-ink);
-  font-size: 13px;
-  color: var(--sv-faint);
-}
-.sg-faq-item {
-  border-bottom: 1px solid var(--sv-line);
-}
-.sg-faq-item h3 button {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 20px;
-  align-items: center;
-  gap: 20px;
-  width: 100%;
-  padding: 18px 0;
-  text-align: left;
-}
-.sg-faq-question {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-.sg-faq-item h3 button:hover .sg-faq-question {
-  color: var(--sv-accent);
-}
-/* A plus that turns into a minus. */
-.sg-faq-chevron {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  justify-self: end;
-}
-.sg-faq-chevron::before,
-.sg-faq-chevron::after {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 0;
-  width: 14px;
-  height: 2px;
-  background: var(--sv-ink);
-  transition: transform 0.2s;
-}
-.sg-faq-chevron::after {
-  transform: rotate(90deg);
-}
-.sg-faq-item[data-open='true'] .sg-faq-chevron::after {
-  transform: rotate(0deg);
-}
-.sg-faq-answer {
-  max-width: 72ch;
-  padding: 0 40px 22px 0;
-  font-size: 15px;
-  line-height: 1.75;
-  color: #3e4553;
+  padding-bottom: 12px;
+  font-size: 14px;
+  color: var(--sv-muted);
 }
 
-/* Questions of one service (server-rendered <details>) */
+/* Questions of one service (/services/sell, trade, pawn): the title and where to ask beside the list. */
 .sv-questions {
-  margin-top: 48px;
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+  margin-top: 72px;
+  padding-bottom: 80px;
   color: var(--sv-ink);
 }
-.sv-questions > h2 {
-  margin-bottom: 14px;
-  font-size: clamp(22px, 2.2vw, 28px);
-  font-weight: 600;
+.sv-questions-side {
+  position: sticky;
+  top: 96px;
+}
+.sv-questions h2 {
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 500;
+  line-height: 1.2;
   letter-spacing: -0.02em;
+  color: var(--mu-navy-950);
 }
-.sv-questions-list {
-  max-width: 880px;
-  border-top: 2px solid var(--sv-ink);
-}
-.sv-questions details {
-  border-bottom: 1px solid var(--sv-line);
-}
-.sv-questions summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 14px;
-  align-items: center;
-  gap: 20px;
-  padding: 18px 0;
-  cursor: pointer;
-  list-style: none;
-}
-.sv-questions summary::-webkit-details-marker {
-  display: none;
-}
-.sv-questions summary h3 {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-.sv-questions summary::after {
-  content: '+';
-  font-size: 20px;
-  line-height: 1;
-}
-.sv-questions details[open] summary::after {
-  content: '−';
-}
-.sv-questions details p {
-  max-width: 72ch;
-  padding: 0 34px 22px 0;
-  font-size: 15px;
-  line-height: 1.75;
-  color: #3e4553;
+.sv-questions .faq-help {
+  margin-top: 24px;
 }
 
 @media (max-width: 1000px) {
   .sg-guest,
-  .sg-faq {
+  .sg-faq,
+  .sv-questions {
     grid-template-columns: 1fr;
     gap: 32px;
   }
   .sg-faq-side {
     position: static;
+  }
+  .sv-questions {
+    gap: 24px;
+    margin-top: 56px;
+    padding-bottom: 56px;
+  }
+  .sv-questions-side {
+    display: contents;
+  }
+  .sv-questions .faq-help {
+    order: 1;
+    margin-top: 0;
   }
 }
 @media (max-width: 760px) {
@@ -618,16 +546,13 @@
   .sg-guest-side {
     padding: 18px;
   }
-  .sg-faq-answer {
-    padding-right: 0;
-    font-size: 14.5px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .sg-button,
   .sv-row,
   .sv-go svg,
-  .sg-faq-chevron::after {
+  .sg-faq-search input,
+  .sg-faq-filters button {
     transition: none;
   }
 }
@@ -888,7 +813,8 @@
   color: rgb(255 255 255 / 0.74);
 }
 
-/* The card: what the service does and its four steps on white, its number and promises on navy. */
+/* The card: what the service does, its four steps and the way in; beside them a navy card with the number it is
+   chosen for and its promise, and the shop's rules under that. */
 .svc-stage {
   display: grid;
   overflow: hidden;
@@ -899,7 +825,9 @@
 .svc-panel {
   grid-area: 1 / 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.6fr);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 56px;
+  padding: 48px 56px;
   visibility: hidden;
 }
 .svc-panel[data-active='true'] {
@@ -910,7 +838,6 @@
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
-  padding: 48px 56px;
 }
 .svc-main h3 {
   font-size: clamp(28px, 2.6vw, 36px);
@@ -985,13 +912,16 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 48px 44px;
+}
+.svc-card {
+  padding: 32px;
+  border-radius: var(--mu-r-card);
   color: #fff;
   background: var(--mu-navy-950);
 }
 .svc-figure strong {
   display: block;
-  font-size: clamp(56px, 5.4vw, 80px);
+  font-size: clamp(52px, 4.6vw, 72px);
   font-weight: 400;
   line-height: 0.95;
   letter-spacing: -0.04em;
@@ -1015,7 +945,7 @@
 .svc-promise {
   display: flex;
   gap: 10px;
-  margin-top: 28px;
+  margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid rgb(255 255 255 / 0.14);
   font-size: 15px;
@@ -1030,12 +960,12 @@
 }
 .svc-trust {
   margin-top: auto;
-  padding-top: 40px;
+  padding-top: 32px;
 }
 .svc-trust h4 {
   font-size: 13px;
   font-weight: 500;
-  color: rgb(255 255 255 / 0.64);
+  color: var(--mu-muted);
 }
 .svc-trust ul {
   display: grid;
@@ -1047,7 +977,10 @@
   gap: 10px;
   font-size: 14px;
   line-height: 1.45;
-  color: rgb(255 255 255 / 0.86);
+  color: var(--mu-ink);
+}
+.svc-trust svg {
+  color: var(--mu-emerald-deep);
 }
 /* Once the visitor picks a service, its words rise in one after another (the card itself never moves). */
 .svc-explorer[data-moved] .svc-panel[data-active='true'] .svc-in {
@@ -1146,13 +1079,9 @@
     padding: 16px;
   }
   .svc-panel {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.75fr);
-  }
-  .svc-main {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+    gap: 40px;
     padding: 40px;
-  }
-  .svc-aside {
-    padding: 40px 32px;
   }
   .svc-visit {
     grid-template-columns: auto minmax(0, 1fr);
@@ -1201,13 +1130,11 @@
   .svc-panel {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 1fr auto;
-  }
-  .svc-main,
-  .svc-aside {
+    gap: 32px;
     padding: 32px 28px;
   }
   .svc-trust {
-    padding-top: 28px;
+    padding-top: 24px;
   }
 }
 @media (max-width: 640px) {
@@ -1238,7 +1165,8 @@
     padding-inline: 16px;
     scroll-padding-inline: 16px;
   }
-  .svc-main {
+  .svc-panel {
+    gap: 28px;
     padding: 24px 20px 28px;
   }
   .svc-main h3 {
@@ -1250,11 +1178,11 @@
   .svc-steps li {
     font-size: 15px;
   }
-  .svc-aside {
-    padding: 24px 20px 28px;
+  .svc-card {
+    padding: 24px 20px;
   }
   .svc-figure strong {
-    font-size: 56px;
+    font-size: 52px;
   }
   .svc-visit {
     grid-template-columns: minmax(0, 1fr);

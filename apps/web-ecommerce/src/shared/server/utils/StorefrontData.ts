@@ -2,7 +2,7 @@ import type { PaginatedResult } from '../../types/pagination';
 import type { ProductDetail, ProductSummary } from '../../types/product';
 import type { ShowcasePhoto } from '../../types/showcase';
 import { productPath } from '../../slug';
-import { hasLightEdge } from './photoTone';
+import { photoFacts } from './photoTone';
 
 // Public catalog only. The custom Express server owns database initialization and the existing product endpoint.
 // Never derive this origin from an incoming Host header or forward account cookies to it.
@@ -31,13 +31,23 @@ export async function getFeaturedProducts(): Promise<ProductSummary[] | undefine
 }
 
 // Photos the shop took itself (uploads, not supplier or placeholder images) of in-stock models, one per model, for the
-// services page, dark-backdrop shots first. Empty when the catalog cannot be read; the page then shows its plain
-// fallback.
+// services hero and the offers page. The first one is shown large, so it is the sharpest dark studio shot found in the
+// galleries of the first models (at least LEAD_MIN_PX on its short side, not a wide banner); the rest are dark shots
+// before photos on a white backdrop, sharp ones (SHARP_MIN_PX and up) before small ones. Computed at most every ten
+// minutes. Empty when the catalog cannot be read; the pages then show their plain fallback.
+const SHOWCASE_MAX = 12;
+const SHOWCASE_TTL_MS = 10 * 60_000;
+const SHARP_MIN_PX = 600;
+const LEAD_MIN_PX = 800;
+const LEAD_GALLERIES = 8;
+let showcase: { at: number; photos: ShowcasePhoto[] } | undefined;
+
 export async function getShowcasePhotos(limit = 8): Promise<ShowcasePhoto[]> {
+  if (showcase && Date.now() - showcase.at < SHOWCASE_TTL_MS) return showcase.photos.slice(0, limit);
   const products = (await getFeaturedProducts()) ?? [];
   const port = Number(process.env.PORT || 6050);
+  const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(2500) };
   try {
-    const options: RequestInit & { cache: 'no-store' } = { cache: 'no-store', signal: AbortSignal.timeout(2500) };
     const response = await fetch(`http://127.0.0.1:${port}/api/products?inStock=true&sort=best_selling&per_page=60`, options);
     if (response.ok) {
       const result = await response.json() as { payload?: { data?: ProductSummary[] } };
@@ -45,17 +55,55 @@ export async function getShowcasePhotos(limit = 8): Promise<ShowcasePhoto[]> {
     }
   } catch { /* the featured list alone is enough */ }
   const seen = new Set<string>();
-  const candidates: ShowcasePhoto[] = [];
+  const models: ProductSummary[] = [];
   for (const product of products) {
     if (!product.imageUrl?.startsWith('/uploads/') || seen.has(product.imageUrl)) continue;
     if ((product.groupStock ?? product.stock) <= 0) continue;
     seen.add(product.imageUrl);
-    candidates.push({ src: product.imageUrl, alt: product.name, href: productPath(product) });
-    if (candidates.length >= limit * 4) break;
+    models.push(product);
+    if (models.length >= SHOWCASE_MAX * 4) break;
   }
-  // Dark studio shots first (they sit on the navy band); photos on a white backdrop only fill what is left.
-  const light = await Promise.all(candidates.map((photo) => hasLightEdge(photo.src)));
-  return [...candidates.filter((_, i) => !light[i]), ...candidates.filter((_, i) => light[i])].slice(0, limit);
+  const facts = await Promise.all(models.map((product) => photoFacts(product.imageUrl!)));
+  const rank = (i: number) => (facts[i].light ? 2 : 0) + (Math.min(facts[i].width, facts[i].height) >= SHARP_MIN_PX ? 0 : 1);
+  const order = models.map((_, i) => i).sort((a, b) => rank(a) - rank(b) || a - b);
+  const photo = (product: ProductSummary, src = product.imageUrl!): ShowcasePhoto => ({
+    src,
+    alt: product.name,
+    href: productPath(product),
+  });
+
+  // The large first photo: every gallery photo of the first models, dark, upright or square (height 0.75 to 1.5 times
+  // the width), the most pixels on its short side first.
+  let lead: { index: number; src: string; short: number; height: number } | undefined;
+  const firsts = order.slice(0, LEAD_GALLERIES);
+  const galleries = await Promise.all(
+    firsts.map(async (i) => {
+      try {
+        const response = await fetch(`http://127.0.0.1:${port}/api/products/${models[i].id}`, options);
+        return response.ok ? (((await response.json()) as { images?: unknown }).images ?? []) : [];
+      } catch {
+        return [];
+      }
+    }),
+  );
+  for (const [n, i] of firsts.entries()) {
+    const sources = [models[i].imageUrl!, ...(Array.isArray(galleries[n]) ? galleries[n] : [])];
+    for (const src of sources) {
+      if (typeof src !== 'string' || !src.startsWith('/uploads/')) continue;
+      const { width, height, light } = await photoFacts(src);
+      const short = Math.min(width, height);
+      if (light || short < LEAD_MIN_PX || height < width * 0.75 || height > width * 1.5) continue;
+      if (!lead || short > lead.short || (short === lead.short && height > lead.height))
+        lead = { index: i, src, short, height };
+    }
+  }
+
+  const photos = [
+    ...(lead ? [photo(models[lead.index], lead.src)] : []),
+    ...order.filter((i) => i !== lead?.index).map((i) => photo(models[i])),
+  ].slice(0, SHOWCASE_MAX);
+  if (photos.length) showcase = { at: Date.now(), photos };
+  return photos.slice(0, limit);
 }
 
 // Reuse the actual public endpoint; never send credentials or import database models into route bundles.

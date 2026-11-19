@@ -44,8 +44,9 @@ function centreTile(row: HTMLElement | null, key: GuideService) {
 }
 
 // The services hub as one picker and one card, so every service is one click away and the page stays short: five
-// tiles (icon, name, key fact) choose the service; the card under them shows it, what it does and its four steps on
-// white, the number it is chosen for and its promises on navy. All five cards are rendered in the same grid cell, so
+// tiles (icon, name, key fact) choose the service; the card under them shows it: what it does, its four steps and the
+// way in, beside a navy card with the number it is chosen for and its promise, and the shop's rules under that. All
+// five cards are rendered in the same grid cell, so
 // the card keeps one height and switching moves nothing on the page; the new service's words rise in. The choice
 // follows the URL hash (#sell, #pawn…) so a link can open a service, and the tiles are tabs (arrow keys, Home, End).
 export default function ServiceExplorer() {
@@ -159,20 +160,22 @@ export default function ServiceExplorer() {
                 </div>
               </div>
               <aside className="svc-aside">
-                {figure ? (
-                  <p className="svc-figure svc-in" style={order(1)}>
-                    <strong>{figure.value}</strong>
-                    <span>{g(figure.label)}</span>
+                <div className="svc-card">
+                  {figure ? (
+                    <p className="svc-figure svc-in" style={order(1)}>
+                      <strong>{figure.value}</strong>
+                      <span>{g(figure.label)}</span>
+                    </p>
+                  ) : (
+                    <p className="svc-statement svc-in" style={order(1)}>
+                      {fact(key)}
+                    </p>
+                  )}
+                  <p className="svc-promise svc-in" style={order(2)}>
+                    <AdminIcon name="check" size={18} />
+                    {g(`${key}Fact2`)}
                   </p>
-                ) : (
-                  <p className="svc-statement svc-in" style={order(1)}>
-                    {fact(key)}
-                  </p>
-                )}
-                <p className="svc-promise svc-in" style={order(2)}>
-                  <AdminIcon name="check" size={18} />
-                  {g(`${key}Fact2`)}
-                </p>
+                </div>
                 <div className="svc-trust">
                   <h4>{g('trustTitle')}</h4>
                   <ul>

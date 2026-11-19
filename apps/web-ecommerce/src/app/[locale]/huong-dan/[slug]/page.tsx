@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import StoreLayout from '@/components/Layouts/StoreLayout';
+import FaqList from '@/components/Faq/FaqList';
 import Link from '@/i18n/navigation';
 import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import { findGuide } from '@/shared/guides';
@@ -81,14 +82,11 @@ export default async function GuidePage({ params }: Props) {
           </section>
         ))}
 
-        <section className="mt-10">
-          <h2 className="text-xl font-semibold text-slate-900">Câu hỏi thường gặp</h2>
-          {guide.questions.map((item) => (
-            <div key={item.question} className="mt-4">
-              <h3 className="font-semibold text-slate-900">{item.question}</h3>
-              <p className="mt-1 leading-relaxed">{item.answer}</p>
-            </div>
-          ))}
+        <section className="mt-12" aria-labelledby="guide-questions">
+          <h2 id="guide-questions" className="mb-4 text-2xl font-medium tracking-tight text-slate-900">
+            Câu hỏi thường gặp
+          </h2>
+          <FaqList items={guide.questions.map((item, index) => ({ id: String(index + 1), ...item }))} />
         </section>
 
         <section className="mt-10 rounded-xl border border-slate-200 p-5">
