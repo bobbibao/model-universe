@@ -9,8 +9,8 @@ import { collectorServices, useServiceFact } from './ServiceExperience';
 
 type GuideService = Exclude<(typeof collectorServices)[number]['key'], 'loyalty'>;
 
-// The services as chapters: each one a kit photographed in the shop, the width of the page, with the service on a
-// white panel at its lower left (its number, name, what it does, its key fact and the way in). On a wide screen each
+// The services as chapters: one card per service, a kit photographed in the shop on one half and the service on the
+// other (its number, name, what it does, its key fact and the way in), sides alternating. On a wide screen each
 // chapter holds under the header while the next one slides up over it; on a phone and for visitors who reduce motion
 // they simply follow each other, each photo above its words.
 export default function ServiceChapters({ photos }: { photos: ShowcasePhoto[] }) {
@@ -26,7 +26,7 @@ export default function ServiceChapters({ photos }: { photos: ShowcasePhoto[] })
           <li key={service.key} className={`svc-chapter service-${service.key}`} style={{ zIndex: index + 1 }}>
             {photo && (
               <span className="svc-chapter-photo" aria-hidden="true">
-                <ProductImage src={photo.src} alt="" sizes="(min-width: 768px) 92vw, 100vw" className="object-cover" />
+                <ProductImage src={photo.src} alt="" sizes="(min-width: 768px) 46vw, 100vw" className="object-cover" />
               </span>
             )}
             <div className="svc-chapter-panel">

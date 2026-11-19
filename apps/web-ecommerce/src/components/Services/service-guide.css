@@ -840,8 +840,8 @@
   color: var(--mu-muted);
 }
 
-/* Services as chapters: a kit photographed in the shop, the width of the page, the service on a white panel at its
-   lower left. On a wide screen each chapter holds under the header while the next one slides up over it. */
+/* Services as chapters: one white card per service, the kit photo on one half and the service on the other, sides
+   alternating; on a wide screen each card holds under the header while the next one slides up over it. */
 .svc-chapters {
   display: grid;
   gap: 24px;
@@ -849,15 +849,22 @@
 .svc-chapter {
   position: sticky;
   top: 88px;
-  height: min(calc(100vh - 112px), 680px);
-  min-height: 480px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  height: min(calc(100vh - 112px), 600px);
+  min-height: 460px;
   overflow: hidden;
+  border: 1px solid var(--mu-line);
   border-radius: var(--mu-r-panel);
-  background: var(--mu-navy-950);
+  background: var(--mu-surface);
+}
+.svc-chapter:nth-child(even) .svc-chapter-photo {
+  order: 2;
 }
 .svc-chapter-photo {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  min-height: 0;
+  background: var(--mu-navy-950);
 }
 /* Shop photos carry the watermark plate at the bottom right; a slight zoom from the top keeps it out of frame. */
 .svc-chapter-photo img {
@@ -869,32 +876,27 @@
   transform: scale(1.145);
 }
 .svc-chapter-panel {
-  position: absolute;
-  bottom: 32px;
-  left: 32px;
-  z-index: 1;
   display: grid;
+  align-content: center;
   justify-items: start;
-  gap: 12px;
-  width: min(460px, calc(100% - 64px));
-  padding: 32px;
-  border-radius: var(--mu-r-card);
-  background: var(--mu-surface);
+  gap: 16px;
+  padding: 48px 56px;
 }
 .svc-chapter-num {
-  font-size: 13px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   color: var(--mu-muted);
 }
 .svc-chapter h3 {
-  font-size: clamp(28px, 2.6vw, 36px);
+  font-size: clamp(32px, 3.2vw, 48px);
   font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
   color: var(--mu-navy-950);
 }
 .svc-chapter-panel p {
-  font-size: 16px;
+  max-width: 40ch;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--mu-muted);
 }
@@ -1124,24 +1126,22 @@
   .svc-chapter {
     position: relative;
     top: auto;
+    grid-template-columns: 1fr;
     height: auto;
     min-height: 0;
-    border: 1px solid var(--mu-line);
-    background: var(--mu-surface);
+  }
+  .svc-chapter:nth-child(even) .svc-chapter-photo {
+    order: 0;
   }
   .svc-chapter-photo {
-    position: relative;
-    display: block;
-    aspect-ratio: 4 / 3;
-    background: var(--mu-navy-950);
+    aspect-ratio: 1;
   }
   .svc-chapter-panel {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    width: auto;
+    gap: 12px;
     padding: 24px;
-    border-radius: 0;
+  }
+  .svc-chapter h3 {
+    font-size: 30px;
   }
 }
 @media (max-width: 640px) {
