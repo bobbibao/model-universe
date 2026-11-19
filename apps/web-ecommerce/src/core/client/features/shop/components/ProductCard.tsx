@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { shortConditionLabel } from '@/shared/condition-selection';
 
 import '@/core/client/features/sales/sales.css';
+import './product-save.css';
 import Link from '@/i18n/navigation';
 import ProductStage from '@/components/ProductStage';
 import PriceTag, { compactCount, useCountdown } from '@/components/PriceTag';
@@ -15,6 +16,7 @@ import PromoIcon from '@/components/PromoIcon';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatVND } from '@/shared/server/utils/utils';
 import { useCart } from '@/shared/client/providers/CartProvider';
+import { useWishlist } from '@/shared/client/providers/WishlistProvider';
 
 const useSafeCart = () => {
   try {
@@ -24,15 +26,17 @@ const useSafeCart = () => {
   }
 };
 
-// A product tile: the photo with at most one offer badge (the sale percentage) and a quiet free-shipping tag, then the
-// name, the scale, the price the customer pays and the member price, and a countdown when a sale
-// ends within three days. A model sold out new but in stock in another condition shows that condition's lowest price.
+// A product tile: the photo with at most one offer badge (the sale percentage), a quiet free-shipping tag and the heart
+// that saves the model (a toast confirms and opens the saved list), then the name, the scale, the price the customer
+// pays and the member price, and a countdown when a sale ends within three days. A model sold out new but in stock in
+// another condition shows that condition's lowest price.
 const ProductCard = ({ product }: { product: ProductSummary }) => {
   const t = useTranslations('catalog');
   const ux = useTranslations('commerceUX');
   const locale = useLocale();
   const en = locale === 'en';
   const cart = useSafeCart();
+  const wishlist = useWishlist();
   const [added, setAdded] = useState(false);
 
   const conditions = product.conditions ?? [
@@ -111,6 +115,27 @@ const ProductCard = ({ product }: { product: ProductSummary }) => {
           </span>
         )}
       </Link>
+      {wishlist && (
+        <button
+          type="button"
+          className="product-tile-save"
+          aria-pressed={wishlist.saved(product.id)}
+          aria-label={ux(wishlist.saved(product.id) ? 'unsaveProduct' : 'saveProduct', { name: product.name })}
+          disabled={wishlist.busy(product.id)}
+          onClick={() =>
+            void wishlist.toggle({
+              id: product.id,
+              name: product.name,
+              categoryId: product.category?.id ?? null,
+              priceVnd: pays,
+            })
+          }
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 20.5s-7.5-4.6-9.3-9.4C1.6 8 3.5 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.5 0 5.4 3.5 4.3 6.6-1.8 4.8-9.3 9.4-9.3 9.4Z" />
+          </svg>
+        </button>
+      )}
       <div className="product-tile-body">
         <div className="product-tile-tags">
           {product.scale && <span>{product.scale}</span>}

@@ -14,13 +14,12 @@ import Link from '@/i18n/navigation';
 import { useRouter } from '@/i18n/navigation';
 import { useParams, useSearchParams } from 'next/navigation';
 import ProductApi from '@/core/client/api/Product';
-import WishlistApi from '@/core/client/api/Wishlist';
 import { useCart } from '@/shared/client/providers/CartProvider';
 import { useCurrentUser } from '@/shared/client/providers/CurrentUserProvider';
 import { useCustomerAssistant } from '@/shared/client/providers/CustomerAssistantProvider';
 import { CUSTOMER_ASSISTANT_ENABLED } from '@/shared/customer-assistant-policy';
 import { formatVND } from '@/shared/server/utils/utils';
-import type { WishlistItem } from '@/shared/types/cart';
+import { useWishlist } from '@/shared/client/providers/WishlistProvider';
 import OfferPanel from '../components/OfferPanel';
 import type { ProductConditionOption, ProductDetail as ProductDetailType } from '@/shared/types/product';
 import ProductGallery from '../components/ProductGallery';
@@ -93,10 +92,8 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
   const productKey = params.slug || (Number(params.id) > 0 ? Number(params.id) : null);
   const [product, setProduct] = useState<ProductDetailType | null | undefined>(initialProduct);
   const [unitId, setUnitId] = useState(initialProduct ? initialUnitId(initialProduct, requestedUnit) : 0);
-  const productId = product?.id ?? initialProduct?.id ?? 0;
   const [quantity, setQuantity] = useState(1);
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
-  const [wishlistBusy, setWishlistBusy] = useState(false);
+  const wishlist = useWishlist();
   const [holdOpen, setHoldOpen] = useState(false);
   const purchaseRef = useRef<HTMLDivElement>(null);
   const [purchaseVisible, setPurchaseVisible] = useState(true);
@@ -174,15 +171,11 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     };
   }, [product?.id, product?.categoryId, product?.salePrice, product?.price]);
 
-  useEffect(() => {
-    if (user) WishlistApi.getWishlist().then((items) => setWishlist(items || []));
-    else setWishlist([]);
-  }, [user]);
+  // The saved list is shared (WishlistProvider) and refreshes itself after the assistant changes it.
   const refreshAssistantChanges = useCallback(() => {
     void loadProduct(false);
-    if (user) WishlistApi.getWishlist().then((items) => setWishlist(items || []));
-  }, [loadProduct, user]);
-  useCustomerActionRefresh('wishlist_add,wishlist_remove,review', refreshAssistantChanges);
+  }, [loadProduct]);
+  useCustomerActionRefresh('review', refreshAssistantChanges);
 
   useEffect(() => {
     const element = purchaseRef.current;
@@ -205,33 +198,16 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
     router.push(productPath(chosen), { scroll: false });
   };
 
-  const wishlistItem = wishlist.find((item) => item.productId === unit?.id);
-
-  const toggleWishlist = async () => {
-    if (!unit) return;
-    if (!user) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent(unitPath || `/shop/product/${productId}`)}`);
-      return;
-    }
-    setWishlistBusy(true);
-    if (wishlistItem) {
-      if (await WishlistApi.removeItem(wishlistItem.id)) {
-        setWishlist(wishlist.filter((item) => item.id !== wishlistItem.id));
-      }
-    } else {
-      const added = await WishlistApi.addItem(unit.id);
-      if (added) {
-        setWishlist([...wishlist, { ...added } as WishlistItem]);
-        trackRecommendationEvent({
-          eventType: 'wishlist_add',
-          productId: product?.id ?? unit.id,
-          categoryId: product?.categoryId ?? null,
-          priceVnd: unit.salePrice ?? unit.price,
-          surface: 'product_detail',
-        });
-      }
-    }
-    setWishlistBusy(false);
+  // Saving uses the shared list, so the heart on every product card on this page agrees with this button.
+  const saved = !!unit && !!wishlist?.saved(unit.id);
+  const toggleWishlist = () => {
+    if (!unit || !wishlist) return;
+    void wishlist.toggle({
+      id: unit.id,
+      name: product?.name ?? '',
+      categoryId: product?.categoryId ?? null,
+      priceVnd: unit.salePrice ?? unit.price,
+    });
   };
 
   if (product === undefined) {
@@ -395,10 +371,11 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
               )}
               <button
                 onClick={toggleWishlist}
-                disabled={wishlistBusy}
+                aria-pressed={saved}
+                disabled={!!unit && !!wishlist?.busy(unit.id)}
                 className="rounded-md bg-gray px-6 py-3 font-semibold text-black hover:opacity-90 disabled:opacity-60 dark:bg-store-card dark:text-store-text"
               >
-                {wishlistItem ? t('unsave') : t('save')}
+                {saved ? t('unsave') : t('save')}
               </button>
             </div>
             {!product.partnerId && (
