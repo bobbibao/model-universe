@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
@@ -7,12 +8,29 @@ import ContactIcon from '@/components/Contact/ContactIcon';
 import ProductImage from '@/components/ProductImage';
 import { SERVICE_FACTS } from '@/components/Services/serviceFacts';
 import { CONTACT } from '@/shared/contact-channels';
+import { useCountUp } from '@/shared/client/hooks/useReveal';
 import type { ShowcasePhoto } from '@/shared/types/showcase';
 
-// The top of /services on the page's own paper: what the shop does, the two fastest ways in (a buyback quote, or a
-// question on Zalo), the three numbers people ask first, photos of real kits in the shop, and where and when to come.
+function Stat({ value, label, active }: { value: string; label: string; active: boolean }) {
+  const shown = useCountUp(value, active);
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>
+        <span aria-hidden="true">{shown}</span>
+        <span className="sr-only">{value}</span>
+      </dd>
+    </div>
+  );
+}
+
+// The top of /services: a soft aura on the paper, the pitch with the two fastest ways in (a buyback quote, or a
+// question on Zalo), the three numbers people ask first counting up once, and a stage of real kits from the shop with
+// two glass notes floating on it (prices follow published rules; opening hours). Where and when to come sits below.
 export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
   const g = useTranslations('serviceGuide');
+  const [counting, setCounting] = useState(false);
+  useEffect(() => setCounting(true), []);
   const stats = [
     { value: `${SERVICE_FACTS.sellMaxPercent}%`, label: g('statSell') },
     { value: `${SERVICE_FACTS.pawnPercent}%`, label: g('statPawn') },
@@ -20,10 +38,11 @@ export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
   ];
   return (
     <section className="svx-hero" aria-labelledby="services-title">
+      <div className="svx-aura" aria-hidden="true" />
       <div className="mu-wrap svx-hero-grid">
         <div className="svx-hero-copy">
           <p className="svx-where">
-            <ContactIcon name="pin" size={16} />
+            <span className="svx-where-dot" aria-hidden="true" />
             {g('heroWhere')}
           </p>
           <h1 id="services-title">{g('heroTitle')}</h1>
@@ -40,43 +59,58 @@ export default function ServicesHero({ photos }: { photos: ShowcasePhoto[] }) {
           </div>
           <dl className="svx-stats">
             {stats.map((stat) => (
-              <div key={stat.label}>
-                <dt>{stat.label}</dt>
-                <dd>{stat.value}</dd>
-              </div>
+              <Stat key={stat.label} value={stat.value} label={stat.label} active={counting} />
             ))}
           </dl>
         </div>
         {photos.length >= 3 && (
-          <div className="svx-gallery">
-            {photos.slice(0, 3).map((photo, index) => (
-              <Link key={photo.src} href={photo.href} className={`svx-shot is-${index}`} title={photo.alt}>
-                <ProductImage
-                  src={photo.src}
-                  alt={photo.alt}
-                  priority={index === 0}
-                  sizes="(min-width: 1024px) 24vw, 50vw"
-                  className="object-cover"
-                />
-              </Link>
-            ))}
+          <div className="svx-stage">
+            <div className="svx-gallery">
+              {photos.slice(0, 3).map((photo, index) => (
+                <Link key={photo.src} href={photo.href} className={`svx-shot is-${index}`} title={photo.alt}>
+                  <ProductImage
+                    src={photo.src}
+                    alt={photo.alt}
+                    priority={index === 0}
+                    sizes="(min-width: 1024px) 24vw, 50vw"
+                    className="object-cover"
+                  />
+                </Link>
+              ))}
+            </div>
+            <p className="svx-float is-rules">
+              <span className="svx-float-icon" aria-hidden="true">
+                <AdminIcon name="shield" size={18} />
+              </span>
+              {g('trustRules')}
+            </p>
+            <p className="svx-float is-hours">
+              <span className="svx-live" aria-hidden="true" />
+              {CONTACT.hours}
+            </p>
           </div>
         )}
       </div>
       <div className="mu-wrap">
         <ul className="svx-visit">
           <li>
-            <ContactIcon name="pin" size={16} />
+            <span className="svx-visit-icon" aria-hidden="true">
+              <ContactIcon name="pin" size={16} />
+            </span>
             <a href={CONTACT.mapsUrl} target="_blank" rel="noopener noreferrer">
               {CONTACT.addressLine}
             </a>
           </li>
           <li>
-            <ContactIcon name="clock" size={16} />
+            <span className="svx-visit-icon" aria-hidden="true">
+              <ContactIcon name="clock" size={16} />
+            </span>
             {g('visitHoursValue', { hours: CONTACT.hours })}
           </li>
           <li>
-            <ContactIcon name="phone" size={16} />
+            <span className="svx-visit-icon" aria-hidden="true">
+              <ContactIcon name="phone" size={16} />
+            </span>
             <a href={CONTACT.tel}>{CONTACT.phoneDisplay}</a>
           </li>
         </ul>
