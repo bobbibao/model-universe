@@ -11,6 +11,8 @@ import { CHECKIN_POINTS, TIER_ORDER } from '@/shared/promotions';
 import { RANK_BENEFITS } from '@/shared/voucher-stack';
 import { LOYALTY_TIERS } from '@/shared/loyalty-rules';
 import { formatVND } from '@/shared/server/utils/utils';
+import ProductImage from '@/components/ProductImage';
+import type { ShowcasePhoto } from '@/shared/types/showcase';
 import VoucherTicket from './VoucherTicket';
 import LuckyWheel from './LuckyWheel';
 import MemberCard from './MemberCard';
@@ -26,7 +28,7 @@ const MISSION_ICONS: Record<string, PromoIconName> = {
 // The offers page: a hero with today's quick wins and the member's standing (or the navy sign-in card), then
 // everything that saves money, each in its own section that the section links jump to — vouchers (codes anyone can
 // use and timed drops to save), the daily check-in and wheel, one-off missions, and a table of what each tier gets.
-export default function PromotionsHub() {
+export default function PromotionsHub({ photo }: { photo?: ShowcasePhoto }) {
   const t = useTranslations('promotions'),
     tiers = useTranslations('tiers'),
     locale = useLocale();
@@ -150,9 +152,25 @@ export default function PromotionsHub() {
     </div>
   ) : (
     <div className="promo-hero-aside promo-join">
-      <span className="promo-join-icon" aria-hidden="true">
-        <PromoIcon name="crown" size={22} />
-      </span>
+      <div className="promo-join-scene" aria-hidden="true">
+        {photo && (
+          <span className="promo-join-photo">
+            <ProductImage src={photo.src} alt="" sizes="(min-width: 1100px) 38vw, 100vw" className="object-cover" />
+          </span>
+        )}
+        <span className="member-object">
+          <span className="member-object-head">
+            <span className="member-object-mark" />
+            <span className="member-object-brand">Model Universe</span>
+          </span>
+          <span className="member-object-label">{t('memberCardLabel')}</span>
+          <span className="member-object-tiers">
+            {LOYALTY_TIERS.map((tier) => (
+              <i key={tier.name} className={`tier-${tier.name.toLowerCase()}`} />
+            ))}
+          </span>
+        </span>
+      </div>
       <h2>{t('joinTitle')}</h2>
       <p>{t('joinText')}</p>
       <ol className="promo-join-tiers" aria-label={t('tiersTitle')}>

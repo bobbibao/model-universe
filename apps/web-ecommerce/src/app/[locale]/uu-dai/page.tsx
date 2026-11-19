@@ -3,6 +3,7 @@ import StoreLayout from '@/components/Layouts/StoreLayout';
 import SaleShelf from '@/core/client/features/sales/SaleShelf';
 import PromotionsHub from '@/core/client/features/promotions/PromotionsHub';
 import { siteUrl } from '@/shared/server/utils/SiteUrl';
+import { getShowcasePhotos } from '@/shared/server/utils/StorefrontData';
 import { breadcrumbSchema, isEnglish, jsonLd, pageMetadata } from '@/shared/seo';
 
 type Props = { params: Promise<{ locale: string }> };
@@ -25,6 +26,7 @@ export default async function PromotionsPage({ params }: Props) {
   const { locale } = await params;
   const en = isEnglish(locale);
   const base = siteUrl();
+  const [photo] = await getShowcasePhotos(1);
 
   return (
     <StoreLayout>
@@ -38,7 +40,7 @@ export default async function PromotionsPage({ params }: Props) {
           ]),
         }}
       />
-      <PromotionsHub />
+      <PromotionsHub photo={photo} />
       <div id="sale">
         <SaleShelf full />
       </div>

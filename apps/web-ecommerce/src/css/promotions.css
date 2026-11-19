@@ -881,8 +881,28 @@
 /* auto-fit: two or three tickets share the row instead of leaving an empty column. */
 .voucher-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 20px;
+}
+.promo-page .voucher-ticket {
+  grid-template-columns: 124px minmax(0, 1fr) auto;
+  min-height: 136px;
+}
+.promo-page .voucher-ticket::before,
+.promo-page .voucher-ticket::after {
+  left: 115px;
+}
+.promo-page .voucher-stub strong {
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.promo-page .voucher-body {
+  padding: 16px 20px;
+}
+.promo-page .voucher-title {
+  font-size: 17px;
+  font-weight: 500;
 }
 
 /* --- Member card --------------------------------------------------------------------------------------------- */
@@ -1127,49 +1147,53 @@
 }
 .promo-today {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  max-width: 640px;
   margin-top: 40px;
-}
-.promo-today a {
-  position: relative;
-  display: grid;
-  gap: 4px;
-  height: 100%;
-  padding: 20px;
+  overflow: hidden;
   border: 1px solid var(--mu-line);
   border-radius: var(--mu-r-card);
   background: var(--mu-surface);
-  transition:
-    border-color var(--mu-hover) var(--mu-ease),
-    box-shadow var(--mu-hover) var(--mu-ease),
-    transform var(--mu-hover) var(--mu-ease);
+}
+.promo-today li + li {
+  border-top: 1px solid var(--mu-line);
+}
+.promo-today a {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 2px;
+  padding: 16px 20px;
+  transition: background-color var(--mu-hover) var(--mu-ease);
 }
 .promo-today a:hover {
-  border-color: var(--mu-line-strong);
-  box-shadow: var(--mu-shadow-md);
-  transform: translateY(-2px);
+  background: var(--mu-fill);
 }
 .promo-today-icon {
+  grid-row: 1 / span 2;
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
-  margin-bottom: 16px;
   border-radius: var(--mu-r-control);
   color: var(--mu-ink);
   background: var(--mu-fill);
+}
+.promo-today a:hover .promo-today-icon {
+  background: var(--mu-surface);
 }
 .promo-today li.is-done .promo-today-icon {
   color: var(--mu-emerald-deep);
   background: var(--mu-emerald-soft);
 }
 .promo-today strong {
+  grid-column: 2;
   font-size: 16px;
   font-weight: 500;
   color: var(--mu-navy-950);
 }
 .promo-today small {
+  grid-column: 2;
   font-size: 14px;
   line-height: 1.45;
   color: var(--mu-muted);
@@ -1178,9 +1202,8 @@
   color: var(--mu-emerald-deep);
 }
 .promo-today-go {
-  position: absolute;
-  top: 24px;
-  right: 20px;
+  grid-column: 3;
+  grid-row: 1 / span 2;
   color: var(--mu-navy-300);
   transition:
     color var(--mu-hover) var(--mu-ease),
@@ -1198,38 +1221,96 @@
   border-radius: var(--mu-r-panel);
 }
 
-/* Sign-in panel: navy like the member card, white button. */
+/* Sign-in panel: a white panel; on top, a kit photographed in the shop with the navy member card laid on it, the one
+   object on the page (unslop: a physical thing the product deals with, built in code). */
 .promo-join {
   display: grid;
   justify-items: start;
   gap: 12px;
-  padding: 32px;
+  padding: 16px 16px 28px;
+  border: 1px solid var(--mu-line);
   border-radius: var(--mu-r-panel);
-  color: #fff;
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+}
+.promo-join > :not(.promo-join-scene) {
+  margin-inline: 16px;
+}
+.promo-join-scene {
+  position: relative;
+  justify-self: stretch;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 20px;
+  overflow: hidden;
+  border-radius: var(--mu-r-card);
   background: var(--mu-navy-950);
 }
-.promo-join-icon {
+.promo-join-photo {
+  position: absolute;
+  inset: 0;
+}
+.promo-join-photo img {
+  transform: scale(1.12);
+  transform-origin: 50% 0;
+}
+.member-object {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
   display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  margin-bottom: 8px;
+  align-content: space-between;
+  width: min(62%, 280px);
+  aspect-ratio: 1.586;
+  padding: 16px;
   border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: var(--mu-r-control);
-  color: var(--mu-emerald-glow);
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(160deg, var(--mu-navy-800), var(--mu-navy-950) 70%);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+.member-object-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.member-object-mark {
+  width: 28px;
+  aspect-ratio: 259 / 256;
+  background-color: #fff;
+  -webkit-mask: url('/brand/mark.png') center / contain no-repeat;
+  mask: url('/brand/mark.png') center / contain no-repeat;
+}
+.member-object-brand {
+  font-family: 'Satoshi', var(--mu-font);
+  font-size: 15px;
+  font-weight: 700;
+}
+.member-object-label {
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.72);
+}
+.member-object-tiers {
+  display: flex;
+  gap: 6px;
+}
+.member-object-tiers i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--chip, #9aa6bc);
 }
 .promo-join h2 {
   font-size: 24px;
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--mu-navy-950);
 }
 .promo-join p {
   max-width: 40ch;
   font-size: 16px;
   line-height: 1.6;
-  color: rgb(255 255 255 / 0.72);
+  color: var(--mu-muted);
 }
 .promo-join-tiers {
   display: flex;
@@ -1242,7 +1323,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: rgb(255 255 255 / 0.84);
+  color: var(--mu-muted);
 }
 .promo-join-tiers li::before {
   content: '';
@@ -1252,12 +1333,7 @@
   background: var(--chip, #9aa6bc);
 }
 .promo-join .promo-button {
-  width: 100%;
-  color: var(--mu-navy-950);
-  background: #fff;
-}
-.promo-join .promo-button:hover:not(:disabled) {
-  background: var(--mu-fill);
+  justify-self: stretch;
 }
 
 /* Section links: plain words under the hero. */
@@ -1555,21 +1631,21 @@
 }
 .mission-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
+  border-top: 1px solid var(--mu-line);
 }
 .mission-grid li {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto 1fr auto;
-  align-items: start;
-  gap: 20px 12px;
-  padding: 24px;
-  border: 1px solid var(--mu-line);
-  border-radius: var(--mu-r-card);
-  background: var(--mu-surface);
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--mu-line);
 }
 .mission-icon {
+  grid-column: 1;
+  grid-row: 1;
   display: grid;
   place-items: center;
   width: 40px;
@@ -1582,34 +1658,40 @@
   color: var(--mu-emerald-deep);
   background: var(--mu-emerald-soft);
 }
+.mission-copy {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.mission-copy strong {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mu-navy-950);
+}
+.mission-copy small {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--mu-muted);
+}
 .mission-points {
-  justify-self: end;
+  grid-column: 3;
+  grid-row: 1;
   font-size: 15px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--mu-emerald-deep);
 }
-.mission-copy {
-  display: grid;
-  grid-column: 1 / -1;
-  gap: 6px;
-}
-.mission-copy strong {
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--mu-navy-950);
-}
-.mission-copy small {
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--mu-muted);
-}
 .mission-grid button {
-  grid-column: 1 / -1;
-  min-height: 44px;
+  grid-column: 4;
+  grid-row: 1;
+  min-width: 132px;
+  min-height: 40px;
+  padding: 0 16px;
   border: 1px solid var(--mu-line);
   border-radius: var(--mu-r-control);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--mu-ink);
   background: var(--mu-surface);
@@ -1628,9 +1710,6 @@
 .mission-grid button:disabled {
   cursor: not-allowed;
   color: var(--mu-muted);
-  background: var(--mu-paper);
-}
-.mission-grid li.is-done {
   background: var(--mu-paper);
 }
 
@@ -1751,27 +1830,16 @@
     font-size: 16px;
   }
   .promo-today {
-    grid-template-columns: 1fr;
-    gap: 8px;
     margin-top: 32px;
   }
   .promo-today a {
-    grid-template-columns: 40px minmax(0, 1fr);
-    column-gap: 16px;
-    align-items: center;
-    padding: 12px 44px 12px 12px;
-  }
-  .promo-today-icon {
-    grid-row: span 2;
-    margin-bottom: 0;
-  }
-  .promo-today-go {
-    top: 50%;
-    right: 16px;
-    translate: 0 -50%;
+    padding: 14px 16px;
   }
   .promo-join {
-    padding: 24px;
+    padding: 12px 12px 24px;
+  }
+  .promo-join > :not(.promo-join-scene) {
+    margin-inline: 12px;
   }
   .promo-anchors {
     gap: 4px 24px;
@@ -1815,7 +1883,25 @@
   }
   .mission-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+  }
+  .mission-grid li {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    row-gap: 12px;
+  }
+  .mission-grid button {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+  .promo-page .voucher-ticket {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+  .promo-page .voucher-ticket::before,
+  .promo-page .voucher-ticket::after {
+    left: 87px;
+  }
+  .promo-page .voucher-stub strong {
+    font-size: 26px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1831,283 +1917,158 @@
 }
 
 /* --- Home page ------------------------------------------------------------------------------------------------
-   The promise bar scrolling under the header, the banner carousel (what the shop sells, then today's offers), the offer
-   links and today's vouchers, then the product shelves as carousels and the brands. White surfaces with one hairline,
-   navy ink and buttons, real kit photos; emerald only for free shipping and focus. */
+   The facts strip, the hero (plain words beside one real kit, large), the offer links and today's vouchers, then the
+   shelves as still grids and the brands. Paper ground, white surfaces with one hairline, navy ink and buttons, emerald
+   kept for focus. Only the hero moves on load. */
 .home-promos > *,
 .membership > *,
 .promo-section {
   min-width: 0;
 }
 
-/* Promise bar: the shop's standing promises scrolling slowly; it stops while hovered and stands still for visitors
-   who reduce motion. */
-@keyframes ticker-run {
-  to {
-    transform: translateX(-50%);
-  }
-}
-.ticker {
-  overflow: hidden;
+/* The shop's standing promises, still: one line under the header. */
+.home-facts {
   border-bottom: 1px solid var(--mu-line);
-  color: var(--mu-ink);
   background: var(--mu-surface);
 }
-.ticker-track {
+.home-facts ul {
   display: flex;
-  width: max-content;
-  animation: ticker-run 48s linear infinite;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 32px;
+  padding-block: 10px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--mu-muted);
 }
-.ticker:hover .ticker-track {
-  animation-play-state: paused;
-}
-.ticker-group {
-  display: flex;
-}
-.ticker-item {
+.home-facts li {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 32px;
-  font-size: 13px;
-  line-height: 20px;
   white-space: nowrap;
-  color: var(--mu-muted);
 }
-.ticker-item .promo-icon {
+.home-facts li:nth-child(n + 4) {
+  display: none;
+}
+.home-facts svg {
   color: var(--mu-navy-300);
 }
 
-/* Banner carousel: one slide at a time on a white panel, words on the left, real kits on the right. */
-.home-promos {
+/* Hero: the words on the left, centred against one kit photographed in the shop. */
+@keyframes home-settle {
+  from {
+    transform: scale(1.16);
+  }
+}
+.home-hero {
   display: grid;
-  gap: 40px;
-  padding-top: 24px;
-  padding-bottom: 8px;
-}
-.home-banner-carousel {
-  --gap: 0px;
-}
-/* Every slide as tall as the tallest, so the dots never float under a short slide. */
-.home-banner-carousel .carousel-slide > .home-banner {
-  height: 100%;
-}
-.home-banner {
-  --kicker: var(--mu-emerald-deep);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  gap: 64px;
   align-items: center;
-  gap: 32px;
-  min-height: 420px;
-  padding: 24px;
-  overflow: hidden;
-  border: 1px solid var(--mu-line);
-  border-radius: var(--mu-r-panel);
-  color: var(--mu-ink);
-  background: var(--mu-surface);
+  padding-block: 56px 80px;
 }
-.home-banner.is-sale {
-  --kicker: var(--mu-emerald-glow);
-  border-color: var(--mu-navy-950);
-  color: #fff;
-  background: var(--mu-navy-950);
+.home-hero-copy {
+  animation: mu-enter 0.5s var(--mu-ease) both;
 }
-.banner-copy {
-  display: grid;
-  align-content: center;
-  justify-items: start;
-  gap: 16px;
-  padding: 24px 0 24px 32px;
-}
-.banner-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--kicker);
-}
-.banner-copy h1,
-.banner-copy h2 {
-  max-width: 17ch;
+.home-hero h1 {
+  max-width: 16ch;
   text-wrap: balance;
-  font-size: clamp(32px, 3.4vw, 50px);
+  font-size: clamp(40px, 4.2vw, 60px);
   font-weight: 500;
-  line-height: 1.08;
+  line-height: 1.06;
   letter-spacing: -0.03em;
   color: var(--mu-navy-950);
 }
-.home-banner.is-sale .banner-copy h2 {
-  color: #fff;
-}
-.banner-copy p {
-  max-width: 44ch;
-  font-size: 17px;
+.home-hero-lead {
+  max-width: 36rem;
+  margin-top: 20px;
+  font-size: 18px;
   line-height: 1.6;
   color: var(--mu-muted);
 }
-.home-banner.is-sale .banner-copy p {
-  color: rgb(255 255 255 / 0.74);
-}
-.banner-actions {
+.home-hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 32px;
 }
-.banner-cta {
+.home-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   min-height: 48px;
-  margin-top: 8px;
   padding: 0 20px;
-  border: 1px solid var(--mu-navy-900);
+  border: 1px solid transparent;
   border-radius: var(--mu-r-control);
   font-size: 16px;
   font-weight: 500;
-  color: #fff;
-  background: var(--mu-navy-900);
   transition:
     background-color var(--mu-hover) var(--mu-ease),
     border-color var(--mu-hover) var(--mu-ease),
     transform var(--mu-hover) var(--mu-ease);
 }
-.banner-actions .banner-cta {
-  margin-top: 0;
+.home-button:hover {
+  transform: translateY(-1px);
 }
-.banner-cta.is-secondary {
+.home-button:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--mu-press);
+}
+.home-button.is-primary {
+  color: #fff;
+  background: var(--mu-navy-900);
+}
+.home-button.is-primary:hover {
+  background: var(--mu-navy-950);
+}
+.home-button.is-secondary {
   border-color: var(--mu-line-strong);
   color: var(--mu-ink);
   background: var(--mu-surface);
 }
-.banner-cta:hover,
-.home-banner > .banner-copy:hover .banner-cta {
-  transform: translateY(-1px);
-}
-.banner-cta:not(.is-secondary):hover,
-.home-banner > a.banner-copy:hover .banner-cta {
-  background: var(--mu-navy-950);
-}
-.banner-cta.is-secondary:hover {
+.home-button.is-secondary:hover {
   border-color: var(--mu-navy-900);
 }
-.banner-cta .promo-icon {
+.home-button svg {
   transition: transform var(--mu-hover) var(--mu-ease);
 }
-.banner-cta:hover .promo-icon,
-.home-banner > a.banner-copy:hover .banner-cta .promo-icon {
+.home-button:hover svg {
   transform: translateX(3px);
 }
-.home-banner.is-sale .banner-cta {
-  border-color: #fff;
-  color: var(--mu-navy-950);
-  background: #fff;
-}
-.home-banner.is-sale > a.banner-copy:hover .banner-cta {
-  background: var(--mu-fill);
-}
-.banner-copy:focus-visible,
-.banner-cta:focus-visible,
-.banner-photo:focus-visible,
+.home-button:focus-visible,
+.home-hero-photo:focus-visible,
 .home-door:focus-visible,
 .home-grade:focus-visible,
 .product-rail-more:focus-visible {
   outline: 2px solid var(--mu-emerald);
   outline-offset: 2px;
 }
-.banner-clock {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 14px;
-}
-.banner-clock small {
-  margin-right: 4px;
-  font-size: 14px;
-  color: rgb(255 255 255 / 0.74);
-}
-.banner-clock b {
-  min-width: 36px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  color: var(--mu-navy-950);
-  background: #fff;
-}
-.banner-steps {
-  display: grid;
-  min-width: min(100%, 340px);
-  border-top: 1px solid var(--mu-line);
-}
-.banner-steps li {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--mu-line);
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-}
-.banner-steps b {
-  font-weight: 500;
-  color: var(--mu-emerald-deep);
-}
-.banner-tiers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-.banner-tiers li {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--mu-muted);
-}
-.banner-tiers li::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--chip, #9aa6bc);
-}
-/* Three kits: one large on the left of the collage, two stacked beside it. */
-.banner-collage {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 12px;
-  align-self: stretch;
-  min-height: 372px;
-}
-.banner-photo {
+.home-hero-photo {
   position: relative;
+  display: block;
   overflow: hidden;
-  border-radius: var(--mu-r-card);
-  background: var(--mu-fill);
+  aspect-ratio: 5 / 4;
+  border-radius: var(--mu-r-panel);
+  background: var(--mu-navy-950);
 }
-.banner-photo.is-0 {
-  grid-row: span 2;
-}
-.banner-photo img {
+/* Shop photos carry the watermark plate at the bottom right; a slight zoom from the top keeps it out of frame. */
+.home-hero-photo img {
+  transform: scale(1.12);
+  transform-origin: 50% 0;
   transition: transform 600ms var(--mu-ease);
+  animation: home-settle 1s var(--mu-ease) backwards;
 }
-.banner-photo:hover img {
-  transform: scale(1.025);
-}
-.home-banner-carousel .carousel-arrow.is-prev {
-  left: 16px;
-}
-.home-banner-carousel .carousel-arrow.is-next {
-  right: 16px;
+.home-hero-photo:hover img {
+  transform: scale(1.145);
 }
 
-/* Today's offers: the offer links as one quiet row, then the vouchers sliding. */
+/* Today's offers: the offer links as one quiet row, then three vouchers. */
+.home-promos {
+  display: grid;
+  gap: 56px;
+  padding-bottom: 8px;
+}
 .home-doors {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2155,10 +2116,6 @@
   letter-spacing: -0.02em;
   color: var(--mu-navy-950);
 }
-.product-rail-head > div {
-  flex: 1;
-  min-width: 0;
-}
 .product-rail-head p {
   margin-top: 8px;
   font-size: 15px;
@@ -2173,7 +2130,6 @@
   min-height: 40px;
   font-size: 15px;
   font-weight: 500;
-  white-space: nowrap;
   color: var(--mu-ink);
   text-decoration: underline 1px transparent;
   text-underline-offset: 4px;
@@ -2191,36 +2147,18 @@
 .product-rail-more:hover svg {
   transform: translateX(3px);
 }
-.voucher-carousel {
-  --slide: min(380px, 86%);
-  --gap: 16px;
-}
 
-/* Product shelves: carousels of tiles that slide by themselves and stop while hovered. */
+/* Shelves: a still grid of five, four on narrower screens, two by two on a phone. */
 .product-rail {
   padding-top: 80px;
 }
-.product-rail-carousel {
-  --slide: 20%;
-  --gap: 20px;
-}
-@media (min-width: 1720px) {
-  .product-rail-carousel {
-    --slide: 16.6666%;
-  }
-}
-.product-rail-carousel .carousel-viewport {
-  padding-block: 4px 8px;
-}
-.product-rail-carousel .carousel-arrow.is-prev {
-  left: -8px;
-}
-.product-rail-carousel .carousel-arrow.is-next {
-  right: -8px;
+.product-rail-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px;
 }
 .product-rail-item {
   position: relative;
-  height: 100%;
   min-width: 0;
 }
 .product-rail-item > .product-tile {
@@ -2296,25 +2234,37 @@
 }
 
 @media (max-width: 1199px) {
+  .product-rail-grid,
+  .product-rail-skeleton {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .product-rail-grid > :nth-child(5),
+  .product-rail-skeleton > :nth-child(5) {
+    display: none;
+  }
   .home-doors {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  .home-facts li:nth-child(n + 3) {
+    display: none;
+  }
 }
 @media (max-width: 1023px) {
-  .home-banner {
+  .home-hero {
     grid-template-columns: 1fr;
-    gap: 16px;
-    min-height: 0;
-    padding: 16px;
+    gap: 40px;
+    padding-block: 40px 56px;
   }
-  .banner-copy {
-    padding: 16px 8px 8px;
-  }
-  .banner-collage {
-    min-height: 300px;
+  .home-hero-photo {
+    aspect-ratio: 4 / 3;
   }
 }
 @media (max-width: 767px) {
+  .product-rail-grid,
+  .product-rail-skeleton {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
   .product-rail,
   .home-grades,
   .sv-home {
@@ -2322,26 +2272,21 @@
   }
 }
 @media (max-width: 640px) {
-  .home-promos {
+  .home-facts li:nth-child(n + 2) {
+    display: none;
+  }
+  .home-hero {
     gap: 32px;
-    padding-top: 16px;
+    padding-block: 32px 48px;
   }
-  .banner-copy h1,
-  .banner-copy h2 {
-    font-size: 30px;
+  .home-hero h1 {
+    font-size: 36px;
   }
-  .banner-copy p {
+  .home-hero-lead {
     font-size: 16px;
   }
-  .banner-actions .banner-cta {
+  .home-button {
     flex: 1 1 100%;
-  }
-  .banner-collage {
-    min-height: 240px;
-    gap: 8px;
-  }
-  .home-banner-carousel .carousel-arrow {
-    display: none;
   }
   .home-doors {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2350,16 +2295,20 @@
     justify-content: flex-start;
     padding: 0 16px;
   }
+  .home-promos {
+    gap: 48px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ticker-track {
+  .home-hero-copy,
+  .home-hero-photo img {
     animation: none;
   }
-  .banner-cta,
-  .banner-cta .promo-icon,
-  .banner-photo img,
+  .home-button,
+  .home-button svg,
   .home-door,
-  .home-grade {
+  .home-grade,
+  .home-hero-photo img {
     transition: none;
   }
 }
@@ -3242,10 +3191,13 @@ button.voucher-row:hover {
 @media (max-width: 600px) {
   .product-rail-carousel {
     --slide: 62%;
-    --gap: 12px;
+    --gap: 10px;
   }
   .product-rail-skeleton {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .product-rail-more {
+    padding: 6px 10px;
   }
   .product-rail-head p {
     display: none;
@@ -3269,6 +3221,16 @@ button.voucher-row:hover {
   }
   .promo-anchors a {
     white-space: nowrap;
+  }
+  .home-banner {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .banner-copy {
+    padding: 26px 22px 6px;
+  }
+  .banner-collage {
+    min-height: 200px;
   }
   .carousel-arrow {
     display: none;

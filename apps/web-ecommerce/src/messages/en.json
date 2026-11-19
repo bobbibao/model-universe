@@ -3499,6 +3499,7 @@
     "saved": "Shop address saved."
   },
   "promotions": {
+    "memberCardLabel": "Member card",
     "kicker": "Offers",
     "title": "Today's offers",
     "intro": "Vouchers, free shipping and member rank benefits.",
@@ -4410,6 +4411,11 @@
     "backToTop": "Back to top"
   },
   "serviceGuide": {
+    "figuresLabel": "Key figures",
+    "visitTitle": "Bring your kit to the showroom",
+    "visitHoursLabel": "Opening hours",
+    "visitPhoneLabel": "Hotline",
+    "visitDirections": "Get directions",
     "heroEyebrow": "Services for collectors",
     "heroTitle": "Buyback, trade, pawn and holds for model kits",
     "heroIntro": "See the expected price on the site right away, bring the kit to the showroom or post it for inspection, and track the request in your account.",

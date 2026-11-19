@@ -5,7 +5,9 @@ import { useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
 import AdminIcon from '@/components/Admin/AdminIcon';
 import { ServiceTerms } from '@/components/Services/ServiceExperience';
-import ServiceCards from '@/components/Services/ServiceCards';
+import ServiceChapters from '@/components/Services/ServiceChapters';
+import ServiceFigures from '@/components/Services/ServiceFigures';
+import ServiceVisit from '@/components/Services/ServiceVisit';
 import type { ShowcasePhoto } from '@/shared/types/showcase';
 import ServiceHistoryHub from '@/components/Services/ServiceHistoryHub';
 import ServiceFaq from '@/components/Services/ServiceFaq';
@@ -18,6 +20,9 @@ const TABS: { key: Tab; label: 'tabServices' | 'tabHistory' | 'tabFaq' }[] = [
   { key: 'faq', label: 'tabFaq' },
 ];
 
+// /services: the hero, then the tabs. The services tab reads top to bottom as the page's story: the three numbers set
+// large, every service as a photographed chapter, how every request goes (the one navy band), where to bring a kit,
+// the terms and the questions people ask.
 export default function CollectorServices({ photos = [] }: { photos?: ShowcasePhoto[] }) {
   const t = useTranslations('services');
   const experience = useTranslations('experience');
@@ -49,12 +54,13 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
 
         {activeTab === 'services' && (
           <>
+            <ServiceFigures />
             <section className="sv-hub" aria-labelledby="services-hub-title">
               <header className="sv-section-head">
                 <h2 id="services-hub-title">{experience('hubTitle')}</h2>
                 <p>{experience('hubIntro')}</p>
               </header>
-              <ServiceCards photo={photos[3] ?? photos[0]} />
+              <ServiceChapters photos={photos} />
             </section>
             <section className="svx-process" aria-labelledby="services-process">
               <div className="svx-process-head">
@@ -81,6 +87,7 @@ export default function CollectorServices({ photos = [] }: { photos?: ShowcasePh
                 ))}
               </ul>
             </section>
+            <ServiceVisit />
             <ServiceTerms>
               <p>{t('subtitle')}</p>
               <p>{t('agreementNote')}</p>

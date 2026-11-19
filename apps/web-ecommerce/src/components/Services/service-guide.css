@@ -738,39 +738,10 @@
   transition: transform var(--mu-hover) var(--mu-ease);
 }
 .svx-button:focus-visible,
-.svx-card:focus-visible,
 .svx-shot:focus-visible {
   outline: 2px solid var(--mu-emerald);
   outline-offset: 2px;
 }
-.svx-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  margin-top: 48px;
-}
-.svx-stats > div {
-  display: flex;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 20px;
-  border-top: 1px solid var(--mu-line);
-}
-.svx-stats dd {
-  font-size: clamp(28px, 2.6vw, 36px);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--mu-navy-950);
-}
-.svx-stats dt {
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--mu-muted);
-}
-
 /* Three kits photographed in the shop. */
 .svx-stage {
   position: relative;
@@ -807,41 +778,6 @@
   transform: scale(1.145);
 }
 
-/* Where and when: one white bar, three cells. */
-.svx-visit {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr;
-  margin-top: 64px;
-  border: 1px solid var(--mu-line);
-  border-radius: var(--mu-r-card);
-  font-size: 15px;
-  color: var(--mu-ink);
-  background: var(--mu-surface);
-}
-.svx-visit li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 16px 20px;
-}
-.svx-visit li + li {
-  border-left: 1px solid var(--mu-line);
-}
-.svx-visit-icon {
-  display: inline-flex;
-  flex: none;
-  color: var(--mu-muted);
-}
-.svx-visit a {
-  text-decoration: underline 1px transparent;
-  text-underline-offset: 4px;
-  transition: text-decoration-color var(--mu-hover) var(--mu-ease);
-}
-.svx-visit a:hover {
-  text-decoration-color: currentColor;
-}
-
 /* Tabs on this page: plain words, a 2px bar under the open one. */
 .sv-body .sg-tabs {
   margin: 64px 0 48px;
@@ -869,155 +805,193 @@
   color: var(--mu-muted);
 }
 
-/* Service cards: buyback is the tall navy card with a kit under its words; four white cards two by two beside it. */
-.svx-cards {
-  display: grid;
-  grid-template-columns: minmax(0, 1.12fr) repeat(2, minmax(0, 1fr));
-  grid-auto-rows: minmax(280px, auto);
-  gap: 20px;
+/* The three numbers people ask first, set large between two hairlines. */
+.svc-figures {
+  margin: 0 0 112px;
 }
-.svx-card {
-  position: relative;
+.svc-figures dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: 1px solid var(--mu-line);
+}
+.svc-figures dl > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 40px 32px 40px 0;
+}
+.svc-figures dl > div + div {
+  padding-left: 32px;
+  border-left: 1px solid var(--mu-line);
+}
+.svc-figures dd {
+  font-size: clamp(56px, 7vw, 112px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mu-navy-950);
+}
+.svc-figures dt {
+  max-width: 26ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--mu-muted);
+}
+
+/* Services as chapters: one white card per service, the kit photo on one half and the service on the other, sides
+   alternating; on a wide screen each card holds under the header while the next one slides up over it. */
+.svc-chapters {
+  display: grid;
+  gap: 24px;
+}
+.svc-chapter {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  height: min(calc(100vh - 112px), 600px);
+  min-height: 460px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 28px;
   border: 1px solid var(--mu-line);
-  border-radius: var(--mu-r-card);
-  color: var(--mu-ink);
+  border-radius: var(--mu-r-panel);
   background: var(--mu-surface);
-  transition:
-    border-color 180ms var(--mu-ease),
-    box-shadow 180ms var(--mu-ease),
-    transform 180ms var(--mu-ease);
 }
-.svx-card:hover {
-  border-color: var(--mu-line-strong);
-  box-shadow: var(--mu-shadow-md);
-  transform: translateY(-2px);
+.svc-chapter:nth-child(even) .svc-chapter-photo {
+  order: 2;
 }
-.svx-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-.svx-card-icon {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--mu-r-control);
-  color: var(--mu-ink);
+/* The kit whole, on the warm grey ground of the product tiles: catalogue photos are often box art with lettering, so
+   they are shown as they are, never cropped or stretched across the card. */
+.svc-chapter-photo {
+  position: relative;
+  min-height: 0;
   background: var(--mu-fill);
 }
-.svx-card-num {
-  font-size: 13px;
+.svc-chapter-photo img {
+  padding: 40px;
+  object-fit: contain;
+  transition: transform 600ms var(--mu-ease);
+}
+.svc-chapter:hover .svc-chapter-photo img {
+  transform: scale(1.025);
+}
+.svc-chapter-panel {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 16px;
+  padding: 48px 56px;
+}
+.svc-chapter-num {
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   color: var(--mu-muted);
 }
-.svx-card-title {
-  font-size: 22px;
+.svc-chapter h3 {
+  font-size: clamp(32px, 3.2vw, 48px);
   font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
   color: var(--mu-navy-950);
 }
-.svx-card-text {
-  max-width: 42ch;
-  font-size: 16px;
+.svc-chapter-panel p {
+  max-width: 40ch;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--mu-muted);
 }
-.svx-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid var(--mu-line);
-}
-.svx-card-fact {
-  font-size: 15px;
+.svc-chapter-panel .svc-chapter-fact {
   font-weight: 500;
-  line-height: 1.4;
-  color: var(--mu-ink);
+  color: var(--mu-emerald-deep);
 }
-.svx-card-go {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--mu-line);
-  border-radius: 50%;
-  color: var(--mu-ink);
-  transition: border-color var(--mu-hover) var(--mu-ease);
+.svc-chapter-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  margin-top: 8px;
+  padding: 0 20px;
+  border-radius: var(--mu-r-control);
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--mu-navy-900);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    transform var(--mu-hover) var(--mu-ease);
 }
-.svx-card-go svg {
+.svc-chapter-go:hover {
+  background: var(--mu-navy-950);
+  transform: translateY(-1px);
+}
+.svc-chapter-go svg {
   transition: transform var(--mu-hover) var(--mu-ease);
 }
-.svx-card:hover .svx-card-go {
-  border-color: var(--mu-navy-900);
-}
-.svx-card:hover .svx-card-go svg {
+.svc-chapter-go:hover svg {
   transform: translateX(3px);
 }
-.svx-card.is-feature {
-  grid-row: span 2;
-  padding: 32px 32px 0;
-  border-color: var(--mu-navy-950);
-  color: #fff;
-  background: var(--mu-navy-950);
+.svc-chapter-go:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
 }
-.svx-card.is-feature .svx-card-icon {
-  border: 1px solid rgb(255 255 255 / 0.16);
-  color: #fff;
-  background: transparent;
+
+/* Where to bring a kit: the address set large, hours and phone, the three ways there. */
+.svc-visit {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: end;
+  margin: 0 0 96px;
+  padding: 56px 0;
+  border-block: 1px solid var(--mu-line);
 }
-.svx-card.is-feature .svx-card-num {
-  color: rgb(255 255 255 / 0.56);
+.svc-visit h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mu-muted);
 }
-.svx-card.is-feature .svx-card-title {
-  font-size: clamp(28px, 2.4vw, 34px);
-  color: #fff;
+.svc-visit-address {
+  display: block;
+  max-width: 22ch;
+  margin-top: 16px;
+  font-size: clamp(32px, 3.6vw, 52px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--mu-navy-950);
+  text-decoration: underline 1px transparent;
+  text-underline-offset: 8px;
+  transition: text-decoration-color var(--mu-hover) var(--mu-ease);
 }
-.svx-card.is-feature .svx-card-text {
-  max-width: 34ch;
-  color: rgb(255 255 255 / 0.74);
+.svc-visit-address:hover {
+  text-decoration-color: currentColor;
 }
-.svx-card.is-feature .svx-card-foot {
-  margin-top: 24px;
-  padding-bottom: 24px;
-  border-top-color: rgb(255 255 255 / 0.16);
+.svc-visit-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 48px;
+  margin-top: 32px;
 }
-.svx-card.is-feature .svx-card-fact {
-  color: var(--mu-emerald-glow);
+.svc-visit-facts dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--mu-muted);
 }
-.svx-card.is-feature .svx-card-go {
-  border-color: rgb(255 255 255 / 0.28);
-  color: #fff;
+.svc-visit-facts dd {
+  margin-top: 4px;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: var(--mu-ink);
 }
-.svx-card.is-feature:hover .svx-card-go {
-  border-color: #fff;
+.svc-visit-actions {
+  display: grid;
+  gap: 12px;
 }
-/* The kit sits under the words, edge to edge at the foot of the card; nothing is laid over it. */
-.svx-card-photo {
-  position: relative;
-  order: 5;
-  flex: 1 0 240px;
-  margin: 0 -32px;
-  overflow: hidden;
-}
-.svx-card-photo img {
-  transform: scale(1.12);
-  transform-origin: 50% 0;
-  transition: transform 600ms var(--mu-ease);
-}
-.svx-card.is-feature:hover .svx-card-photo img {
-  transform: scale(1.145);
+.svc-visit-actions .svx-button {
+  justify-content: flex-start;
 }
 
 /* The four steps every request follows, on the page's one navy band, with the trust notes under them. */
@@ -1109,22 +1083,12 @@
   .svx-gallery {
     height: 480px;
   }
-  .svx-visit {
+  .svc-visit {
     grid-template-columns: 1fr;
+    gap: 32px;
   }
-  .svx-visit li + li {
-    border-top: 1px solid var(--mu-line);
-    border-left: 0;
-  }
-  .svx-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .svx-card.is-feature {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
-  .svx-card-photo {
-    flex-basis: 280px;
+  .svc-visit-actions {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
   .svx-process {
     padding: 48px 40px 40px;
@@ -1135,6 +1099,50 @@
   }
   .svx-process ol::before {
     display: none;
+  }
+}
+@media (max-width: 767px) {
+  .svc-figures {
+    margin-bottom: 72px;
+  }
+  .svc-figures dl {
+    grid-template-columns: 1fr;
+  }
+  .svc-figures dl > div,
+  .svc-figures dl > div + div {
+    gap: 8px;
+    padding: 24px 0;
+    border-left: 0;
+  }
+  .svc-figures dl > div + div {
+    border-top: 1px solid var(--mu-line);
+  }
+  .svc-figures dd {
+    font-size: 56px;
+  }
+  /* On a phone the chapters follow each other: the photo, then its words. */
+  .svc-chapters {
+    gap: 16px;
+  }
+  .svc-chapter {
+    position: relative;
+    top: auto;
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+  }
+  .svc-chapter:nth-child(even) .svc-chapter-photo {
+    order: 0;
+  }
+  .svc-chapter-photo {
+    aspect-ratio: 1;
+  }
+  .svc-chapter-panel {
+    gap: 12px;
+    padding: 24px;
+  }
+  .svc-chapter h3 {
+    font-size: 30px;
   }
 }
 @media (max-width: 640px) {
@@ -1150,13 +1158,6 @@
   .svx-button {
     flex: 1 1 100%;
   }
-  .svx-stats {
-    gap: 12px;
-    margin-top: 40px;
-  }
-  .svx-stats dt {
-    font-size: 13px;
-  }
   .svx-gallery {
     height: 320px;
     gap: 8px;
@@ -1164,29 +1165,15 @@
   .svx-shot {
     border-radius: var(--mu-r-card);
   }
-  .svx-visit {
-    margin-top: 48px;
-  }
-  .svx-visit li {
-    padding: 14px 16px;
-  }
   .sv-body .sg-tabs {
     margin: 48px 0 32px;
   }
-  .svx-cards {
-    grid-template-columns: 1fr;
-    grid-auto-rows: auto;
-    gap: 12px;
+  .svc-visit {
+    margin-bottom: 64px;
+    padding: 40px 0;
   }
-  .svx-card {
-    padding: 24px;
-  }
-  .svx-card.is-feature {
-    padding: 24px 24px 0;
-  }
-  .svx-card-photo {
-    flex-basis: 220px;
-    margin: 0 -24px;
+  .svc-visit-address {
+    font-size: 30px;
   }
   .svx-process {
     margin: 80px 0 48px;
@@ -1225,13 +1212,17 @@
   .svx-shot img {
     animation: none;
   }
+  .svc-chapter {
+    position: relative;
+    top: auto;
+  }
   .svx-button,
   .svx-button svg,
-  .svx-card,
-  .svx-card-go,
-  .svx-card-go svg,
   .svx-shot img,
-  .svx-card-photo img {
+  .svc-chapter-photo img,
+  .svc-chapter-go,
+  .svc-chapter-go svg,
+  .svc-visit-address {
     transition: none;
   }
 }
