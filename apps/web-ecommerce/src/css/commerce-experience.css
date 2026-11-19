@@ -191,8 +191,6 @@
 .product-detail-brand {
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: #182844;
 }
 .product-detail-brand span {
@@ -234,7 +232,7 @@
   font-size: 14px;
 }
 .product-purchase-actions > button:first-child {
-  background: #22212b;
+  background: #121c2e;
   color: #fff;
 }
 .product-purchase-actions > button:first-child:hover:enabled {
@@ -251,7 +249,7 @@
   gap: 8px;
   flex-wrap: wrap;
   min-height: 20px;
-  color: #666171;
+  color: #5a6478;
   font-size: 12px;
 }
 .product-purchase-feedback a {
@@ -277,7 +275,7 @@
   letter-spacing: -0.025em;
 }
 .product-story > p {
-  color: #575161;
+  color: #4d5565;
   font-size: 15px;
   max-width: 70ch;
 }
@@ -364,7 +362,7 @@
   border-radius: 14px;
   background: #fffffff5;
   backdrop-filter: blur(16px);
-  box-shadow: 0 8px 40px #22212b20;
+  box-shadow: 0 8px 40px #121c2e20;
 }
 .product-dock > div {
   min-width: 0;
@@ -1264,12 +1262,12 @@
 }
 .product-service-strip svg {
   flex-shrink: 0;
-  color: var(--studio-ink, #24222c);
+  color: var(--studio-ink, #121c2e);
 }
 .product-service-strip strong {
   display: block;
   margin-bottom: 3px;
-  color: var(--studio-ink, #24222c);
+  color: var(--studio-ink, #121c2e);
   font-size: 12px;
   font-weight: 600;
 }
@@ -1538,9 +1536,9 @@
 }
 .product-tile-badges .tile-soldout {
   margin-left: auto;
-  color: #494550;
+  color: #404755;
   background: #ffffffed;
-  border-color: #dedbe3;
+  border-color: #e3e3db;
   font-size: 11px;
   font-weight: 600;
 }
@@ -1587,8 +1585,8 @@
   padding: 4px 10px;
   border-radius: 6px;
   background: #ffffffed;
-  color: #494550;
-  border: 1px solid #dedbe3;
+  color: #404755;
+  border: 1px solid #e3e3db;
   font-size: 11px;
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -1649,8 +1647,8 @@
   padding: 8px 22px;
   border-radius: 999px;
   background: #ffffffed;
-  color: #494550;
-  border: 1px solid #dedbe3;
+  color: #404755;
+  border: 1px solid #e3e3db;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -1817,7 +1815,7 @@
 }
 .mu-shell .product-hold-button:disabled {
   background: #f5f5f3;
-  color: #77717f;
+  color: #677289;
   border-color: #e3e3db;
   cursor: not-allowed;
 }
@@ -1831,7 +1829,7 @@
   line-height: 1.6;
 }
 .product-hold-caption p {
-  color: #736b7d;
+  color: #646f84;
 }
 .product-hold-caption a {
   color: #182844;
@@ -1865,7 +1863,7 @@
 .hold-discovery-panel p {
   max-width: 65ch;
   margin-top: 5px;
-  color: #675f72;
+  color: #5a6477;
   font-size: 13px;
   line-height: 1.65;
 }
@@ -1881,9 +1879,9 @@
   background: #182844;
 }
 .dark .mu-shell .product-hold-button:disabled {
-  background: #2b2832;
-  border-color: #4b4456;
-  color: #b0a8bc;
+  background: #121c2e;
+  border-color: #424958;
+  color: #a9afbb;
 }
 .dark .product-hold-caption p,
 .dark .hold-discovery-panel p {
@@ -1907,4 +1905,176 @@
   .hold-discovery-panel > a {
     justify-content: center;
   }
+}
+
+/* --- Product tile, quiet ---------------------------------------------------------------------------------------
+   The kit fills its square frame; condition and free shipping are small white tags on it; under it the scale, the
+   name, the brand, one price line with the saving as text, stock as a quiet line and one secondary button. White card,
+   one hairline; on hover it lifts 2px and the photo zooms a little inside its frame. */
+.mu-shell .product-tile {
+  border: 1px solid var(--mu-line);
+  border-radius: var(--mu-r-card);
+  background: var(--mu-surface);
+  box-shadow: none;
+  transition:
+    border-color 180ms var(--mu-ease),
+    box-shadow 180ms var(--mu-ease),
+    transform 180ms var(--mu-ease);
+}
+.mu-shell .product-tile .mu-product-photo {
+  border-radius: 13px 13px 0 0;
+  background: var(--mu-fill);
+}
+.mu-shell .product-tile .studio-card-stage,
+.mu-shell .product-tile .product-stage-photo {
+  position: absolute;
+  inset: 0;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+}
+.mu-shell .product-tile .product-stage-photo img {
+  object-fit: cover;
+}
+.mu-shell .product-tile .product-stage-photo {
+  transition: transform 600ms var(--mu-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mu-shell .product-tile:hover {
+    border-color: var(--mu-line-strong);
+    box-shadow: var(--mu-shadow-md);
+    transform: translateY(-2px);
+  }
+  .mu-shell .product-tile:hover .product-stage-photo {
+    transform: scale(1.025);
+  }
+}
+.mu-shell .product-tile .product-tile-badges {
+  inset: 12px;
+}
+.mu-shell .product-tile :is(.tile-condition, .tile-soldout, .tile-ribbon, .tile-freeship) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--mu-line);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+  box-shadow: none;
+}
+.mu-shell .product-tile .tile-condition.is-new,
+.mu-shell .product-tile .tile-freeship {
+  color: var(--mu-emerald-deep);
+}
+.mu-shell .product-tile .tile-ribbon {
+  color: var(--p-sale);
+}
+.mu-shell .product-tile .tile-freeship {
+  left: 12px;
+  bottom: 12px;
+}
+.mu-shell .product-tile .product-tile-body {
+  gap: 6px;
+  padding: 16px 16px 0;
+}
+.mu-shell .product-tile .product-tile-condition-tag {
+  min-height: 22px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--mu-muted);
+  background: var(--mu-fill);
+  border-color: transparent;
+}
+.mu-shell .product-tile .product-tile-name {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--mu-navy-950);
+}
+.mu-shell .product-tile .product-tile-brand {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--mu-muted);
+}
+.mu-shell .product-tile .price-tag-label {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--mu-muted);
+}
+.mu-shell .product-tile .price-tag-row {
+  align-items: baseline;
+  gap: 8px;
+}
+.mu-shell .product-tile .price-tag-now {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.mu-shell .product-tile .price-tag-off {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--p-sale);
+  background: none;
+  box-shadow: none;
+}
+.mu-shell .product-tile .price-tag-list,
+.mu-shell .product-tile .price-tag-list small,
+.mu-shell .product-tile .price-tag-was {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--mu-muted);
+  text-decoration-color: var(--mu-muted);
+}
+.mu-shell .product-tile .tile-meta,
+.mu-shell .product-tile .tile-scarce,
+.mu-shell .product-tile .tile-stock-status {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--mu-muted);
+}
+.mu-shell .product-tile .tile-scarce i,
+.mu-shell .product-tile .tile-scarce::before,
+.mu-shell .product-tile .status-dot {
+  display: none;
+}
+.mu-shell .product-tile .product-tile-footer {
+  padding: 12px 16px 16px;
+  border-top: 0;
+}
+.mu-shell .product-tile :is(.product-tile-cart-btn, .product-tile-action, .product-tile-alert-btn) {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: var(--mu-r-control);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--mu-ink);
+  background: var(--mu-surface);
+  transition: border-color var(--mu-hover) var(--mu-ease);
+}
+.mu-shell .product-tile :is(.product-tile-cart-btn, .product-tile-action, .product-tile-alert-btn):hover {
+  border-color: var(--mu-navy-900);
+  color: var(--mu-navy-950);
+  background: var(--mu-surface);
 }

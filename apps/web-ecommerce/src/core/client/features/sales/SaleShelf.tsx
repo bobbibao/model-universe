@@ -66,7 +66,7 @@ export default function SaleShelf({ full = false }: { full?: boolean }) {
       <div className="sale-hero">
         <div className="sale-hero-copy">
           <span className="sale-kicker">
-            <span className="sale-live-dot" /> MODEL UNIVERSE / SPECIAL PICKS
+            <span className="sale-live-dot" /> {en ? 'Sale event' : 'Sự kiện ưu đãi'}
           </span>
           <h2>{event && remaining ? event.title : en ? 'A new reason to build.' : 'Thêm lý do để bắt đầu build.'}</h2>
           <p>

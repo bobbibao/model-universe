@@ -229,19 +229,19 @@ export default function ServiceHistoryHub() {
           {/* Quick Metrics Bar */}
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 dark:border-strokedark dark:bg-meta-4/20">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tổng số yêu cầu</span>
+              <span className="text-[13px] font-medium text-slate-400">Tổng số yêu cầu</span>
               <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{counts.total}</p>
             </div>
             <div className="rounded-xl border border-sky-100 bg-sky-50/60 p-3.5 dark:border-sky-950/40 dark:bg-sky-950/20">
-              <span className="text-[11px] font-semibold text-sky-700 uppercase tracking-wider dark:text-sky-400">Đang xử lý</span>
+              <span className="text-[13px] font-medium text-sky-700 dark:text-sky-400">Đang xử lý</span>
               <p className="mt-1 text-2xl font-black text-sky-800 dark:text-sky-300">{counts.active}</p>
             </div>
             <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-3.5 dark:border-amber-950/40 dark:bg-amber-950/20">
-              <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider dark:text-amber-400">Cần bạn duyệt</span>
+              <span className="text-[13px] font-medium text-amber-700 dark:text-amber-400">Cần bạn duyệt</span>
               <p className="mt-1 text-2xl font-black text-amber-800 dark:text-amber-300">{counts.actionNeeded}</p>
             </div>
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3.5 dark:border-emerald-950/40 dark:bg-emerald-950/20">
-              <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider dark:text-emerald-400">Hoàn tất</span>
+              <span className="text-[13px] font-medium text-emerald-700 dark:text-emerald-400">Hoàn tất</span>
               <p className="mt-1 text-2xl font-black text-emerald-800 dark:text-emerald-300">{counts.completed}</p>
             </div>
           </div>
@@ -453,7 +453,7 @@ export default function ServiceHistoryHub() {
                               <button
                                 type="button"
                                 onClick={() => setPreviewItem(item)}
-                                className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200 dark:bg-meta-4 dark:text-slate-200"
+                                className="rounded-md bg-slate-100 px-2.5 py-1 text-[13px] font-medium text-slate-700 hover:bg-slate-200 dark:bg-meta-4 dark:text-slate-200"
                               >
                                 Xem nhanh
                               </button>

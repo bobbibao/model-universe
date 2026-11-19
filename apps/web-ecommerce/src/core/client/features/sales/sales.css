@@ -43,8 +43,7 @@
   width: 7px;
   border-radius: 50%;
   background: #e5ff8d;
-  box-shadow: 0 0 0 5px #e5ff8d15;
-  animation: sale-pulse 3s ease-in-out infinite;
+  box-shadow: none;
 }
 .sale-hero h2 {
   max-width: 650px;
@@ -170,7 +169,7 @@
 }
 .sale-section-label > span {
   font-size: 12px;
-  color: #7b7286;
+  color: #6b768d;
 }
 .sale-products {
   display: grid;
@@ -231,7 +230,7 @@
   margin-top: 4px;
   font-size: 12px;
   line-height: 1.8;
-  color: #776b85;
+  color: #677289;
 }
 .sale-member-strip > a {
   flex-shrink: 0;

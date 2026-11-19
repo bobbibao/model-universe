@@ -49,14 +49,14 @@
 .Toastify__toast {
   background: #ffffff !important;
   color: #09090b !important;
-  border: 1px solid #e4e4e7 !important;
+  border: 1px solid #e7e7e4 !important;
   box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.07),
               0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
 }
 
 .Toastify__toast--light:hover,
 .Toastify__toast:hover {
-  border-color: #d4d4d8 !important;
+  border-color: #d1d4db !important;
   box-shadow: 0 8px 24px -3px rgba(0, 0, 0, 0.1),
               0 2px 6px 0 rgba(0, 0, 0, 0.04) !important;
 }
@@ -65,7 +65,7 @@
 .dark .Toastify__toast,
 .Toastify__toast--dark {
   background: #14171f !important;
-  color: #f4f4f5 !important;
+  color: #f5f5f4 !important;
   border: 1px solid rgba(255, 255, 255, 0.09) !important;
   box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.55),
               0 2px 6px -1px rgba(0, 0, 0, 0.35) !important;
@@ -162,7 +162,7 @@
   word-break: break-word;
 }
 .dark .mu-toast-message {
-  color: #a1a1aa;
+  color: #9ba2b0;
 }
 
 /* Micro Nav Hint (Appears on Card Hover if Navigable) */
@@ -224,7 +224,7 @@
 
 .dark .Toastify__close-button:hover,
 .dark .mu-toast-close:hover {
-  color: #f4f4f5 !important;
+  color: #f5f5f4 !important;
   background: rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -264,7 +264,7 @@
 
 .dark .Toastify__progress-bar,
 .Toastify__progress-bar-theme--dark {
-  background: #a1a1aa !important;
+  background: #9ba2b0 !important;
 }
 
 .Toastify__progress-bar--success {

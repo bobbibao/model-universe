@@ -148,7 +148,7 @@ export default function ServiceMediaGallery({
                       <span className="line-clamp-2 px-1 text-[11px] font-medium text-slate-200">
                         {file.originalName}
                       </span>
-                      <span className="mt-1 rounded bg-black/60 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-slate-300">
+                      <span className="mt-1 rounded bg-black/60 px-1.5 py-0.5 text-[12px] text-slate-200">
                         Video
                       </span>
                     </div>

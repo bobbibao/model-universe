@@ -1,7 +1,7 @@
 /* Collector Studio: editorial storefront and a quieter operations workspace. */
 .mu-shell {
-  --studio-ink: #22212b;
-  --studio-muted: #6a6877;
+  --studio-ink: #121c2e;
+  --studio-muted: #606a7f;
   --studio-paper: #f8f8f3;
   --studio-line: #e5e4dc;
   --studio-lime: #dcf56a;
@@ -75,7 +75,7 @@
   border-radius: 22px;
 }
 .mu-shell .mu-panel {
-  box-shadow: 0 5px 18px #22212b03;
+  box-shadow: 0 5px 18px #121c2e03;
 }
 .mu-shell .mu-heading {
   font-size: clamp(30px, 3.3vw, 48px);
@@ -86,7 +86,7 @@
   padding-block: 64px;
 }
 .mu-shell .mu-button {
-  background: #22212b;
+  background: #121c2e;
   color: white;
   border-radius: 100px;
   padding: 16px 25px;
@@ -98,21 +98,21 @@
 }
 .mu-shell .mu-button-secondary {
   background: transparent;
-  color: #22212b;
-  border: 1px solid #dad8e3;
+  color: #121c2e;
+  border: 1px solid #e2e2d9;
   border-radius: 100px;
 }
 .mu-shell .mu-input,
 .mu-shell .mu-field input,
 .mu-shell .mu-field select,
 .mu-shell .mu-field textarea {
-  border-color: #dddae5;
+  border-color: #e3e3dc;
   border-radius: 12px;
   background: #fbfbf9;
-  color: #22212b;
+  color: #121c2e;
 }
 .mu-shell .mu-field {
-  color: #34303f;
+  color: #121c2e;
   font-weight: 600;
 }
 .mu-shell .text-brand-hover {
@@ -123,13 +123,13 @@
 }
 .mu-shell .mu-header {
   background: #f8f8f3f5;
-  color: #22212b;
+  color: #121c2e;
   border-color: #e5e4dc;
   backdrop-filter: blur(10px);
 }
 .mu-shell .mu-header .text-white,
 .mu-shell .mu-header .text-brand {
-  color: #22212b;
+  color: #121c2e;
 }
 .mu-shell .mu-nav {
   padding-block: 22px;
@@ -174,10 +174,8 @@
   align-items: center;
   gap: 9px;
   font-size: 11px;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
   font-weight: 600;
-  color: #6a6877;
+  color: #606a7f;
 }
 .studio-live-dot {
   width: 7px;
@@ -221,7 +219,7 @@
 .studio-hero-intro {
   max-width: 440px;
   font-size: 17px;
-  color: #6a6877;
+  color: #606a7f;
   line-height: 1.65;
   margin-top: 25px;
 }
@@ -257,7 +255,7 @@
 }
 .studio-hero-footnote p {
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
   max-width: 200px;
 }
 .studio-showcase {
@@ -290,10 +288,10 @@
 }
 .studio-showcase .mu-orbit {
   inset: 4% 14%;
-  border-color: #82719c40;
+  border-color: #76819740;
 }
 .studio-showcase .mu-orbit::before {
-  border-color: #82719c30;
+  border-color: #76819730;
 }
 .studio-showcase .mu-hero-art::after {
   content: none;
@@ -308,7 +306,7 @@
   gap: 16px;
   min-height: 44px;
   padding: 10px 18px;
-  border: 1px solid #75648440;
+  border: 1px solid #646f8440;
   border-radius: 100px;
   color: #101c31;
   background: #fafaf8ed;
@@ -382,9 +380,7 @@
 .studio-showcase-info span {
   display: block;
   font-size: 10px;
-  color: #6a6877;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: #606a7f;
 }
 .studio-showcase-info strong {
   display: block;
@@ -395,7 +391,7 @@
 .studio-showcase-info a {
   display: grid;
   place-items: center;
-  background: #22212b;
+  background: #121c2e;
   color: #dcf56a;
   border-radius: 100%;
   width: 42px;
@@ -417,7 +413,7 @@
   align-items: center;
   gap: 11px;
   font-size: 12px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .studio-ribbon svg {
   color: #182844;
@@ -461,7 +457,7 @@
   font-size: 32px;
 }
 .mu-shell .mu-grade small {
-  color: #6a6877;
+  color: #606a7f;
 }
 .mu-shell .mu-product {
   background: transparent;
@@ -490,7 +486,7 @@
 }
 .mu-shell .mu-product .mu-badge {
   background: #eeeee7;
-  color: #5c566a;
+  color: #535c6d;
   font-size: 9px;
   border-radius: 100px;
   padding: 4px 8px;
@@ -515,7 +511,7 @@
   min-height: 260px;
   overflow: hidden;
   background: #efefea;
-  color: #22212b;
+  color: #121c2e;
   transition: transform 0.2s;
 }
 .studio-service-card.service-sell {
@@ -525,7 +521,7 @@
   background: #f6dbe5;
 }
 .studio-service-card.service-loyalty {
-  background: #22212b;
+  background: #121c2e;
   color: white;
 }
 .studio-service-card.service-partner {
@@ -569,7 +565,7 @@
   transform: translateY(-4px);
 }
 .mu-shell .mu-club {
-  background: #22212b;
+  background: #121c2e;
   color: white;
   border-radius: 28px;
   padding: 44px;
@@ -580,24 +576,24 @@
   color: white;
 }
 .mu-shell .mu-club .mu-note {
-  color: #c9c6d4;
+  color: #c7cbd3;
 }
 .mu-shell .mu-club .mu-eyebrow {
   color: #dcf56a !important;
 }
 .mu-shell .mu-club .mu-button {
   background: #dcf56a;
-  color: #22212b;
+  color: #121c2e;
   flex-shrink: 0;
 }
 .mu-shell .mu-footer {
   background: #eeeee7;
-  color: #22212b;
+  color: #121c2e;
   border-top: 1px solid #e5e4dc;
 }
 .mu-shell .mu-footer .text-white,
 .mu-shell .mu-footer .text-brand {
-  color: #22212b;
+  color: #121c2e;
 }
 .mu-shell .mu-footer .mu-note,
 .mu-shell .mu-footer .text-store-muted,
@@ -610,7 +606,7 @@
   color: #182844;
 }
 .mu-shell .mu-mobile-nav {
-  color: #22212b;
+  color: #121c2e;
   background: #f8f8f3f5;
   border-color: #e5e4dc;
   backdrop-filter: blur(8px);
@@ -708,12 +704,12 @@
   line-height: 1.12;
   font-weight: 600;
   margin-top: 18px;
-  color: #22212b;
+  color: #121c2e;
 }
 .service-header-copy > p {
   font-size: 15px;
   line-height: 1.65;
-  color: #655f74;
+  color: #5b6578;
   max-width: 470px;
   margin-top: 16px;
 }
@@ -752,12 +748,12 @@
   display: grid;
   place-items: center;
   transform: rotate(-12deg);
-  box-shadow: 12px 20px 0 #22212b07;
+  box-shadow: 12px 20px 0 #121c2e07;
 }
 .service-header-art > span {
   position: absolute;
   bottom: 4px;
-  color: #736385;
+  color: #646f84;
   font-size: 9px;
   letter-spacing: 0.24em;
 }
@@ -774,12 +770,12 @@
   padding: 9px 13px;
   border-radius: 100px;
   background: #ffffff60;
-  color: #655f74;
+  color: #5b6578;
   font-size: 11px;
   font-weight: 600;
 }
 .service-switcher a[aria-current='page'] {
-  background: #22212b;
+  background: #121c2e;
   color: #fff;
 }
 .service-switcher a:hover {
@@ -791,7 +787,7 @@
   background: #fff;
   border-radius: 16px;
   margin-block: 20px 28px;
-  color: #22212b;
+  color: #121c2e;
 }
 .service-terms > summary {
   list-style: none;
@@ -819,7 +815,7 @@
 .service-terms-content {
   padding: 0 22px 22px;
   font-size: 13px;
-  color: #6a6877;
+  color: #606a7f;
   line-height: 1.8;
   display: grid;
   gap: 12px;
@@ -848,11 +844,11 @@
 .service-empty h2 {
   font-size: 17px;
   font-weight: 600;
-  color: #22212b;
+  color: #121c2e;
 }
 .service-empty p {
   font-size: 13px;
-  color: #6a6877;
+  color: #606a7f;
   margin-top: 5px;
 }
 .service-workspace > ol {
@@ -887,7 +883,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  color: #898390;
+  color: #79849a;
   font-size: 12px;
   font-weight: 600;
 }
@@ -916,11 +912,11 @@
 .studio-intake-heading h2 {
   font-size: 23px;
   font-weight: 600;
-  color: #22212b;
+  color: #121c2e;
 }
 .studio-intake-heading p {
   font-size: 13px;
-  color: #6a6877;
+  color: #606a7f;
   margin-top: 4px;
 }
 .studio-intake-actions {
@@ -932,7 +928,7 @@
   gap: 16px;
 }
 .studio-intake-actions > span {
-  color: #6a6877;
+  color: #606a7f;
   font-size: 12px;
 }
 .studio-intake-actions > div {
@@ -950,7 +946,7 @@
   justify-content: space-between;
   gap: 12px;
   font-size: 11px;
-  color: #6a6877;
+  color: #606a7f;
 }
 .studio-gallery-toolbar > span {
   display: inline-flex;
@@ -1040,7 +1036,7 @@
   max-width: 440px;
   margin-top: 20px;
   font-size: 16px;
-  color: #6a6877;
+  color: #606a7f;
   line-height: 1.65;
 }
 .studio-hub-art {
@@ -1058,7 +1054,7 @@
 .studio-hub-art > div {
   position: absolute;
   background: #dcf56a;
-  color: #22212b;
+  color: #121c2e;
   border-radius: 16px;
   padding: 16px 25px;
   bottom: 20px;
@@ -1066,7 +1062,7 @@
   font-size: 12px;
   font-weight: 600;
   transform: rotate(-8deg);
-  box-shadow: 0 8px 20px #22212b08;
+  box-shadow: 0 8px 20px #121c2e08;
 }
 .studio-service-hub-grid {
   padding-bottom: 45px;
@@ -1103,7 +1099,7 @@
   color: #9ea7b8;
 }
 .admin-workspace .admin-nav-group h3 {
-  color: #9c8cae;
+  color: #8f98ab;
   letter-spacing: 0.1em;
   font-size: 10px;
 }
@@ -1181,7 +1177,7 @@
   font-size: 12px;
   font-weight: 600;
   background: var(--admin-surface, #fff);
-  color: var(--admin-muted, #6a6877);
+  color: var(--admin-muted, #606a7f);
 }
 .studio-operation-switcher button[aria-pressed='true'] {
   background: #182844;
@@ -1590,37 +1586,37 @@
 }
 
 .mu-shell .dark\:text-store-text {
-  color: #22212b;
+  color: #121c2e;
 }
 .mu-shell .bg-brand {
   background: #dcf56a;
-  color: #22212b;
+  color: #121c2e;
 }
 .mu-shell .mu-header .text-brand,
 .mu-shell .mu-footer .text-brand {
   color: #182844;
 }
 body:has(.mu-shell) .customer-agent {
-  --agent-ink: #22212b;
-  --agent-muted: #6a6877;
+  --agent-ink: #121c2e;
+  --agent-muted: #606a7f;
   --agent-surface: #fff;
   --agent-soft: #f6f6f4;
   --agent-line: #e7e7e1;
   --agent-accent: #182844;
 }
 body:has(.mu-shell) .agent-launcher {
-  background: #22212b;
+  background: #121c2e;
   border-color: #182844;
   border-radius: 100px;
 }
 body:has(.mu-shell) .agent-spark,
 body:has(.mu-shell) .agent-avatar {
   background: #dcf56a;
-  color: #22212b;
+  color: #121c2e;
 }
 body:has(.mu-shell) .agent-panel {
   border-radius: 26px;
-  box-shadow: 0 20px 70px #22212b26;
+  box-shadow: 0 20px 70px #121c2e26;
 }
 body:has(.mu-shell) .agent-primary,
 body:has(.mu-shell) .agent-send {
@@ -1698,7 +1694,7 @@ body:has(.mu-shell) .agent-send {
 .studio-about-values p {
   font-size: 14px;
   line-height: 1.7;
-  color: #5d5a69;
+  color: #545d6f;
   margin-top: 10px;
   max-width: 270px;
 }
@@ -1739,7 +1735,7 @@ body:has(.mu-shell) .agent-send {
 }
 .studio-contact-assistant small {
   margin-top: 7px;
-  color: #6a6877;
+  color: #606a7f;
   line-height: 1.5;
 }
 .studio-contact-assistant > span:last-child {
@@ -1809,8 +1805,6 @@ body:has(.mu-shell) .agent-send {
 .studio-channel-card .channel-label {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: #64748b;
 }
 .studio-channel-card .channel-value {
@@ -1940,8 +1934,8 @@ a.channel-value:hover {
 .studio-contact-form textarea {
   background: #fbfbf9;
   border-radius: 12px;
-  border-color: #dddae5;
-  color: #22212b;
+  border-color: #e3e3dc;
+  color: #121c2e;
 }
 @media (max-width: 900px) {
   .studio-about-hero,

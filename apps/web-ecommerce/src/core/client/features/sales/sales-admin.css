@@ -29,7 +29,7 @@
   display: block;
   margin-top: 9px;
   font-size: 13px;
-  color: #87798f;
+  color: #737e95;
   line-height: 1.8;
 }
 .sa-outline {
@@ -60,7 +60,7 @@
 .sa-stats span {
   display: block;
   font-size: 12px;
-  color: #8a7e93;
+  color: #788399;
 }
 .sa-stats strong {
   display: block;
@@ -74,7 +74,7 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
-  color: #8a7e93;
+  color: #788399;
 }
 .sa-composer {
   display: grid;
@@ -110,7 +110,7 @@
 }
 .sa-panel-head > span {
   font-size: 11px;
-  color: #927aa2;
+  color: #7e899e;
 }
 .sa-step {
   display: inline-grid;
@@ -131,7 +131,7 @@
   border-radius: 12px;
   background: #fbfbfa;
   padding: 0 14px;
-  color: #9c8aaa;
+  color: #8c95a8;
   min-height: 46px;
 }
 .admin-workspace .admin-page .sa-search > input[type='search'] {
@@ -156,7 +156,7 @@
   flex-wrap: wrap;
   margin: 16px 0;
   font-size: 11px;
-  color: #8a739c;
+  color: #778298;
 }
 .sa-picker-toolbar button {
   font-weight: 600;
@@ -223,7 +223,7 @@
   display: block;
   font-size: 10px;
   line-height: 1.8;
-  color: #96839f;
+  color: #828ca0;
   margin-top: 3px;
 }
 .sa-product small b {
@@ -344,7 +344,7 @@
   margin-top: 10px;
   font-size: 12px;
   line-height: 1.8;
-  color: #8e7e9b;
+  color: #7c879d;
 }
 .sa-toggle {
   display: flex;
@@ -399,7 +399,7 @@
 .sa-events small {
   font-size: 11px;
   line-height: 1.9;
-  color: #96829f;
+  color: #818ba0;
 }
 .sa-status {
   display: inline-block;
@@ -412,7 +412,7 @@
 }
 .sa-status.is-ended {
   background: #f2f2ef;
-  color: #96899f;
+  color: #858fa3;
 }
 .sa-event-actions {
   display: flex;
@@ -435,7 +435,7 @@
 }
 .sa-empty {
   font-size: 13px;
-  color: #96829f;
+  color: #818ba0;
   padding: 10px 0;
 }
 .sales-admin button:disabled {

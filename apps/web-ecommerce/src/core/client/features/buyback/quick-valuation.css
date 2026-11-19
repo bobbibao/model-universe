@@ -1,7 +1,7 @@
 /* Quick valuation of a service page: the steps (model, trade item, condition), the result panel and the manual route. */
 .qv {
   --qv-ink: #0a1322;
-  --qv-muted: #6d6780;
+  --qv-muted: #636e84;
   --qv-line: #ecece6;
   --qv-accent: #182844;
   --qv-accent-soft: #f6f6f4;
@@ -23,8 +23,6 @@
   gap: 8px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--qv-accent);
 }
 .qv-kicker::before {
@@ -159,7 +157,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #8d859a;
+  color: #808a9f;
   line-height: 1.4;
 }
 .qv-summary-steps li > span {
@@ -206,7 +204,7 @@
   background: #fbf9fe;
 }
 .qv-summary-index {
-  color: #9c91ae;
+  color: #949cab;
   font-size: 11px;
   padding-top: 2px;
 }
@@ -275,7 +273,7 @@
   overflow-wrap: anywhere;
 }
 .qv-summary-total > p {
-  color: #7c6c91;
+  color: #6d7990;
   font-size: 11px;
   line-height: 1.6;
 }
@@ -489,9 +487,7 @@
 .cc-label {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #6d6780;
+  color: #636e84;
 }
 .cc-box {
   position: relative;
@@ -524,7 +520,7 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  color: #6d6780;
+  color: #636e84;
   transition: transform 0.2s;
 }
 .cc-box.is-open .cc-caret {
@@ -574,7 +570,7 @@
   position: absolute;
   left: 14px;
   display: flex;
-  color: #8a829b;
+  color: #7f899e;
   pointer-events: none;
 }
 .cc-caret:hover {
@@ -586,7 +582,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 10px;
-  color: #777184;
+  color: #69758c;
   font-size: 12px;
 }
 .cc-status button {
@@ -618,16 +614,14 @@
   overflow-wrap: anywhere;
 }
 .cc-create-manual small {
-  color: #777184;
+  color: #69758c;
   font-size: 11px;
 }
 .cc-hint {
   padding: 8px 10px 4px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #8e87a3;
+  color: #8690a4;
 }
 .cc-thumb {
   position: relative;
@@ -665,7 +659,7 @@
 .cc-option-copy small,
 .cc-chosen-copy small {
   font-size: 12px;
-  color: #6d6780;
+  color: #636e84;
 }
 .cc-option-price {
   flex: none;
@@ -784,9 +778,7 @@
 .sb-list h3 {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #6d6780;
+  color: #636e84;
 }
 .sb-row {
   display: grid;
@@ -813,7 +805,7 @@
 }
 .sb-row-copy small {
   font-size: 12px;
-  color: #6d6780;
+  color: #636e84;
 }
 .sb-segment {
   display: inline-flex;
@@ -828,7 +820,7 @@
   border-radius: 999px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #6d6780;
+  color: #636e84;
   transition:
     background 0.15s,
     color 0.15s;
@@ -855,7 +847,7 @@
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  color: #8e87a3;
+  color: #8690a4;
   font-size: 18px;
 }
 .sb-remove:hover {
@@ -886,7 +878,7 @@
   padding-top: 14px;
   border-top: 1px solid var(--qv-line);
   font-size: 13px;
-  color: #6d6780;
+  color: #636e84;
 }
 .qv-manual-line .qv-link {
   display: inline-flex;
@@ -1109,7 +1101,7 @@
   border: 1px solid var(--qv-line);
   border-radius: 8px;
   background: #fff;
-  color: #6b617c;
+  color: #5f697e;
   font-size: 12px;
   font-weight: 600;
 }
@@ -1141,7 +1133,7 @@
 }
 .service-condition-custom {
   --control-surface: #fff;
-  --control-ink: #292535;
+  --control-ink: #121c2e;
   --control-line: #e9e9e4;
   --control-accent: #182844;
   --control-soft: #f8f8f7;
@@ -1219,7 +1211,7 @@
   flex: 0 0 5px;
   height: 5px;
   border-radius: 50%;
-  background: #aa9fb8;
+  background: #a1a8b6;
   align-self: start;
   margin-top: 6px;
 }

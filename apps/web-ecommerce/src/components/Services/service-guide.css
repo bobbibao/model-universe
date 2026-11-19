@@ -37,7 +37,7 @@
   color: #fff;
 }
 .sg-button.is-primary:hover {
-  background: #36343d;
+  background: #121c2e;
 }
 .sg-button.is-quiet {
   border-color: transparent;
@@ -521,7 +521,7 @@
   padding: 0 40px 22px 0;
   font-size: 15px;
   line-height: 1.75;
-  color: #46434e;
+  color: #3e4553;
 }
 
 /* Questions of one service (server-rendered <details>) */
@@ -572,7 +572,7 @@
   padding: 0 34px 22px 0;
   font-size: 15px;
   line-height: 1.75;
-  color: #46434e;
+  color: #3e4553;
 }
 
 @media (max-width: 1000px) {

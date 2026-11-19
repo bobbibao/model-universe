@@ -28,7 +28,7 @@ html:has(.compact-admin-product-page, .compact-admin-catalog-page, .compact-admi
   min-height: 44px;
   padding: 10px 13px;
   border-bottom: 2px solid transparent;
-  color: var(--admin-muted, #6a6877);
+  color: var(--admin-muted, #606a7f);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;

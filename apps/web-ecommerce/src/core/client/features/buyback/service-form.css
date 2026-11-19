@@ -19,14 +19,12 @@
 .service-form-section h3 {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #6d6780;
+  color: #636e84;
 }
 .service-form-hint {
   margin-top: -6px;
   font-size: 12px;
-  color: #8e87a3;
+  color: #8690a4;
 }
 .service-form-submit {
   grid-template-columns: minmax(0, 1fr) auto;
@@ -53,7 +51,7 @@
 .service-form-agree details {
   padding-left: 25px;
   font-size: 12px;
-  color: #6d6780;
+  color: #636e84;
 }
 .service-form-agree summary {
   cursor: pointer;
@@ -89,7 +87,7 @@
   padding: 7px 0 0;
   font-size: 13px;
   font-weight: 600;
-  color: #6d6780;
+  color: #636e84;
 }
 .item-condition-chips {
   display: flex;
@@ -114,7 +112,7 @@
   border-radius: 999px;
   background: #fff;
   font-size: 13px;
-  color: #42394f;
+  color: #3a414e;
   transition:
     border-color 0.15s,
     background 0.15s,
@@ -164,9 +162,7 @@
 .evidence-head strong {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #6d6780;
+  color: #636e84;
 }
 .evidence-head span {
   font-size: 12px;
@@ -178,7 +174,7 @@
 }
 .evidence-hint {
   font-size: 12px;
-  color: #8e87a3;
+  color: #8690a4;
 }
 .evidence-grid {
   display: grid;
@@ -210,7 +206,7 @@
   font-size: 11px;
   text-align: center;
   word-break: break-all;
-  color: #42394f;
+  color: #3a414e;
 }
 .evidence-grid li > button {
   position: absolute;

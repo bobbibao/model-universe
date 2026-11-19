@@ -19,7 +19,7 @@
 .account-heading > div > p:last-child,
 .account-guest > p:not(.studio-kicker) {
   max-width: 620px;
-  color: #696675;
+  color: #5e687d;
   font-size: 14px;
   line-height: 1.7;
 }
@@ -84,7 +84,7 @@
 }
 .account-identity div > span {
   font-size: 11px;
-  color: #777180;
+  color: #687389;
   margin-top: 4px;
 }
 .account-sidebar nav {
@@ -102,7 +102,7 @@
   padding: 12px;
   font-size: 13px;
   font-weight: 600;
-  color: #666070;
+  color: #596377;
 }
 .account-sidebar nav a > span:last-child {
   margin-left: auto;
@@ -131,7 +131,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #7b7485;
+  color: #6b778e;
   font-size: 11px;
 }
 .account-session .studio-signout > button {
@@ -205,8 +205,6 @@
   color: #dadad0;
   font-size: 11px;
   margin-top: 24px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 .account-member-card h2 {
   font-size: clamp(27px, 3vw, 42px);
@@ -287,7 +285,7 @@
 .account-stats span {
   display: block;
   font-size: 11px;
-  color: #756d80;
+  color: #667187;
 }
 .account-stats strong {
   display: block;
@@ -337,7 +335,7 @@
 .account-signout-card p {
   font-size: 12px;
   line-height: 1.7;
-  color: #756d80;
+  color: #667187;
   margin-top: 6px;
 }
 .account-progress progress {
@@ -367,7 +365,7 @@
 .account-section-heading > span,
 .account-section-heading > a {
   font-size: 12px;
-  color: #756d80;
+  color: #667187;
 }
 .account-quick-grid {
   display: grid;
@@ -392,7 +390,7 @@
   font-weight: 600;
 }
 .account-quick-link > span:not(:last-child) {
-  color: #756d80;
+  color: #667187;
   font-size: 11px;
   line-height: 1.7;
 }
@@ -433,7 +431,7 @@
 .account-service-links div > span {
   display: block;
   font-size: 11px;
-  color: #756d80;
+  color: #667187;
   line-height: 1.6;
   margin-top: 5px;
 }
@@ -468,7 +466,7 @@
   color: #182844;
 }
 .account-fields > * > span {
-  color: #756d80;
+  color: #667187;
   font-size: 12px;
 }
 .account-fields > * > strong {
@@ -503,7 +501,7 @@
   justify-content: center;
   min-height: 220px;
   font-size: 13px;
-  color: #756d80;
+  color: #667187;
 }
 .account-embedded > section.mu-wrap {
   width: 100%;
@@ -550,7 +548,7 @@
 }
 .account-support-hero > p:not(.studio-kicker) {
   max-width: 520px;
-  color: #756d80;
+  color: #667187;
   font-size: 14px;
   line-height: 1.7;
   margin-bottom: 24px;
@@ -567,7 +565,7 @@
 .account-support-links p,
 .account-help p {
   font-size: 13px;
-  color: #756d80;
+  color: #667187;
   line-height: 1.7;
 }
 .account-help {
