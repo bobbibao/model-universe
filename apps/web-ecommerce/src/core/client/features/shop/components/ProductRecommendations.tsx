@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from '@/i18n/navigation';
+import Carousel from '@/components/Carousel';
 import PromoIcon from '@/components/PromoIcon';
 import ProductCard from './ProductCard';
 import ProductApi from '@/core/client/api/Product';
@@ -174,8 +175,14 @@ export default function ProductRecommendations({ productId }: { productId: numbe
       </header>
 
       {items ? (
-        <div className="product-rail-grid">
-          {items.slice(0, 5).map((item) => (
+        <Carousel
+          label={headingTitle}
+          className="product-rail-carousel"
+          autoplayMs={4500}
+          dots={false}
+          loop={items.length > 5}
+        >
+          {items.map((item) => (
             <div
               key={`${item.strategy}-${item.product.id}`}
               className="product-rail-item"
@@ -193,7 +200,7 @@ export default function ProductRecommendations({ productId }: { productId: numbe
               <ProductCard product={item.product} />
             </div>
           ))}
-        </div>
+        </Carousel>
       ) : (
         <div className="product-rail-skeleton" aria-busy="true">
           {Array.from({ length: 5 }, (_, index) => (

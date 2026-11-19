@@ -5,7 +5,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import SaleShelf from '@/core/client/features/sales/SaleShelf';
 import HomePromotions from '@/core/client/features/promotions/HomePromotions';
 import AnnouncementTicker from '../components/AnnouncementTicker';
-import HomeHero from '../components/HomeHero';
 import ProductRail from '../components/ProductRail';
 import Link from '@/i18n/navigation';
 import type { ProductSummary } from '@/shared/types/product';
@@ -14,9 +13,9 @@ import { readRecentlyViewed } from '@/shared/client/recentlyViewed';
 import ProductApi from '@/core/client/api/Product';
 import SmartRecommendationRail from '@/core/client/features/recommendations/components/SmartRecommendationRail';
 
-// The home page in the order a shopper decides: what the shop sells (the hero), today's offers (the facts strip, the
-// offer links, vouchers), the live sale, what others buy most, a quick way in by brand, what is new, good prices, what
-// this visitor looked at, then the shop's services.
+// The home page in the order a shopper decides: the promise bar, the banner (what the shop sells, then today's
+// offers), the offer links and vouchers, the live sale, what others buy most, a quick way in by brand, what is new,
+// good prices, what this visitor looked at, then the shop's services.
 const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
   const t = useTranslations('home');
   const experience = useTranslations('experience');
@@ -30,8 +29,7 @@ const Home = ({ initialProducts }: { initialProducts?: ProductSummary[] }) => {
   return (
     <>
       <AnnouncementTicker />
-      <HomeHero products={initialProducts} />
-      <HomePromotions />
+      <HomePromotions products={initialProducts} />
       <SaleShelf />
       <SmartRecommendationRail surface="home" defaultStrategy="for_you" limit={10} />
       <ProductRail
