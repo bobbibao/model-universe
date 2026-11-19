@@ -1888,6 +1888,10 @@
 .home-banner-carousel {
   --gap: 0px;
 }
+/* Every slide as tall as the tallest, so the dots never float under a short slide. */
+.home-banner-carousel .carousel-slide > .home-banner {
+  height: 100%;
+}
 .home-banner {
   --kicker: var(--mu-emerald-deep);
   display: grid;
