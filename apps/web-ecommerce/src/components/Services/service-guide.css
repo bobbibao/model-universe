@@ -861,19 +861,20 @@
 .svc-chapter:nth-child(even) .svc-chapter-photo {
   order: 2;
 }
+/* The kit whole, on the warm grey ground of the product tiles: catalogue photos are often box art with lettering, so
+   they are shown as they are, never cropped or stretched across the card. */
 .svc-chapter-photo {
   position: relative;
   min-height: 0;
-  background: var(--mu-navy-950);
+  background: var(--mu-fill);
 }
-/* Shop photos carry the watermark plate at the bottom right; a slight zoom from the top keeps it out of frame. */
 .svc-chapter-photo img {
-  transform: scale(1.12);
-  transform-origin: 50% 0;
-  transition: transform 900ms var(--mu-ease);
+  padding: 40px;
+  object-fit: contain;
+  transition: transform 600ms var(--mu-ease);
 }
 .svc-chapter:hover .svc-chapter-photo img {
-  transform: scale(1.145);
+  transform: scale(1.025);
 }
 .svc-chapter-panel {
   display: grid;

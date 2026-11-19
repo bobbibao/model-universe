@@ -26,7 +26,7 @@ export default function ServiceChapters({ photos }: { photos: ShowcasePhoto[] })
           <li key={service.key} className={`svc-chapter service-${service.key}`} style={{ zIndex: index + 1 }}>
             {photo && (
               <span className="svc-chapter-photo" aria-hidden="true">
-                <ProductImage src={photo.src} alt="" sizes="(min-width: 768px) 46vw, 100vw" className="object-cover" />
+                <ProductImage src={photo.src} alt="" sizes="(min-width: 768px) 46vw, 100vw" className="object-contain" />
               </span>
             )}
             <div className="svc-chapter-panel">
