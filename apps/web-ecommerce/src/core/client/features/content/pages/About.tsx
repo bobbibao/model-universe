@@ -10,7 +10,7 @@ export default function About() {
     <section className="mu-wrap mu-section studio-about">
       <div className="studio-about-hero">
         <div>
-          <p className="studio-kicker">MODEL UNIVERSE / {t('aboutEyebrow')}</p>
+          <p className="studio-kicker">{t('aboutEyebrow')}</p>
           <h1>{t('aboutTitle')}</h1>
           <p className="studio-hero-intro">{t('aboutIntro')}</p>
           <Link href="/cua-hang" className="mu-button mt-7">

@@ -4,7 +4,7 @@
   --studio-muted: #606a7f;
   --studio-paper: #f8f8f3;
   --studio-line: #e5e4dc;
-  --studio-lime: #dcf56a;
+  --studio-lime: var(--mu-emerald-glow);
   --studio-purple: #182844;
   background: var(--studio-paper);
   color: var(--studio-ink);
@@ -172,9 +172,9 @@
 .studio-kicker {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
   color: #606a7f;
 }
 .studio-live-dot {
@@ -214,7 +214,7 @@
   height: 16px;
   bottom: -1px;
   left: 1%;
-  color: #dcf56a;
+  color: var(--mu-emerald-glow);
 }
 .studio-hero-intro {
   max-width: 440px;
@@ -308,7 +308,7 @@
   padding: 10px 18px;
   border: 1px solid #646f8440;
   border-radius: 100px;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #fafaf8ed;
   font-size: 12px;
   font-weight: 600;
@@ -357,7 +357,7 @@
   right: -25px;
   top: 16%;
   font-size: 104px;
-  color: #b5cf45;
+  color: var(--mu-emerald);
   transform: rotate(10deg);
   line-height: 1;
   z-index: 3;
@@ -392,7 +392,7 @@
   display: grid;
   place-items: center;
   background: #121c2e;
-  color: #dcf56a;
+  color: var(--mu-emerald-glow);
   border-radius: 100%;
   width: 42px;
   height: 42px;
@@ -447,11 +447,11 @@
   background: #eeeee9;
 }
 .mu-shell .mu-grade:nth-child(3n) {
-  background: #e7eddb;
+  background: var(--mu-fill);
 }
 .mu-shell .mu-grade:hover {
-  background: #dcf56a;
-  border-color: #c3d56f;
+  background: var(--mu-emerald-soft);
+  border-color: var(--mu-emerald);
 }
 .mu-shell .mu-grade strong {
   font-size: 32px;
@@ -515,7 +515,7 @@
   transition: transform 0.2s;
 }
 .studio-service-card.service-sell {
-  background: #dcf56a;
+  background: var(--mu-emerald-soft);
 }
 .studio-service-card.service-pawn {
   background: #f6dbe5;
@@ -579,10 +579,10 @@
   color: #c7cbd3;
 }
 .mu-shell .mu-club .mu-eyebrow {
-  color: #dcf56a !important;
+  color: var(--mu-emerald-glow) !important;
 }
 .mu-shell .mu-club .mu-button {
-  background: #dcf56a;
+  background: var(--mu-emerald-glow);
   color: #121c2e;
   flex-shrink: 0;
 }
@@ -622,7 +622,7 @@
 }
 .mu-shell .mu-mobile-nav [aria-current='page'] {
   background: #efefea;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .mu-shell .mu-filter {
   border-radius: 20px;
@@ -682,7 +682,7 @@
   overflow: hidden;
 }
 .service-experience-header.service-sell {
-  background: #e7efc8;
+  background: var(--mu-emerald-soft);
 }
 .service-experience-header.service-pawn {
   background: #f5e3e9;
@@ -742,7 +742,7 @@
   width: 125px;
   height: 125px;
   background: #ffffffc0;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   border: 1px solid white;
   border-radius: 32px;
   display: grid;
@@ -780,7 +780,7 @@
 }
 .service-switcher a:hover {
   background: #fff;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .service-terms {
   border: 1px solid #e5e4dc;
@@ -834,7 +834,7 @@
   width: 70px;
   height: 70px;
   background: #f2f2ef;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   border-radius: 24px;
   display: grid;
   place-items: center;
@@ -956,7 +956,7 @@
 .studio-gallery-toolbar > button {
   padding: 8px 12px;
   background: #f0f0ed;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   border-radius: 100px;
   font-weight: 600;
 }
@@ -1053,7 +1053,7 @@
 }
 .studio-hub-art > div {
   position: absolute;
-  background: #dcf56a;
+  background: var(--mu-emerald-soft);
   color: #121c2e;
   border-radius: 16px;
   padding: 16px 25px;
@@ -1082,14 +1082,14 @@
 }
 .admin-workspace .admin-nav-item.is-active {
   background: #101c31;
-  color: #dcf56a;
+  color: var(--mu-emerald-glow);
 }
 .admin-workspace .admin-nav-child.is-active {
   background: #101c31;
-  color: #dcf56a;
+  color: var(--mu-emerald-glow);
 }
 .admin-workspace .admin-nav-child.is-active::before {
-  background: #dcf56a;
+  background: var(--mu-emerald-glow);
 }
 .admin-workspace .admin-nav-item:hover,
 .admin-workspace .admin-nav-child:hover {
@@ -1121,8 +1121,8 @@
   border-color: #bdc3d015;
 }
 .admin-workspace .admin-dashboard-shortcuts a:first-child {
-  background: #dcf56a;
-  border-color: #dcf56a;
+  background: var(--mu-emerald-glow);
+  border-color: var(--mu-emerald-glow);
   color: var(--mu-accent-ink);
 }
 .admin-workspace .admin-dashboard-hero h1 {
@@ -1148,7 +1148,7 @@
   color: #f2f2ef;
 }
 .admin-workspace .admin-assistant-launcher svg {
-  color: #dcf56a;
+  color: var(--mu-emerald-glow);
 }
 .admin-workspace .admin-page .bg-brand,
 .admin-workspace .admin-page .bg-primary,
@@ -1614,7 +1614,7 @@ body:has(.mu-shell) .agent-launcher {
 }
 body:has(.mu-shell) .agent-spark,
 body:has(.mu-shell) .agent-avatar {
-  background: #dcf56a;
+  background: var(--mu-emerald-glow);
   color: #121c2e;
 }
 body:has(.mu-shell) .agent-panel {
@@ -1686,7 +1686,7 @@ body:has(.mu-shell) .agent-send {
   background: #efefea;
 }
 .studio-about-values a:nth-child(3) {
-  background: #dcf56a;
+  background: var(--mu-emerald-glow);
 }
 .studio-about-values h2 {
   font-size: 22px;
@@ -1872,12 +1872,12 @@ a.channel-value:hover {
 .studio-channel-card.is-messenger .channel-action-btn {
   background: #fafaf8;
   border-color: #edede7;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .studio-channel-card.is-messenger:hover .channel-action-btn {
   background: #f5f5f2;
   border-color: #deded4;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .channel-copy-btn {
   display: inline-flex;

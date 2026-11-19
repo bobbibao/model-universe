@@ -73,7 +73,7 @@
   display: grid;
   place-items: center;
   border-radius: 9px;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   background: #f4f4f0;
 }
 .catalog-page-header .catalog-results {

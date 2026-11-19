@@ -50,7 +50,7 @@
   width: 40px;
   height: 40px;
   border-radius: 14px;
-  background: #e3f6b9;
+  background: var(--mu-emerald-soft);
   color: #214634;
   font-size: 26px;
   flex-shrink: 0;

@@ -279,6 +279,7 @@
   font-weight: 600;
 }
 .mk-library-image.is-selected .mk-media-check {
+  color: var(--admin-on-accent);
   background: var(--admin-accent);
 }
 .mk-library-image:disabled {

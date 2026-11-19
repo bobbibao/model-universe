@@ -46,7 +46,7 @@ export default function FinanceWorkspace({ initialTab = 'expenses' }: { initialT
     <div className="finance-workspace">
       <header className="finance-heading">
         <div>
-          <p className="finance-eyebrow">MODEL UNIVERSE / {en ? 'FINANCE OPERATIONS' : 'QUẢN LÝ TÀI CHÍNH'}</p>
+          <p className="finance-eyebrow">{en ? 'Finance operations' : 'Quản lý tài chính'}</p>
           <h1>{en ? 'Costs & reconciliation' : 'Chi phí & đối soát'}</h1>
           <p>
             {en

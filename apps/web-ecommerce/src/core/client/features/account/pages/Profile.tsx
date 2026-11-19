@@ -93,7 +93,7 @@ function AccountWorkspace({ user }: { user: User }) {
     <div className="mu-wrap account-hub">
       <header className="account-heading">
         <div>
-          <p className="studio-kicker">MODEL UNIVERSE / {t('eyebrow')}</p>
+          <p className="studio-kicker">{t('eyebrow')}</p>
           <h1>{t('title')}</h1>
           <p>{t('intro')}</p>
         </div>
@@ -147,7 +147,7 @@ function AccountWorkspace({ user }: { user: User }) {
               <div className="account-overview-grid">
                 <article className="account-member-card">
                   <div className="account-card-top">
-                    <span>MODEL UNIVERSE</span>
+                    <span>Model Universe</span>
                     <AdminIcon name="spark" size={26} />
                   </div>
                   <p>{t('memberPass')}</p>
@@ -532,7 +532,7 @@ export default function Profile() {
         <span className="account-avatar" aria-hidden="true">
           <AdminIcon name="users" size={32} />
         </span>
-        <p className="studio-kicker">MODEL UNIVERSE / {t('eyebrow')}</p>
+        <p className="studio-kicker">{t('eyebrow')}</p>
         <h1>{t('title')}</h1>
         <p>{t('guestIntro')}</p>
         <Link href="/auth/signin?redirect=/user-profile" className="mu-button">

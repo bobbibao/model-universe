@@ -75,7 +75,7 @@
   flex-shrink: 0;
   border-radius: 9px;
   background: #f6f6f4;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .address-book-contact {
   display: flex;

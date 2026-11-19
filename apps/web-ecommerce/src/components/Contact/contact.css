@@ -6,7 +6,7 @@
   --ch-soft: #f8f8f6;
   --ch-accent: #182844;
   --ch-accent-soft: #f0f0ed;
-  --ch-lime: #dcf56a;
+  --ch-lime: var(--mu-emerald-glow);
   --ch-green: #14955a;
   padding-block: 40px 72px;
   color: var(--ch-ink);

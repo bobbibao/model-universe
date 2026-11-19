@@ -6,7 +6,7 @@
   border: 1px solid #ecece6;
   border-radius: 18px;
   background: #fff;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
 }
 .service-form-section {
   display: grid;
@@ -124,7 +124,7 @@
 .item-condition-chip input:checked + span {
   border-color: #182844;
   background: #f6f6f4;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   font-weight: 600;
 }
 .item-condition-chip input:focus-visible + span {
@@ -231,7 +231,7 @@
   border: 1.5px dashed #d5d5ca;
   border-radius: 12px;
   background: #fbfaff;
-  color: var(--mu-accent-ink);
+  color: var(--mu-navy-800);
   cursor: pointer;
 }
 .evidence-grid li:has(.evidence-add) {
