@@ -75,7 +75,7 @@ export default function ProductRail({
           loop={products.length > 5}
         >
           {products.map((product, index) => (
-            <div key={product.id} className="product-rail-item">
+            <div key={product.id} className={`product-rail-item${ranked && index < 10 ? ' is-ranked' : ''}`}>
               {ranked && index < 10 && <span className="rail-rank">{String(index + 1).padStart(2, '0')}</span>}
               <ProductCard product={product} />
             </div>
