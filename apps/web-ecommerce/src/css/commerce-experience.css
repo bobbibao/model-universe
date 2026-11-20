@@ -845,17 +845,6 @@
   .mu-shell .product-purchase-actions.is-restock > .product-save-button {
     width: 48px;
   }
-  /* "My holds" goes under the hold's words. */
-  .product-hold-entry {
-    flex-wrap: wrap;
-    gap: 4px 12px;
-  }
-  .mu-shell .product-hold-button {
-    flex-basis: 100%;
-  }
-  .product-hold-manage {
-    margin-left: 31px;
-  }
   .product-story {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
@@ -1931,6 +1920,19 @@
 .product-hold-manage:focus-visible {
   outline: 2px solid var(--mu-emerald);
   outline-offset: 3px;
+}
+/* On a phone "My holds" goes under the hold's words (after the rules above, which set flex: 1). */
+@media (max-width: 767px) {
+  .product-hold-entry {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+  .mu-shell .product-hold-button {
+    flex-basis: 100%;
+  }
+  .product-hold-manage {
+    margin-left: 31px;
+  }
 }
 .hold-discovery-panel {
   display: flex;
