@@ -1,4 +1,5 @@
 import './faq.css';
+import FaqAnswer from './FaqAnswer';
 
 export type FaqEntry = { id: string; question: string; answer: string };
 
@@ -22,7 +23,7 @@ export default function FaqList({
             <h3>{item.question}</h3>
             <span className="faq-icon" aria-hidden="true" />
           </summary>
-          <p className="faq-answer">{item.answer}</p>
+          <FaqAnswer text={item.answer} />
         </details>
       ))}
     </div>

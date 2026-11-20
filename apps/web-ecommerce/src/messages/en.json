@@ -4479,6 +4479,8 @@
     "faqHold": "Holds",
     "faqPawn": "Pawn",
     "faqValuation": "Valuation & payment",
+    "faqTopics": "Question topics",
+    "faqShowAll": "Show all questions",
     "faqEmpty": "No matching question.",
     "faqCount": "{count} questions",
     "faqHelpTitle": "Didn't find your answer?",

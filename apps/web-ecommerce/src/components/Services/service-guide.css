@@ -344,125 +344,201 @@
   margin-top: 16px;
 }
 
-/* FAQ on the services hub: the title, a search and the topics beside the list (the list and the help card are
-   faq.css, shared with the service pages and the guides). */
+/* FAQ on the services hub: the title with the search across from it; under them the topics and the navy "still
+   looking?" card in a sticky column beside the questions, which sit on one white card (faq.css draws the rows). */
 .sg-faq {
-  display: grid;
-  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
-  gap: 56px;
-  align-items: start;
   color: var(--sv-ink);
 }
-.sg-faq-side {
-  position: sticky;
-  top: 96px;
+.sg-faq-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 48px;
+  padding-bottom: 28px;
+}
+.sg-faq-head > div {
+  max-width: 600px;
 }
 .sg-faq h2 {
-  font-size: clamp(24px, 2.4vw, 32px);
+  font-size: clamp(26px, 2.6vw, 36px);
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--mu-navy-950);
 }
 .sg-faq-intro {
-  margin-top: 8px;
-  font-size: 15px;
+  margin-top: 10px;
+  font-size: 15.5px;
   line-height: 1.6;
   color: var(--sv-muted);
 }
 .sg-faq-search {
   position: relative;
   display: flex;
+  flex: 0 1 420px;
   align-items: center;
-  margin-top: 22px;
   color: var(--sv-faint);
 }
-.sg-faq-search svg {
+.sg-faq-search > svg {
   position: absolute;
-  left: 14px;
+  left: 16px;
+  pointer-events: none;
 }
 .sg-faq-search input {
   width: 100%;
-  height: 46px;
-  padding: 0 40px;
+  height: 52px;
+  padding: 0 48px;
   border: 1px solid var(--mu-line-strong);
-  border-radius: var(--mu-r-control);
-  font-size: 15px;
+  border-radius: 12px;
+  font-size: 15.5px;
   color: var(--sv-ink);
   background: var(--mu-surface);
+  box-shadow: 0 1px 2px rgb(16 28 49 / 0.04);
   transition:
     border-color var(--mu-hover) var(--mu-ease),
     box-shadow var(--mu-hover) var(--mu-ease);
 }
+.sg-faq-search input::placeholder {
+  color: var(--sv-faint);
+}
+.sg-faq-search input::-webkit-search-cancel-button {
+  display: none;
+}
+.sg-faq-search input:hover {
+  border-color: #b9bfcb;
+}
 .sg-faq-search input:focus {
   border-color: var(--mu-navy-900);
   outline: none;
-  box-shadow: 0 0 0 3px rgb(16 28 49 / 0.1);
+  box-shadow: 0 0 0 4px rgb(16 28 49 / 0.08);
 }
 .sg-faq-search button {
   position: absolute;
-  right: 14px;
-  font-size: 13px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   color: var(--sv-muted);
+  transition: background-color var(--mu-hover) var(--mu-ease);
 }
-.sg-faq-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
-}
-.sg-faq-filters button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--mu-line-strong);
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
+.sg-faq-search button:hover {
   color: var(--sv-ink);
-  background: var(--mu-surface);
+  background: var(--mu-fill);
+}
+.sg-faq-body {
+  display: grid;
+  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+.sg-faq-side {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 24px;
+}
+.sg-faq-topics {
+  display: grid;
+  gap: 2px;
+}
+.sg-faq-topics button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  padding: 0 14px 0 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--sv-ink);
   transition:
     background-color var(--mu-hover) var(--mu-ease),
-    border-color var(--mu-hover) var(--mu-ease),
     color var(--mu-hover) var(--mu-ease);
 }
-.sg-faq-filters button:hover {
-  border-color: var(--mu-navy-900);
-}
-.sg-faq-filters button span {
+.sg-faq-topics button span {
+  min-width: 26px;
+  padding: 2px 8px;
+  border-radius: 999px;
   font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
   font-variant-numeric: tabular-nums;
   color: var(--sv-muted);
+  background: var(--mu-fill);
+  transition:
+    background-color var(--mu-hover) var(--mu-ease),
+    color var(--mu-hover) var(--mu-ease);
 }
-.sg-faq-filters button[aria-pressed='true'] {
-  border-color: var(--mu-navy-950);
+@media (hover: hover) {
+  .sg-faq-topics button:hover:not([aria-pressed='true']) {
+    background: rgb(16 28 49 / 0.05);
+  }
+}
+.sg-faq-topics button[aria-pressed='true'] {
   color: #fff;
   background: var(--mu-navy-950);
 }
-.sg-faq-filters button[aria-pressed='true'] span {
-  color: rgb(255 255 255 / 0.7);
+.sg-faq-topics button[aria-pressed='true'] span {
+  color: #fff;
+  background: rgb(255 255 255 / 0.16);
 }
-.sg-faq-filters button:focus-visible,
-.sg-faq-search button:focus-visible {
+.sg-faq-topics button:focus-visible,
+.sg-faq-search button:focus-visible,
+.sg-faq-empty button:focus-visible {
   outline: 2px solid var(--mu-emerald);
   outline-offset: 2px;
-}
-.sg-faq-help {
-  margin-top: 28px;
-}
-.sg-faq-empty {
-  padding: 40px 0;
-  color: var(--sv-muted);
 }
 .sg-faq-list {
   min-width: 0;
 }
-.sg-faq-count {
-  padding-bottom: 12px;
-  font-size: 14px;
+/* The questions on one white card, on the hub and on each service page. */
+.sg-faq-list .faq-list,
+.sv-questions .faq-list {
+  padding: 4px 32px;
+  border: 1px solid var(--mu-line);
+  border-radius: 16px;
+  background: var(--mu-surface);
+  box-shadow: 0 1px 2px rgb(16 28 49 / 0.04);
+}
+.sg-faq-list .faq-item:last-child,
+.sv-questions .faq-item:last-child {
+  border-bottom: 0;
+}
+.sg-faq-list .faq-trigger,
+.sv-questions .faq-item summary {
+  padding-block: 22px;
+}
+.sg-faq-tag {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--mu-emerald-deep);
+}
+.sg-faq-empty {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  padding: 32px;
+  border: 1px dashed var(--mu-line-strong);
+  border-radius: 16px;
   color: var(--sv-muted);
+}
+.sg-faq-empty button {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--mu-r-control);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--mu-navy-950);
 }
 
 /* Questions of one service (/services/sell, trade, pawn): the title and where to ask beside the list. */
@@ -492,13 +568,63 @@
 
 @media (max-width: 1000px) {
   .sg-guest,
-  .sg-faq,
   .sv-questions {
     grid-template-columns: 1fr;
     gap: 32px;
   }
+  /* Phone and tablet: the topics slide in one row (edge to edge), then the questions, then where to ask. */
+  .sg-faq-head {
+    flex-direction: column;
+    align-items: stretch;
+    padding-bottom: 20px;
+  }
+  .sg-faq-search {
+    flex: none;
+  }
+  .sg-faq-body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
   .sg-faq-side {
-    position: static;
+    display: contents;
+  }
+  .sg-faq-topics {
+    display: flex;
+    gap: 8px;
+    margin-inline: -24px;
+    padding: 2px 24px;
+    overflow-x: auto;
+    scroll-padding-inline: 24px;
+    scrollbar-width: none;
+  }
+  .sg-faq-topics::-webkit-scrollbar {
+    display: none;
+  }
+  .sg-faq-topics button {
+    flex: none;
+    min-height: 40px;
+    padding: 0 8px 0 14px;
+    border: 1px solid var(--mu-line-strong);
+    border-radius: 999px;
+    font-size: 14px;
+    background: var(--mu-surface);
+  }
+  .sg-faq-topics button[aria-pressed='true'] {
+    border-color: var(--mu-navy-950);
+  }
+  .sg-faq-topics button span {
+    min-width: 22px;
+    padding: 1px 6px;
+    font-size: 12px;
+  }
+  .sg-faq-list {
+    order: 1;
+  }
+  .sg-faq-help {
+    order: 2;
+    margin-top: 8px;
   }
   .sv-questions {
     gap: 24px;
@@ -543,6 +669,23 @@
   .sg-tabs {
     gap: 22px;
   }
+  .sg-faq-topics {
+    margin-inline: -16px;
+    padding-inline: 16px;
+    scroll-padding-inline: 16px;
+  }
+  .sg-faq-list .faq-list,
+  .sv-questions .faq-list {
+    padding: 0 18px;
+    border-radius: 14px;
+  }
+  .sg-faq-list .faq-trigger,
+  .sv-questions .faq-item summary {
+    padding-block: 18px;
+  }
+  .faq-help {
+    padding: 20px;
+  }
   .sg-guest-side {
     padding: 18px;
   }
@@ -552,7 +695,8 @@
   .sv-row,
   .sv-go svg,
   .sg-faq-search input,
-  .sg-faq-filters button {
+  .sg-faq-topics button,
+  .sg-faq-topics button span {
     transition: none;
   }
 }

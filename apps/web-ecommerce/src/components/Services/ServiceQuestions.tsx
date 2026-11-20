@@ -21,7 +21,9 @@ export default function ServiceQuestions({ title, items }: { title: string; item
               {g('guestZalo')}
             </a>
             <a href={CONTACT.tel}>{g('guestCall', { phone: CONTACT.phoneDisplay })}</a>
-            <Link href="/contact">{g('faqContact')}</Link>
+            <Link className="is-link" href="/contact">
+              {g('faqContact')} →
+            </Link>
           </div>
         </div>
       </div>

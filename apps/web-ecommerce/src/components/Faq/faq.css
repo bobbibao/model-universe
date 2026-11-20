@@ -93,6 +93,37 @@
   white-space: pre-line;
   color: #3e4553;
 }
+/* An answer written as steps ("1) ...; 2) ...") reads as a numbered list (FaqAnswer.tsx). */
+.faq-answer ol {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 0;
+  list-style: none;
+  counter-reset: faq-step;
+  white-space: normal;
+}
+.faq-answer li {
+  position: relative;
+  padding-left: 38px;
+  counter-increment: faq-step;
+}
+.faq-answer li::before {
+  content: counter(faq-step);
+  position: absolute;
+  top: 2px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mu-navy-950);
+  background: var(--mu-fill);
+}
 .faq-item::details-content {
   block-size: 0;
   overflow: clip;
@@ -135,58 +166,77 @@
   overflow: hidden;
 }
 
-/* "Still looking?" beside or under a list. */
+/* "Still looking?" beside or under a list: a navy card, the Zalo button first, then the call, then the contact page. */
 .faq-help {
-  padding: 22px;
+  padding: 24px;
   border-radius: var(--mu-r-card);
-  background: var(--mu-surface);
-  border: 1px solid var(--mu-line);
+  color: #fff;
+  background: var(--mu-navy-950);
 }
 .faq-help strong {
   display: block;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  color: var(--mu-navy-950);
+  letter-spacing: -0.01em;
+  color: #fff;
 }
 .faq-help p {
   margin-top: 6px;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--mu-muted);
+  color: rgb(255 255 255 / 0.74);
 }
 .faq-help-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 .faq-help-actions a {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--mu-line-strong);
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgb(255 255 255 / 0.26);
   border-radius: var(--mu-r-control);
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 500;
-  color: var(--mu-ink);
-  background: var(--mu-surface);
-  transition: border-color var(--mu-hover) var(--faq-ease, ease);
+  color: #fff;
+  background: transparent;
+  transition:
+    border-color var(--mu-hover) var(--faq-ease, ease),
+    background-color var(--mu-hover) var(--faq-ease, ease);
 }
 .faq-help-actions a:hover {
-  border-color: var(--mu-navy-900);
+  border-color: rgb(255 255 255 / 0.62);
+  background: rgb(255 255 255 / 0.06);
 }
 .faq-help-actions a.is-primary {
-  border-color: var(--mu-navy-900);
-  color: #fff;
-  background: var(--mu-navy-900);
+  border-color: #fff;
+  font-weight: 600;
+  color: var(--mu-navy-950);
+  background: #fff;
 }
 .faq-help-actions a.is-primary:hover {
-  background: var(--mu-navy-950);
+  border-color: #e6e9f0;
+  background: #e6e9f0;
+}
+.faq-help-actions a.is-link {
+  min-height: 36px;
+  border: 0;
+  color: rgb(255 255 255 / 0.86);
+  background: none;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.36);
+  text-underline-offset: 4px;
+}
+.faq-help-actions a.is-link:hover {
+  color: #fff;
+  text-decoration-color: currentColor;
 }
 .faq-help-actions a:focus-visible {
-  outline: 2px solid var(--mu-emerald);
+  outline: 2px solid var(--mu-emerald-glow, #34d399);
   outline-offset: 2px;
 }
 @media (max-width: 640px) {
