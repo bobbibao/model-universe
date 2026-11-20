@@ -63,9 +63,10 @@ const ProductGallery = ({ images, alt, isSoldOut }: { images: string[]; alt: str
           {ux('enlargePhoto')}
         </span>
       </button>
-      <div className="studio-gallery-controls">
-        <span aria-live="polite">{experience('photoPosition', { current: index + 1, count: photos.length })}</span>
-        {photos.length > 1 && (
+      {/* One photo needs no "1 / 1" counter and no arrows. */}
+      {photos.length > 1 && (
+        <div className="studio-gallery-controls">
+          <span aria-live="polite">{experience('photoPosition', { current: index + 1, count: photos.length })}</span>
           <div>
             <button type="button" aria-label={experience('previousPhoto')} onClick={() => move(-1)}>
               ←
@@ -74,8 +75,8 @@ const ProductGallery = ({ images, alt, isSoldOut }: { images: string[]; alt: str
               →
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       {photos.length > 1 && (
         <div className="product-gallery-thumbnails">
           {photos.map((image, index) => (

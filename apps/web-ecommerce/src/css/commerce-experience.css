@@ -114,7 +114,12 @@
   align-items: center;
   gap: 12px;
 }
+.product-breadcrumb > a {
+  flex: none;
+  white-space: nowrap;
+}
 .product-breadcrumb > span:last-child {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -202,56 +207,112 @@
   letter-spacing: -0.035em;
   line-height: 1.25;
 }
+/* The purchase card, compact: one row (quantity, add to cart, heart), then the hold as one quiet row. */
 .product-purchase {
-  padding: 20px;
   display: grid;
-  gap: 16px;
+  gap: 12px;
+  padding: 16px;
   background: #fff;
   border: 1px solid var(--commerce-line);
-  border-top: 3px solid #182844;
-  border-radius: 12px;
+  border-radius: 14px;
   scroll-margin-block: 150px;
 }
-.product-purchase-quantity {
+.product-purchase-actions {
   display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.product-quantity {
+  display: flex;
+  flex: none;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  height: 52px;
+  overflow: hidden;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: 10px;
+  background: #fff;
 }
-.product-purchase-quantity > span {
-  margin: 0;
-  font-size: 13px;
-}
-.product-purchase-quantity button {
-  min-height: 44px;
-  min-width: 44px;
+.product-quantity button {
+  width: 40px;
+  height: 100%;
+  font-size: 18px;
   color: var(--mu-ink);
+  transition: background-color 0.15s;
 }
-.product-purchase-actions > button {
+.product-quantity button:hover:enabled {
+  background: var(--mu-fill);
+}
+.product-quantity button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.product-quantity output {
+  min-width: 28px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mu-shell .product-add-button {
+  flex: 1;
+  min-width: 0;
   min-height: 52px;
-  border-radius: 8px;
-  font-size: 14px;
-}
-.product-purchase-actions > button:first-child {
-  background: #121c2e;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
   color: #fff;
+  background: var(--mu-navy-900);
+  transition: background-color 0.15s;
 }
-.product-purchase-actions > button:first-child:hover:enabled {
-  background: #182844;
+.mu-shell .product-add-button:hover {
+  background: var(--mu-navy-950);
 }
-.product-purchase-actions > button:last-child {
-  background: #f4f4f2;
-  color: var(--mu-navy-800);
-  padding-inline: 18px;
+.mu-shell .product-save-button {
+  --heart: var(--mu-ink);
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  min-height: 52px;
+  border: 1px solid var(--mu-line-strong);
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+.product-save-button svg {
+  fill: transparent;
+  stroke: var(--heart);
+  transition:
+    fill 0.15s,
+    stroke 0.15s;
+}
+.mu-shell .product-save-button:hover:enabled,
+.mu-shell .product-save-button[aria-pressed='true'] {
+  --heart: var(--p-sale, #c2331b);
+}
+.product-save-button[aria-pressed='true'] svg {
+  fill: var(--heart);
+}
+.mu-shell .product-save-button:disabled {
+  cursor: progress;
+}
+.product-quantity button:focus-visible,
+.mu-shell .product-add-button:focus-visible,
+.mu-shell .product-save-button:focus-visible {
+  outline: 2px solid var(--mu-emerald);
+  outline-offset: 2px;
 }
 .product-purchase-feedback {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  min-height: 20px;
   color: #5a6478;
-  font-size: 12px;
+  font-size: 13px;
+}
+.product-purchase-feedback:empty {
+  display: none;
 }
 .product-purchase-feedback a {
   color: var(--mu-accent-ink);
@@ -755,9 +816,6 @@
   .product-detail-media {
     position: static;
   }
-  .product-purchase-actions {
-    flex-direction: column;
-  }
   .product-dock {
     bottom: 84px;
   }
@@ -770,13 +828,22 @@
     margin-top: 8px;
   }
   .product-purchase {
-    padding: 16px;
+    padding: 14px;
   }
-  .product-purchase-actions {
-    flex-direction: row;
+  .product-quantity button {
+    width: 32px;
   }
-  .product-purchase-actions > button {
-    padding-inline: 16px;
+  .product-quantity output {
+    min-width: 24px;
+  }
+  .mu-shell .product-add-button {
+    padding: 0 10px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .mu-shell .product-save-button,
+  .mu-shell .product-purchase-actions.is-restock > .product-save-button {
+    width: 48px;
   }
   .product-story {
     grid-template-columns: minmax(0, 1fr);
@@ -867,15 +934,8 @@
   margin: 0;
   line-height: 1.6;
 }
-@media (max-width: 1199px) {
-  .product-purchase-actions.is-restock {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .mu-shell .product-purchase-actions.is-restock > button {
-    grid-column: 1;
-    grid-row: 2;
-    width: 100%;
-  }
+.mu-shell .product-purchase-actions.is-restock > .product-save-button {
+  width: 52px;
 }
 /* Stable content rows keep prices and actions aligned without tall promo gaps. */
 .mu-shell .product-tile {
@@ -1300,10 +1360,18 @@
   }
 }
 @media (max-width: 480px) {
+  .product-service-strip {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: 2px;
+  }
   .product-service-strip li {
-    flex-direction: column;
-    gap: 6px;
-    padding-inline: 8px;
+    gap: 10px;
+    padding: 10px 0;
+    font-size: 12px;
+  }
+  .product-service-strip li + li {
+    border-left: 0;
+    border-top: 1px solid var(--commerce-line, #e5e4dc);
   }
 }
 
@@ -1786,65 +1854,85 @@
 
 /* Keep hold deposits next to the purchase action, with an explicit tracking route. */
 .product-hold-entry {
-  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--commerce-line);
 }
 .mu-shell .product-hold-button {
   display: flex;
+  flex: 1;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 48px;
-  padding: 10px 16px;
-  border: 1px solid #b2b9c8;
-  border-radius: 8px;
-  background: #f3f3f0;
-  color: var(--mu-navy-800);
-  font-size: 14px;
-  font-weight: 600;
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-}
-.mu-shell .product-hold-button:hover:enabled {
-  background: #ebebe5;
-  border-color: #182844;
+  gap: 12px;
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--mu-navy-900);
+  text-align: left;
 }
 .product-hold-button > span {
   flex: 1;
-  text-align: left;
+  min-width: 0;
 }
-.mu-shell .product-hold-button:disabled {
-  background: #f5f5f3;
-  color: #677289;
-  border-color: #e3e3db;
-  cursor: not-allowed;
-}
-.product-hold-caption {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 4px 12px;
-  margin-top: 8px;
-  font-size: 11px;
-  line-height: 1.6;
-}
-.product-hold-caption p {
-  color: #646f84;
-}
-.product-hold-caption a {
-  color: var(--mu-accent-ink);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  min-height: 32px;
+.product-hold-button strong {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.product-hold-button strong svg {
+  transition: transform 0.15s;
+}
+.product-hold-button small {
+  display: block;
+  margin-top: 1px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mu-muted);
+}
+.mu-shell .product-hold-button:hover:enabled strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mu-shell .product-hold-button:hover:enabled strong svg {
+  transform: translateX(3px);
+}
+.mu-shell .product-hold-button:disabled {
+  color: #677289;
+  cursor: not-allowed;
+}
+.product-hold-manage {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mu-accent-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--mu-line-strong);
+  text-underline-offset: 3px;
+}
+.product-hold-manage:hover {
+  text-decoration-color: currentColor;
 }
 .product-hold-button:focus-visible,
-.product-hold-caption a:focus-visible {
-  outline: 2px solid #182844;
+.product-hold-manage:focus-visible {
+  outline: 2px solid var(--mu-emerald);
   outline-offset: 3px;
+}
+/* On a phone "My holds" goes under the hold's words (after the rules above, which set flex: 1). */
+@media (max-width: 767px) {
+  .product-hold-entry {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+  .mu-shell .product-hold-button {
+    flex-basis: 100%;
+  }
+  .product-hold-manage {
+    margin-left: 31px;
+  }
 }
 .hold-discovery-panel {
   display: flex;
@@ -1884,11 +1972,9 @@
   border-color: #424958;
   color: #a9afbb;
 }
-.dark .product-hold-caption p,
 .dark .hold-discovery-panel p {
   color: #b4bbc9;
 }
-.dark .product-hold-caption a,
 .dark .hold-discovery-panel strong {
   color: #e0e0d7;
 }

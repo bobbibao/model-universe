@@ -332,21 +332,21 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 </div>
               </div>
             )}
-            {inStock && (
-              <div className="product-purchase-quantity">
-                <span className="mb-2 block font-medium">{t('quantity')}</span>
-                <div className="flex w-40 items-center rounded border-[1.5px] border-stroke dark:border-store-card">
+            {/* One row: quantity, add to cart, and the heart that saves the model. */}
+            <div className={`product-purchase-actions${inStock ? '' : ' is-restock'}`}>
+              {inStock && (
+                <div className="product-quantity" role="group" aria-label={t('quantity')}>
                   <button
-                    className="px-4 py-2 text-lg disabled:opacity-40"
+                    type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
                     aria-label={t('decrease')}
                   >
                     −
                   </button>
-                  <span className="flex-1 text-center font-semibold">{quantity}</span>
+                  <output aria-live="polite">{quantity}</output>
                   <button
-                    className="px-4 py-2 text-lg disabled:opacity-40"
+                    type="button"
                     onClick={() => setQuantity(Math.min(unit.stock, quantity + 1))}
                     disabled={quantity >= unit.stock}
                     aria-label={t('increase')}
@@ -354,28 +354,26 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                     +
                   </button>
                 </div>
-              </div>
-            )}
-
-            <div className={`product-purchase-actions flex flex-wrap gap-3${inStock ? '' : ' is-restock'}`}>
+              )}
               {inStock ? (
-                <button
-                  disabled={!inStock}
-                  onClick={addToCart}
-                  className="flex-1 rounded-md bg-brand px-6 py-3 font-semibold text-brand-ink hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-                >
+                <button type="button" onClick={addToCart} className="product-add-button">
                   {t('addToCart')}
                 </button>
               ) : (
                 <RestockAlert key={unit.id} productId={unit.id} className="product-detail-alert-btn" />
               )}
               <button
+                type="button"
                 onClick={toggleWishlist}
                 aria-pressed={saved}
+                aria-label={ux(saved ? 'unsaveProduct' : 'saveProduct', { name: product.name })}
+                title={ux(saved ? 'unsaveProduct' : 'saveProduct', { name: product.name })}
                 disabled={!!unit && !!wishlist?.busy(unit.id)}
-                className="rounded-md bg-gray px-6 py-3 font-semibold text-black hover:opacity-90 disabled:opacity-60 dark:bg-store-card dark:text-store-text"
+                className="product-save-button"
               >
-                {saved ? t('unsave') : t('save')}
+                <svg width="20" height="20" viewBox="0 0 24 24" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 20.5s-7.5-4.6-9.3-9.4C1.6 8 3.5 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.5 0 5.4 3.5 4.3 6.6-1.8 4.8-9.3 9.4-9.3 9.4Z" />
+                </svg>
               </button>
             </div>
             {!product.partnerId && (
@@ -394,13 +392,17 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                   }}
                 >
                   <PromoIcon name="calendar" size={19} />
-                  <span>{t('reserve')}</span>
-                  <PromoIcon name="arrow" size={17} />
+                  <span>
+                    <strong>
+                      {t('reserve')}
+                      <PromoIcon name="arrow" size={15} />
+                    </strong>
+                    <small id="product-hold-hint">{t(inStock ? 'reserveHint' : 'reserveUnavailable')}</small>
+                  </span>
                 </button>
-                <div className="product-hold-caption">
-                  <p id="product-hold-hint">{t(inStock ? 'reserveHint' : 'reserveUnavailable')}</p>
-                  <Link href="/reservations">{t('manageHolds')} →</Link>
-                </div>
+                <Link className="product-hold-manage" href="/reservations">
+                  {t('manageHolds')}
+                </Link>
               </div>
             )}
             {!inStock && (
@@ -415,14 +417,12 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
             )}
             {inStock && (
               <div className="product-purchase-feedback" role="status" aria-live="polite">
-                {addedUnit === unit.id ? (
+                {addedUnit === unit.id && (
                   <>
                     <AdminIcon name="check" size={18} />
                     <span>{ux('addedToCart')}</span>
                     <Link href="/cart">{ux('viewCart')} →</Link>
                   </>
-                ) : (
-                  <span>{ux('checkoutHint')}</span>
                 )}
               </div>
             )}
@@ -567,7 +567,7 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 block: 'center',
               });
               const target = purchaseRef.current?.querySelector<HTMLElement>(
-                '.product-purchase-actions button, .product-purchase-actions .restock-action a',
+                '.product-add-button, .product-purchase-actions .restock-action a',
               );
               (target && !target.matches(':disabled') ? target : purchaseRef.current)?.focus({ preventScroll: true });
             }}
