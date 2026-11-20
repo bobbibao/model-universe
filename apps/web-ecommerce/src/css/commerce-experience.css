@@ -831,11 +831,30 @@
     padding: 14px;
   }
   .product-quantity button {
-    width: 36px;
+    width: 32px;
+  }
+  .product-quantity output {
+    min-width: 24px;
   }
   .mu-shell .product-add-button {
-    padding: 0 12px;
+    padding: 0 10px;
     font-size: 14px;
+    white-space: nowrap;
+  }
+  .mu-shell .product-save-button,
+  .mu-shell .product-purchase-actions.is-restock > .product-save-button {
+    width: 48px;
+  }
+  /* "My holds" goes under the hold's words. */
+  .product-hold-entry {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+  .mu-shell .product-hold-button {
+    flex-basis: 100%;
+  }
+  .product-hold-manage {
+    margin-left: 31px;
   }
   .product-story {
     grid-template-columns: minmax(0, 1fr);
@@ -1869,9 +1888,14 @@
   min-width: 0;
 }
 .product-hold-button strong {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
   font-weight: 600;
+}
+.product-hold-button strong svg {
+  transition: transform 0.15s;
 }
 .product-hold-button small {
   display: block;
@@ -1880,17 +1904,11 @@
   line-height: 1.45;
   color: var(--mu-muted);
 }
-.product-hold-button > svg:last-child {
-  flex: none;
-  color: var(--mu-muted);
-  transition: transform 0.15s;
-}
 .mu-shell .product-hold-button:hover:enabled strong {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.mu-shell .product-hold-button:hover:enabled > svg:last-child {
-  color: var(--mu-ink);
+.mu-shell .product-hold-button:hover:enabled strong svg {
   transform: translateX(3px);
 }
 .mu-shell .product-hold-button:disabled {

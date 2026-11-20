@@ -393,10 +393,12 @@ const ProductDetail = ({ initialProduct }: { initialProduct?: ProductDetailType 
                 >
                   <PromoIcon name="calendar" size={19} />
                   <span>
-                    <strong>{t('reserve')}</strong>
+                    <strong>
+                      {t('reserve')}
+                      <PromoIcon name="arrow" size={15} />
+                    </strong>
                     <small id="product-hold-hint">{t(inStock ? 'reserveHint' : 'reserveUnavailable')}</small>
                   </span>
-                  <PromoIcon name="arrow" size={17} />
                 </button>
                 <Link className="product-hold-manage" href="/reservations">
                   {t('manageHolds')}
